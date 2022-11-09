@@ -16,6 +16,7 @@ import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
+import sp.it.util.functional.net
 
 class AppSearch: GlobalSubConfigDelegator(conf.name) {
    val sources by cList<Source>().def(conf.sources).noPersist().butElement(UiConverter<Source> { it.nameUi })
@@ -56,13 +57,22 @@ class AppSearch: GlobalSubConfigDelegator(conf.name) {
    }
 
    class SourceDef<T>(val nameUi: String, val source: () -> Sequence<T>) {
-      infix fun by(searchText: (T) -> String) = SourceDef2(nameUi, source, searchText)
+      infix fun by(searchText: (T) -> String) = byAll(searchText)
+      infix fun byAll(searchText: (T) -> String) = SourceDef2(nameUi, source, searchText)
+      infix fun byAny(searchText: (T) -> String) = SourceDefAny(nameUi, source, searchText)
    }
 
    class SourceDef2<T>(val nameUi: String, val source: () -> Sequence<T>, val searchText: (T) -> String) {
       infix fun toSource(entryBuilder: (T) -> Entry) = Source.complete(nameUi) { phrases ->
          source()
-            .filter { phrases.all { phrase -> searchText(it).contains(phrase, true) } }
+            .filter { searchText(it).net { phrases.all { phrase -> it.contains(phrase, true) } } }
+            .map(entryBuilder)
+      }
+   }
+   class SourceDefAny<T>(val nameUi: String, val source: () -> Sequence<T>, val searchText: (T) -> String) {
+      infix fun toSource(entryBuilder: (T) -> Entry) = Source.complete(nameUi) { phrases ->
+         source()
+            .filter { searchText(it).net { phrases.any { phrase -> it.contains(phrase, true) } } }
             .map(entryBuilder)
       }
    }

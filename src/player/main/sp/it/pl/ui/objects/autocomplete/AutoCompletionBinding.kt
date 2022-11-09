@@ -103,9 +103,9 @@ abstract class AutoCompletionBinding<T> {
       p.onSuggestion += {
          try {
             ignoreInputChanges = true
-            runLater { acceptSuggestion(it) }
+            runLater { Ctx(it.first).acceptSuggestion(it.second) }
             if (hideOnSuggestion.value) hideAutoCompletePopup()
-            onAutoCompleted(it)
+            onAutoCompleted(it.second)
          } finally {
             ignoreInputChanges = false
          }
@@ -121,7 +121,7 @@ abstract class AutoCompletionBinding<T> {
    }
 
    /** Consumes user selected suggestion. Normally when user clicks or presses ENTER key on given suggestion. */
-   protected abstract fun acceptSuggestion(suggestion: T)
+   protected abstract fun Ctx.acceptSuggestion(suggestion: T)
 
    protected fun showAutoCompletePopup() {
       popup.value.show(completionTarget)
@@ -139,5 +139,7 @@ abstract class AutoCompletionBinding<T> {
             list.selectionModel.select(0)
       }
    }
+
+   data class Ctx(val term: String)
 
 }

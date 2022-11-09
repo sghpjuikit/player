@@ -77,7 +77,7 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
 
    override fun dispose() = disposer()
 
-   override fun acceptSuggestion(suggestion: T) {
+   override fun Ctx.acceptSuggestion(suggestion: T) {
       val newText = converter(suggestion)
       completionTargetTyped.text = newText
       completionTargetTyped.positionCaret(newText.length)

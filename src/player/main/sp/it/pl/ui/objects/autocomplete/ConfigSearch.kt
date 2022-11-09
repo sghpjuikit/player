@@ -171,13 +171,14 @@ class ConfigSearch: AutoCompletion<Entry> {
             }
 
             override fun buildListCell(listView: ListView<Entry>) = EntryListCell()
+            override fun chooseSuggestionInput(): String = textField.text
          }
       }
    }
 
-   override fun acceptSuggestion(suggestion: Entry) {
-      suggestion.run()
-      history.add(suggestion)
+   override fun Ctx.acceptSuggestion(suggestion: Entry) {
+      suggestion.apply { this@acceptSuggestion.run() }
+      history.add(term)
    }
 
    class History {
@@ -196,37 +197,37 @@ class ConfigSearch: AutoCompletion<Entry> {
          search.completionTargetTyped.text = history[historyIndex]
       }
 
-      fun add(suggestion: Entry) {
-         val curr = suggestion.name
-         val isDiff = history.isEmpty() || !history.last().equals(curr, ignoreCase = true)
+      fun add(term: String) {
+         val isDiff = history.isEmpty() || !history.last().equals(term, ignoreCase = true)
          if (isDiff) {
-            history += curr
+            history += term
             historyIndex = history.size - 1
          }
       }
    }
 
    @Suppress("NonAsciiCharacters", "ClassName")
-   interface Entry: Runnable {
+   interface Entry {
       val name: String
       val icon: GlyphIcons?
       val info: String get() = name
       val graphics: Node? get() = null
+      fun Ctx.run()
 
       class ΛEntry(
          override val name: String,
          override val icon: GlyphIcons?,
          val infoΛ: () -> String,
          override val graphics: Node? = null,
-         private val runΛ: () -> Unit
+         private val runΛ: Ctx.() -> Unit
       ): Entry {
          override val info get() = infoΛ()
-         override fun run() = runΛ()
+         override fun Ctx.run() = runΛ()
       }
 
-      class SimpleEntry constructor(override val name: String, override val icon: GlyphIcons?, val infoΛ: () -> String, private val runΛ: () -> Unit): Entry {
+      class SimpleEntry constructor(override val name: String, override val icon: GlyphIcons?, val infoΛ: () -> String, private val runΛ: Ctx.() -> Unit): Entry {
          override val info get() = infoΛ()
-         override fun run() = runΛ()
+         override fun Ctx.run() = runΛ()
       }
 
       class ConfigEntry constructor(private val config: Config<*>): Entry {
@@ -247,7 +248,7 @@ class ConfigSearch: AutoCompletion<Entry> {
          }
 
          @Suppress("UNCHECKED_CAST")
-         override fun run() {
+         override fun Ctx.run() {
             val value = config.value
             when {
                config is Runnable -> config.run()
@@ -259,7 +260,7 @@ class ConfigSearch: AutoCompletion<Entry> {
 
       companion object {
 
-         fun of(name: String, icon: GlyphIcons?, infoΛ: () -> String = { "" }, graphics: Node? = null, run: () -> Unit) = ΛEntry(name, icon, infoΛ, graphics, run)
+         fun of(name: String, icon: GlyphIcons?, infoΛ: () -> String = { "" }, graphics: Node? = null, run: Ctx.() -> Unit) = ΛEntry(name, icon, infoΛ, graphics, run)
 
          fun of(config: Config<*>) = ConfigEntry(config)
 

@@ -47,7 +47,7 @@ open class AutoCompletePopup<T>: PopupControl() {
    /** The maximum number of rows to be visible in the popup. Affects the height of the popup. Default 10. */
    val visibleRowCount = v(10)
    /** Suggestion handlers */
-   val onSuggestion = Handler1<T>()
+   val onSuggestion = Handler1<Pair<String, T>>()
 
    init {
       isAutoFix = true

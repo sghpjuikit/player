@@ -9,10 +9,7 @@ import java.net.URLConnection
 import java.util.Locale
 import javafx.application.Application
 import javafx.application.Platform
-import javafx.geometry.Pos.CENTER
-import javafx.scene.control.TextField
 import javafx.scene.image.Image
-import javafx.scene.text.TextAlignment.RIGHT
 import javafx.stage.FileChooser.ExtensionFilter
 import javafx.stage.Stage
 import kotlin.system.exitProcess
@@ -20,7 +17,6 @@ import kotlin.text.Charsets.UTF_8
 import mu.KLogging
 import sp.it.pl.audio.PlayerManager
 import sp.it.pl.audio.playlist.PlaylistManager
-import sp.it.pl.conf.Command
 import sp.it.pl.core.CoreConfiguration
 import sp.it.pl.core.CoreConverter
 import sp.it.pl.core.CoreEnv
@@ -33,53 +29,19 @@ import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreOshi
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerJson
-import sp.it.pl.layout.ComponentLoaderProcess
-import sp.it.pl.layout.ComponentLoaderProcess.NORMAL
-import sp.it.pl.layout.ComponentLoaderStrategy
-import sp.it.pl.layout.ComponentLoaderStrategy.DOCK
-import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetManager
-import sp.it.pl.layout.loadIn
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
-import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.main.Events.ActionEvent
 import sp.it.pl.plugin.PluginManager
-import sp.it.pl.plugin.impl.AppSearchPlugin
-import sp.it.pl.plugin.impl.DirSearchPlugin
-import sp.it.pl.plugin.impl.LibraryPlugin
-import sp.it.pl.plugin.impl.Notifier
-import sp.it.pl.plugin.impl.PlaycountIncrementer
-import sp.it.pl.plugin.impl.ScreenRotator
 import sp.it.pl.plugin.impl.SongDb
-import sp.it.pl.plugin.impl.StartScreen
-import sp.it.pl.plugin.impl.Tray
-import sp.it.pl.plugin.impl.Waifu2k
-import sp.it.pl.plugin.impl.WallpaperChanger
-import sp.it.pl.ui.objects.SpitComboBox
-import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
-import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry.SimpleEntry
 import sp.it.pl.ui.objects.window.stage.WindowManager
-import sp.it.pl.ui.pane.ActContext
-import sp.it.pl.ui.pane.ActionData
-import sp.it.util.access.focused
 import sp.it.util.access.v
-import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
 import sp.it.util.async.runLater
-import sp.it.util.collections.setTo
-import sp.it.util.conf.ConfList
-import sp.it.util.conf.Config
-import sp.it.util.conf.ConfigDef
-import sp.it.util.conf.Constraint
-import sp.it.util.conf.Constraint.CollectionSize
-import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalConfigDelegator
-import sp.it.util.conf.ListConfig
 import sp.it.util.conf.MainConfiguration
-import sp.it.util.conf.ValueConfig
-import sp.it.util.conf.but
 import sp.it.util.conf.c
 import sp.it.util.conf.collectActionsOf
 import sp.it.util.conf.cr
@@ -98,13 +60,9 @@ import sp.it.util.file.div
 import sp.it.util.file.type.MimeTypes
 import sp.it.util.functional.Try
 import sp.it.util.functional.apply_
-import sp.it.util.functional.asIs
-import sp.it.util.functional.net
 import sp.it.util.functional.runTry
-import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
-import sp.it.util.reactive.sync1If
 import sp.it.util.system.Os.WINDOWS
 import sp.it.util.system.SystemOutListener
 import sp.it.util.system.chooseFile
@@ -113,15 +71,6 @@ import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
-import sp.it.util.type.VType
-import sp.it.util.type.isObject
-import sp.it.util.type.raw
-import sp.it.util.type.typeNothingNullable
-import sp.it.util.ui.hBox
-import sp.it.util.ui.label
-import sp.it.util.ui.lay
-import sp.it.util.ui.lookupSiblingUp
-import sp.it.util.ui.textField
 import sp.it.util.units.uri
 
 lateinit var APP: App
@@ -350,7 +299,7 @@ class App: Application(), GlobalConfigDelegator {
          functors.init()
 
          // init app stuff
-         search.initForApp()
+         search.initApp()
          appCommunicator.initApp()
 
          // start parts that can be started from non application fx thread
@@ -485,169 +434,6 @@ class App: Application(), GlobalConfigDelegator {
 
    /** @return largest (512x512) image of the icon of the application */
    fun getIcon(): Image = Image(File("icon512.png").toURI().toString())
-
-   private fun PluginManager.initForApp() {
-      installPlugin<Tray>()
-      installPlugin<Notifier>()
-      installPlugin<PlaycountIncrementer>()
-      installPlugin<LibraryPlugin>()
-      installPlugin<AppSearchPlugin>()
-      installPlugin<DirSearchPlugin>()
-      installPlugin<ScreenRotator>()
-      installPlugin<Waifu2k>()
-      installPlugin<WallpaperChanger>()
-      installPlugin<StartScreen>()
-   }
-
-   private fun AppSearch.initForApp() {
-      sources += Source("Math number conversions") {
-         sequenceOf(2 to "bin", 8 to "oct", 10 to "dec", 16 to "hex")
-      } byAny { "bin oct dec hex" } toSource {
-         Entry.of(
-            name = "Math: convert to ${it.second}",
-            icon = IconFA.ARROW_RIGHT,
-         ) {
-            val v = term.trim()
-            val radixes = mapOf("bin" to 2, "oct" to 8, "dec" to 10, "hex" to 16)
-            val radixFromS = v.substringBefore("to", "dec").dropWhile { it.isDigit() }.trim().lowercase()
-            val radixFrom = radixes[radixFromS] ?: 10
-            val radixToS = v.substringAfter(" ").trim().lowercase()
-            val radixTo = radixes[radixToS] ?: 10
-            val nFrom = v.takeWhile { it.isDigit() }
-            val nTo = nFrom.toBigInteger(radixFrom).toString(radixTo)
-            showFloating("Convert ${it.second}") {
-               hBox(5.emScaled, CENTER) {
-                  lay += label(radixFromS)
-                  lay += textField(nFrom).apply { isFocusTraversable = false }
-                  lay += label("=")
-                  lay += label(radixToS)
-                  lay += textField(nTo).apply { focused.sync1If({ it }) { lookupSiblingUp<TextField>(3).isFocusTraversable = true } }
-               }
-            }
-         }
-      }
-      sources += Source("Settings") {
-         configuration.getConfigs().flatMap {
-            it.group.traverse { it.substringBeforeLast(".", "").takeIf { it.isNotEmpty() } }.asIterable()
-         }.toSet().asSequence()
-      } by { it.substringAfterLast(".") } toSource {
-         Entry.of(
-            name = "Open settings: ${it.substringAfterLast(".")}",
-            icon = IconFA.COG,
-            graphics = label("Settings > " + it.replace(".", " > ")) {
-               styleClass += Css.DESCRIPTION
-               textAlignment = RIGHT
-            }
-         ) {
-            actions.app.openSettings(it)
-         }
-      }
-      sources += Source("Actions") {
-         configuration.getConfigs().asSequence().filterIsInstance<Action>().filter { it.isEditableByUserRightNow() }
-      } by { it.name + it.keys } toSource {
-         Entry.of(it)
-      }
-      sources += Source("Actions (parametric)") {
-         ActionsPaneGenericActions.actionsAll.values.asSequence().flatten()
-      } by { it.name } toSource {
-         Entry.of(
-            name = it.nameWithDots,
-            icon = it.icon,
-            graphics = null
-         ) {
-
-            fun <T1, TN> ActionData<T1,TN>.invokeWithForm() {
-               val context = ActContext(null, null, null, null)
-               when {
-                  type.raw.isObject && !type.isNullable -> invokeFutAndProcess(context, type.raw.objectInstance.asIs())
-                  type.raw == Unit::class -> invokeFutAndProcess(context, Unit.asIs())
-                  type == typeNothingNullable() -> invokeFutAndProcess(context, null.asIs())
-                  else -> {
-                     val receiver = when {
-                        type1!=typeN -> {
-                           val t1: VType<T1> = when (type1.raw) {
-                              Any::class -> VType(String::class.java, type1.isNullable).asIs()  // Any::class does not have an editor, but String editor is still plenty useful
-                              else -> type1
-                           }
-                           val confList = ConfList(t1, null, { Config.forValue(t1, "Item", it).constrain { but(buildConstraint1()); but(Constraint.ObjectNonNull) } })
-                           ListConfig("Input", ConfigDef("Input", "Input", "", EditMode.USER), confList, "", setOf(), setOf()).constrain {
-                              addConstraint(buildConstraintN().asIs())
-                              addConstraint(CollectionSize(1, null))
-                              but()
-                           }
-                        }
-                        else -> {
-                           val tn: VType<TN> = when (type.raw) {
-                              Any::class -> VType(String::class.java, type.isNullable).asIs()  // Any::class does not have an editor, but String editor is still plenty useful
-                              else -> type
-                           }
-                           ValueConfig(tn, "Input", "Input", null, "", description, EditMode.USER).constrain { but(buildConstraintN()) }
-                        }
-                     }
-
-                     receiver.configure(it.nameWithDots) { invokeFutAndProcess(context, it.value.asIs()) }
-                  }
-               }
-            }
-            it.invokeWithForm()
-         }
-      }
-      sources += Source("Commands") {
-         configuration.getConfigs().asSequence().filter { it.type.type.raw==Command::class }
-            .mapNotNull { c -> c.value?.asIs<Command>()?.net { c to it } }
-      } by { (config, _) -> config.nameUi } toSource { (config, command) ->
-         Entry.of(
-            name = "Run command: ${config.nameUi} = ${command.toUi()}",
-            icon = IconMA.PLAY_ARROW,
-            graphics = null
-         ) {
-            command()
-         }
-      }
-      sources += Source("Skins") {
-         ui.skins.asSequence()
-      } by { "Open skin: ${it.name}" } toSource {
-         Entry.of(
-            name = "Open skin: ${it.name}",
-            icon = IconMA.BRUSH,
-            graphics = null
-         ) {
-            ui.skin.value = it.name
-         }
-      }
-      sources += Source("Components - open") {
-         widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }
-      } by { "Open widget ${it.name}" } toSource { c ->
-         val id = if (c is WidgetFactory<*>) c.id else c.name
-         val strategyCB = SpitComboBox<ComponentLoaderStrategy>({ it.toUi() }).apply {
-            items setTo ComponentLoaderStrategy.values()
-            value = widgetManager.widgets.componentLastOpenStrategiesMap[id] ?: DOCK
-         }
-         val processCB = SpitComboBox<ComponentLoaderProcess>({ it.toUi() }).apply {
-            items setTo ComponentLoaderProcess.values()
-            value = NORMAL
-         }
-         Entry.of(
-            name = "Open widget ${c.name}",
-            icon = IconFA.TH_LARGE,
-            infoΛ = { "Open widget ${c.name}" },
-            graphics = hBox { lay += strategyCB; lay += processCB }
-         ) {
-            c.loadIn(strategyCB.value, processCB.value)
-         }
-      }
-      sources += Source("Components - recompile") {
-         widgetManager.factories.getFactories().filter { it.isUsableByUser() }
-      } by { "Recompile widget ${it.name}" } toSource { c ->
-         SimpleEntry(
-            name = "Recompile widget ${c.name}",
-            icon = IconFA.TH_LARGE,
-            infoΛ = { "Recompile widget ${c.name} and reload all of its instances upon success" }
-         ) {
-            widgetManager.factories.recompile(c)
-         }
-      }
-   }
 
    enum class Rank {
       MASTER, SLAVE

@@ -33,8 +33,8 @@ class PcControls: StackPane() {
       orientation sync { pseudoClassChanged("vertical", it==VERTICAL) }
 
       val icons = arrayOf(
-         Icon(IconWH.MOON_27).onClickDo { Windows.suspend(false, false, true).ifErrorDefault() }.withText(LEFT, "Sleep"),
-         Icon(IconWH.MOON_THIRD_QUARTER).onClickDo { Windows.suspend(true, false, true).ifErrorDefault() }.withText(LEFT, "Hibernate"),
+         Icon(IconWH.MOON_27).onClickDo { Windows.sleep().ifErrorDefault() }.withText(LEFT, "Sleep"),
+         Icon(IconWH.MOON_THIRD_QUARTER).onClickDo { Windows.hibernate().ifErrorDefault() }.withText(LEFT, "Hibernate"),
          Icon(IconWH.MOON_14).onClickDo { Windows.shutdown().ifErrorDefault() }.withText(LEFT, "Shutdown"),
          Icon(IconWH.MOON_0).onClickDo { Windows.restart().ifErrorDefault() }.withText(LEFT, "Restart"),
          Icon(IconFA.LOCK).onClickDo { Windows.lock().ifErrorDefault() }.withText(LEFT, "Lock"),

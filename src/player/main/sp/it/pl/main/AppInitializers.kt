@@ -21,6 +21,17 @@ import sp.it.pl.layout.controller.io.Input
 import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.layout.feature.Feature
 import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginManager
+import sp.it.pl.plugin.impl.AppSearchPlugin
+import sp.it.pl.plugin.impl.DirSearchPlugin
+import sp.it.pl.plugin.impl.LibraryPlugin
+import sp.it.pl.plugin.impl.Notifier
+import sp.it.pl.plugin.impl.PlaycountIncrementer
+import sp.it.pl.plugin.impl.ScreenRotator
+import sp.it.pl.plugin.impl.StartScreen
+import sp.it.pl.plugin.impl.Tray
+import sp.it.pl.plugin.impl.Waifu2k
+import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.ui.pane.ActionPane
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.ShortcutPane
@@ -257,4 +268,17 @@ fun ShortcutPane.initApp() = apply {
    onHidden += {
       APP.actionStream("Shortcuts")
    }
+}
+
+fun PluginManager.initForApp() {
+   installPlugin<Tray>()
+   installPlugin<Notifier>()
+   installPlugin<PlaycountIncrementer>()
+   installPlugin<LibraryPlugin>()
+   installPlugin<AppSearchPlugin>()
+   installPlugin<DirSearchPlugin>()
+   installPlugin<ScreenRotator>()
+   installPlugin<Waifu2k>()
+   installPlugin<WallpaperChanger>()
+   installPlugin<StartScreen>()
 }

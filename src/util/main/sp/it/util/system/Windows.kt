@@ -7,6 +7,10 @@ import sp.it.util.functional.runTry
 
 object Windows {
 
+   fun sleep() = suspend(false, false, true)
+
+   fun hibernate() = suspend(true, false, true)
+
    fun suspend(hibernate: Boolean, forceCritical: Boolean, disableWakeEvent: Boolean): Try<Unit, Throwable> = runTry {
       JavaLegacy.WindowsSuspend.SetSuspendState(hibernate, forceCritical, disableWakeEvent)
    }

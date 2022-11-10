@@ -58,35 +58,43 @@ import sp.it.util.ui.listView
 open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
    private val control: AutoCompletePopup<T>
    private val list: ListView<T>
-   private val onDispose = Disposer()
+   private val disposer = Disposer()
 
    constructor(skinnable: AutoCompletePopup<T>, activationClickCount: Int = 1) {
-      control = skinnable
-      list = listView {
-         items = control.suggestions
-
+      this.control = skinnable
+      this.list = listView {
          cellFactory = Callback { buildListCell(it) }
-         control.visibleRowCount zip items.sizes() zip fixedCellSizeProperty() sync { (counts, cellSize) ->
-            val (rowCount, itemCount) = counts
-            prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
-         } on onDispose
-
          onEventDown(MOUSE_CLICKED) { if (it.button==PRIMARY && it.clickCount==activationClickCount) { chooseSuggestion(); it.consume() } }
+         isFocusTraversable = false
       }
-
-      val listEventKeys = setOf(UP, KP_UP, PAGE_UP, DOWN, KP_DOWN, PAGE_DOWN)
-      control.onEventDown(KEY_PRESSED) { if (it.code==ENTER) { chooseSuggestion(); it.consume() } }
-      control.onEventDown(KEY_PRESSED) { if (it.code==ESCAPE && control.isHideOnEscape) { control.hide(); it.consume() } }
-      control.onEventDown(KEY_PRESSED) { if (it.code in listEventKeys) { list.fireEvent(it); it.consume() } }
-      list.isFocusTraversable = false
    }
 
    override fun getNode() = list
 
    override fun getSkinnable() = control
 
+   override fun install() {
+      super.install()
+
+      list.apply {
+         items = control.suggestions
+
+         cellFactory = Callback { buildListCell(it) }
+         control.visibleRowCount zip items.sizes() zip fixedCellSizeProperty() sync { (counts, cellSize) ->
+            val (rowCount, itemCount) = counts
+            prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
+         } on disposer
+
+      }
+
+      val listEventKeys = setOf(UP, KP_UP, PAGE_UP, DOWN, KP_DOWN, PAGE_DOWN)
+      control.onEventDown(KEY_PRESSED) { if (it.code==ENTER) { chooseSuggestion(); it.consume() } } on disposer
+      control.onEventDown(KEY_PRESSED) { if (it.code==ESCAPE && control.isHideOnEscape) { control.hide(); it.consume() } } on disposer
+      control.onEventDown(KEY_PRESSED) { if (it.code in listEventKeys) { list.fireEvent(it); it.consume() } } on disposer
+   }
+
    override fun dispose() {
-      onDispose()
+      disposer()
       list.items = null
       nullify(::list)
       nullify(::control)
@@ -100,4 +108,5 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
    }
 
    protected open fun buildListCell(listView: ListView<T>): ListCell<T> = TextFieldListCell.forListView(control.converter)(listView)
+
 }

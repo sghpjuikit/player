@@ -15,10 +15,21 @@ class RatingSkinNumber100(r: Rating): SkinBase<Rating>(r) {
 
    init {
       children setToOne label
+   }
 
-      r.rating attach { update() } on onDispose
-      r.partialRating attach { update() } on onDispose
+   override fun install() {
+      super.install()
+
+      skinnable!!.also { r ->
+         r.rating attach { update() } on onDispose
+         r.partialRating attach { update() } on onDispose
+      }
       update()
+   }
+
+   override fun dispose() {
+      onDispose()
+      super.dispose()
    }
 
    private fun update() {
@@ -28,11 +39,6 @@ class RatingSkinNumber100(r: Rating): SkinBase<Rating>(r) {
          else (it*100.0).toInt()
       }
       label.text = if (v==null) "" else "%d".format(v)
-   }
-
-   override fun dispose() {
-      onDispose()
-      super.dispose()
    }
 
 }

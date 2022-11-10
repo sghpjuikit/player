@@ -34,9 +34,11 @@ import javafx.scene.Node;
 import javafx.scene.control.skin.TextFieldSkin;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.HitInfo;
-import sp.it.util.reactive.Subscription;
+import sp.it.util.reactive.Disposer;
 import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UnsubscribableKt.on;
 import static sp.it.util.reactive.UtilKt.onChange;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 public class SpitTextFieldSkin extends TextFieldSkin {
@@ -47,16 +49,27 @@ public class SpitTextFieldSkin extends TextFieldSkin {
 
 	private HBox leftPane;
 	private HBox rightPane;
-	private final Subscription sLeft;
-	private final Subscription sRight;
+	private final Disposer onDispose = new Disposer();
 
 	public SpitTextFieldSkin(SpitTextField control) {
 		super(control);
+	}
 
-		sLeft = onChange(control.getLeft(), runnable(() -> updateChildren()));
-		sRight = onChange(control.getRight(), runnable(() -> updateChildren()));
-		registerChangeListener(control.focusedProperty(), e -> updateChildren());
+	@Override
+	public void install() {
+		super.install();
+
+		var control = (SpitTextField) getSkinnable();
+		on(onChange(control.getLeft(), runnable(() -> updateChildren())), onDispose);
+		on(onChange(control.getRight(), runnable(() -> updateChildren())), onDispose);
+		on(syncC(control.focusedProperty(), e -> updateChildren()), onDispose);
 		updateChildren();
+	}
+
+	@Override
+	public void dispose() {
+		onDispose.invoke();
+		super.dispose();
 	}
 
 	private void updateChildren() {
@@ -139,10 +152,4 @@ public class SpitTextFieldSkin extends TextFieldSkin {
 		return Math.max(ph, Math.max(leftHeight, rightHeight));
 	}
 
-	@Override
-	public void dispose() {
-		sLeft.unsubscribe();
-		sRight.unsubscribe();
-		super.dispose();
-	}
 }

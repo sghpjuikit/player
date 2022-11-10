@@ -38,11 +38,16 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
    private var thumbScaleHoverX = 1.0
    private var thumbScaleHoverY = 1.0
    private var thumbScaleFocus = 1.0
-   private val onDispose = Disposer()
+   private val disposer = Disposer()
 
    init {
       initIds()
       initFill()
+
+   }
+
+   override fun install() {
+      super.install()
       initFocusAnimation()
       initHoverTrackAnimation()
       initHoverThumbAnimation()
@@ -51,7 +56,7 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
    }
 
    override fun dispose() {
-      onDispose()
+      disposer()
       super.dispose()
    }
 
@@ -76,7 +81,7 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
                if (isVertical) thumb.boundsInParent.centerY else thumb.boundsInParent.centerX,
                track.boundsInParent.height
             )
-         } on onDispose
+         } on disposer
       }
       children.add(1, fill)
    }
@@ -91,14 +96,14 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
       }
       a.playAgainIfFinished = false
 
-      skinnable.onHoverOrDrag { a.playFromDir(it) } on onDispose
-      onDispose += a::stop
+      skinnable.onHoverOrDrag { a.playFromDir(it) } on disposer
+      disposer += a::stop
    }
 
    fun initFocusAnimation() {
-      val scaling = anim(350.millis) { updateThumbScale(fxy = 1 + it*it) }
-      skinnable.focusedProperty() attach { if (it) scaling.playOpenDoClose(null) } on onDispose
-      onDispose += scaling::stop
+      val a = anim(350.millis) { updateThumbScale(fxy = 1 + it*it) }
+      skinnable.focusedProperty() attach { if (it) a.playOpenDoClose(null) } on disposer
+      disposer += a::stop
    }
 
    fun initHoverThumbAnimation() {
@@ -110,8 +115,8 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
       }
       a.delay = 350.millis
 
-      skinnable.onHoverOrDrag { a.playFromDir(it) } on onDispose
-      onDispose += a::stop
+      skinnable.onHoverOrDrag { a.playFromDir(it) } on disposer
+      disposer += a::stop
    }
 
    private fun updateThumbScale(hx: Double = thumbScaleHoverX, hy: Double = thumbScaleHoverY, fxy: Double = thumbScaleFocus) {
@@ -124,12 +129,12 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
 
     // fixes JavaFX bug/design issue, where when dragging does not start on thumb, isValueChanging does not change
    fun initValueChangingFix() {
-      skinnable.onEventDown(MOUSE_DRAGGED) { if (!skinnable.isValueChanging) skinnable.isValueChanging = true } on onDispose
-      skinnable.onEventDown(MOUSE_RELEASED) { if (skinnable.isValueChanging) skinnable.isValueChanging = false } on onDispose
+      skinnable.onEventDown(MOUSE_DRAGGED) { if (!skinnable.isValueChanging) skinnable.isValueChanging = true } on disposer
+      skinnable.onEventDown(MOUSE_RELEASED) { if (skinnable.isValueChanging) skinnable.isValueChanging = false } on disposer
    }
 
    fun initValueChangingInfo() {
-      onDispose += skinnable.valueChangingProperty() attachWhileTrue {
+      disposer += skinnable.valueChangingProperty() attachWhileTrue {
          val d = Disposer()
 
          Popup().apply {

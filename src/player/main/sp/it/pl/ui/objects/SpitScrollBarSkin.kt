@@ -14,15 +14,16 @@ import sp.it.util.units.millis
 
 /** ScrollBar skin that adds animations & improved usability - thumb expands on mouse hover. */
 open class SpitScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar) {
-   private val onDispose = Disposer()
+   private val disposer = Disposer()
 
-   init {
+   override fun install() {
+      super.install()
       initHoverAnimation()
       initHoverParentAnimation()
    }
 
    override fun dispose() {
-      onDispose()
+      disposer()
       super.dispose()
    }
 
@@ -34,8 +35,8 @@ open class SpitScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar) {
          thumb.scaleX = if (isVertical) p else 1.0
          thumb.scaleY = if (isVertical) 1.0 else p
       }
-      skinnable.onHoverOrDrag { a.playFromDir(it) } on onDispose
-      onDispose += a::stop
+      skinnable.onHoverOrDrag { a.playFromDir(it) } on disposer
+      disposer += a::stop
    }
 
    fun initHoverParentAnimation() {
@@ -47,11 +48,11 @@ open class SpitScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar) {
          track.opacity = opacity
       }.applyNow()
 
-      onDispose += skinnable.parentProperty() syncNonNullWhile {
+      disposer += skinnable.parentProperty() syncNonNullWhile {
          a.applyAt(if (it.isHover) 1.0 else 0.0)
          it.onHoverOrDrag { a.playFromDir(it) }
       }
-      onDispose += a::stop
+      disposer += a::stop
    }
 
 }

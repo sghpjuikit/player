@@ -16,15 +16,16 @@ import sp.it.util.reactive.onEventUp
 class SpitTextAreaSkin(control: TextArea): TextAreaSkin(control) {
    private val disposer = Disposer()
 
-   init {
-      initCustomContextMenu()
-   }
-
    fun initCustomContextMenu() {
       val control = skinnable
       val contextMenuShower: ((MouseEvent) -> Unit) = { showContextMenu(control, it, control::getText, null) }
       control.onEventUp(ContextMenuEvent.ANY) { it.consume() } on disposer
       control.onEventDown(MOUSE_CLICKED, SECONDARY) { contextMenuShower(it) } on disposer
+   }
+
+   override fun install() {
+      super.install()
+      initCustomContextMenu()
    }
 
    override fun dispose() {

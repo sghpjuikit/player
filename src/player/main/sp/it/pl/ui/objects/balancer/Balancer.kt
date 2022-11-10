@@ -67,22 +67,27 @@ class BalancerSkin(b: Balancer): SkinBase<Balancer>(b) {
 
    init {
       children += slider.apply {
-         valueProperty() attach {
-            if (!slider.isValueChanging)
-               b.balance.value = it.toDouble()
-         } on disposer
-         minProperty() syncFrom b.min on disposer
-         maxProperty() syncFrom b.max on disposer
-         valueProperty() syncFrom b.balance on disposer
-         b.min zip b.max sync { (min, max) -> majorTickUnit = (max.toDouble() - min.toDouble())/2.0 } on disposer
-         majorTickUnit = (b.max.value - b.min.value)/2.0
-         minorTickCount = 1
-         isSnapToTicks = true
-         prefWidth = 100.0
+         onEventUp(KEY_PRESSED, LEFT) { skinnable.incToLeft() }
+         onEventUp(KEY_PRESSED, RIGHT) { skinnable.incToRight() }
       }
+   }
 
-      slider.onEventUp(KEY_PRESSED, LEFT) { skinnable.incToLeft() }
-      slider.onEventUp(KEY_PRESSED, RIGHT) { skinnable.incToRight() }
+   override fun install() {
+      super.install()
+
+      skinnable!!.also { b ->
+         slider.apply {
+            valueProperty() attach { if (!slider.isValueChanging) b.balance.value = it.toDouble() } on disposer
+            minProperty() syncFrom b.min on disposer
+            maxProperty() syncFrom b.max on disposer
+            valueProperty() syncFrom b.balance on disposer
+            b.min zip b.max sync { (min, max) -> majorTickUnit = (max.toDouble() - min.toDouble())/2.0 } on disposer
+            majorTickUnit = (b.max.value - b.min.value)/2.0
+            minorTickCount = 1
+            isSnapToTicks = true
+            prefWidth = 100.0
+         }
+      }
    }
 
    override fun dispose() {

@@ -30,6 +30,12 @@ import sp.it.util.ui.pseudoClassChanged
 /** Skin for [Rating] displaying the value as horizontal sequence of icons. Editable. */
 class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
 
+   private lateinit var backgroundIcons: Node
+   private lateinit var foregroundIcons: Node
+   private val foregroundMask = Rectangle()
+   private var ratingOld = r.rating.value
+   private val onDispose = Disposer()
+
    private val backgroundContainer = hBox().apply {
       id = "backgroundContainer"
    }
@@ -41,39 +47,45 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
    }.apply {
       id = "foregroundContainer"
    }
-   private lateinit var backgroundIcons: Node
-   private lateinit var foregroundIcons: Node
-   private val foregroundMask = Rectangle()
-   private var ratingOld = r.rating.value
-   private val onDispose = Disposer()
 
    init {
       foregroundContainer.isMouseTransparent = true
       foregroundContainer.clip = foregroundMask
       children setTo listOf(backgroundContainer, foregroundContainer)
+   }
 
-      r.alignment syncTo backgroundContainer.alignmentProperty() on onDispose
-      r.alignment syncTo foregroundContainer.alignmentProperty() on onDispose
-      r.rating attach { updateClipAndStyle() } on onDispose
-      r.icons attach { updateButtons() } on onDispose
-      r.partialRating attach { updateClipAndStyle() } on onDispose
-      r.editable syncWhile {
-         backgroundContainer.onEventDown(MOUSE_MOVED) {
-            val v = computeRating(it.sceneX, it.sceneY)
-            updateClipAndStyle(v)
-         }
-         backgroundContainer.onEventDown(MOUSE_CLICKED, PRIMARY, false) {
-            val v = computeRating(it.sceneX, it.sceneY)
-            updateClipAndStyle(v)
-            ratingOld = v
-            skinnable.onRatingEdited(v)
-            it.consume()
-         }
-         backgroundContainer.onEventDown(MOUSE_ENTERED) { ratingOld = r.rating.value }
-         backgroundContainer.onEventDown(MOUSE_EXITED) { updateClipAndStyle(ratingOld) }
-      } on onDispose
+   override fun install() {
+      super.install()
+
+      skinnable!!.also { r ->
+         r.alignment syncTo backgroundContainer.alignmentProperty() on onDispose
+         r.alignment syncTo foregroundContainer.alignmentProperty() on onDispose
+         r.rating attach { updateClipAndStyle() } on onDispose
+         r.icons attach { updateButtons() } on onDispose
+         r.partialRating attach { updateClipAndStyle() } on onDispose
+         r.editable syncWhile {
+            backgroundContainer.onEventDown(MOUSE_MOVED) {
+               val v = computeRating(it.sceneX, it.sceneY)
+               updateClipAndStyle(v)
+            }
+            backgroundContainer.onEventDown(MOUSE_CLICKED, PRIMARY, false) {
+               val v = computeRating(it.sceneX, it.sceneY)
+               updateClipAndStyle(v)
+               ratingOld = v
+               skinnable.onRatingEdited(v)
+               it.consume()
+            }
+            backgroundContainer.onEventDown(MOUSE_ENTERED) { ratingOld = r.rating.value }
+            backgroundContainer.onEventDown(MOUSE_EXITED) { updateClipAndStyle(ratingOld) }
+         } on onDispose
+      }
 
       updateButtons()
+   }
+
+   override fun dispose() {
+      onDispose()
+      super.dispose()
    }
 
    private fun updateButtons() {
@@ -140,11 +152,6 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
    override fun layoutChildren(contentX: Double, contentY: Double, contentWidth: Double, contentHeight: Double) {
       super.layoutChildren(contentX, contentY, contentWidth, contentHeight)
       if (::foregroundIcons.isInitialized) updateClip()
-   }
-
-   override fun dispose() {
-      onDispose()
-      super.dispose()
    }
 
 }

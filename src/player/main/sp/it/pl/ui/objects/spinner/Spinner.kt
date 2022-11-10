@@ -35,14 +35,14 @@ class Spinner: ProgressIndicator {
       private val outer: StackPane
       private var rt: RotateTransition? = null
       private var playing = false
-      private val onDispose = Disposer()
+      private val disposer = Disposer()
 
       init {
          inner = stackPane {
             lay(BOTTOM_RIGHT) += Arc().apply {
                length = 360.0
-               this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble()*0.5 } on onDispose
-               this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble()*0.5 } on onDispose
+               this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble()*0.5 }
+               this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble()*0.5 }
                styleClass += "spinner"
                styleClass += "spinner-in"
             }
@@ -53,8 +53,8 @@ class Spinner: ProgressIndicator {
          outer = stackPane {
             lay(Pos.TOP_LEFT) += Arc().apply {
                length = 360.0
-               this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble()*0.5 } on onDispose
-               this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble()*0.5 } on onDispose
+               this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble()*0.5 }
+               this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble()*0.5 }
                styleClass += "spinner"
                styleClass += "spinner-out"
             }
@@ -63,23 +63,29 @@ class Spinner: ProgressIndicator {
             maxSize = USE_PREF_SIZE x USE_PREF_SIZE
          }
 
-         inner.rotateProperty() sync { outer.rotate = 360.0 - it.toDouble()/2.0 } on onDispose
-         inner.rotateProperty() sync { inner.clip.asIs<Circle>().radius = inner.prefWidth*(0.8 + 0.3*abs(abs(it.toDouble()).rem(360.0) - 180.0)/180.0) } on onDispose
-         outer.rotateProperty() sync { outer.clip.asIs<Circle>().radius = outer.prefWidth*(0.8 + 0.3*abs(abs(it.toDouble()).rem(360.0) - 180.0)/180.0) } on onDispose
+         inner.rotateProperty() sync { outer.rotate = 360.0 - it.toDouble()/2.0 }
+         inner.rotateProperty() sync { inner.clip.asIs<Circle>().radius = inner.prefWidth*(0.8 + 0.3*abs(abs(it.toDouble()).rem(360.0) - 180.0)/180.0) }
+         outer.rotateProperty() sync { outer.clip.asIs<Circle>().radius = outer.prefWidth*(0.8 + 0.3*abs(abs(it.toDouble()).rem(360.0) - 180.0)/180.0) }
          children += stackPane(inner, outer)
 
-         spinner.indeterminateProperty() attach { update() } on onDispose
-         spinner.progressProperty() attach { update() } on onDispose
-         spinner.visibleProperty() attach { update() } on onDispose
-         spinner.parentProperty() attach { update() } on onDispose
-         spinner.sceneProperty() attach { update() } on onDispose
+      }
+
+      override fun install() {
+         super.install()
+
+         skinnable!!.also { s ->
+            s.progressProperty() attach { update() } on disposer
+            s.visibleProperty() attach { update() } on disposer
+            s.parentProperty() attach { update() } on disposer
+            s.sceneProperty() attach { update() } on disposer
+         }
 
          update()
       }
 
       override fun dispose() {
          rt?.stop()
-         onDispose()
+         disposer()
          super.dispose()
       }
 

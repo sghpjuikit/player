@@ -19,15 +19,16 @@ import sp.it.util.units.millis
  * - mouse clicks are (always) passed to the parent (fixes [SplitPaneSkin] bug that causes it to consume all clicks)
  */
 open class SpitSplitPaneSkin(splitPane: SplitPane): SplitPaneSkin(splitPane) {
-   private val onDispose = Disposer()
+   private val disposer = Disposer()
 
-   init {
+   override fun install() {
+      super.install()
       initHoverAnimation()
       initFixConsumingMouseClicks()
    }
 
    override fun dispose() {
-      onDispose()
+      disposer()
       super.dispose()
    }
 
@@ -39,7 +40,7 @@ open class SpitSplitPaneSkin(splitPane: SplitPane): SplitPaneSkin(splitPane) {
             it.copyFor(it.source, skinnable?.parent!!)
          )
          it.consume()
-      }
+      } on disposer
    }
 
    fun initHoverAnimation() {
@@ -50,9 +51,9 @@ open class SpitSplitPaneSkin(splitPane: SplitPane): SplitPaneSkin(splitPane) {
       }
 
       a.applyAt(if (skinnable.isHover) 1.0 else 0.0)
-      skinnable.onHoverOrDrag { a.playFromDir(it) } on onDispose
-      onDispose += a::stop
-      onDispose += { a.applyAt(1.0) }
+      skinnable.onHoverOrDrag { a.playFromDir(it) } on disposer
+      disposer += a::stop
+      disposer += { a.applyAt(1.0) }
    }
 
 }

@@ -5,9 +5,15 @@ All notable changes to this project will be documented in this file. Format base
 
 - Update dependencies
 - Implement preferred song order settings
+- Implement `AppSearch` history to remember searched text instead of picked suggestion
+- Implement `AppSearch` number conversions
+- Implement `AppSearch` operating system actions 
 - Fix popup window interaction not working after widget loads in popup
 - Fix `Open widget` action interfering with overlay animation
-- Fix configurable hierarchy computation [affected settings hierarchy]
+- Fix `Configurable` hierarchy computation [affected settings hierarchy]
+- Fix `Config` constraints not applied on children sometimes
+- Fix **Function View** widget precision stuck to 7
+- Fix **Function View** widget slow performance
 
 ## [7.5.0] 2022 11 04
 

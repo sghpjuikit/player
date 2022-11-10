@@ -128,11 +128,13 @@ allprojects {
 
       "Misc" group {
          implementation("com.github.f4b6a3", "uuid-creator", "5.2.0")
-         implementation("com.udojava", "EvalEx", "2.7")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.0")
          implementation("com.github.oshi", "oshi-core", "6.3.1")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
+         implementation("com.ezylang", "EvalEx", "3.0.1")
+         implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
+         implementation("ch.obermuhlner", "big-math", "2.3.1")
       }
 
       "Image" group {

@@ -1,6 +1,7 @@
 package sp.it.util.http
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.discardRemaining
@@ -30,7 +31,9 @@ suspend fun HttpClient.downloadFile(srcUrl: String, file: File): Flow<DownloadSt
       if (!dir.exists()) fail { "Unable to create directory $dir" }
    }
 
-   prepareGet(url).execute { response ->
+   prepareGet(url) {
+      timeout { requestTimeoutMillis = null }
+   }.execute { response ->
       if (response.status.isSuccess()) {
          val lengthTotal = response.contentLength()?.toDouble()
          var lengthRead = 0

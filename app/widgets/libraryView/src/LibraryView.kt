@@ -364,7 +364,10 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    }
 
    private fun selectionReStore() {
-      if (table.items.isEmpty()) return
+      if (table.items.isEmpty()) {
+         selIgnore = false
+         return
+      }
 
       // restore last selected from previous session, runs once
       if (!selLastRestored) {
@@ -387,7 +390,6 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
 
       selIgnore = false
-      outputSelectedGroup.value = table.selectedItemsCopy
    }
 
    fun removeSongs(songs: Set<Song>) {

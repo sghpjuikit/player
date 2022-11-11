@@ -40,7 +40,7 @@ fun File.getFilesR(maxDepth: Int = Int.MAX_VALUE, fileType: FileType?, vararg op
 fun File.deleteOrThrow(): Boolean = delete().also { if (!it) throw IOException("Failed to delete file=$this") }
 
 @Blocks @Throws(IOException::class)
-fun File.deleteRecursivelyOrThrow(): Boolean = delete().also { if (!it) throw IOException("Failed to delete file=$this") }
+fun File.deleteRecursivelyOrThrow(): Boolean = deleteRecursively().also { if (!it) throw IOException("Failed to delete file=$this") }
 
 @Blocks @Throws(IOException::class)
 fun File.setExecutableOrThrow(executable: Boolean): Boolean = setExecutable(executable).also { if (!it) throw IOException("Failed to set executable=$executable for file=$this") }

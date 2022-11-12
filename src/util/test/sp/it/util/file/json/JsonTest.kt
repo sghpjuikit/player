@@ -25,6 +25,7 @@ import sp.it.util.type.kType
 import sp.it.util.type.raw
 import sp.it.util.type.type
 
+@Suppress("RemoveExplicitTypeArguments")
 class JsonTest: FreeSpec({
    val j = Json()
 
@@ -269,15 +270,67 @@ class JsonTest: FreeSpec({
       j.toJsonValue(iComplex).net { j.fromJsonValue<InlineComplex>(it) }.orThrow shouldBe iComplex
       j.toJsonValue(iComplex).net { j.fromJsonValue<Any>(it) }.orThrow shouldBe mapOf("x" to 1.0, "y" to 1.0)   // expected type loss to json representation
    }
+   "generic types" - {
+      val gDat= GenDat(1)
+      val gCls= GenCls(2)
+      val g = Gen(GenDat(1), GenCls(2))
+
+      "infer from type call-site argument" - {
+         "write" - {
+            "normal class" {
+               j.toJsonValue             (gCls).toCompactS() shouldBe """{"value":2}"""
+               j.toJsonValue<GenCls<Int>>(gCls).toCompactS() shouldBe """{"value":2}"""
+               j.toJsonValue<GenCls<Any>>(gCls).toCompactS() shouldBe """{"value":{"_type":"int","value":2}}"""
+               j.toJsonValue<GenCls< * >>(gCls).toCompactS() shouldBe """{"value":{"_type":"int","value":2}}"""
+            }
+            "data class" {
+               j.toJsonValue             (gDat).toCompactS() shouldBe """{"value":1}"""
+               j.toJsonValue<GenDat<Int>>(gDat).toCompactS() shouldBe """{"value":1}"""
+               j.toJsonValue<GenDat<Any>>(gDat).toCompactS() shouldBe """{"value":{"_type":"int","value":1}}"""
+               j.toJsonValue<GenDat< * >>(gDat).toCompactS() shouldBe """{"value":{"_type":"int","value":1}}"""
+            }
+         }
+         "write-read" - {
+            "normal class" {
+               j.toJsonValue             (gDat).net { j.fromJsonValue<GenDat<Int>>(it) }.orThrow shouldBe gDat
+               j.toJsonValue<GenDat<Int>>(gDat).net { j.fromJsonValue<GenDat<Int>>(it) }.orThrow shouldBe gDat
+               j.toJsonValue<GenDat<Any>>(gDat).net { j.fromJsonValue<GenDat<Any>>(it) }.orThrow shouldBe gDat
+               j.toJsonValue<GenDat< * >>(gDat).net { j.fromJsonValue<GenDat< * >>(it) }.orThrow shouldBe gDat
+            }
+            "data class" {
+               j.toJsonValue             (gCls).net { j.fromJsonValue<GenCls<Int>>(it) }.orThrow shouldBe gCls
+               j.toJsonValue<GenCls<Int>>(gCls).net { j.fromJsonValue<GenCls<Int>>(it) }.orThrow shouldBe gCls
+               j.toJsonValue<GenCls<Any>>(gCls).net { j.fromJsonValue<GenCls<Any>>(it) }.orThrow shouldBe gCls
+               j.toJsonValue<GenCls< * >>(gCls).net { j.fromJsonValue<GenCls< * >>(it) }.orThrow shouldBe gCls
+            }
+         }
+      }
+      "infer from declaration argument" - {
+         "write" {
+            j.toJsonValue(g).toCompactS() shouldBe """{"genCls":{"value":2},"genDat":{"value":1}}"""
+            j.toJsonValue(g).toCompactS() shouldBe """{"genCls":{"value":2},"genDat":{"value":1}}"""
+         }
+         "write-read" {
+            j.toJsonValue<Any>(g).net { j.fromJsonValue<Any>(it) }.orThrow shouldBe g
+         }
+      }
+   }
 })
 
-data class Complex(val x: Double, val y: Double)
+private data class Gen          (val genDat: GenDat<Int>, val genCls: GenCls<Int>)
+private data class GenDat<out T>(val value: T)
+private      class GenCls<out T>(val value: T) {
+   override fun equals(other: Any?) = other is GenCls<*> && other.value == value
+   override fun hashCode() = value?.hashCode() ?: 0
+}
+
+            data class Complex(val x: Double, val y: Double)
 @JvmInline value class InlineInt(val value: Int)
 @JvmInline value class InlineComplex(val value: Complex)
 
 private inline fun <reified T: Any> Any?.shouldBeInstance() = T::class.isInstance(this) shouldBe true
-private infix fun Any?.shouldBeInstance(type: KClass<*>) = type.isInstance(this) shouldBe true
-private infix fun Any?.shouldBeInstance(type: KType) = type.raw.isInstance(this) shouldBe true
+private infix  fun                  Any?.shouldBeInstance(type: KClass<*>) = type.isInstance(this) shouldBe true
+private infix  fun                  Any?.shouldBeInstance(type: KType) = type.raw.isInstance(this) shouldBe true
 
-private inline fun <reified T: Any> arg() = row(kType<T>())
+private inline fun <reified T: Any> arg()          = row(kType<T>())
 private inline fun <reified T: Any> argIns(arg: T) = row(type<T>(), arg)

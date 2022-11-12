@@ -32,6 +32,7 @@ import java.util.Vector
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.memberProperties
@@ -272,10 +273,14 @@ class Json: JsonAst() {
                         toJsonValue(p.returnType, v).withAmbiguity()
                      }
                      type.isData -> {
+                        val typeParams = type.typeParameters.withIndex().associate { (i, p) -> i to p.name }
+                        val typeArgs = typeAs.arguments.withIndex().associate { (i, a) -> typeParams[i] to a.typeOrAny }
                         val values = type.dataComponentProperties()
                            .associate {
                               it.isAccessible = true
-                              it.name to toJsonValue(it.returnType, it.getter.call(value))
+                              val rtRaw = it.returnType
+                              val rt = rtRaw.classifier.asIf<KTypeParameter>()?.let { typeArgs[it.name] } ?: rtRaw
+                              it.name to toJsonValue(rt, it.getter.call(value))
                            }
                            .let {
                               when {
@@ -287,11 +292,15 @@ class Json: JsonAst() {
                         JsObject(values)
                      }
                      else -> {
+                        val typeParams = type.typeParameters.withIndex().associate { (i, p) -> i to p.name }
+                        val typeArgs = typeAs.arguments.withIndex().associate { (i, a) -> typeParams[i] to a.typeOrAny }
                         val values = type.memberProperties.asSequence()
                            .filter { it.javaField!=null }
                            .associate {
                               it.isAccessible = true
-                              it.name to toJsonValue(it.returnType, it.getter.call(value))
+                              val rtRaw = it.returnType
+                              val rt = rtRaw.classifier.asIf<KTypeParameter>()?.let { typeArgs[it.name] } ?: rtRaw
+                              it.name to toJsonValue(rt, it.getter.call(value))
                            }
                            .let {
                               when {
@@ -482,6 +491,8 @@ class Json: JsonAst() {
                         }
                      }
                      else -> {
+                        val typeParams = typeK.typeParameters.withIndex().associate { (i, p) -> i to p.name }
+                        val typeArgs = typeTarget.arguments.withIndex().associate { (i, a) -> typeParams[i] to a.typeOrAny }
                         val constructor = instanceType.constructors.firstOrNull() ?: fail { "Type=$instanceType has no constructor" }
                         val arguments = constructor.parameters.mapNotNull {
                            val argJs = value.value[it.name]
@@ -490,7 +501,9 @@ class Json: JsonAst() {
                               else if (it.type.isMarkedNullable || it.type.isPlatformType) it to null
                               else fail { "Type=$instanceType constructor parameter=${it.name} is missing" }
                            } else {
-                              it to fromJsonValueImpl(it.type, argJs)
+                              val ptRaw = it.type
+                              val pt = ptRaw.classifier?.asIf<KTypeParameter>()?.let { typeArgs[it.name] } ?: ptRaw
+                              it to fromJsonValueImpl(pt, argJs)
                            }
                         }.toMap()
 
@@ -597,7 +610,7 @@ fun fromKlaxonAST(ast: Any?): JsValue {
    }
 }
 
-@Suppress("UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST", "DEPRECATION")
 fun getEnumValue(enumClass: Class<*>, value: String): Enum<*> {
    val enumConstants = enumClass.enumConstants as Array<out Enum<*>>
    return enumConstants.first { it.name==value }

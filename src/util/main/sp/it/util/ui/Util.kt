@@ -572,8 +572,8 @@ fun typeText(text: String, padLength: Char? = null): (Double) -> String {
 /* ---------- EVENT ------------------------------------------------------------------------------------------------- */
 
 /**
- * Sets an action to execute when this node is hovered or dragged with mouse.
- * More reliable than [MOUSE_ENTERED]/[MOUSE_EXITED], because this takes into consideration mouse drag.
+ * Emits a boolean to the specified block when this node is hovered with mouse.
+ * More reliable than [Node.hoverProperty]/[MOUSE_ENTERED]/[MOUSE_EXITED], because this takes into consideration mouse drag.
  */
 fun Node.onHoverOrDrag(on: (Boolean) -> Unit): Subscription {
    val key = "isHoverOrDrag-" + uuid()
@@ -617,6 +617,45 @@ fun Node.onHoverOrDrag(on: (Boolean) -> Unit): Subscription {
    )
 }
 
+/** Emits a boolean to the specified block when this node is hovered or dragged with mouse. */
+fun Node.onHoverOrInDrag(on: (Boolean) -> Unit): Subscription {
+   var isH = false
+   var isD = false
+
+   if (isHover) {
+      isH = true
+      on(true)
+   }
+
+   return Subscription(
+      onEventDown(MOUSE_ENTERED_TARGET) {
+         if (!isH && !isD) on(true)
+         isH = true
+      },
+      onEventDown(DRAG_DETECTED) {
+         if (!isH && !isD) on(true)
+         isH = true
+         isD = true
+      },
+      onEventDown(MOUSE_EXITED) {
+         if (isH && !isD) on(false)
+         isH = false
+      },
+      onEventDown(MOUSE_DRAG_EXITED) {
+         if (isH && !isD) {
+            isH = false
+            on(false)
+         }
+      },
+      onEventDown(MOUSE_RELEASED) {
+         isD = false
+         if (!isH && !isHover) {
+            isH = false
+            on(false)
+         }
+      }
+   )
+}
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
 
 /** @return screen containing this point or primary screen */

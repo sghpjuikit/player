@@ -177,7 +177,7 @@ open class PopWindow {
 
    private val animation = lazy {
       anim {
-         root.opacity = it*it
+         window?.opacity = it*it
          root.setScaleXYByTo(it, -15.0, 0.0)
       }.apply {
          onHiding += ::stop
@@ -295,6 +295,7 @@ open class PopWindow {
          if (focusOnShow.value) {
             stage.apply {
                window = this
+               window?.opacity = 0.0
                window?.popWindowOwner = windowOwner
 
                fun initHideWithOwner() {
@@ -355,6 +356,7 @@ open class PopWindow {
          } else {
             popup.apply {
                window = this
+               window?.opacity = 0.0
                window?.popWindowOwner = windowOwner
                initHideOnEscapeWhenNoFocus()
 

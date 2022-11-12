@@ -5,7 +5,6 @@ import javafx.scene.control.ScrollBar
 import javafx.scene.control.skin.ScrollBarSkin
 import javafx.scene.layout.StackPane
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.dev.printStacktrace
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.syncNonNullWhile
@@ -37,7 +36,7 @@ open class SpitScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar) {
          thumb.scaleX = if (isVertical) p else 1.0
          thumb.scaleY = if (isVertical) 1.0 else p
       }
-      skinnable.onHoverOrInDrag { a.playFromDir(it); if (!it) printStacktrace() } on disposer
+      skinnable.onHoverOrInDrag { a.playFromDir(it) } on disposer
       disposer += a::stop
    }
 

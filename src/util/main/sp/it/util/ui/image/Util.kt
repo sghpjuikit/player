@@ -173,6 +173,7 @@ fun loadImagePsd(inS: InputStream, p: Params, highQuality: Boolean) = loadImageP
 
 fun loadImagePsd(p: Params, highQuality: Boolean) = loadImagePsd(runTry { ImageIO.createImageInputStream(FileInputStream(p.file).buffered()) }.orNull(), p, highQuality)
 
+@Suppress("UNUSED_PARAMETER")
 private fun loadImagePsd(imgStream: ImageInputStream?, p: Params, highQuality: Boolean): ImageFx? =
    imgStream?.use { stream ->
       stream.reader()?.use { reader ->

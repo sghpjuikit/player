@@ -96,7 +96,6 @@ import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.image.FitFrom.INSIDE
 import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.units.toEM
-import sp.it.util.units.uuid
 
 private val logger = KotlinLogging.logger {}
 
@@ -576,41 +575,37 @@ fun typeText(text: String, padLength: Char? = null): (Double) -> String {
  * More reliable than [Node.hoverProperty]/[MOUSE_ENTERED]/[MOUSE_EXITED], because this takes into consideration mouse drag.
  */
 fun Node.onHoverOrDrag(on: (Boolean) -> Unit): Subscription {
-   val key = "isHoverOrDrag-" + uuid()
+   var isH = false
 
    if (isHover) {
-      properties[key] = true
+      isH = true
       on(true)
    }
 
    return Subscription(
       onEventDown(MOUSE_ENTERED_TARGET) {
-         if (key !in properties) {
-            properties[key] = true
-            on(true)
-         }
+         if (!isH) on(true)
+         isH = true
       },
       onEventDown(DRAG_DETECTED) {
-         if (key !in properties) {
-            properties[key] = true
-            on(true)
-         }
+         if (!isH) on(true)
+         isH = true
       },
       onEventDown(MOUSE_EXITED) {
-         if (key in properties) {
-            properties -= key
+         if (isH) {
+            isH = false
             on(false)
          }
       },
       onEventDown(MOUSE_DRAG_EXITED) {
-         if (key in properties) {
-            properties -= key
+         if (isH) {
+            isH = false
             on(false)
          }
       },
       onEventDown(MOUSE_RELEASED) {
-         if (key in properties && !isHover) {
-            properties -= key
+         if (isH && !isHover) {
+            isH = false
             on(false)
          }
       }

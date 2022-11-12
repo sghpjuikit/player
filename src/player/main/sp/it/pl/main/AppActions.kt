@@ -227,6 +227,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          Entry("Layout", "Detach widget", keys("${SHORTCUT.nameUi} + ${PRIMARY.nameUi} + Drag")),
          Entry("Ui", "Show widget help", F2.nameUi),
          Entry("Ui", "Show widget help", ActionManager.keyShortcutsComponent.nameUi),
+         Entry("Ui", "Show widget actions", F3.nameUi),
          Entry("Ui", "Show widget actions", ActionManager.keyActionsComponent.nameUi),
       )
       APP.ui.shortcutPane.orBuild.show(ShortcutPane.Info(t, actionsHardcoded + widget.factory.summaryActions))

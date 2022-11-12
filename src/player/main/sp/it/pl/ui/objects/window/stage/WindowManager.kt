@@ -30,6 +30,7 @@ import javafx.stage.StageStyle
 import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.StageStyle.UTILITY
+import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import kotlin.math.sqrt
 import kotlinx.coroutines.Dispatchers
@@ -61,6 +62,11 @@ import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.dock.DockWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
+import sp.it.pl.ui.objects.window.stage.Window.BgrEffect
+import sp.it.pl.ui.objects.window.stage.Window.Transparency
+import sp.it.pl.ui.objects.window.stage.Windows10WindowBlur.ACCENT_DISABLED
+import sp.it.pl.ui.objects.window.stage.Windows10WindowBlur.ACCENT_ENABLE_ACRYLICBLURBEHIND
+import sp.it.pl.ui.objects.window.stage.Windows10WindowBlur.ACCENT_ENABLE_BLURBEHIND
 import sp.it.pl.ui.pane.OverlayPane.Companion.isOverlayWindow
 import sp.it.util.access.toggle
 import sp.it.util.access.v
@@ -70,6 +76,7 @@ import sp.it.util.async.coroutine.FX
 import sp.it.util.async.future.Fut
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
+import sp.it.util.async.runLater
 import sp.it.util.async.runVT
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.observableList
@@ -97,20 +104,25 @@ import sp.it.util.math.P
 import sp.it.util.math.intersectsWith
 import sp.it.util.math.isBelow
 import sp.it.util.math.max
+import sp.it.util.math.min
+import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.asDisposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachTo
-import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.onEventUp1
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
+import sp.it.util.reactive.onItemSyncWhile
+import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.zip
 import sp.it.util.system.Os
 import sp.it.util.text.keys
 import sp.it.util.ui.anchorPane
@@ -142,10 +154,20 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    /** Required by skins that want to use transparent background colors. Determines [windowStyle]. Default false. */
    val windowStyleAllowTransparency by cv(false).attach { APP.actions.showSuggestRestartNotification() }.def(
-      name = "Allow transparency",
+      name = "Window allow transparency",
       info = "Required by skins that want to use transparent backgrounds. May degrade performance. A window may override this setting. Changing globally requires application restart."
    )
-   /** Whether [Window.transformBgrWithContent] is true. Default false. */
+   /** Global overridable value for [Window.transparency]. */
+   val windowTransparency by cv(Transparency.OFF).def(
+      name = "Window transparency",
+      info = "Whether content decoration is transparent. Useful for transparent windows."
+   )
+   /** Global overridable value for [Window.transparency]. */
+   val windowEffect by cv(BgrEffect.OFF).def(
+      name = "Window effect",
+      info = "Global overridable value for window effect"
+   )
+   /** Whether [Window.transformBgrWithContent] is true. Applies to all windows. Default false. */
    val windowStyleBgrWithContentTransformation by cv(false).def(
       name = "Allow bgr transformations",
       info = "Enables depth effect, where the window background moves and zooms with the window content. A non uniform bgr needs to be set for the effect to be visible"
@@ -153,13 +175,13 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    /** Window [StageStyle] set at window creation time. Determined by [windowStyleAllowTransparency]. */
    val windowStyle = windowStyleAllowTransparency
       .map { it.toWindowStyle() }
-   /** Any application window will be created and maintained with this [Stage.opacity]. */
+   /** Any new application window will be created and maintained with this [Window.opacity]. */
    val windowOpacity by cv(1.0).between(0.1, 1.0)
-      .def(name = "Opacity", info = "Window opacity.")
-   /** Any application window will be created with this [Window.isHeaderVisible]. */
+      .def(name = "Opacity", info = "Any new application window will be created and maintained with this opacity, unless overridden by the window.")
+   /** Any new application window will be created with this [Window.isHeaderVisible]. */
    val windowHeaderless by cv(false)
       .def(name = "Headerless", info = "Affects window header visibility for new windows.")
-   /** Any application window will move/resize on ALT + MOUSE_DRAG if true. Default true on non-Linux platforms. */
+   /** Any new application window will move/resize on ALT + MOUSE_DRAG if true. Default true on non-Linux platforms. */
    val windowInteractiveOnLeftAlt by cv(!Os.UNIX.isCurrent).def(
       name = "Interacts on ${keys("Alt")} + Mouse Drag",
       info = "Simulates Linux move/resize behavior. LMB Mouse Drag moves window. RMB Drag resizes window. RMB during move toggles maximize."
@@ -220,6 +242,28 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          }
       }
 
+      if (Os.WINDOWS.isCurrent)
+         WindowFx.getWindows().onItemSyncWhile { w ->
+               val s1 = (w.asAppWindow()?.transparency ?: windowTransparency) zip (w.asAppWindow()?.effect ?: windowEffect) sync { (transparency, effect) ->
+                  runLater {
+                     w.takeIf { it.isShowing }?.reflectHwnd().ifNotNull {
+                        it.applyBlur(
+                           when {
+                              w.asStage()?.style.net { it==null || it==TRANSPARENT } && transparency==Transparency.OFF -> when (effect) {
+                                 BgrEffect.OFF -> ACCENT_DISABLED
+                                 BgrEffect.BLUR -> ACCENT_ENABLE_BLURBEHIND
+                                 BgrEffect.ACRYLIC -> ACCENT_ENABLE_ACRYLICBLURBEHIND
+                              }
+                              else -> ACCENT_DISABLED
+                           }
+                        )
+                     }
+                  }
+               }
+            val s2 = w.onEventUp1(WINDOW_HIDING) { w.reflectHwnd()?.applyBlur(ACCENT_DISABLED) }
+            s1 + s2
+         }
+
       APP.mouse.screens.onChangeAndNow {
          screenMaxScaling = Screen.getScreens().asSequence().map { it.outputScaleX max it.outputScaleY }.maxOrNull() ?: 1.0
       }
@@ -258,7 +302,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       w.initialize()
 
       if (style == TRANSPARENT) w.s.scene.fill = Color.TRANSPARENT
-      windowOpacity sync { if (!w.opacityOverride) w.opacity.value = it } on w.onClose
       w.isHeaderVisible.value = windowHeaderless.value
       w.isInteractiveOnLeftAlt.value = windowInteractiveOnLeftAlt.value
       w.stage.title = APP.name
@@ -273,7 +316,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       return create(canBeMain).apply {
          setXYSizeInitial()
-         initLayout()
+         initLayoutWithContainerSwitch()
          update()
 
          show()
@@ -371,7 +414,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             private val showAnim = anim(300.millis) {
                showValue = it
                mw.isShowing = it!=0.0
-               mw.window.opacity.value = 0.1 + 0.9*sqrt(sqrt(it))
+               mw.window.stage.opacity = mw.window.opacity.value min 0.1 + 0.9*sqrt(sqrt(it))
                mw.window.setY(-(mw.window.H.value-2.0)*(1.0-it), false)
             }
             private val shower = {
@@ -460,7 +503,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       if (isValidatedDirectory(dir)) {
          val fs = dir.children().filter { it hasExtension "ws" }.toList()
          val ws = fs.mapNotNull { APP.serializerJson.fromJson<WindowDb>(it).orNull() }
-         logger.info { "Deserializing windows ok: ${fs.size}/${ws.size}" }
+         logger.info { "Deserializing windows ok: ${ws.size}/${fs.size}" }
          ws
       } else {
          logger.error { "Deserializing windows failed: $dir not accessible" }
@@ -522,7 +565,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       // auto-hiding
       val showAnim = anim(400.millis) {
-         mw.opacity.value = 0.1 + 0.9*sqrt(sqrt(it))
+         mw.stage.opacity = mw.opacity.value min 0.1 + 0.9*sqrt(sqrt(it))
          if (showSide==Side.RIGHT) mw.setX(screen.bounds.maxX-mw.W.value*it, false)
          if (showSide==Side.LEFT) mw.setX(screen.bounds.minX-mw.W.value*(1-it), false)
       }
@@ -563,8 +606,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    fun showWindow(c: Component): Window {
       return create().apply {
-         initLayout()
-         setContent(c)
+         initLayoutWithContainerSwitchWith(c)
          show()
 
          val screen = getScreenForMouse()

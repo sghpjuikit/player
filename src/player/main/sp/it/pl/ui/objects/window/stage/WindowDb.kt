@@ -4,8 +4,12 @@ import javafx.stage.StageStyle
 import javafx.stage.StageStyle.TRANSPARENT
 import sp.it.pl.layout.RootContainerDb
 import sp.it.pl.main.APP
+import sp.it.pl.main.Double01
+import sp.it.pl.ui.objects.window.stage.Window.BgrEffect
+import sp.it.pl.ui.objects.window.stage.Window.Transparency
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
+import sp.it.util.access.OrV.OrValue
 import sp.it.util.functional.net
 
 data class WindowDb(
@@ -21,9 +25,10 @@ data class WindowDb(
    val onTop: Boolean = false,
    val maximized: Maximized = NONE,
    val transparent: Boolean? = null,
-   val transparentContent: Boolean? = null,
+   val transparency: OrValue<Transparency>? = OrValue(false, Transparency.OFF),
+   val effect: OrValue<BgrEffect>? = OrValue(false, BgrEffect.OFF),
    val isTaskbarVisible: Boolean = true,
-   val opacity: Double? = null,
+   val opacity: OrValue<Double01>? = null,
    val layout: RootContainerDb? = null
 ) {
    fun toDomain(): Window = APP.windowManager.create(state = this).also {
@@ -37,10 +42,10 @@ data class WindowDb(
       it.resizable.value = resizable
       it.isHeaderVisible.value = headerVisible
       it.alwaysOnTop.value = onTop
-      it.opacity.value = opacity ?: it.opacity.value
-      it.opacityOverride = opacity!=null
+      it.opacity.valueOr = opacity ?: OrValue(false, 1.0)
       it.stageStyleOverride = transparent!=null
-      it.transparentContent.value = transparentContent
+      it.transparency.valueOr = transparency ?: OrValue(false, Transparency.OFF)
+      it.effect.valueOr = effect ?: OrValue(false, BgrEffect.OFF)
       it.isTaskbarVisible.value = isTaskbarVisible
       it.initLayout(layout?.toDomain())
    }
@@ -59,9 +64,10 @@ data class WindowDb(
          w.alwaysOnTop.value,
          w.maximized.value,
          w.s.style.net { it==TRANSPARENT }.takeIf { w.stageStyleOverride },
-         w.transparentContent.value,
+         w.transparency.valueOr,
+         w.effect.valueOr,
          w.isTaskbarVisible.value,
-         w.opacity.value.takeIf { w.opacityOverride },
+         w.opacity.valueOr,
          w.layout?.toDb()
       )
    }
@@ -82,8 +88,8 @@ fun Window.recreateWith(stageStyle: StageStyle, isTaskbarVisible: Boolean, onBot
       nw.isHeaderVisible.value = ow.isHeaderVisible.value
       nw.alwaysOnTop.value = ow.alwaysOnTop.value
       nw.opacity.value = ow.opacity.value
-      nw.opacityOverride = ow.opacityOverride
-      nw.transparentContent.value = ow.transparentContent.value
+      nw.transparency.value = ow.transparency.value
+      nw.effect.value = ow.effect.value
       nw.stageStyleOverride = ow.stageStyleOverride
       nw.isTaskbarVisible.value = isTaskbarVisible
       if (onBottom) nw.setNonInteractingOnBottom()

@@ -67,6 +67,10 @@ fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueFactory: (T?) 
 fun <T: Any, W: ObservableValue<T?>> cvnro(value: W): ConfVRO<T?, W> = cvnro(value.value, { value })
 /** Configurable action. Backed by [Action]. */
 fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).nonNull()
+/** Inheritable observable non-null configurable value. Backed by [OrPropertyConfig]. */
+fun <T: Any> cOr(value: OrV<T>): ConfVOr<T, OrV<T>> = ConfVOr { value }.nonNull()
+/** Inheritable observable nullable configurable value. Backed by [OrPropertyConfig]. */
+fun <T: Any?> cnOr(value: OrV<T>): ConfVOr<T, OrV<T>> = ConfVOr { value }
 /** Inheritable observable non-null configurable value. Subscribed to the specified [parent] until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */
 fun <T: Any> cOr(parent: KProperty0<Property<T>>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr { OrV(parent.call(), initialValue) on unsubscriber }.nonNull()
 /** Inheritable observable nullable configurable value. Subscribed to the specified [parent] until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */

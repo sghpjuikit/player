@@ -1,11 +1,11 @@
 package sp.it.pl.ui.objects.window.stage;
 
 import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -38,6 +38,8 @@ import sp.it.pl.main.AppEventLog;
 import sp.it.pl.main.Df;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.window.Resize;
+import sp.it.util.access.OrV;
+import sp.it.util.access.OrV.OrValue.Initial.Inherit;
 import sp.it.util.access.V;
 import sp.it.util.access.WithSetterObservableValue;
 import sp.it.util.action.ActionRegistrar;
@@ -65,7 +67,6 @@ import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
 import static java.util.Comparator.comparingInt;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.KeyCode.A;
 import static javafx.scene.input.KeyCode.ALT;
@@ -127,6 +128,7 @@ import static sp.it.util.access.PropertiesKt.toggleNext;
 import static sp.it.util.access.Values.next;
 import static sp.it.util.access.Values.previous;
 import static sp.it.util.animation.Anim.anim;
+import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.list;
@@ -136,13 +138,14 @@ import static sp.it.util.reactive.UnsubscribableKt.on;
 import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.reactive.UtilKt.syncC;
+import static sp.it.util.reactive.UtilKt.syncTo;
 import static sp.it.util.text.StringExtensionsKt.keys;
+import static sp.it.util.ui.NodeExtensionsKt.pseudoClassToggle;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.getScreen;
 import static sp.it.util.ui.UtilKt.getScreenXy;
 import static sp.it.util.ui.UtilKt.getXy;
 import static sp.it.util.ui.UtilKt.initClip;
-import static sp.it.util.ui.NodeExtensionsKt.pseudoClassToggle;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /** Window for application. */
@@ -162,6 +165,10 @@ public class Window extends WindowBase {
 	public static final PseudoClass pcMoved = pseudoclass("moved");
 	/** Pseudoclass active when this window is fullscreen. Applied on {@link #scWindow}. */
 	public static final PseudoClass pcFullscreen = pseudoclass("fullscreen");
+	/** Pseudoclass active when this window {@link #transparency} is {@link sp.it.pl.ui.objects.window.stage.Window.Transparency#ON}. */
+	public static final String pcTransparent = "transparent";
+	/** Pseudoclass active when this window {@link #transparency} is {@link sp.it.pl.ui.objects.window.stage.Window.Transparency#ON_CLICK_THROUGH}. */
+	public static final String pcTransparentCt = "transparent-ct";
 
 	/** Scene root. Assigned {@link #scWindow} styleclass. */
 	public final StackPane root = buildWindowLayout(consumer(this::borderDragStart), consumer(this::borderDragged), consumer(this::borderDragEnd));
@@ -176,13 +183,17 @@ public class Window extends WindowBase {
 	/** Whether this is main window. Closing main window closes the application. Only one window can be main. */
 	public final @NotNull WithSetterObservableValue<@NotNull Boolean> isMain = toWritable(isMainImpl, consumer(it -> { if (it) APP.windowManager.setAsMain(this); }));
 	/** Whether this window is resizable/movable with mouse when left ALT is held. Default true on non Linux platform. */
-	public final @NotNull BooleanProperty isInteractiveOnLeftAlt = new SimpleBooleanProperty(!Os.UNIX.isCurrent());
+	public final @NotNull V<Boolean> isInteractiveOnLeftAlt = new V<>(!Os.UNIX.isCurrent());
 	/** Whether {@link #backImage} translates and scales with content to provide a depth effect. A non-uniform bgr needs to be set for the effect to be visible. Default false. */
-	public final @NotNull Property<@NotNull Boolean> transformBgrWithContent = new V<>(false);
+	public final @NotNull V<@NotNull Boolean> transformBgrWithContent = new V<>(false);
 	/** Whether window content has transparent decoration. Default false. */
-	public final @NotNull BooleanProperty transparentContent = new SimpleBooleanProperty(false);
+	public final @NotNull OrV<@NotNull Transparency> transparency = new OrV<>(APP.windowManager.getWindowTransparency(), new Inherit<>());
+	/** Whether window content has transparent decoration. Default false. */
+	public final @NotNull OrV<@NotNull BgrEffect> effect = new OrV<>(APP.windowManager.getWindowEffect(), new Inherit<>());
+	/** Window opacity, backed by {@link javafx.stage.Stage#opacityProperty()}. Default 1.0. */
+	public final @NotNull OrV<@NotNull Double> opacity = new OrV<>(APP.windowManager.getWindowOpacity(), new Inherit<>());
 	/** Whether window shows on OS taskbar. Can only be set before window is shown. Default true. */
-	public final @NotNull BooleanProperty isTaskbarVisible = new SimpleBooleanProperty(true);
+	public final @NotNull V<Boolean> isTaskbarVisible = new V<>(true);
 	/** Invoked just before this window closes, after layout closes. */
 	public final Disposer onClose = new Disposer();
 
@@ -207,7 +218,10 @@ public class Window extends WindowBase {
 
 		// transparent
 		pseudoClassToggle(root, "transparent-allowed", s.getStyle()==TRANSPARENT);
-		attach(transparentContent, consumer(it -> pseudoClassToggle(root, "transparent", it)));
+		attach(transparency, consumer(it -> pseudoClassToggle(root, pcTransparent, it==Transparency.ON)));
+		attach(transparency, consumer(it -> pseudoClassToggle(root, pcTransparentCt, it==Transparency.ON_CLICK_THROUGH)));
+
+		syncTo(opacity, getStage().opacityProperty());
 
 		// drag&drop
 		installDrag(
@@ -438,6 +452,48 @@ public class Window extends WindowBase {
 		});
 
 		setTitle("");
+
+		installHeaderReactiveContent();
+
+		installStartLayoutPlaceholder(this);
+	}
+	private final ObservableValue<Boolean> headerIsLong = getStage().widthProperty().map(it -> it.doubleValue()>600.0);
+	private final ArrayList<Node> headerChildrenLeftLong = new ArrayList<>();
+	private final ArrayList<Node> headerChildrenLeftShort = new ArrayList<>();
+	private final ArrayList<Node> headerChildrenRightLong = new ArrayList<>();
+	private final ArrayList<Node> headerChildrenRightShort = new ArrayList<>();
+
+	public Subscription addLeftHeaderIcon(Node icon) {
+		icon.setFocusTraversable(false);
+		if (icon instanceof Icon i) i.size(null).styleclass("header-icon");
+
+		headerChildrenLeftLong.add(headerChildrenLeftLong.size()-1, icon);
+		headerUpdateContent();
+		return Subscription.Companion.invoke(runnable(() -> {
+			headerChildrenLeftLong.remove(icon);
+			headerUpdateContent();
+		}));
+	}
+
+	public Subscription addRightHeaderIcon(Node icon) {
+		icon.setFocusTraversable(false);
+		if (icon instanceof Icon i) i.size(null).styleclass("header-icon");
+
+		headerChildrenRightLong.add(2, icon);
+		headerUpdateContent();
+		return Subscription.Companion.invoke(runnable(() -> {
+			headerChildrenRightLong.remove(icon);
+			headerUpdateContent();
+		}));
+	}
+
+	private void headerUpdateContent() {
+		var it = headerIsLong.getValue();
+		setTo(leftHeaderBox.getChildren(), it ? headerChildrenLeftLong : headerChildrenLeftShort);
+		setTo(rightHeaderBox.getChildren(), it ? headerChildrenRightLong : headerChildrenRightShort);
+	}
+
+	private void installHeaderReactiveContent() {
 		Icon leftMenuB = WindowUtilKt.leftHeaderMenuIcon(this);
 		Icon lockB = new Icon(null, -1, ActionRegistrar.get("Toggle layout lock")).styleclass("header-icon");
 			on(syncC(APP.ui.getLayoutLocked(), it -> lockB.icon(it, LOCK, UNLOCK)), onClose);
@@ -447,10 +503,6 @@ public class Window extends WindowBase {
 			on(syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it, TH, TH_LARGE)), onClose);
 		Icon errorB = new Icon(WARNING, -1).styleclass("header-icon").action(() -> APP.getActionsLog().showDetailForLastError() ).tooltip("Event Log");
 			syncC(AppEventLog.INSTANCE.getHasErrors(), it -> errorB.icon(it, WARNING, SEND));
-
-		leftHeaderBox.getChildren().addAll(leftMenuB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), errorB);
-		leftHeaderBox.setTranslateY(-4);
-		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
 
 		Icon miniB = new Icon(null, -1, "Toggle dock").styleclass("header-icon")
 			.onClickDo(consumer(it -> toggle(APP.windowManager.getDockShow())));
@@ -465,36 +517,29 @@ public class Window extends WindowBase {
 				? "Main window\n\nThis window is main app window\nClosing it will close application."
 				: "Main window\n\nThis window is not main app window\nClosing it will not close application."));
 
-		rightHeaderBox.getChildren().addAll(mainB, new Label(""), miniB, new Label(""), rightMenuB, closeB);
+
+		leftHeaderBox.setTranslateY(-4);
+		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
+		headerChildrenLeftLong.addAll(List.of(leftMenuB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), errorB, appProgressIcon(onClose)));
+		headerChildrenLeftShort.add(leftMenuB);
+
 		rightHeaderBox.setTranslateY(-4);
-		rightHeaderBox.getChildren().forEach(i -> i.setFocusTraversable(false));
 		initClip(rightHeaderBox, new Insets(4, 0, 4, 0));
+		headerChildrenRightShort.add(rightMenuB);
+		headerChildrenRightLong.addAll(List.of(mainB, new Label(""), miniB, new Label(""), rightMenuB, closeB));
 
-		leftHeaderBox.getChildren().add(appProgressIcon(onClose));
-		leftHeaderBox.getChildren().forEach(i -> i.setFocusTraversable(false));
-
-		installStartLayoutPlaceholder(this);
-	}
-
-	public Subscription addLeftHeaderIcon(Icon icon) {
-		leftHeaderBox.getChildren().add(8, icon.size(null).styleclass("header-icon"));
-		return Subscription.Companion.invoke(runnable(() -> leftHeaderBox.getChildren().remove(icon)));
-	}
-
-	public Subscription addRightHeaderIcon(Icon icon) {
-		leftHeaderBox.getChildren().add(2, icon.size(null).styleclass("header-icon"));
-		return Subscription.Companion.invoke(runnable(() -> leftHeaderBox.getChildren().remove(icon)));
+		syncC(headerIsLong, it -> headerUpdateContent());
 	}
 
 /* ---------- CONTENT ----------------------------------------------------------------------------------------------- */
 
-	private Layout layout;
-	private ContainerSwitch topContainer;
+	private @Nullable Layout layout;
 
 	public @Nullable Layout getLayout() {
 		return layout;
 	}
 
+	/** Can only be called if {@link #getLayout()} is null */
 	public void setContent(Node n) {
 		failIf(layout!=null, () -> "Layout already initialized");
 
@@ -504,22 +549,23 @@ public class Window extends WindowBase {
 		n.requestFocus();
 	}
 
-	public void setContent(Component c) {
-		if (c!=null) {
-			topContainer.addChild(topContainer.getEmptySpot(), c);
-			c.focus();
-		}
+	/** Can only be called if {@link #getLayout()} is null */
+	public void initLayoutWithContainerSwitchWith(@NotNull Component c) {
+		var cs = initLayoutWithContainerSwitch();
+			cs.addChild(cs.getEmptySpot(), c);
+		c.focus();
 	}
 
-	public void initLayout() {
-		topContainer = new ContainerSwitch();
-		Layout l = new Layout();
-		content.getChildren().clear();
-		l.load(content);
-		l.setChild(topContainer);
-		initLayout(l);
+	/** Can only be called if {@link #getLayout()} is null */
+	public ContainerSwitch initLayoutWithContainerSwitch() {
+		initLayout(new Layout());
+		layout.load(content);
+		var cs = new ContainerSwitch();
+		layout.setChild(cs);
+		return cs;
 	}
 
+	/** Can only be called if {@link #getLayout()} is null */
 	public void initLayout(Layout l) {
 		failIf(layout!=null, () -> "Layout already initialized");
 
@@ -527,48 +573,46 @@ public class Window extends WindowBase {
 		s.getProperties().put(Window.keyWindowLayout, l);
 		content.getChildren().clear();
 		layout.load(content);
-		topContainer = (ContainerSwitch) requireNonNull(l.getChild());
-		topContainer.load();
 
+		if (l.getChild() instanceof ContainerSwitch cs) {
+			var transformBgrWithContentSub = new Subscribed(it -> {
+				double scaleFactor = 1.25; // prevent running out of bgr when translating
+				backImage.translateXProperty().unbind();
+				backImage.setTranslateX(0);
+				backImage.setScaleX(scaleFactor);
+				backImage.setScaleY(scaleFactor);
+				var s1 = sync(cs.ui.translateProperty(), consumer(nv -> {
+					double x = nv.doubleValue();
+					double space = backImage.getWidth()*((scaleFactor - 1)/2d);
+					double dir = signum(x);
+					x = abs(x);
+					backImage.setTranslateX(dir*space*(1 - (1/(1 + 0.0005*x))));  // (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))  try at: http://www.mathe-fa.de
+				}));
+				var s2 = sync(cs.ui.zoomProperty(), consumer(nv -> {
+					double x = nv.doubleValue();
+					x = 1 - (1 - x)/5;
+					backImage.setScaleX(scaleFactor*pow(x, 0.25));
+					backImage.setScaleY(scaleFactor*pow(x, 0.25));
+				}));
 
-		var transformBgrWithContentSub = new Subscribed(it -> {
-			double scaleFactor = 1.25; // prevent running out of bgr when translating
-			backImage.translateXProperty().unbind();
-			backImage.setTranslateX(0);
-			backImage.setScaleX(scaleFactor);
-			backImage.setScaleY(scaleFactor);
-			var s1 = sync(topContainer.ui.translateProperty(), consumer(nv -> {
-				double x = nv.doubleValue();
-				double space = backImage.getWidth()*((scaleFactor - 1)/2d);
-				double dir = signum(x);
-				x = abs(x);
-				backImage.setTranslateX(dir*space*(1 - (1/(1 + 0.0005*x))));  // (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))  try at: http://www.mathe-fa.de
-			}));
-			var s2 = sync(topContainer.ui.zoomProperty(), consumer(nv -> {
-				double x = nv.doubleValue();
-				x = 1 - (1 - x)/5;
-				backImage.setScaleX(scaleFactor*pow(x, 0.25));
-				backImage.setScaleY(scaleFactor*pow(x, 0.25));
-			}));
-
-			return Subscription.Companion.invoke(
-				s1,
-				s2,
-				Subscription.Companion.invoke(runnable(() -> {
-					backImage.setTranslateX(0);
-					backImage.setScaleX(1.0);
-					backImage.setScaleY(1.0);
-				}))
-			);
-		});
-		sync(transformBgrWithContent, consumer(transformBgrWithContentSub::subscribe));
+				return Subscription.Companion.invoke(
+					s1,
+					s2,
+					Subscription.Companion.invoke(runnable(() -> {
+						backImage.setTranslateX(0);
+						backImage.setScaleX(1.0);
+						backImage.setScaleY(1.0);
+					}))
+				);
+			});
+			sync(transformBgrWithContent, consumer(transformBgrWithContentSub::subscribe));
+		}
 	}
 
 	// TODO: dispose of zoom effect
 	public Layout detachLayout() {
 		var l = layout;
 		layout = null;
-		topContainer = null;
 		return l;
 	}
 
@@ -577,12 +621,9 @@ public class Window extends WindowBase {
 	 *
 	 * @return layout aggregator, never null.
 	 */
-	public ContainerSwitchUi getSwitchPane() {
-		return topContainer==null ? null : topContainer.ui;
-	}
-
-	public ContainerSwitch getTopContainer() {
-		return layout==null ? null : (ContainerSwitch) layout.getChild();
+	public @Nullable ContainerSwitchUi getSwitchPane() {
+		if (layout!=null && layout.getChild() instanceof ContainerSwitch cs) return cs.ui;
+		else return null;
 	}
 
 	/**
@@ -856,4 +897,6 @@ public class Window extends WindowBase {
 		e.consume();
 	}
 
+	public enum Transparency { OFF, ON, ON_CLICK_THROUGH }
+	public enum BgrEffect { OFF, BLUR, ACRYLIC }
 }

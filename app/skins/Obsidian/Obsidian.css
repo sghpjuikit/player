@@ -52,7 +52,9 @@
     -fx-background-color: radial-gradient(radius 100%, rgba(32,10,56,0.0) 40%, rgba(55,19,55,0.8) 80%, rgba(20,232,255,0) 100%);
 }
 .window:transparent .widget-ui,
-.window:transparent .widget-ui-content {
+.window:transparent-ct .widget-ui,
+.window:transparent .widget-ui-content,
+.window:transparent-ct .widget-ui-content {
     -fx-background-color: transparent;
 }
 

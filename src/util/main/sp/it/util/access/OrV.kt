@@ -36,6 +36,10 @@ class OrV<T>(parent: Property<T>, initialValue: OrValue.Initial<T> = Inherit()):
       real.value = v
    }
 
+   var valueOr: OrValue<T>
+      get() = OrValue(override.value, real.value)
+      set(it) { override.value = it.override; real.value = it.value }
+
    override fun addListener(listener: IListener) = actual.addListener(listener)
 
    override fun removeListener(listener: IListener) = actual.removeListener(listener)

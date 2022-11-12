@@ -2,12 +2,18 @@
 
 package sp.it.pl.ui.objects.window.stage
 
+import com.sun.javafx.scene.SceneHelper
+import com.sun.jna.Native
 import com.sun.jna.Pointer
+import com.sun.jna.Structure
 import com.sun.jna.platform.win32.Kernel32
 import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinDef
+import com.sun.jna.platform.win32.WinDef.DWORD
+import com.sun.jna.platform.win32.WinDef.HWND
 import com.sun.jna.platform.win32.WinUser.GWL_STYLE
 import com.sun.jna.platform.win32.WinUser.SMTO_NORMAL
+import com.sun.jna.win32.W32APIOptions
 import java.util.UUID
 import javafx.beans.value.ObservableValue
 import javafx.event.Event
@@ -91,6 +97,7 @@ import sp.it.util.action.ActionManager.keyShortcutsComponent
 import sp.it.util.async.coroutine.flowTimer
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
@@ -121,6 +128,7 @@ import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
+import sp.it.util.units.uuid
 
 private val logger = KotlinLogging.logger { }
 
@@ -156,9 +164,8 @@ fun Window.installStartLayoutPlaceholder() {
 
    s.showingProperty().sync1If({ it }) {
       runFX(1.seconds) {
-         if (topContainer?.children?.isEmpty()==true) {
+         if (stage.asLayout()==null)
             showStartLayoutPlaceholder()
-         }
       }
    }
 
@@ -258,7 +265,86 @@ val Stage.isNonInteractingOnBottom: Boolean
 /** See [Stage.setNonInteractingOnBottom] */
 fun Window.setNonInteractingOnBottom() = stage.setNonInteractingOnBottom()
 
-private fun Stage.lookupHwnd(): WinDef.HWND? {
+@Suppress("SpellCheckingInspection")
+enum class Windows10WindowBlur(val accentState: Int) {
+   ACCENT_DISABLED(0),
+   ACCENT_ENABLE_GRADIENT(1),
+   ACCENT_ENABLE_TRANSPARENTGRADIENT(2),
+   ACCENT_ENABLE_BLURBEHIND(3),
+   ACCENT_ENABLE_ACRYLICBLURBEHIND(4),
+   ACCENT_INVALID_STATE(5)
+}
+
+@Suppress("LocalVariableName", "SpellCheckingInspection")
+fun HWND.applyBlur(blur: Windows10WindowBlur) {
+
+   data class WINCOMPATTRDATA(
+      @JvmField var Attribute: Int,
+      @JvmField var Data: Pointer,
+      @JvmField var SizeOfData: Int
+   ): Structure(), Structure.ByReference {
+      override fun getFieldOrder() = listOf("Attribute", "Data", "SizeOfData")
+   }
+   data class ACCENTPOLICY(
+      @JvmField var AccentState: Int,
+      @JvmField var AccentFlags: Int,
+      @JvmField var GradientColor: Int,
+      @JvmField var AnimationId: Int
+   ): Structure(), Structure.ByReference {
+      override fun getFieldOrder() = listOf("AccentState", "AccentFlags", "GradientColor", "AnimationId")
+   }
+
+   val WCA_ACCENT_POLICY = 19
+   val policy = ACCENTPOLICY(blur.accentState, 0, 0x00FFFFFF, 0).apply { write() }
+   val data = WINCOMPATTRDATA(WCA_ACCENT_POLICY, policy.pointer, policy.size()).apply { write() }
+   User32Ex.INSTANCE.SetWindowCompositionAttribute(this, data.pointer)
+}
+
+fun javafx.stage.Window.reflectHwnd(): HWND? {
+   val tkStage = SceneHelper.getPeer(scene ?: return null) ?: return null
+
+   val windowStage = tkStage.javaClass.getDeclaredMethod("getWindowStage").apply { isAccessible = true }.invoke(tkStage) ?: return null
+   val platformWindow = windowStage.javaClass.getDeclaredMethod("getPlatformWindow").apply { isAccessible = true }.invoke(windowStage) ?: return null
+   // Use fields 'ptr' and 'delegatePtr' instead of getNativeHandle() to avoid Platform.runLater
+   val ptr = com.sun.glass.ui.Window::class.java.getDeclaredField("ptr").apply { isAccessible = true }[platformWindow] as Long
+   val delegatePtr = com.sun.glass.ui.Window::class.java.getDeclaredField("delegatePtr").apply { isAccessible = true }[platformWindow] as Long
+
+   return HWND(Pointer(if (delegatePtr != 0L) delegatePtr else ptr))
+}
+
+fun getPointer(w: javafx.stage.Window): String {
+   val scene = w.scene
+   val tkStage = SceneHelper.getPeer(scene)
+
+   val windowStage = tkStage.javaClass.getDeclaredMethod("getWindowStage").apply { isAccessible = true }.invoke(tkStage)
+   val platformWindow = windowStage.javaClass.getDeclaredMethod("getPlatformWindow").apply { isAccessible = true }.invoke(windowStage)
+   // Use fields 'ptr' and 'delegatePtr' instead of getNativeHandle() to avoid Platform.runLater
+   val ptr = com.sun.glass.ui.Window::class.java.getDeclaredField("ptr").apply { isAccessible = true }[platformWindow] as Long
+   val delegatePtr = com.sun.glass.ui.Window::class.java.getDeclaredField("delegatePtr").apply { isAccessible = true }[platformWindow] as Long
+
+   val hwnd = HWND(Pointer(if (delegatePtr != 0L) delegatePtr else ptr))
+   val user32 = User32.INSTANCE
+   val titleArray = CharArray(100)
+   user32.GetWindowText(hwnd, titleArray, 100)
+   val title = "SpitPlayer-${uuid()}"
+   User32Ex.INSTANCE.SetWindowTextW(hwnd, Native.toCharArray(title)).printIt()
+   user32.GetWindowText(hwnd, titleArray, 100)
+   return title
+}
+
+@Suppress("FunctionName")
+interface User32Ex: User32 {
+
+   fun SetWindowTextW(hWnd: HWND, lpString: CharArray): Boolean
+
+   fun SetWindowCompositionAttribute(hWnd: HWND, data: Pointer): Boolean
+
+   companion object {
+      val INSTANCE = Native.load("user32", User32Ex::class.java, W32APIOptions.DEFAULT_OPTIONS)!!
+   }
+}
+
+fun Stage.lookupHwnd(): HWND? {
    val user32 = User32.INSTANCE
    val titleOriginal = title
    val titleUnique = UUID.randomUUID().toString()
@@ -295,7 +381,7 @@ fun Stage.setNonInteractingOnBottom() {
       val SWP_NOMOVE = 0x0002
       val SWP_NOACTIVATE = 0x0010
       val HWND_BOTTOM = 1
-      user32.SetWindowPos(hwnd, WinDef.HWND(Pointer(HWND_BOTTOM.toLong())), 0, 0, 0, 0, SWP_NOSIZE or SWP_NOMOVE or SWP_NOACTIVATE)
+      user32.SetWindowPos(hwnd, HWND(Pointer(HWND_BOTTOM.toLong())), 0, 0, 0, 0, SWP_NOSIZE or SWP_NOMOVE or SWP_NOACTIVATE)
    }
 }
 
@@ -325,14 +411,14 @@ fun Stage.setNonInteractingProgmanOnBottom() {
 
       // Send 0x052C to Progman
       // This message directs Progman to spawn a WorkerW behind the desktop icons. If it is already there, nothing happens.
-      val r = user32.SendMessageTimeout(progman, 0x052C, null, WinDef.LPARAM(), SMTO_NORMAL, 1000, WinDef.DWORDByReference(WinDef.DWORD(0L)))
+      val r = user32.SendMessageTimeout(progman, 0x052C, null, WinDef.LPARAM(), SMTO_NORMAL, 1000, WinDef.DWORDByReference(DWORD(0L)))
       if (r.equals(0)) logger.warn { "$logName Progman failed with code=${Kernel32.INSTANCE.GetLastError()}" }
 
       GlobalScope.launch(Dispatchers.JavaFx) {
          flowTimer(0, 150).cancellable().take(4).mapNotNull {
             logger.debug { "$logName getting workerW at ${System.currentTimeMillis().localDateTimeFromMillis()}" }
             // Get WorkerW window
-            var workerW: WinDef.HWND? = null
+            var workerW: HWND? = null
             user32.EnumWindows(
                { tophandle, topparamhandle ->
                   user32.FindWindowEx(tophandle, null, "SHELLDLL_DefView", null).ifNotNull {

@@ -7,6 +7,7 @@ import javafx.geometry.Bounds
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Rectangle2D
 import javafx.scene.Node
+import javafx.stage.Stage
 import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.StageStyle.UNDECORATED
 import sp.it.pl.layout.Layout
@@ -38,21 +39,18 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.asDisposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachFalse
-import sp.it.util.reactive.attachTo
 import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.on
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.system.Os
 
-/** Determines whether global window opacity setting is overridden for this window */
-var Window.opacityOverride: Boolean
-   get() = properties["opacityOverride"].asIf<Boolean>() ?: false
-   set(value) = properties.put("opacityOverride", value).toUnit()
-
 /** Determines whether global window stage style setting is overridden for this window */
 var Window.stageStyleOverride: Boolean
    get() = properties["stageStyleOverride"].asIf<Boolean>() ?: false
    set(value) = properties.put("stageStyleOverride", value).toUnit()
+
+/** @return [Stage] associated with this javafx window or null if not [Stage]-based */
+fun WindowFX.asStage() = asIf<Stage>()
 
 /** @return application [Window] associated with this javafx window */
 fun WindowFX.asAppWindow() = properties[Window.keyWindowAppWindow] as? Window
@@ -68,6 +66,7 @@ fun Window.isMainWindow() = this.isMain.value
 
 /** @return application layout associated with this javafx window */
 fun WindowFX.asLayout() = null
+   ?: asAppWindow()?.layout
    ?: properties[Window.keyWindowLayout] as? Layout
    ?: scene?.root?.properties?.get(Window.keyWindowLayout) as? Layout
 
@@ -92,12 +91,14 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
 
       val main by cv(w.isMain.value).readOnlyIf(w.isMain)
          .def(name = "Main", info = "Whether this window is main. Closing main window closes the application. At most one window can be main. Can only be set to true.")
-      val opacity by cOr(APP.windowManager::windowOpacity, if (w.opacityOverride) Override(w.opacity.value) else Inherit(), onClose).butOverridden { between(0.1, 1.0) }
+      val opacity by cOr(w.opacity).butOverridden { between(0.1, 1.0) }
          .defInherit(APP.windowManager::windowOpacity)
-      val transparency by cOr(APP.windowManager::windowStyleAllowTransparency, if (w.stageStyleOverride) Override(w.s.style==TRANSPARENT) else Inherit(), onClose)
+      val transparencyAllow by cOr(APP.windowManager::windowStyleAllowTransparency, if (w.stageStyleOverride) Override(w.s.style==TRANSPARENT) else Inherit(), onClose)
          .defInherit(APP.windowManager::windowStyleAllowTransparency)
-      val transparencyContent by cv(w.transparentContent)
-         .def(name = "Transparent content", info = "Whether content decoration is transparent. Useful for transparent windows.")
+      val transparency by cOr(w.transparency)
+         .defInherit(APP.windowManager::windowTransparency)
+      val effect by cOr(w.effect)
+         .defInherit(APP.windowManager::windowEffect)
       val headerAllowed by cv(w.isHeaderAllowed)
          .def(name = "Allow header", info = "Whether header can be visible. Some windows do not support header.", editable = EditMode.APP)
       val headerVisible by cv(w.isHeaderVisible).readOnlyUnless(w.isHeaderAllowed)
@@ -115,7 +116,7 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
 
       init {
          fun recreate() = w.also { ow ->
-            val nw = w.recreateWith(if (transparency.value) TRANSPARENT else UNDECORATED, taskbarVisible.value, onBottom.value)
+            val nw = w.recreateWith(if (transparencyAllow.value) TRANSPARENT else UNDECORATED, taskbarVisible.value, onBottom.value)
 
             ow.opacity.value = 0.0
             nw.update()
@@ -125,17 +126,14 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
             nw.stage.onIsShowing1st { ow.settingsWindow?.hide(); ow.close(); openWindowSettings(nw, nw.root) } on onClose
          }
 
-
          w.isMain attachFalse { main.value = it } on onClose
          main attachTrue { APP.windowManager.setAsMain(w) }
 
-         opacity.override attach { w.opacityOverride = it } on onClose
-         opacity attachTo w.opacity on onClose
-         transparency.override attach { w.stageStyleOverride = it } on onClose
+         transparencyAllow.override attach { w.stageStyleOverride = it } on onClose
          onBottom attachTrue { w.setNonInteractingOnBottom() } on onClose
          onBottom attachFalse  { recreate() } on onClose
          taskbarVisible attach { recreate() } on onClose
-         transparency attach { recreate() } on onClose
+         transparencyAllow attach { recreate() } on onClose
       }
    }
 

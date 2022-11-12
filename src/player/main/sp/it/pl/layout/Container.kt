@@ -124,13 +124,10 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
       }
    }
 
-   // TODO: this should close previous component
    /**
-    * Adds component to specified index as child of the container.
-    * @param index index of a child. Determines its position within container.
-    * Null value allowed, but will be ignored.
-    * @param c component to add. Null removes existing component from given
-    * index.
+    * Adds specified component to specified index as child of the container.
+    * @param index index of a child. Determines its position within container. Null value allowed, but will be ignored.
+    * @param c component to add. Null removes existing component from given index (see [removeChild])
     */
    abstract fun addChild(index: Int?, c: Component?)
 
@@ -147,16 +144,15 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
    }
 
    /**
-    * Removes child of this container at specified index.
+    * Removes child of this container at specified index and invokes its [Component.close].
     *
-    *
-    * Equivalent to: addChild(index, null);   // TODO: no it isnt! fix
+    * Similar to `addChild(index, null)` but calls close on the removed child.
     * @param index of the child to remove. Null is ignored.
     */
    open fun removeChild(index: Int?) {
       if (index!=null) {
-         val c = children[index] // capture before reload
-         addChild(index, null) // reload
+         val c = children[index]
+         addChild(index, null)
          c?.close()
          closeWindowIfEmpty()
       }

@@ -7,13 +7,36 @@ All notable changes to this project will be documented in this file. Format base
 - Implement preferred song order settings
 - Implement `AppSearch` history to remember searched text instead of picked suggestion
 - Implement `AppSearch` number conversions
-- Implement `AppSearch` operating system actions 
+- Implement `AppSearch` operating system actions
+- Implement reactive window header content
+- Implement window transparency click-through settings
+- Implement json conversion generic type inference
 - Fix popup window interaction not working after widget loads in popup
 - Fix `Open widget` action interfering with overlay animation
 - Fix `Configurable` hierarchy computation [affected settings hierarchy]
 - Fix `Config` constraints not applied on children sometimes
+- Fix `File.deleteRecursivelyOrThrow` not working correctly
+- Fix `HttpClient.downloadFile` timing out
+- Fix **Song Group Table** widget's selection output not being se
 - Fix **Function View** widget precision stuck to 7
 - Fix **Function View** widget slow performance
+
+### Window - reactive header content
+Window header content shrinks if window is too small.
+This improves UX as well as resizing issue for small windows.
+
+### Window - overriding settings
+Some window settings are now properly overridable, i.e., per-application and per-window setting is provided.
+
+### Window - transparency click-through
+Sometimes click-through behavior is unwanted for transparent windows (click-through is enabled for fully transparent pixels).
+For now transparent windows were always click-through (unless focused) 
+From now on, user specify click-through (as before) or normal (no click-through) transparency for each window.
+
+### Window - glass effect
+User can now enable overridable window bgr effects (none | blur | acrylic).
+The effect works on any window, which includes dock windows, sliding windows as well as popups, menus or tooltips.
+Works only on Windows OS.
 
 ## [7.5.0] 2022 11 04
 

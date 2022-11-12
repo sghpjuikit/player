@@ -10,7 +10,8 @@
     -skin-def-font-color: rgb(160, 160, 180);
     -skin-def-font-color-hover: #ffcc66;
     -skin-sel-font-color: rgb(175, 175, 176);
-    -skin-almost-transparent: rgba(0,0,0,0.005);
+    /* Transparent color that is not click-through */
+    -skin-transparent-ct: rgba(0,0,0,0.005);
     -fx-text-base-color: -skin-def-font-color;
     -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
     -skin-color-darker: rgba(0,0,0,0.2);
@@ -425,7 +426,7 @@
 .slider:focused .thumb,
 .slider:focused .thumb:hover,
 .slider:focused .thumb:pressed {
-    -fx-background-color: -skin-almost-transparent;
+    -fx-background-color: -skin-transparent-ct;
 }
 .slider .track {
     -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(255,255,255,0.3) 100%);
@@ -1990,7 +1991,7 @@ Shape, Text, SpitText, TextFlow > * {
 
 /* window transparency */
 .window:transparent-allowed {
-    -fx-background-color: -skin-almost-transparent;
+    -fx-background-color: -skin-transparent-ct;
 }
 .window:transparent-allowed .widget-ui,
 .window-slide:transparent-allowed,
@@ -1998,35 +1999,43 @@ Shape, Text, SpitText, TextFlow > * {
      -fx-background-color: -skin-popup-def-bgr-color;
 }
 
+.window:transparent-ct {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+}
+.window:focused:transparent-ct {
+    -fx-background-color: -skin-transparent-ct;
+    -fx-border-color: -skin-transparent-ct;
+    -fx-border-width: 1;
+}
 .window:transparent {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
+    -fx-background-color: -skin-transparent-ct;
+    -fx-border-color: -skin-transparent-ct;
     -fx-border-width: 1;
 }
-.window:focused:transparent {
-    -fx-background-color: -skin-almost-transparent; // clickable when focused improves UX
-    -fx-border-color: -skin-almost-transparent; // clickable always
-    -fx-border-width: 1;
-}
-.window:transparent .widget-ui {
+.window:transparent    .widget-ui,
+.window:transparent-ct .widget-ui {
     -fx-background-color: transparent;
 }
-.window:transparent .widget-ui:active .widget-ui-content {
+.window:transparent    .widget-ui:active .widget-ui-content,
+.window:transparent-ct .widget-ui:active .widget-ui-content {
     -fx-border-color: transparent;
 }
-.window:transparent .widget-ui-controls {
+.window:transparent    .widget-ui-controls,
+.window:transparent-ct .widget-ui-controls {
     -fx-background-color: -skin-pane-color;
 }
-.window:transparent > #header {
-    -fx-background-color: -skin-almost-transparent; // clickable always
+.window:transparent    > #header,
+.window:transparent-ct > #header {
+    -fx-background-color: -skin-transparent-ct; // clickable always
 }
-.window:transparent .bgr-image {
-    // override in case sub-skin specifies this value
-    -fx-background-image: null;
+.window:transparent    .bgr-image,
+.window:transparent-ct .bgr-image {
+    -fx-background-image: null; // override in case sub-skin specifies this value
 }
 .window:transparent > #front {
-    // override in case sub-skin specifies this value
-    -fx-background-color: transparent;
+    -fx-background-color: transparent; // override in case sub-skin specifies this value
 }
 
 /*
@@ -2057,7 +2066,8 @@ Shape, Text, SpitText, TextFlow > * {
 .window .header {
     -fx-background-color: -skin-pane-color;
 }
-.window:transparent .header {
+.window:transparent    .header,
+.window:transparent-ct .header {
     -fx-background-color: transparent;
 }
 
@@ -2159,9 +2169,9 @@ Shape, Text, SpitText, TextFlow > * {
  * inherits: .pop-window
  */
 .notification {
-    -fx-border-insets: 0.5em;
-    -fx-background-insets: 0.5em;
-    -fx-padding: 0.5em;
+    -fx-padding: 0; // setting this would offset the window from e.g. edge of screen, but some effects (like OS blur) would go outside window
+    -fx-border-insets: 0; // set to -fx-padding value
+    -fx-background-insets: 0; // set to -fx-padding value
 }
 
 /************************************ COMPONENT ***********************************************************************/

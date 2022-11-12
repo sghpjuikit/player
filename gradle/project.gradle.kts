@@ -95,7 +95,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "20-ea+6"
+         val version = "20-ea+7"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"

@@ -97,7 +97,6 @@ import sp.it.util.action.ActionManager.keyShortcutsComponent
 import sp.it.util.async.coroutine.flowTimer
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
@@ -267,11 +266,23 @@ fun Window.setNonInteractingOnBottom() = stage.setNonInteractingOnBottom()
 
 @Suppress("SpellCheckingInspection")
 enum class Windows10WindowBlur(val accentState: Int) {
+   /** No effect or disables previous effect. */
    ACCENT_DISABLED(0),
+   /**
+    * Results in a window that is completely gray, regardless of what is behind it.
+    * There is no transparency or glass effect, but the window colour being drawn is being drawn by the DWM, not by the app.
+    */
    ACCENT_ENABLE_GRADIENT(1),
+   /**
+    * Results in a window that is painted completely with the accent colour, regardless of what is behind it.
+    * There is no transparency or glass effect, but the window colour being drawn is being drawn by the DWM, not by the app.
+    */
    ACCENT_ENABLE_TRANSPARENTGRADIENT(2),
+   /** Aero glass effect. Has performance impact. */
    ACCENT_ENABLE_BLURBEHIND(3),
+   /** Aero glass effect with stronger blur and less transparency. Has high performance impact. */
    ACCENT_ENABLE_ACRYLICBLURBEHIND(4),
+   /** Unknown */
    ACCENT_INVALID_STATE(5)
 }
 
@@ -295,7 +306,8 @@ fun HWND.applyBlur(blur: Windows10WindowBlur) {
    }
 
    val WCA_ACCENT_POLICY = 19
-   val policy = ACCENTPOLICY(blur.accentState, 0, 0x00FFFFFF, 0).apply { write() }
+   val color = 0x00FFFFFF // https://stackoverflow.com/questions/32724187/how-do-you-set-the-glass-blend-colour-on-windows-10/33064611#33064611
+   val policy = ACCENTPOLICY(blur.accentState, 0, color, 0).apply { write() }
    val data = WINCOMPATTRDATA(WCA_ACCENT_POLICY, policy.pointer, policy.size()).apply { write() }
    User32Ex.INSTANCE.SetWindowCompositionAttribute(this, data.pointer)
 }
@@ -327,7 +339,7 @@ fun getPointer(w: javafx.stage.Window): String {
    val titleArray = CharArray(100)
    user32.GetWindowText(hwnd, titleArray, 100)
    val title = "SpitPlayer-${uuid()}"
-   User32Ex.INSTANCE.SetWindowTextW(hwnd, Native.toCharArray(title)).printIt()
+   User32Ex.INSTANCE.SetWindowTextW(hwnd, Native.toCharArray(title))
    user32.GetWindowText(hwnd, titleArray, 100)
    return title
 }

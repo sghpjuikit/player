@@ -33,7 +33,7 @@ class AppSearch: GlobalSubConfigDelegator(conf.name) {
                text.isEmpty() -> listOf()
                else -> {
                   val maxResults = 50
-                  val phrases = text.split(" ").toList()
+                  val phrases = text.dropWhile { it == ' ' }.dropLastWhile { it == ' ' }.split(" ").toList()
                   val results = sourcesTS.asSequence().flatMap { it.source(phrases) }.take(maxResults + 1).toList()
                   if (results.size<maxResults + 1) results
                   else results.dropLast(1) + SimpleEntry("more items...", null, { "" }, {})

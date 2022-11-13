@@ -420,6 +420,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             }
             private val shower = {
                showAnim.intpl { sqrt(sqrt(it)) }
+               showAnim.delay(if (showAnim.position.value==0.0) 50.millis else 0.millis) // give ui time to initialize to decreases animation stutter
                showAnim.playOpenDo {
                   content.isMouseTransparent = false
                   mw.window.focus()
@@ -427,6 +428,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             }
             private val hider = {
                showAnim.intpl { it*it*it*it }
+               showAnim.delay(0.millis)
                showAnim.playCloseDo {
                   content.isMouseTransparent = true
                }
@@ -572,6 +574,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
       val shower = {
          showAnim.intpl { sqrt(sqrt(it)) }
+         showAnim.delay(if (showAnim.position.value==0.0) 50.millis else 0.millis) // give ui time to initialize to decreases animation stutter
          showAnim.playOpenDo {
             mw.s.asLayout()?.child = c
             mw.focus()
@@ -580,6 +583,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
       val hider = {
          showAnim.intpl { 1-sqrt(sqrt(1-it)) }
+         showAnim.delay(0.millis)
          showAnim.playCloseDo { mw.close() }
       }
 

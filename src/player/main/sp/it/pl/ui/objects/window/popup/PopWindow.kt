@@ -411,12 +411,14 @@ open class PopWindow {
    private fun fadeIn() = animation.value.apply {
       applyNow()
       dur(animationDuration.value)
+      delay(if (position.value==0.0) 50.millis else 0.0.millis) // give ui time to initialize to decreases animation stutter
       playOpenDo { }
    }
 
    private fun fadeOut() = animation.value.apply {
       applyNow()
       dur(animationDuration.value)
+      delay(0.millis)
       playCloseDo { hideImmediately() }
       hideChildPopWindows()
    }

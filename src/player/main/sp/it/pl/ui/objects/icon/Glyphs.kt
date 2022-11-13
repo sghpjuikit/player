@@ -45,6 +45,7 @@ object Glyphs {
    /** Inverse of [GlyphIcons.id]. Throws if fails. */
    operator fun get(id: String): Try<GlyphIcons, Throwable> = runTry {
       when {
+         id.startsWith("TextIcon.") -> TextIcon(id.substringAfter("TextIcon."))
          id.startsWith("UnicodeIcon.") -> UnicodeIcon(id.substringAfter("Unicode.").toInt())
          else -> GLYPHS[id] ?: fail { "No such icon=$id" }
       }
@@ -61,11 +62,11 @@ object Glyphs {
    }
 
    init {
-      Font.loadFont(FontAwesomeIconView::class.java.getResource(FontAwesomeIconView.TTF_PATH).openStream(), 10.0)
-      Font.loadFont(WeatherIconView::class.java.getResource(WeatherIconView.TTF_PATH).openStream(), 10.0)
-      Font.loadFont(MaterialDesignIconView::class.java.getResource(MaterialDesignIconView.TTF_PATH).openStream(), 10.0)
-      Font.loadFont(MaterialIconView::class.java.getResource(MaterialIconView.TTF_PATH).openStream(), 10.0)
-      Font.loadFont(OctIconView::class.java.getResource(OctIconView.TTF_PATH).openStream(), 10.0)
+      Font.loadFont(FontAwesomeIconView::class.java.getResource(FontAwesomeIconView.TTF_PATH)!!.openStream(), 10.0)
+      Font.loadFont(WeatherIconView::class.java.getResource(WeatherIconView.TTF_PATH)!!.openStream(), 10.0)
+      Font.loadFont(MaterialDesignIconView::class.java.getResource(MaterialDesignIconView.TTF_PATH)!!.openStream(), 10.0)
+      Font.loadFont(MaterialIconView::class.java.getResource(MaterialIconView.TTF_PATH)!!.openStream(), 10.0)
+      Font.loadFont(OctIconView::class.java.getResource(OctIconView.TTF_PATH)!!.openStream(), 10.0)
    }
 }
 

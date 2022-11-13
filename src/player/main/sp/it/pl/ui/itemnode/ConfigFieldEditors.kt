@@ -118,7 +118,6 @@ import sp.it.util.access.OrV
 import sp.it.util.access.Values
 import sp.it.util.access.editable
 import sp.it.util.access.fieldvalue.FileField
-import sp.it.util.access.toWritable
 import sp.it.util.access.toggle
 import sp.it.util.access.vAlways
 import sp.it.util.action.Action
@@ -150,6 +149,7 @@ import sp.it.util.conf.UnsealedEnumerator
 import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
 import sp.it.util.file.FilePickerType
+import sp.it.util.functional.Option.Some
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util.by
 import sp.it.util.functional.and
@@ -258,16 +258,22 @@ open class BoolCE(c: Config<Boolean?>): ConfigEditor<Boolean?>(c) {
    }
 }
 
-// TODO: impl disposing properly
 @Suppress("RemoveExplicitTypeArguments")
 class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrV.OrValue<T>>(c) {
    override val editor = FlowPane()
-   private val oCE = create(Config.forProperty<OrV.State>("Override", c.property.override.map { OrV.State.of(it) }.toWritable { c.property.override.value = it.override }).addConstraints(ReadOnlyIf(isEditable, true)))
-   private val vCE = create(Config.forProperty<T>(c.valueType, "", c.property.real).addConstraints(ReadOnlyIf(isEditable, true)).addConstraints(*c.elementConstraints.toTypedArray()))
+   private val oCE = ValueToggleButtonGroupCE(
+      Config.forProperty<Boolean>("Override", c.property.override, Some(c.defaultValue.override)).addConstraints(ReadOnlyIf(isEditable, true)),
+      listOf(false, true), { text = if (it) "Override" else "Inherit" }
+   )
+   private val vCE = create(
+      Config.forProperty<T>(c.valueType, "", c.property.real, Some(c.defaultValue.value)).addConstraints(ReadOnlyIf(isEditable, true), *c.elementConstraints.toTypedArray())
+   )
 
    init {
       editor.styleClass += "override-config-editor"
-      editor.lay += listOf(oCE.buildNode(), vCE.buildNode())
+      oCE.editor.styleClass += "override-config-editor-override-editor"
+      vCE.editor.styleClass += "override-config-editor-value-editor"
+      editor.lay += listOf(oCE.editor, vCE.editor)
    }
 
    override fun get() = oCE.get().and(vCE.get()).map { config.value }
@@ -508,7 +514,7 @@ class ValueToggleButtonGroupCE<T>(c: Config<T>, val values: List<T>, customizer:
    override val editor = ValueToggleButtonGroup(config.value, values, customizer)
 
    init {
-      editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
+      editor.styleClass += "toggle-group-config-editor"
       editor.value attach { apply() } on disposer
       v?.attach { editor.value.value = it }.orEmpty() on disposer
 

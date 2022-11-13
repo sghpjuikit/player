@@ -3058,13 +3058,29 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-background-color: transparent;
 }
 
+/**
+ * inherits: ValueToggleButtonGroup
+ */
+.toggle-group-config-editor {}
+
 /*
  * inherits: FlowPane
+ * structure: override-config-editor-override-editor inherits toggle-group-config-editor
+ *            override-config-editor-value-editor inherits specific editor based on the type
  */
-.override-config-editor {
+.override-config-editor  {
     -fx-hgap: 0.5em;
     -fx-vgap: 0.5em;
+    -fx-alignment: LEFT_CENTER;
+    -fx-rowValignment: CENTER;
 }
+.override-config-editor > * > .override-config-editor-override-editor {
+   -glyph-name: "TextIcon.Inherit";
+}
+.override-config-editor > * > .override-config-editor-override-editor:selected {
+   -glyph-name: "TextIcon.Override";
+}
+.override-config-editor > * > .override-config-editor-value-editor {}
 
 .config-shortcut-run-icon {
     -glyph-size: 1em; /* 8 */

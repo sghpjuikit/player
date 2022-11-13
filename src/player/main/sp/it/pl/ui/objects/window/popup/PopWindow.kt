@@ -18,7 +18,6 @@ import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
-import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.stage.Popup
 import javafx.stage.Stage
@@ -32,6 +31,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.resizeIcon
 import sp.it.pl.main.windowPinIcon
 import sp.it.pl.ui.objects.window.Shower
+import sp.it.pl.ui.objects.window.WindowRoot
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.objects.window.stage.popWindowOwner
@@ -118,7 +118,7 @@ open class PopWindow {
          onEventUp(WINDOW_HIDDEN) { onHidden() }
       }
    }
-   val root = StackPane()
+   val root = WindowRoot()
    private val contentP: BorderPane
    private val titleL: Label
    private val header: BorderPane

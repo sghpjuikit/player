@@ -2093,6 +2093,7 @@ Shape, Text, SpitText, TextFlow > * {
  * Custom popup window.
  *
  * inherits: StackPane
+ * attributes: -fx-window-padding - gap from edge considered during positioning of this popup in some positions
  * pseudoclasses: pop-window-focused - focus follows focus of the parent window
  */
 .pop-window {
@@ -2100,7 +2101,8 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-background-radius: 0em;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, derive(-skin-def-font-color, -50%) 50%, transparent 100%);
     -fx-border-width: 1;
-    -fx-border-radius: 0em;
+    -fx-border-radius: 0;
+    -fx-window-padding: 0;
 }
 
 .pop-window:window-focused {
@@ -2172,6 +2174,7 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-padding: 0; // setting this would offset the window from e.g. edge of screen, but some effects (like OS blur) would go outside window
     -fx-border-insets: 0; // set to -fx-padding value
     -fx-background-insets: 0; // set to -fx-padding value
+    -fx-window-padding: 0.5em;
 }
 
 /************************************ COMPONENT ***********************************************************************/

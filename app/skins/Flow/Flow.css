@@ -8,11 +8,17 @@
 
 * {
     -skin-bgr-color: rgb(0, 0, 35);
-    -skin-popup-def-bgr-color: rgba(5,5,20,0.6);
+    -skin-popup-def-bgr-color: rgba(0,0,15,0.4);
     -skin-def-icon-border-color: rgba(130,180,240, 0.2);
 }
 
 /* Add background. */
+.window,
+.window:transparent-allowed,
+.window:transparent-ct,
+.window:transparent {
+    -fx-background-color: rgba(35,35,55,0.4);
+}
 .window .bgr-image {
     -fx-opacity: 0.2;
     -fx-background-image: url("bgr.png");

@@ -11,6 +11,7 @@ import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinDef.DWORD
 import com.sun.jna.platform.win32.WinDef.HWND
+import com.sun.jna.platform.win32.WinUser
 import com.sun.jna.platform.win32.WinUser.GWL_STYLE
 import com.sun.jna.platform.win32.WinUser.SMTO_NORMAL
 import com.sun.jna.win32.W32APIOptions
@@ -310,6 +311,15 @@ fun HWND.applyBlur(blur: Windows10WindowBlur) {
    val policy = ACCENTPOLICY(blur.accentState, 0, color, 0).apply { write() }
    val data = WINCOMPATTRDATA(WCA_ACCENT_POLICY, policy.pointer, policy.size()).apply { write() }
    User32Ex.INSTANCE.SetWindowCompositionAttribute(this, data.pointer)
+}
+
+fun HWND.alpha(alpha: Float)= also { hWnd ->
+   val level: Byte = ((255*alpha).toInt() and 0xFF).toByte()
+   val blend = WinUser.BLENDFUNCTION().apply {
+      SourceConstantAlpha = level
+      AlphaFormat = WinUser.AC_SRC_ALPHA.toByte()
+   }
+   User32.INSTANCE.UpdateLayeredWindow(hWnd, null, null, null, null, null, 0, blend, WinUser.ULW_ALPHA)
 }
 
 fun javafx.stage.Window.reflectHwnd(): HWND? {

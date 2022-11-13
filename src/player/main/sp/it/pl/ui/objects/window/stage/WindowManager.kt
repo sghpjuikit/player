@@ -246,6 +246,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                val s1 = (w.asAppWindow()?.transparency ?: windowTransparency) zip (w.asAppWindow()?.effect ?: windowEffect) sync { (transparency, effect) ->
                   runLater {
                      w.takeIf { it.isShowing }?.reflectHwnd().ifNotNull {
+                        it.alpha(0.0f) // remove visual artefact
                         it.applyBlur(
                            when {
                               w.asStage()?.style.net { it==null || it==TRANSPARENT } && transparency==Transparency.OFF -> when (effect) {
@@ -256,6 +257,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                               else -> ACCENT_DISABLED
                            }
                         )
+                        it.alpha(w.opacity.toFloat()) // restore opacity
                      }
                   }
                }

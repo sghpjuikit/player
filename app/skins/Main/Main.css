@@ -2224,20 +2224,6 @@ Shape, Text, SpitText, TextFlow > * {
  */
 .container-ui {}
 
-/**
- * pseudoclasses: collapsed - child is hidden so the other covers the entire space
- *                joined - the children should appear as one, i.e., the divider has little to no visibility
- */
-.container-ui .split-pane {}
-
-.container-ui .split-pane .split-pane-divider {
-    -fx-background-color: -skin-pane-color;
-}
-
-.container-ui:layout-mode .split-pane .split-pane-divider {
-    -fx-background-color: -skin-pane-color;
-    -fx-opacity: 0.0;
-}
 
 /* Container area controls. Shown in layout mode. */
 .container-ui-controls {
@@ -2250,6 +2236,17 @@ Shape, Text, SpitText, TextFlow > * {
 .container-ui-controls:dragged {
     -fx-background-color: -skin-pane-color-dragged;
 }
+
+/**
+ * pseudoclasses: collapsed - child is hidden so the other covers the entire space
+ *                joined - the children should appear as one, i.e., the divider has little to no visibility
+ */
+.container-bi-ui {}
+
+.container-bi-ui > .split-pane {
+    -fx-skin: "sp.it.pl.ui.objects.SpitSplitPaneContainerBiSkin" // introduces layout-mode animation
+}
+
 
 /*
  * ContainerFreeForm ui

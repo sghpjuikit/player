@@ -119,6 +119,7 @@ class ContainerBiUi(c: ContainerBi): ContainerUi<ContainerBi>(c) {
    }
 
    init {
+      root.id += "container-bi-ui"
       root.styleClass += "container-bi-ui"
       root.layFullArea += splitPane
       root1.minSize = 0.x2

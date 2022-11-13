@@ -50,7 +50,9 @@ fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV(initialValue, { v(it) }
 /** Writable observable non-null configurable value supplied by the specified [valueFactory]. Backed by [PropertyConfig]. */
 fun <T: Any, W: WritableValue<T>> cv(initialValue: T, valueFactory: (T) -> W): ConfV<T, W> = ConfV(initialValue, valueFactory).nonNull()
 /** Writable observable non-null configurable value supplied by the specified [value]. Backed by [PropertyConfig]. */
-fun <T: Any, W: WritableValue<T>> cv(value: W): ConfV<T, W> = cv(value.value, { value }).nonNull()
+fun <T: Any, W: WritableValue<T>> cv(value: W, initialValue: T = value.value): ConfV<T, W> = cv(initialValue, { value })
+/** Writable observable non-null configurable value supplied by the specified [value]. Backed by [PropertyConfig]. */
+fun <T: Any>                      cv(value: T, initialValue: T = value): ConfV<T, V<T>> = cv(initialValue, { v(value) })
 /** Read-only observable non-null configurable value supplied by the specified [valueFactory]. Backed by [PropertyConfigRO]. */
 fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueFactory: (T) -> W): ConfVRO<T, W> = ConfVRO(initialValue, valueFactory).nonNull()
 /** Read-only observable non-null configurable value supplied by the specified [value]. Backed by [PropertyConfigRO]. */
@@ -68,17 +70,17 @@ fun <T: Any, W: ObservableValue<T?>> cvnro(value: W): ConfVRO<T?, W> = cvnro(val
 /** Configurable action. Backed by [Action]. */
 fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).nonNull()
 /** Inheritable observable non-null configurable value. Backed by [OrPropertyConfig]. */
-fun <T: Any> cOr(value: OrV<T>): ConfVOr<T, OrV<T>> = ConfVOr { value }.nonNull()
+fun <T: Any> cOr(value: OrV<T>, initialValue: OrValue.Initial<T> = Inherit()): ConfVOr<T, OrV<T>> = ConfVOr(initialValue) { value }.nonNull()
 /** Inheritable observable nullable configurable value. Backed by [OrPropertyConfig]. */
-fun <T: Any?> cnOr(value: OrV<T>): ConfVOr<T, OrV<T>> = ConfVOr { value }
+fun <T: Any?> cnOr(value: OrV<T>, initialValue: OrValue.Initial<T> = Inherit()): ConfVOr<T, OrV<T>> = ConfVOr(initialValue) { value }
 /** Inheritable observable non-null configurable value. Subscribed to the specified [parent] until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */
-fun <T: Any> cOr(parent: KProperty0<Property<T>>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr { OrV(parent.call(), initialValue) on unsubscriber }.nonNull()
+fun <T: Any> cOr(parent: KProperty0<Property<T>>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr(initialValue) { OrV(parent.call(), initialValue) on unsubscriber }.nonNull()
 /** Inheritable observable nullable configurable value. Subscribed to the specified [parent] until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */
-fun <T: Any?> cnOr(parent: KProperty0<Property<T>>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr { OrV(parent.call(), initialValue) on unsubscriber }
+fun <T: Any?> cnOr(parent: KProperty0<Property<T>>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr(initialValue) { OrV(parent.call(), initialValue) on unsubscriber }
 /** Inheritable observable non-null configurable value. Subscribed to the specified [parent] and [syncBiFromWithOverride]d to the specified [child] value, until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */
-fun <T: Any> cOr(parent: KProperty0<Property<T>>, child: Property<T>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr { OrV(parent.call(), initialValue).apply { child syncBiFromWithOverride this on unsubscriber } on unsubscriber }.nonNull()
+fun <T: Any> cOr(parent: KProperty0<Property<T>>, child: Property<T>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr(initialValue) { OrV(parent.call(), initialValue).apply { child syncBiFromWithOverride this on unsubscriber } on unsubscriber }.nonNull()
 /** Inheritable observable nullable configurable value. Subscribed to the specified [parent] and [syncBiFromWithOverride]d to the specified [child] value, until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */
-fun <T: Any?> cnOr(parent: KProperty0<Property<T>>, child: Property<T>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr { OrV(parent.call(), initialValue).apply { child syncBiFromWithOverride this on unsubscriber } on unsubscriber }
+fun <T: Any?> cnOr(parent: KProperty0<Property<T>>, child: Property<T>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr(initialValue) { OrV(parent.call(), initialValue).apply { child syncBiFromWithOverride this on unsubscriber } on unsubscriber }
 /** Observable reified configurable list. Backed by [ListConfig]. */
 inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), observableArrayList(*initialItems))).nonNull()
 /** Observable reified configurable list. Backed by [ListConfig]. */
@@ -393,10 +395,12 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, ConfigPropertyDelegator<
 
 class ConfVOr<T: Any?, W: OrV<T>>: Conf<OrValue<T>>, ConfigPropertyDelegator<ConfigDelegator, RoProperty<ConfigDelegator, W>> {
    private var vFactory: () -> W
+   private val initialValue: OrValue.Initial<T>
    val elementConstraints = HashSet<Constraint<T>>()
 
-   constructor(valueSupplier: () -> W): super() {
+   constructor(initialValue: OrValue.Initial<T>, valueSupplier: () -> W): super() {
       this.vFactory = valueSupplier
+      this.initialValue = initialValue
    }
 
    /** Invokes [attach] with the specified block on the observable value that will be created and returns this. */
@@ -420,7 +424,7 @@ class ConfVOr<T: Any?, W: OrV<T>>: Conf<OrValue<T>>, ConfigPropertyDelegator<Con
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }
 
-      return object: OrPropertyConfig<T>(type, property.name, info, constraints, elementConstraints, vFactory(), group), RoProperty<ConfigDelegator, W> {
+      return object: OrPropertyConfig<T>(type, property.name, info, constraints, elementConstraints, vFactory(), group, initialValue), RoProperty<ConfigDelegator, W> {
          init {
             // TODO: validate elements
             validateValue(this.value)

@@ -18,6 +18,7 @@ import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.onIsShowing1st
+import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.OrV.OrValue.Initial.Override
@@ -89,29 +90,29 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
    val onClose = Disposer()
    val c = object: ConfigurableBase<Any?>() {
 
-      val main by cv(w.isMain.value).readOnlyIf(w.isMain)
+      val main by cv(w.isMain.value, false).readOnlyIf(w.isMain)
          .def(name = "Main", info = "Whether this window is main. Closing main window closes the application. At most one window can be main. Can only be set to true.")
-      val opacity by cOr(w.opacity).butOverridden { between(0.1, 1.0) }
+      val opacity by cOr(w.opacity, Inherit()).butOverridden { between(0.1, 1.0) }
          .defInherit(APP.windowManager::windowOpacity)
       val transparencyAllow by cOr(APP.windowManager::windowStyleAllowTransparency, if (w.stageStyleOverride) Override(w.s.style==TRANSPARENT) else Inherit(), onClose)
          .defInherit(APP.windowManager::windowStyleAllowTransparency)
-      val transparency by cOr(w.transparency)
+      val transparency by cOr(w.transparency, Inherit())
          .defInherit(APP.windowManager::windowTransparency)
-      val effect by cOr(w.effect)
+      val effect by cOr(w.effect, Inherit())
          .defInherit(APP.windowManager::windowEffect)
-      val headerAllowed by cv(w.isHeaderAllowed)
+      val headerAllowed by cv(w.isHeaderAllowed, true)
          .def(name = "Allow header", info = "Whether header can be visible. Some windows do not support header.", editable = EditMode.APP)
-      val headerVisible by cv(w.isHeaderVisible).readOnlyUnless(w.isHeaderAllowed)
+      val headerVisible by cv(w.isHeaderVisible, true).readOnlyUnless(w.isHeaderAllowed)
          .def(name = "Show header", info = "Whether header is visible. Otherwise it will auto-hide.")
-      val taskbarVisible by cv(w.isTaskbarVisible)
+      val taskbarVisible by cv(w.isTaskbarVisible, true)
          .def(name = "Show taskbar", info = "Whether window is displayed in OS taskbar.")
-      val onTop by cv(w.alwaysOnTop)
+      val onTop by cv(w.alwaysOnTop, false)
          .def(name = "On top", info = "Window will stay in foreground when other window is being interacted with.")
-      val onBottom by cv(w.isNonInteractingOnBottom).readOnlyUnless(Os.WINDOWS.isCurrent)
+      val onBottom by cv(w.isNonInteractingOnBottom, false).readOnlyUnless(Os.WINDOWS.isCurrent)
          .def(name = "On bottom", info = "Window will stay in background and never receive focus.")
-      val fullscreen by cv(w.fullscreen)
+      val fullscreen by cv(w.fullscreen, false)
          .def(name = "Fullscreen", info = "Window will stay in foreground and span entire screen.")
-      val maximized by cv(w.maximized).readOnlyIf(w.fullscreen)
+      val maximized by cv(w.maximized, NONE).readOnlyIf(w.fullscreen)
          .def(name = "Maximized", info = "Whether window is maximized to specific area of the screen.")
 
       init {

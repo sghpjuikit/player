@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.access.OrV.OrValue.Initial.Override
 import sp.it.util.reactive.Unsubscribable
 
 /** Value with a parent and a switch to optionally use the parent's value. */
@@ -40,6 +41,9 @@ class OrV<T>(parent: Property<T>, initialValue: OrValue.Initial<T> = Inherit()):
       get() = OrValue(override.value, real.value)
       set(it) { override.value = it.override; real.value = it.value }
 
+   val valueOrInitial: OrValue.Initial<T>
+      get() = if (override.value) Override(real.value) else Inherit()
+
    override fun addListener(listener: IListener) = actual.addListener(listener)
 
    override fun removeListener(listener: IListener) = actual.removeListener(listener)
@@ -65,6 +69,7 @@ class OrV<T>(parent: Property<T>, initialValue: OrValue.Initial<T> = Inherit()):
       sealed class Initial<out T> {
          abstract fun computeInitialValue(parent: Property<@UnsafeVariance T>): T
          abstract fun computeInitialOverride(): Boolean
+                  fun computeInitial(parent: Property<@UnsafeVariance T>): OrValue<@UnsafeVariance T> = OrValue(computeInitialOverride(), computeInitialValue(parent))
 
          class Inherit<T>: Initial<T>() {
             override fun computeInitialValue(parent: Property<T>): T = parent.value

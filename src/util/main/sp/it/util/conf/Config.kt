@@ -20,8 +20,11 @@ import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.PropVal.PropVal1
+import sp.it.util.functional.Option
+import sp.it.util.functional.Option.None
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.parsing.Parsers
@@ -241,17 +244,17 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
        *
        * so standard javafx properties will all work. If not instance of the above, runtime exception will be thrown.
        */
-      fun <T> forProperty(type: VType<T>, name: String, property: Any?): Config<T> = null
-         ?: forPropertyImpl(type, name, property)
+      fun <T> forProperty(type: VType<T>, name: String, property: Any?, initialValue: Option<T> = None): Config<T> = null
+         ?: forPropertyImpl(type, name, property, initialValue)
          ?: fail { "Property $name must be WritableValue or ReadOnlyValue, but is ${property?.javaClass}" }
 
-      inline fun <reified T> forProperty(name: String, property: Any?): Config<T> = forProperty(type(), name, property)
+      inline fun <reified T> forProperty(name: String, property: Any?, initialValue: Option<T> = None): Config<T> = forProperty(type(), name, property, initialValue)
 
       @JvmStatic
       @JvmOverloads
       fun <T> forProperty(type: Class<T & Any>, name: String, property: Any?, isNullable: Boolean = false): Config<T> = forProperty(VType(type, isNullable), name, property)
 
-      private fun <T> forPropertyImpl(type: VType<T>, name: String, property: Any?): Config<T>? {
+      private fun <T> forPropertyImpl(type: VType<T>, name: String, property: Any?, initialValue: Option<T> = None): Config<T>? {
          val def = ConfigDef(name, "", group = "", editable = EditMode.USER)
          return when (property) {
             is Config<*> -> property.asIs()
@@ -260,7 +263,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
                ListConfig(name, def.copy(editable = isReadOnly), property, "", setOf(), setOf()).asIs()
             }
             is OrV<*> -> OrPropertyConfig(type, name, def, setOf(), setOf(), property.asIs(), group = "").asIs()
-            is WritableValue<*> -> PropertyConfig(type, name, def, setOf(), property.asIs(), group = "")
+            is WritableValue<*> -> PropertyConfig<T>(type, name, def, setOf(), property.asIs(), group = "", defaultValue = initialValue.getOrSupply { property.value as T })
             is ObservableValue<*> -> PropertyConfigRO(type, name, def, setOf(), property.asIs(), group = "")
             else -> null
          }

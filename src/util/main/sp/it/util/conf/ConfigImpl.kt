@@ -184,8 +184,8 @@ open class PropertyConfig<T>(
 }
 
 open class PropertyConfigRO<T>(
-   valueType: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, val property: ObservableValue<T>, group: String
-): ConfigBase<T>(valueType, name, c, constraints, property.value, group) {
+   valueType: VType<T>, name: String, def: ConfigDefinition, constraints: Set<Constraint<T>>, val property: ObservableValue<T>, group: String
+): ConfigBase<T>(valueType, name, def, constraints, property.value, group) {
 
    override fun getValue(): T = property.value
    override fun setValue(value: T) {}
@@ -200,10 +200,9 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
    companion object: KLogging()
 
    constructor(
-      valueType: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<OrValue<T>>>, elementConstraints: Set<Constraint<T>>, property: OrV<T>, group: String
+      valueType: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<OrValue<T>>>, elementConstraints: Set<Constraint<T>>, property: OrV<T>, group: String, initialValue: OrValue.Initial<T> = property.valueOrInitial
    ): super(
-      VType(OrValue::class.createType(listOf(invariant(valueType.type)))),
-      name, c, constraints, OrValue(property.override.value, property.real.value), group
+      VType(OrValue::class.createType(listOf(invariant(valueType.type)))), name, c, constraints, initialValue.computeInitial(property.parent), group
    ) {
       this.property = property
       this.valueType = valueType

@@ -105,7 +105,6 @@ import sp.it.util.math.intersectsWith
 import sp.it.util.math.isBelow
 import sp.it.util.math.max
 import sp.it.util.math.min
-import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.asDisposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachTo

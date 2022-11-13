@@ -21,6 +21,8 @@ import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
 
+private val robot = Robot()
+
 /** @return property that is true iff this node is attached to a scene in a window that is [Window.displayed] */
 val Node.displayed: ObservableValue<Boolean> get() = sceneProperty().flatMap { it.windowProperty() }.flatMap { it.showingProperty() }.orElse(false)
 
@@ -112,7 +114,7 @@ fun Node.containsScreen(screenX: Double, screenY: Double) = containsScene(Point2
 fun Node.containsMouse(event: MouseEvent) = containsScene(Point2D(event.sceneX, event.sceneY))
 
 /** @return whether this node shape contains the coordinates of the mouse */
-fun Node.containsMouse() = containsScreen(Robot().mousePosition)
+fun Node.containsMouse() = containsScreen(robot.mousePosition)
 
 /** @return topmost child node containing the specified scene coordinates optionally testing against the specified test or null if no match */
 fun Node.pickTopMostAt(sceneX: Double, sceneY: Double, test: (Node) -> Boolean = { true }): Node? {

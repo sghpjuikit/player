@@ -144,7 +144,7 @@ class ConfigPane<T: Any?>: VBox {
                   }
                )
                e.isNested() -> listOf(
-                  e.buildNameLabel(),
+                  e.buildNameLabel().apply { pseudoClassChanged("nested", true) },
                   hBox(20.emScaled, CENTER_LEFT) {
                      lay += e.buildNodeForThis()
                   }
@@ -158,14 +158,14 @@ class ConfigPane<T: Any?>: VBox {
             }
             NORMAL -> when {
                !needsLabel -> listOfNotNull(
-                  e.buildDescriptionText(),
+                  e.buildDescriptionText()?.apply { pseudoClassChanged("single", true) },
                   hBox(20.emScaled, CENTER_LEFT) {
                      lay += e.buildNodeForThis()
                   }
                )
                e.isNested() -> listOfNotNull(
-                  e.buildDescriptionText(),
-                  e.buildNameLabel(),
+                  e.buildDescriptionText()?.apply { pseudoClassChanged("nested", true) },
+                  e.buildNameLabel().apply { pseudoClassChanged("nested", true) },
                   hBox(20.emScaled, CENTER_LEFT) {
                      lay += e.buildNodeForThis()
                   }
@@ -180,7 +180,7 @@ class ConfigPane<T: Any?>: VBox {
             }
             EXTENSIVE -> listOfNotNull(
                if (needsLabel) e.buildNameLabel() else null,
-               e.buildDescriptionText(),
+               e.buildDescriptionText()?.apply { pseudoClassChanged("single", !needsLabel) },
                e.buildNodeForThis()
             )
          }.onEach { n ->

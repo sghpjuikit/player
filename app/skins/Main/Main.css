@@ -2995,7 +2995,7 @@ Shape, Text, SpitText, TextFlow > * {
  * inherits: HBox
  */
 .config-editor {
-    -fx-min-height: 2em;
+    -fx-min-height: 2em; // more consistent look
 }
 
 /**
@@ -3164,19 +3164,26 @@ Shape, Text, SpitText, TextFlow > * {
 .form-config-pane .form-config-pane-config-name {
     -fx-text-alignment: left;
 }
-.form-config-pane:extensive .form-config-pane-config-name {
-    -fx-padding: 0.5em 0 0 0;
-}
 
 /*
  * Config description text in .form-config-pane
  * inherits: TextFlow, .description
+ * pseudoclasses: single: when one config is displayed and requests to use entire space
+ *                nested: when nested config is unpacked into this config
  */
 .form-config-pane .form-config-pane-config-description {
     -fx-text-alignment: left;
 }
-.form-config-pane:normal .form-config-pane-config-description {
-    -fx-padding: 0.5em 0 0 0;
+
+.form-config-pane:mini .form-config-pane-config-box,
+.form-config-pane:normal .form-config-pane-config-description,
+.form-config-pane:mini .form-config-pane-config-name:nested,
+.form-config-pane:extensive .form-config-pane-config-name {
+    -fx-padding: 1em 0 0 0;
+}
+.form-config-pane:normal .form-config-pane-config-name:single {
+.form-config-pane:normal .form-config-pane-config-description:single {
+    -fx-padding: 0;
 }
 
 /************************************ SEARCH ***************************************************************************

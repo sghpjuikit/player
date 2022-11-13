@@ -160,7 +160,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
    fun buildNode(managedControl: Boolean = true): HBox {
       val root = HBox(configRootSpacing)
       root.styleClass += "config-editor"
-      root.setMinSize(0.0, 20.0)   // min height actually required to get consistent look
+      root.setMinSize(0.0, 0.0)
       root.setPrefSize(-1.0, -1.0) // support variable content height
       root.setMaxSize(-1.0, -1.0)  // support variable content height
       root.alignment = Pos.CENTER_LEFT

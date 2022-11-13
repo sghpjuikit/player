@@ -11,18 +11,21 @@ import javafx.scene.input.ScrollEvent.SCROLL
 import kotlin.math.roundToInt
 import sp.it.pl.conf.Command
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.HorizontalDock
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
+import sp.it.pl.ui.pane.OverlayPane.Companion.asOverlayWindow
 import sp.it.pl.ui.pane.ShortcutPane.Entry
+import sp.it.util.action.Action
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigurableBase
@@ -55,6 +58,8 @@ import sp.it.util.units.year
 
 class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
 
+   val closeAfterAction by cv(false)
+      .def(name = "Auto-close", info = "Try closing the window of this widget after a command is invoked. Useful for launchers that employ auto-hide.")
    val iconSize by cv(1).min(1).max(20)
       .def(name = "Icon size", info = "Size of icons specified in em units - application font size multiplies.")
    val icons by cList<Icon>(::icon, ::asConfigurable)
@@ -117,6 +122,38 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
       icon.net(::asConfigurable).configure("New icon") { icons.add(icon) }
    }
 
+   private fun asConfigurable(icon: Icon): Configurable<*> = object: ConfigurableBase<Any?>() {
+      val glyph by cv(icon.glyph).attach { icon.icon(it) }.values(Glyphs.GLYPHS).def(name = "Icon")
+      val command by cv(icon.command).attach { icon.command = it }.def(name = "Command").but(Command.parser.toUiStringHelper())
+   }
+
+   private var Icon.commandImpl: Command by property { Command.DoNothing }
+
+   private var Icon.command: Command
+      get() = commandImpl
+      set(value) {
+         commandImpl = value
+         when (value) {
+            is Command.DoAction -> when (val a = value.toAction()) {
+               null -> onClickDo { value(); autoClose() }
+               else -> action(a.autoClosing())
+            }
+            else -> onClickDo { value(); autoClose() }
+         }
+      }
+
+   private fun Action.autoClosing(): Action =
+      Action(name, { action.run(); autoClose() }, info, group, keys)
+
+   private fun autoClose() {
+      if (closeAfterAction.value) {
+         val wo = widget.window?.asOverlayWindow()
+         val wp = widget.window?.asPopWindow()
+         wo?.takeIf { it.isAutohide.value }?.hide()
+         wp?.takeIf { it.isAutohide.value }?.hide()
+      }
+   }
+
    companion object: WidgetCompanion {
       override val name = "Command bar"
       override val description = "Icon toolbar for launching commands"
@@ -136,24 +173,5 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
          Entry("Bar", "Open bar menu", SECONDARY.nameUi),
          Entry("Bar icon", "Open icon menu", SECONDARY.nameUi),
       )
-
-      fun asConfigurable(icon: Icon): Configurable<*> = object: ConfigurableBase<Any?>() {
-         val glyph by cv(icon.glyph).attach { icon.icon(it) }.values(Glyphs.GLYPHS).def(name = "Icon")
-         val command by cv(icon.command).attach { icon.command = it }.def(name = "Command").but(Command.parser.toUiStringHelper())
-      }
-
-      var Icon.commandImpl: Command by property { Command.DoNothing }
-      var Icon.command: Command
-         get() = commandImpl
-         set(value) {
-            commandImpl = value
-            when (value) {
-               is Command.DoAction -> when (val a = value.toAction()) {
-                  null -> onClickDo { value() }
-                  else -> action(a)
-               }
-               else -> onClickDo { value() }
-            }
-         }
    }
 }

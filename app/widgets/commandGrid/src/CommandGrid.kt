@@ -19,6 +19,8 @@ import sp.it.pl.ui.objects.grid.GridFileThumbCell
 import sp.it.pl.ui.objects.grid.GridView
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.hierarchy.Item
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
+import sp.it.pl.ui.pane.OverlayPane.Companion.asOverlayWindow
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.OrV.OrValue.Initial.Override
 import sp.it.util.access.toggle
@@ -63,6 +65,8 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
 
    val grid = GridView<Item, File>({ it.value }, 50.emScaled.x2, 5.emScaled.x2)
 
+   val closeAfterAction by cv(false)
+      .def(name = "Auto-close", info = "Try closing the window of this widget after a command is invoked. Useful for launchers that employ auto-hide.")
    val gridShowFooter by cOr(APP.ui::gridShowFooter, grid.footerVisible, Override(false), onClose)
       .defInherit(APP.ui::gridShowFooter)
    val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, grid.cellAlign, Override(CellGap.LEFT), onClose)
@@ -141,7 +145,19 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
 
    private fun Item.cellAction(): Fut<Command> =  value.net { runVT { it.readTextTry().andAlso(Command::ofS).orNull() ?: Command.DoNothing } }
 
-   private fun Item.doubleClickItem() = cellAction().ui { it() }.toUnit()
+   private fun Item.doubleClickItem() {
+      cellAction().ui { it() }.toUnit()
+      autoClose()
+   }
+
+   private fun autoClose() {
+      if (closeAfterAction.value) {
+         val wo = widget.window?.asOverlayWindow()
+         val wp = widget.window?.asPopWindow()
+         wo?.takeIf { it.isAutohide.value }?.hide()
+         wp?.takeIf { it.isAutohide.value }?.hide()
+      }
+   }
 
    private inner class Cell: GridFileThumbCell() {
 

@@ -47,12 +47,12 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	public static final Action NONE = new Action("None", () -> {}, "Action that does nothing", "", "", false, false);
 	public static final String CONFIG_GROUP = "Shortcuts";
 
-	private final String name;
-	private final Runnable action;
-	private final String info;
-	private final String group;
-	private final boolean continuous;
-	private boolean global;
+	public final String name;
+	public final Runnable action;
+	public final String info;
+	public final String group;
+	public final boolean continuous;
+	public boolean global;
 	private KeyCombination keys = NO_MATCH;
 	private final String defaultKeys;
 	private final boolean defaultGlobal;

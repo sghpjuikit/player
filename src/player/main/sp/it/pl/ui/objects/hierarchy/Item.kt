@@ -28,9 +28,11 @@ import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.util.HierarchicalBase
 import sp.it.util.JavaLegacy
 import sp.it.util.access.fieldvalue.CachingFile
+import sp.it.util.async.SemaphoreLock
 import sp.it.util.async.VT
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
+import sp.it.util.async.limitAccess
 import sp.it.util.async.limitParallelism
 import sp.it.util.async.runOn
 import sp.it.util.dev.failIfFxThread
@@ -268,7 +270,7 @@ abstract class Item(parent: Item?, value: File, valueType: FileType): Hierarchic
                      val imgFinGraphics = imgFin.graphics
                      subCovers.forEachIndexed { i, img ->
                         val bi = img.toBuffered()
-                        imgFinGraphics.drawImage(bi, w/2*(i%2), h/2*(i/2), null)
+                        imgFinGraphics.drawImage(bi, w/2*(i%2), h/2*(i/2), size.width.toInt()/2, size.height.toInt()/2, null)
                         bi?.flush()
                         JavaLegacy.destroyImage(img)
                      }
@@ -381,7 +383,8 @@ abstract class Item(parent: Item?, value: File, valueType: FileType): Hierarchic
 
       companion object {
          @JvmField val DEFAULT = CoverStrategy(true, true, false, true, null)
-         @JvmField val VT_IMAGE: Executor = VT.limitParallelism(6)
+         @JvmField val VT_IMAGE_THROTTLE = SemaphoreLock()
+         @JvmField val VT_IMAGE: Executor = VT.limitParallelism(6).limitAccess(VT_IMAGE_THROTTLE)
       }
    }
 }

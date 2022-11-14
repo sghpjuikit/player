@@ -19,16 +19,18 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.main.showAndDetect
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy.Companion.VT_IMAGE_THROTTLE
 import sp.it.pl.ui.objects.window.Resize.NONE
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.action.IsAction
-import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.await
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.util.async.coroutine.launch
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.file.div
+import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onChange
@@ -112,12 +114,12 @@ class StartScreen: PluginBase() {
                installWindowInteraction()
 
                lay += widgetArea.apply {
+                  val ssComponentFile = APP.location.user.tmp/"StartScreen.fxwl"
                   val widgetSubscribed = Subscribed {
-
-                     val ssComponentFile = APP.location.user.tmp/"StartScreen.fxwl"
-
-                     launch(FX) {
+                     runSuspendingFx {
                         val ssComponent = APP.windowManager.instantiateComponent(ssComponentFile) ?: introWidgetFactory.create()
+
+                        VT_IMAGE_THROTTLE.lockFor(150.millis)
 
                         Layout.openStandalone(this@apply).apply {
                            widgetLayout = this
@@ -128,10 +130,14 @@ class StartScreen: PluginBase() {
                      }
 
                      Subscription {
-                        widgetLayout?.child.exportFxwl(ssComponentFile).block()
-                        widgetLayout?.child?.close()
-                        widgetLayout?.close()
-                        widgetLayout = null
+                        runSuspendingFx {
+                           widgetLayout.ifNotNull {
+                              it.child.exportFxwl(ssComponentFile).await()
+                              it.child?.close()
+                              it.close()
+                           }
+                           widgetLayout = null
+                        }
                      }
                   }
                   onShowed += { widgetSubscribed.subscribe(true) }

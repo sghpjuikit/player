@@ -57,6 +57,7 @@ import sp.it.pl.main.toUi
 import sp.it.pl.main.windowOnTopIcon
 import sp.it.pl.main.windowPinIcon
 import sp.it.pl.ui.objects.form.Form.Companion.form
+import sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy.Companion.VT_IMAGE_THROTTLE
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.dock.DockWindow
@@ -394,6 +395,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          // content
          val dockComponentFile = APP.location.user.tmp / "DockComponent.fxwl"
          launch(FX) {
+            VT_IMAGE_THROTTLE.lockFor(150.millis)
             val dockComponent = APP.windowManager.instantiateComponent(dockComponentFile) ?: APP.widgetManager.widgets.find(PLAYBACK.id, NEW(CUSTOM))
             mw.window.stage.asLayout()?.child = dockComponent ?: NoFactoryFactory(PLAYBACK.id).create()
             mw.window.onClose += {
@@ -420,7 +422,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             }
             private val shower = {
                showAnim.intpl { sqrt(sqrt(it)) }
-               showAnim.delay(if (showAnim.position.value==0.0) 50.millis else 0.millis) // give ui time to initialize to decreases animation stutter
                showAnim.playOpenDo {
                   content.isMouseTransparent = false
                   mw.window.focus()
@@ -428,7 +429,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             }
             private val hider = {
                showAnim.intpl { it*it*it*it }
-               showAnim.delay(0.millis)
                showAnim.playCloseDo {
                   content.isMouseTransparent = true
                }
@@ -449,14 +449,14 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 //               }
 //         }
          mw.window.stage.installHideOnFocusLost(mwAutohide) { mwShower.hide() }
-         mw.window.stage.scene.root.onEventDown(DRAG_ENTERED) { mwShower.show() }
-         mw.window.stage.scene.root.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }
-         mw.window.stage.scene.root.onEventDown(KEY_RELEASED, SPACE) { mwShower.show() }
-         mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
-         mw.window.stage.scene.root.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
-         mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, PRIMARY) { mwShower.show() }
-         mw.window.stage.scene.root.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay() }
-         mw.window.stage.scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
+         mw.window.stage.scene.onEventDown(DRAG_ENTERED) { mwShower.show() }
+         mw.window.stage.scene.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }
+         mw.window.stage.scene.onEventDown(KEY_RELEASED, SPACE) { mwShower.show() }
+         mw.window.stage.scene.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
+         mw.window.stage.scene.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
+         mw.window.stage.scene.onEventDown(MOUSE_CLICKED, PRIMARY) { mwShower.show() }
+         mw.window.stage.scene.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay() }
+         mw.window.stage.scene.onEventDown(KEY_RELEASED, Z, consume = false) {
             if (it.isMetaDown) {
                mwAutohide.toggle()
                it.consume()
@@ -536,6 +536,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          root.styleClass += "window-slide"
 
          // show and apply state
+         stage.opacity = 0.0
          show()
          update()
          back.style = "-fx-background-size: cover;" // disallow bgr stretching
@@ -573,13 +574,13 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          if (showSide==Side.LEFT) mw.setX(screen.bounds.minX-mw.W.value*(1-it), false)
       }
       val shower = {
+         VT_IMAGE_THROTTLE.lockFor(150.millis)
+         mw.s.asLayout()?.child = c
+         mw.focus()
+         c.focus()
          showAnim.intpl { sqrt(sqrt(it)) }
-         showAnim.delay(if (showAnim.position.value==0.0) 50.millis else 0.millis) // give ui time to initialize to decreases animation stutter
-         showAnim.playOpenDo {
-            mw.s.asLayout()?.child = c
-            mw.focus()
-            c.focus()
-         }
+         showAnim.delay(if (showAnim.position.value==0.0) 150.millis else 0.millis)
+         showAnim.playOpenDo {}
       }
       val hider = {
          showAnim.intpl { 1-sqrt(sqrt(1-it)) }
@@ -589,14 +590,15 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       mw.autosize(c, screen)
       mw.stage.height = screen.bounds.height
+      mw.stage.width = mw.stage.width min screen.bounds.width/2
       mw.stage.y = screen.bounds.minY
       shower()
 
       runFX(300.millis) {
          mw.stage.installHideOnFocusLost(mwAutohide, hider)
-         mw.stage.scene.root.onEventDown(KEY_PRESSED, ESCAPE) { hider() }
-         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) hider() }
-         mw.stage.scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
+         mw.stage.scene.onEventDown(KEY_PRESSED, ESCAPE) { hider() }
+         mw.stage.scene.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) hider() }
+         mw.stage.scene.onEventDown(KEY_RELEASED, Z, consume = false) {
             if (it.isMetaDown) {
                mwAutohide.toggle()
                it.consume()

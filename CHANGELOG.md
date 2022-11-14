@@ -21,6 +21,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement better `OrCE` overridable config editor UX
 - Implement better **Flow** skin UX [leverage blur effects]
 - Implement consistent settings editors layout
+- Implement load/animation stutter prevention using delay load delay
+- Implement load/animation stutter prevention using image loading throttling
 - Fix `SpitScrollBarSkin` drag animation interaction
 - Fix popup window interaction not working after widget loads in popup
 - Fix `Open widget` action interfering with overlay animation
@@ -33,7 +35,6 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Function View** widget slow performance
 - Fix application search being affected by spaces
 - Fix custom config initial value for some cases config is created later
-- Fix window animation stutter when loading heavy content [use delay]
 
 ### Window - reactive header content
 Window header content shrinks if window is too small.
@@ -52,6 +53,12 @@ From now on, user specify click-through (as before) or normal (no click-through)
 User can now enable overridable window bgr effects (none | blur | acrylic).
 The effect works on any window, which includes dock windows, sliding windows as well as popups, menus or tooltips.
 Works only on Windows 10 OS.
+
+### Window - loading
+Opening windows is usually expensive operation.
+This update brings delayed content loading for sliding windows to allow the animation to run smoothly.
+Loading images during loading sliding window or StartScreen overlay is temporarily paused, for the same benefit.
+In the future, these optimizations may be provided more implicitly for any content that loads widgets.
 
 ## [7.5.0] 2022 11 04
 

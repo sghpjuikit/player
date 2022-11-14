@@ -21,7 +21,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
 
-private val robot = Robot()
+private val robot by lazy { Robot() }
 
 /** @return property that is true iff this node is attached to a scene in a window that is [Window.displayed] */
 val Node.displayed: ObservableValue<Boolean> get() = sceneProperty().flatMap { it.windowProperty() }.flatMap { it.showingProperty() }.orElse(false)
@@ -31,7 +31,6 @@ val Node.scenePath: String get() = traverseParents().map { "${it.id.orEmpty()}:$
 
 /** @return sequence of this and all parents in bottom to top order */
 fun Node.traverseParents(): Sequence<Node> = traverse { it.parent }
-
 
 /** @return true iff this or any of [Parent.unmodifiableChildren] [Node.isFocused] */
 fun Node.hasFocus(): Boolean = scene?.focusOwner?.traverseParents().orEmpty().any { it==this }
@@ -162,7 +161,6 @@ fun Node.pseudoClassToggle(pseudoClass: String) {
    if (pseudoClassStates.none { it.pseudoClassName == pseudoClass }) pseudoClassToggle(pseudoClass, true)
    else pseudoClassToggle(pseudoClass, false)
 }
-
 
 /**
  * Disposer called in [Node.onNodeDispose].

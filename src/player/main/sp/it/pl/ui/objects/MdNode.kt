@@ -7,6 +7,7 @@ import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
+import javafx.scene.control.Tooltip
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseButton.PRIMARY
@@ -19,6 +20,7 @@ import sp.it.pl.main.IconOC
 import sp.it.pl.main.getText
 import sp.it.pl.main.hasText
 import sp.it.pl.main.installDrag
+import sp.it.util.access.V
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runFX
@@ -33,6 +35,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.system.open
+import sp.it.util.ui.install
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAsOrNull
 import sp.it.util.ui.scrollPane
@@ -50,6 +53,7 @@ class MdNode: StackPane() {
         children[0].asIs<ScrollPane>().content.asIs<MdNodeContent>().mdString.value = it
       }
    }
+   val uriHandler: V<(URI) -> Unit> = v(URI::open)
 
    init {
       lay += scrollPane {
@@ -61,10 +65,11 @@ class MdNode: StackPane() {
                stylesheets.clear()
             }
             override fun setLink(node: Node, link: String, description: String) {
+               node.install(Tooltip(link))
                node.onEventDown(MOUSE_CLICKED, PRIMARY) {
                   when {
                      link.startsWith("#") -> scrollToAnchor(link)
-                     else -> runTry { URI(link.trim()).resolveAsLink() }.orNull()?.open()
+                     else -> runTry { URI(link.trim()).resolveAsLink() }.orNull().ifNotNull(uriHandler.value)
                   }
                }
             }

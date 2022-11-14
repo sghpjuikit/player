@@ -1,14 +1,18 @@
 package gitProjects
 
 import java.io.File
+import java.util.Stack
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
+import javafx.scene.input.KeyCode.BACK_SPACE
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
@@ -29,8 +33,14 @@ import sp.it.util.conf.def
 import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.file.children
+import sp.it.util.file.hasExtension
+import sp.it.util.file.toFileOrNull
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
+import sp.it.util.system.open
 import sp.it.util.text.capitalLower
 import sp.it.util.text.equalsNc
 import sp.it.util.ui.hBox
@@ -52,9 +62,12 @@ class GitProjects(widget: Widget): SimpleController(widget) {
    var selection by c("").noUi()
    val projects = mutableListOf<Project>()
    val md = MdNode()
+   val mdHistory = Stack<File>()
 
    init {
       root.prefSize = 400.emScaled x 400.emScaled
+      root.onEventDown(KEY_PRESSED, BACK_SPACE) { popFile() }
+      root.onEventDown(MOUSE_CLICKED, SECONDARY) { popFile() }
       root.lay += hBox(20.emScaled, CENTER) {
          lay += stackPane {
             padding = Insets(50.emScaled, 0.0, 50.emScaled, 0.0)
@@ -68,7 +81,13 @@ class GitProjects(widget: Widget): SimpleController(widget) {
             }
          }
          lay += separator(VERTICAL) { maxHeight = 200.emScaled }
-         lay(ALWAYS) += md
+         lay(ALWAYS) += md.apply {
+            uriHandler.value = {
+               it.toFileOrNull()?.takeIf { it hasExtension "md" }
+                  .ifNotNull(::visitFile)
+                  .ifNull(it::open)
+            }
+         }
       }
 
       inputFile.sync {
@@ -82,6 +101,18 @@ class GitProjects(widget: Widget): SimpleController(widget) {
             projects.find { it.dir.name==selection }?.select(true)
          }
       } on onClose
+   }
+
+   fun visitFile(f: File?) {
+      if (f==null) return
+      mdHistory.push(f)
+      md.readFile(f)
+   }
+
+   fun popFile() {
+      if (mdHistory.size<=1) return
+      mdHistory.pop()
+      md.readFile(mdHistory.peek())
    }
 
    inner class Project(val dir: File) {
@@ -99,7 +130,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
          label.select(s)
          if (s) projects.find { it!==this && it.dir.name==selection }?.select(false)
          if (s) selection = dir.name
-         if (s) md.readFile(dir.children().find { it.name.equalsNc("README.md") })
+         if (s) visitFile(dir.children().find { it.name.equalsNc("README.md") })
       }
    }
 

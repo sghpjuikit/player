@@ -8,18 +8,32 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `AppSearch` history to remember searched text instead of picked suggestion
 - Implement `AppSearch` number conversions
 - Implement `AppSearch` operating system actions
+- Implement **CommandBar** widget auto-close
+- Implement **CommandGrid** widget auto-close
 - Implement reactive window header content
 - Implement window transparency click-through settings
 - Implement json conversion generic type inference
+- Implement less intrusive `Widget` focus styling
+- Implement less intrusive `ContainerBi` styling
+- Implement less intrusive `ComboBox` styling
+- Implement styleable pop-window edge gap
+- Implement `TextIcon` css support
+- Implement better `OrCE` overridable config editor UX
+- Implement better **Flow** skin UX [leverage blur effects]
+- Implement consistent settings editors layout
+- Fix `SpitScrollBarSkin` drag animation interaction
 - Fix popup window interaction not working after widget loads in popup
 - Fix `Open widget` action interfering with overlay animation
 - Fix `Configurable` hierarchy computation [affected settings hierarchy]
 - Fix `Config` constraints not applied on children sometimes
 - Fix `File.deleteRecursivelyOrThrow` not working correctly
 - Fix `HttpClient.downloadFile` timing out
-- Fix **Song Group Table** widget's selection output not being se
+- Fix **Song Group Table** widget's selection output not being set
 - Fix **Function View** widget precision stuck to 7
 - Fix **Function View** widget slow performance
+- Fix application search being affected by spaces
+- Fix custom config initial value for some cases config is created later
+- Fix window animation stutter when loading heavy content [use delay]
 
 ### Window - reactive header content
 Window header content shrinks if window is too small.
@@ -27,6 +41,7 @@ This improves UX as well as resizing issue for small windows.
 
 ### Window - overriding settings
 Some window settings are now properly overridable, i.e., per-application and per-window setting is provided.
+Settings also properly recognize default values.
 
 ### Window - transparency click-through
 Sometimes click-through behavior is unwanted for transparent windows (click-through is enabled for fully transparent pixels).
@@ -36,7 +51,7 @@ From now on, user specify click-through (as before) or normal (no click-through)
 ### Window - glass effect
 User can now enable overridable window bgr effects (none | blur | acrylic).
 The effect works on any window, which includes dock windows, sliding windows as well as popups, menus or tooltips.
-Works only on Windows OS.
+Works only on Windows 10 OS.
 
 ## [7.5.0] 2022 11 04
 

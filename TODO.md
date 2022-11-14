@@ -1,20 +1,16 @@
 ## Currently considered
-- Cache DeserializationFactory ComponentDb to avoid IO if file was not modified in the meantime
+- Suppress image loading during UI sensitive operations [already prototyped using Semaphore]
+- Remove transparent-allowed pseudoclass & simplify transparency styling
+- Make all window types including standalone widgets consistently styled [prototype using inverse mask]
+- Experiment with StartScreen that keeps content loaded between hide/show
 - Document all used libraries, how they are used, why, where not to use them, etc.
-- Action refactor
-  - Next all `ActionPane` actions will be migrated to `AppActions.kt`, so they can be accessed type-safely.
-  - Next configurable properties will be used to avoid reflection & manual registering per class holder (AppActions).
-  - Next integrate with `Action`, define all configurable actions in the same manner, adding icon to Action & keys to ActionData 
 - `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
-- Implement actions for widget management: delete widget, open with strategy
 - Implement **Playback Knobs** widget skinnable size
-- song order in ui, editable
 - `Placeholder` should distinguish file `MOVE` and file `COPY` in description?
 - Improve **kotlinc**/**vlc**/**mpeg** setup should not be `Future`, but restartable `Task`
 - `ObsListConfig.setDefaultValue` not removing disabled items
 - Fix manual widget loading not rebinding widget inputs properly
 - Implement `app.stateful` on/off config
-- Implement data info tooltip progress
 - Drag & drop playlist file support in audio
 - `Configuration.propertiesRaw` are not synced with configs, should be?
 - Improve **Tagger** widget
@@ -25,8 +21,8 @@
   - make writing to tag handle errors properly (& report read-only files)
 
 ## Potential future work
+- Migrate `ActionPane`  actions to `AppActions.kt`& integrate with `Action`, adding icon to Action & keys to ActionData 
 - Implement better application running detection: app running without exe and app running from different directory
-- Implement converting Layout into ContainerSwitch and back
 - Implement `MdNode` monitor file & reload
 - Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
 - Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)

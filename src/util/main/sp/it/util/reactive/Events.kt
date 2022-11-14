@@ -98,12 +98,38 @@ fun <T: Event> Scene.onEventUp1(eventType: EventType<T>, eventHandler: (T) -> Un
    return Subscription { removeEventFilter(eventType, handler) }
 }
 
+/** Equivalent to [Node.addEventFilter]. */
+fun <T: MouseEvent> Scene.onEventDown(eventType: EventType<T>, button: MouseButton, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventDown(eventType) {
+   if (it.button==button) {
+      eventHandler(it)
+      if (consume) it.consume()
+   }
+}
+
+fun <T: KeyEvent> Scene.onEventDown(eventType: EventType<T>, key: KeyCode, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventDown(eventType, null, key, consume, eventHandler)
+
+fun <T: KeyEvent> Scene.onEventDown(eventType: EventType<T>, modifier: KeyCode? = null, key: KeyCode, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventDown(eventType) {
+   val modifierMatches = modifier==null || when {
+      it.isAltDown -> modifier==KeyCode.ALT
+      it.isControlDown -> modifier==KeyCode.CONTROL
+      it.isMetaDown -> modifier==KeyCode.META
+      it.isShiftDown -> modifier==KeyCode.SHIFT
+      it.isShortcutDown -> modifier==SHORTCUT
+      else -> false
+   }
+   if (modifierMatches && it.code==key) {
+      eventHandler(it)
+      if (consume) it.consume()
+   }
+}
+
 /** Equivalent to [Node.addEventHandler]. */
 fun <T: Event> Node.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
    val handler = eventHandler.eh
    addEventHandler(eventType, handler)
    return Subscription { removeEventHandler(eventType, handler) }
 }
+
 
 /** Equivalent to [Node.addEventFilter]. */
 fun <T: MouseEvent> Node.onEventDown(eventType: EventType<T>, button: MouseButton, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventDown(eventType) {

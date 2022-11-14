@@ -52,6 +52,9 @@ class Layout: ContainerUni {
    private fun <T> T.disposeUiL() = apply { uiL?.dispose() }
 
    companion object {
+      fun open(root: AnchorPane): Layout = Layout().apply {
+         load(root)
+      }
       fun openStandalone(root: AnchorPane): Layout = Layout().apply {
          isStandalone.value = true
          load(root)

@@ -254,6 +254,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
       @JvmOverloads
       fun <T> forProperty(type: Class<T & Any>, name: String, property: Any?, isNullable: Boolean = false): Config<T> = forProperty(VType(type, isNullable), name, property)
 
+      @Suppress("UNCHECKED_CAST")
       private fun <T> forPropertyImpl(type: VType<T>, name: String, property: Any?, initialValue: Option<T> = None): Config<T>? {
          val def = ConfigDef(name, "", group = "", editable = EditMode.USER)
          return when (property) {
@@ -263,7 +264,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
                ListConfig(name, def.copy(editable = isReadOnly), property, "", setOf(), setOf()).asIs()
             }
             is OrV<*> -> OrPropertyConfig(type, name, def, setOf(), setOf(), property.asIs(), group = "").asIs()
-            is WritableValue<*> -> PropertyConfig<T>(type, name, def, setOf(), property.asIs(), group = "", defaultValue = initialValue.getOrSupply { property.value as T })
+            is WritableValue<*> -> PropertyConfig(type, name, def, setOf(), property.asIs(), group = "", defaultValue = initialValue.getOrSupply { property.value as T })
             is ObservableValue<*> -> PropertyConfigRO(type, name, def, setOf(), property.asIs(), group = "")
             else -> null
          }

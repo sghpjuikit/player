@@ -26,6 +26,7 @@ import sp.it.util.file.FileType
 import sp.it.util.file.nameOrRoot
 import sp.it.util.file.type.MimeGroup
 import sp.it.util.file.type.MimeType
+import sp.it.util.file.type.MimeType.Companion.`application∕x-krita`
 import sp.it.util.file.type.mimeType
 import sp.it.util.localDateTimeFromMillis
 import sp.it.util.parsing.ConverterToString
@@ -100,7 +101,7 @@ private fun File.readTimeModified(): LocalDateTime? = lastModified().localDateTi
 private fun File.readTimeCreated(): FileTime? {
    val m = this.mimeType()
    return when {
-      m.name == "application/x-kra" -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()
+      m == `application∕x-krita` -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()
       m.group == MimeGroup.image -> readXmpTimeCreated() ?: readTimeMinOfCreatedAndModified()
       else -> readTimeMinOfCreatedAndModified()
    }

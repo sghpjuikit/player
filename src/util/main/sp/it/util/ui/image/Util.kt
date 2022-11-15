@@ -14,6 +14,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.IntBuffer
 import java.util.concurrent.locks.ReentrantLock
+import java.util.zip.ZipFile
 import javafx.application.Platform
 import javafx.embed.swing.SwingFXUtils
 import javafx.geometry.Rectangle2D
@@ -31,6 +32,7 @@ import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
 import sp.it.util.file.toURLOrNull
 import sp.it.util.file.type.MimeType
+import sp.it.util.file.type.MimeType.Companion.`application∕x-krita`
 import sp.it.util.file.type.MimeType.Companion.`image∕gif`
 import sp.it.util.file.type.MimeType.Companion.`image∕webp`
 import sp.it.util.file.type.mimeType
@@ -352,13 +354,29 @@ fun imgImplLoadFX(file: File, size: ImageSize, scaleExact: Boolean = false): Ima
 @Blocks
 fun getImageDim(f: File): Try<Dimension, Throwable> =
    runTry {
-      ImageIO.createImageInputStream(FileInputStream(f).buffered()).ifNull { fail { "No stream" } }!!.use { stream ->
-         stream.reader().ifNull { fail { "No reader" } }!!.use { reader ->
-            val ii = reader.minIndex
-            val width = reader.getWidth(ii)
-            val height = reader.getHeight(ii)
-            Dimension(width, height)
+      when (f.mimeType()) {
+         `application∕x-krita` -> {
+            ZipFile(f).use {
+               val entry = it.getEntry("maindoc.xml") ?: fail { "No maindoc.xml found" }
+               it.getInputStream(entry).bufferedReader().use {
+                  it.useLines {
+                     val l = it.find { it.trimStart().startsWith("<IMAGE") } ?: fail { "No <IMAGE> tag found" }
+                     val width = l.substringAfter("width=\"").substringBefore("\"").toInt()
+                     val height = l.substringAfter("height=\"").substringBefore("\"").toInt()
+                     Dimension(width, height)
+                  }
+               }
+            }
          }
+         else ->
+            ImageIO.createImageInputStream(FileInputStream(f).buffered()).ifNull { fail { "No stream" } }!!.use { stream ->
+               stream.reader().ifNull { fail { "No reader" } }!!.use { reader ->
+                  val ii = reader.minIndex
+                  val width = reader.getWidth(ii)
+                  val height = reader.getHeight(ii)
+                  Dimension(width, height)
+               }
+            }
       }
    }.ifError {
       logger.warn(it) { "Problem finding out image size" }

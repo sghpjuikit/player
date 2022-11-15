@@ -41,7 +41,7 @@ public class JavaLegacy {
 	/**
 	 * Dispose of the specified image with the intention of never being used again.
 	 * Use {@code ImageView.setImage(null)} and only use this method if there is a memory leak.
-	 *
+	 *<p/>
 	 * Renders the image object unusable, make sure it is no longer used by the application.
 	 */
 	@Experimental(reason = "Questionable API with usage conditioned by memory leaks and using reflection")

@@ -49,6 +49,7 @@ import sp.it.util.file.traverseParents
 import sp.it.util.file.type.MimeGroup.Companion.audio
 import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
+import sp.it.util.file.type.MimeType.Companion.`application∕x-krita`
 import sp.it.util.file.type.mimeType
 import sp.it.util.file.unzip
 import sp.it.util.functional.asIs
@@ -64,7 +65,6 @@ import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.Interrupts
 import sp.it.util.ui.image.Params
-import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.image.loadImagePsd
 import sp.it.util.ui.image.toBuffered
 import sp.it.util.ui.image.toFX
@@ -220,11 +220,12 @@ object ImageStandardLoader: KLogging(), ImageLoader {
             "image/vnd.adobe.photoshop" -> loadImagePsd(p, highQuality = true)
             "application/x-msdownload",
             "application/x-ms-shortcut" -> IconExtractor.getFileIcon(p.file)
-            "application/x-kra" -> {
+            `application∕x-krita`.name -> {
                try {
-                  ZipFile(p.file)
-                     .let { it.getInputStream(it.getEntry("mergedimage.png")) }
-                     ?.let { loadImagePsd(it, p, highQuality = false) }
+                  ZipFile(p.file).use {
+                     val entry = it.getEntry("mergedimage.png") ?: fail { "No mergedimage.png found" }
+                     loadImagePsd(it.getInputStream(entry), p, highQuality = false)
+                  }
                } catch (e: IOException) {
                   if (!Interrupts.isInterrupted)  logger.error(e) { "Unable to load image from ${p.file}" }
                   null

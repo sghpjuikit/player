@@ -8,8 +8,11 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `AppSearch` history to remember searched text instead of picked suggestion
 - Implement `AppSearch` number conversions
 - Implement `AppSearch` operating system actions
+- Implement **GitProjects** follow markdown link
 - Implement **CommandBar** widget auto-close
 - Implement **CommandGrid** widget auto-close
+- Implement **Image** widget image operations (move & mirror - mouse & keys)
+- Implement krita image dimension read support
 - Implement reactive window header content
 - Implement window transparency click-through settings
 - Implement json conversion generic type inference
@@ -34,7 +37,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Function View** widget precision stuck to 7
 - Fix **Function View** widget slow performance
 - Fix application search being affected by spaces
-- Fix custom config initial value for some cases config is created later
+- Fix custom config initial value for cases when config is created later
 
 ### Window - reactive header content
 Window header content shrinks if window is too small.

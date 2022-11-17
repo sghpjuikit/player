@@ -1,17 +1,17 @@
 package image
 
 import java.io.File
-import javafx.scene.input.KeyCode.ENTER
-import javafx.scene.input.KeyCode.SPACE
+import javafx.scene.input.KeyCode.*
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import kotlin.math.sign
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.IMAGE
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.WidgetTags.IMAGE
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getImageFileOrUrl
 import sp.it.pl.main.hasImageFileOrUrl
@@ -30,7 +30,6 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
-import sp.it.util.reactive.syncFrom
 import sp.it.util.text.keys
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
@@ -54,12 +53,22 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
       thumb.isBackgroundVisible = false
       thumb.borderVisible = false
       thumb.isDragEnabled = true
-      thumb.fitFrom syncFrom fitFrom on onClose
+      thumb.viewportEditable.value = true
       root.lay += thumb.pane
       root.isFocusTraversable = true
 
       root.onEventDown(KEY_PRESSED, ENTER) { file.value?.let { APP.actions.openImageFullscreen(it) } }
       root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.toggleNext() }
+      root.onEventDown(KEY_PRESSED, SHIFT, RIGHT)    { thumb.viewportShift(+1 x 0) }
+      root.onEventDown(KEY_PRESSED, SHIFT, KP_RIGHT) { thumb.viewportShift(+1 x 0) }
+      root.onEventDown(KEY_PRESSED, SHIFT, LEFT)     { thumb.viewportShift(-1 x 0) }
+      root.onEventDown(KEY_PRESSED, SHIFT, KP_LEFT)  { thumb.viewportShift(-1 x 0) }
+      root.onEventDown(KEY_PRESSED, SHIFT, UP)       { thumb.viewportShift(0 x -1) }
+      root.onEventDown(KEY_PRESSED, SHIFT, KP_UP)    { thumb.viewportShift(0 x -1) }
+      root.onEventDown(KEY_PRESSED, SHIFT, DOWN)     { thumb.viewportShift(0 x +1) }
+      root.onEventDown(KEY_PRESSED, SHIFT, KP_DOWN)  { thumb.viewportShift(0 x +1) }
+      root.onEventDown(KEY_PRESSED, M)  { thumb.view.scaleX = -1*thumb.view.scaleX }
+      root.onEventDown(KEY_PRESSED, V)  { thumb.view.scaleY = -1*thumb.view.scaleY }
       root.installDrag(
          IconMD.DETAILS,
          "Display image of the file",
@@ -82,7 +91,11 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
 
    private fun showImageImpl(imgFile: File?) {
       file.value = imgFile
-      root.sync1IfInScene { thumb.loadFile(file.value) } on onClose
+      root.sync1IfInScene {
+         thumb.view.scaleX = 1.0
+         thumb.view.scaleY = 1.0
+         thumb.loadFile(file.value)
+      }
    }
 
    companion object: WidgetCompanion {
@@ -100,6 +113,17 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
          Entry("Image", "Change image", "Drag & Drop file"),
          Entry("Image", "Toggle fit from inside/outside", keys(SPACE)),
          Entry("Image", "Show fullscreen", keys(ENTER)),
+         Entry("Image", "Mirror horizontally", keys(M)),
+         Entry("Image", "Mirror vertically", keys(V)),
+         Entry("Image", "Move left | right | top | down",  "Mouse drag"),
+         Entry("Image", "Move left",  keys(SHIFT, LEFT)),
+         Entry("Image", "Move left",  keys(SHIFT, KP_LEFT)),
+         Entry("Image", "Move right", keys(SHIFT, RIGHT)),
+         Entry("Image", "Move right", keys(SHIFT, KP_RIGHT)),
+         Entry("Image", "Move up",    keys(SHIFT, UP)),
+         Entry("Image", "Move up",    keys(SHIFT, KP_UP)),
+         Entry("Image", "Move down",  keys(SHIFT, DOWN)),
+         Entry("Image", "Move down",  keys(SHIFT, KP_DOWN)),
       )
    }
 }

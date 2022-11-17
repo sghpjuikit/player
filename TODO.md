@@ -1,5 +1,4 @@
 ## Currently considered
-- Suppress image loading during UI sensitive operations [already prototyped using Semaphore]
 - Remove transparent-allowed pseudoclass & simplify transparency styling
 - Make all window types including standalone widgets consistently styled [prototype using inverse mask]
 - Experiment with StartScreen that keeps content loaded between hide/show
@@ -72,8 +71,6 @@
   - transformation chain projection slider: cut off transformation tail
   - column: line numbers
   - column: item numbers
-- Improve **Image** widget: add image controls (+,  -, ...)  
-  Low priority and technically difficult
 - Fix the bug where playlist song moving (CTRL+drag) changes order of unrelated songs when moving too fast  
   Low priority
 - Implement **Settings** sort option DEFAULT/BY_NAME  

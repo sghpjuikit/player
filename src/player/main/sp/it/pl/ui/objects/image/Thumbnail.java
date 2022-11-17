@@ -38,6 +38,7 @@ import sp.it.util.ui.image.ImageFrame;
 import sp.it.util.ui.image.ImageSize;
 import sp.it.util.ui.image.Params;
 import static java.lang.Double.min;
+import static java.lang.Math.signum;
 import static javafx.animation.Animation.INDEFINITE;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -54,6 +55,7 @@ import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy.VT_IMAGE;
 import static sp.it.util.JavaLegacy.destroyImage;
+import static sp.it.util.Util.clip;
 import static sp.it.util.async.AsyncKt.CURR;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runOn;
@@ -66,6 +68,7 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.sync1If;
 import static sp.it.util.type.Util.getFieldValue;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
+import static sp.it.util.ui.MouseDragKt.initMouseDrag;
 import static sp.it.util.ui.UtilKt.setScaleXYByTo;
 import static sp.it.util.ui.image.FitFrom.INSIDE;
 import static sp.it.util.ui.image.UtilKt.imgImplLoadFX;
@@ -136,7 +139,7 @@ public class Thumbnail {
 			double imgH = min(H, maxImgH.get());
 
 			ratioTHUMB.setValue(H==0.0 ? 1 : W/H);
-			applyViewPort(imageView.getImage());
+			applyViewPortImpl(imageView.getImage());
 
 			// resize thumbnail
 			if (fitFrom.getValue()==INSIDE) {
@@ -192,6 +195,7 @@ public class Thumbnail {
 	public final @NotNull ObjectProperty<@Nullable Image> image = new V<>(null);
 	private File imageFile = null;
 	public final @NotNull V<@NotNull FitFrom> fitFrom = new V<>(INSIDE);
+
 	private boolean isImgSmallerW = false;
 	private boolean isImgSmallerH = false;
 
@@ -216,7 +220,9 @@ public class Thumbnail {
 		imageView.getStyleClass().add(styleclassImage);
 		imageView.setFitHeight(-1);
 		imageView.setFitWidth(-1);
+		fitFrom.addListener((o, ov, nv) -> needsApplyViewport = true);
 		fitFrom.addListener((o, ov, nv) -> root.requestLayout());
+		viewportEditable.addListener((o, ov, nv) -> root.requestLayout());
 
 		// initialize values
         imageView.setCache(false);
@@ -294,6 +300,7 @@ public class Thumbnail {
 		if (id!=loadId) return;
 		ratioIMG.setValue(i==null || i.getHeight()==0 ? 1.0 : i.getWidth()/i.getHeight());
 		applyViewPort(i);
+		needsApplyViewport = true;
 		imageView.setImage(i);
 		image.setValue(i);
 
@@ -307,6 +314,7 @@ public class Thumbnail {
 
 	private void setImgFrame(Image i) {
 		applyViewPort(i);
+		needsApplyViewport = true;
 		imageView.setImage(i);
 		root.requestLayout();
 	}
@@ -333,30 +341,96 @@ public class Thumbnail {
 
 /* ---------- VIEWPORT ---------------------------------------------------------------------------------------------- */
 
+	public final @NotNull V<@NotNull Boolean> viewportEditable = new V<>(false);
+	private boolean needsApplyViewport = false;
+	private @Nullable Rectangle2D viewport = null;
+	private @Nullable P viewportMin = null;
+	private @Nullable P viewportMax = null;
+	private @Nullable P viewportOffset = null;
+
+	{
+		initMouseDrag(
+			root,
+			null,
+			consumer(it -> viewportOffset = imageView.getViewport()==null ? null : new P(imageView.getViewport().getMinX(), imageView.getViewport().getMinY())),
+			consumer(it -> {
+				if (viewport!=null && viewportEditable.getValue()) {
+					imageView.setViewport(
+						new Rectangle2D(
+							clip(viewportMin.getX(), viewportOffset.getX() - signum(imageView.getScaleX()) * it.getDiff().getX(), viewportMax.getX()),
+							clip(viewportMin.getY(), viewportOffset.getY() - signum(imageView.getScaleY()) * it.getDiff().getY(), viewportMax.getY()),
+							viewport.getWidth(),
+							viewport.getHeight()
+						)
+					);
+				}
+			})
+		);
+	}
+
+	public void viewportShift(P by) {
+		if (viewport!=null && viewportEditable.getValue())
+			imageView.setViewport(
+				new Rectangle2D(
+					clip(viewportMin.getX(), imageView.getViewport().getMinX() + signum(imageView.getScaleX()) * signum(by.getX()) * imageView.getFitWidth()/30, viewportMax.getX()),
+					clip(viewportMin.getY(), imageView.getViewport().getMinY() + signum(imageView.getScaleY()) * signum(by.getY()) * imageView.getFitWidth()/30, viewportMax.getY()),
+					viewport.getWidth(),
+					viewport.getHeight()
+				)
+			);
+	}
+
 	private void applyViewPort(Image i) {
-		if (i!=null) {
+		needsApplyViewport = true;
+		applyViewPortImpl(i);
+	}
+
+	private void applyViewPortImpl(Image i) {
+		if (!needsApplyViewport) return;
+	    needsApplyViewport = false;
+
+		if (i==null) {
+			viewport = null;
+			viewportMin = null;
+			viewportMax = null;
+		} else {
 			var ratioI = i.getHeight()==0 ? 1.0 : i.getWidth()/i.getHeight();
 
 			if (fitFrom.get()==INSIDE) {
-				imageView.setViewport(null);
+				viewport = null;
+				viewportMin = null;
+				viewportMax = null;
+				imageView.setViewport(viewport);
 			} else {
 				isImgSmallerW = i.getWidth()<=imageView.getLayoutBounds().getWidth();
 				isImgSmallerH = i.getHeight()<=imageView.getLayoutBounds().getHeight();
 				if (isImgSmallerW && isImgSmallerH) {
-					imageView.setViewport(null);
+					viewport = null;
+					viewportMin = null;
+					viewportMax = null;
+					imageView.setViewport(viewport);
 				} else
 				if (ratioTHUMB.getValue()<ratioI) {
 					double uiImgWidth = i.getHeight()*ratioTHUMB.getValue();
-					double x = (i.getWidth() - uiImgWidth)/2;
-					imageView.setViewport(new Rectangle2D(x, 0, uiImgWidth, i.getHeight()));
+					double x = i.getWidth() - uiImgWidth;
+					viewport = new Rectangle2D(x/2, 0, uiImgWidth, i.getHeight());
+					viewportMin = new P(0, 0);
+					viewportMax = new P(x, 0);
+					imageView.setViewport(viewport);
 				} else
 				if (ratioTHUMB.getValue()>ratioI) {
 					double uiImgHeight = i.getWidth()/ratioTHUMB.getValue();
-					double y = (i.getHeight() - uiImgHeight)/2;
-					imageView.setViewport(new Rectangle2D(0, y, i.getWidth(), uiImgHeight));
+					double y = i.getHeight() - uiImgHeight;
+					viewport = new Rectangle2D(0, y/2, i.getWidth(), uiImgHeight);
+					viewportMin = new P(0, 0);
+					viewportMax = new P(0, y);
+					imageView.setViewport(viewport);
 				} else
 				if (ratioTHUMB.getValue()==ratioI) {
-					imageView.setViewport(null);
+					viewport = null;
+					viewportMin = null;
+					viewportMax = null;
+					imageView.setViewport(viewport);
 				}
 			}
 		}
@@ -610,9 +684,9 @@ public class Thumbnail {
 
 	private EventHandler<MouseEvent> dragHandler;
 
-	private EventHandler<MouseEvent> buildDH() {
+	private @NotNull EventHandler<MouseEvent> buildDH() {
 		return e -> {
-			if (e.getButton()==PRIMARY) {
+			if (e.getButton()==PRIMARY && (!viewportEditable.getValue() || e.isShiftDown())) {
 				var representant = getRepresentant();
 				var file = getFile();
 				var files = stream(representant instanceof File f ? f : file).filter(ISNT0).toList();

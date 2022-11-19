@@ -7,9 +7,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.7.21"
+   kotlin("jvm") version "1.8.0-Beta"
    application
-   id("com.github.ben-manes.versions") version "0.43.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
+   id("com.github.ben-manes.versions") version "0.44.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.0"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
 }
 
@@ -56,8 +56,8 @@ allprojects {
    }
 
    tasks.withType<KotlinCompile> {
-      kotlinOptions.apiVersion = "1.7"
-      kotlinOptions.languageVersion = "1.7"
+      kotlinOptions.apiVersion = "1.8"
+      kotlinOptions.languageVersion = "1.8"
       kotlinOptions.suppressWarnings = false
       kotlinOptions.verbose = true
       kotlinOptions.freeCompilerArgs += listOf(
@@ -66,10 +66,10 @@ allprojects {
          "-Xno-param-assertions",
          "-Xjvm-default=all",
          "-Xlambdas=indy",
-         "-Xstring-concat=indy-with-constants"
+         "-Xstring-concat=indy-with-constants",
       )
       kotlinOptions.javaParameters = true
-      kotlinOptions.jvmTarget = "18"
+      kotlinOptions.jvmTarget = "19"
    }
 
    repositories {
@@ -110,8 +110,8 @@ allprojects {
       }
 
       "Logging" group {
-         implementation("org.slf4j", "slf4j-api", "2.0.3")
-         implementation("org.slf4j", "jul-to-slf4j", "2.0.3")
+         implementation("org.slf4j", "slf4j-api", "2.0.4")
+         implementation("org.slf4j", "jul-to-slf4j", "2.0.4")
          implementation("ch.qos.logback", "logback-classic", "1.4.4")
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
@@ -130,11 +130,11 @@ allprojects {
          implementation("com.github.f4b6a3", "uuid-creator", "5.2.0")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.0")
-         implementation("com.github.oshi", "oshi-core", "6.3.1")
+         implementation("com.github.oshi", "oshi-core", "6.3.2")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
          implementation("com.ezylang", "EvalEx", "3.0.1")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
-         implementation("ch.obermuhlner", "big-math", "2.3.1")
+         implementation("ch.obermuhlner", "big-math", "2.3.2")
       }
 
       "Image" group {

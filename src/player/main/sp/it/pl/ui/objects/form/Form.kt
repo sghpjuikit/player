@@ -80,7 +80,7 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
       isExecuting.attach { updateOkButtonVisible() }
 
       editorsPane.editable syncFrom isEditable
-      editorsPane.onChangeOrConstraint = Runnable { validate() }
+      editorsPane.onChangeOrConstraint = { validate() }
       editorsPane.configure(this.configurable)
 
       validate()

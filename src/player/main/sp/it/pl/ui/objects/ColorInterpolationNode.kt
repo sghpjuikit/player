@@ -27,8 +27,8 @@ class ColorInterpolationNode: StackPane() {
       init {
          val editor = ObservableListCE(ListConfig("Color", ConfigDef("Color"), ConfList(type<Color>(), observableList(Color.WHITE, Color.color(0.5, 0.5, 0.5, 0.5))), "", setOf(), setOf()))
          val result = ColorCE(PropertyConfig(type<Color?>(), "Result", ConfigDef(), setOf(), vn(null), null, "").constrain { readOnly() })
-         editor.onChange = Runnable { result.config.value = editor.config.value.cross() }
-         editor.onChange?.run()
+         editor.onChange = { result.config.value = editor.config.value.cross() }
+         editor.onChange?.invoke()
          lay += vBox {
             lay += separator(HORIZONTAL) { padding = Insets(12.emScaled) }
             lay += label {

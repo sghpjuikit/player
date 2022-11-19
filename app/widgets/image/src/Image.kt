@@ -3,7 +3,6 @@ package image
 import java.io.File
 import javafx.scene.input.KeyCode.*
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import kotlin.math.sign
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -26,7 +25,6 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.file.FileType.FILE
-import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene

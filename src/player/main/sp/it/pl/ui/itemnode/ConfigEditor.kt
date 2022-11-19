@@ -62,7 +62,6 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.and
 import sp.it.util.functional.andAlso
 import sp.it.util.functional.asIs
-import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
@@ -108,14 +107,15 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
    /** Whether config value type is nullable, convenience for: [config].[Config.type].[VType.isNullable] */
    val isNullable = config.type.isNullable
    /** Invoked when value changes */
-   var onChange: Runnable? = null
+   var onChange: (() -> Unit)? = null
    /** Invoked when value changes or constraint warning changes */
-   var onChangeOrConstraint: Runnable? = null
-   private var inconsistentState = false
+   var onChangeOrConstraint: (() -> Unit)? = null
    /** The node setting and displaying the value */
    abstract val editor: Node
    /** Disposer, convenience for: [editor].[Node.onNodeDispose] . */
    protected val disposer = Disposer()
+
+   private var inconsistentState = false
 
    abstract fun get(): Try<T, String>
 

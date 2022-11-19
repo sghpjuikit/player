@@ -158,7 +158,6 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.filter
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
-import sp.it.util.functional.invoke
 import sp.it.util.functional.map
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -730,7 +729,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
 
       init {
          pane.isEditableAllowed syncFrom isEditable on disposer
-         pane.onChange = Runnable {
+         pane.onChange = {
             if (!isSyntheticListEvent && !isSyntheticLinkEvent) {
                isSyntheticSetEvent = true
                list setTo chain.chain.map { it.chained.getVal() }.filter { isNullableOk(it) }
@@ -750,7 +749,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
       init {
          pane.editable syncFrom isEditable on disposer
          pane.ui syncFrom APP.ui.formLayout on disposer
-         pane.onChange = Runnable {}
+         pane.onChange = {}
          pane.configure(lc.toConfigurable(value))
       }
       override fun getNode() = pane
@@ -774,8 +773,8 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
          icons(IconMA.CHECK_BOX, IconMA.CHECK_BOX_OUTLINE_BLANK, IconMA.DO_NOT_DISTURB)
          onClickDo {
             toggle()
-            onChange?.run()
-            onChangeOrConstraint?.run()
+            onChange?.invoke()
+            onChangeOrConstraint?.invoke()
          }
       }
    }
@@ -793,8 +792,8 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
                checkIcons.forEach { it.selected.value = nextValue }
             }
             updateSuperIcon()
-            onChange?.run()
-            onChangeOrConstraint?.run()
+            onChange?.invoke()
+            onChangeOrConstraint?.invoke()
          }
       }
    }

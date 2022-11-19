@@ -56,12 +56,12 @@ class ConfigPane<T: Any?>: VBox {
    private var editors: List<ConfigEditor<*>> = listOf()
    private var editorNodes: List<Node> = listOf()
    private var needsLabel: Boolean = true
-   private val onChangeRaw = Runnable { onChange?.invoke() }
-   private val onChangeOrConstraintRaw = Runnable { onChangeOrConstraint?.invoke() }
+   private val onChangeRaw: () -> Unit = { onChange?.invoke() }
+   private val onChangeOrConstraintRaw: () -> Unit = { onChangeOrConstraint?.invoke() }
    val editable = v(true)
    val ui: StyleableObjectProperty<Layout> by sv(UI)
-   var onChange: Runnable? = null
-   var onChangeOrConstraint: Runnable? = null
+   var onChange: (() -> Unit)? = null
+   var onChangeOrConstraint: (() -> Unit)? = null
    var editorOrder: Comparator<Config<*>>? = compareByDefault
       set(value) {
          field = value

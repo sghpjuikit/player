@@ -156,7 +156,7 @@ open class ComplexTextField<T>(val parser: UiStringHelper<T>): FlowPane() {
                lay -= comboBox
                lay += ConfigEditor.create(Config.forProperty(arg.type, name, vn(initialValue))).run {
                   isEditableAllowed syncFrom this@ComplexTextField.isEditable
-                  onChangeOrConstraint = Runnable {
+                  onChangeOrConstraint = {
                      get().ifOk {
                         valuePartials setTo (valuePartials.take(position) + it.toS())
                         lay -= comboBox

@@ -21,7 +21,6 @@ import sp.it.util.type.VType;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.stream;
@@ -94,7 +93,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	 * If there is no object to pass, use null.
 	 */
 	public void setData(List<? extends PredicateData<F>> classes) {
-		List<PredicateData<F>> cs = stream(classes).sorted(by(pd -> pd.name)).collect(toList());
+		List<PredicateData<F>> cs = stream(classes).sorted(by(pd -> pd.name())).collect(toList());
 		inconsistentState = true;
 		typeCB.getItems().setAll(cs);
 		inconsistentState = false;
@@ -150,29 +149,16 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		}
 	}
 
-	@NotNull
 	@Override
-	public Node getNode() {
+	public @NotNull Node getNode() {
 		return root;
 	}
 
-	public static class PredicateData<T> {
-		public final String name;
-		public final VType<?> type;
-		public final T value;
+	public record PredicateData<T>(@NotNull String name, @NotNull VType<?> type, @NotNull T value) {
 
-		@NotNull
-		public static <V, T> PredicateData<ObjectField<V,T>> ofField(ObjectField<V,T> field) {
+		public static <V, T> @NotNull PredicateData<ObjectField<V,T>> ofField(ObjectField<V,T> field) {
 			return new PredicateData<>(field.name(), field.getType(), field);
 		}
 
-		public PredicateData(String name, VType<?> type, T value) {
-			noNull(name);
-			noNull(type);
-			noNull(value);
-			this.name = name;
-			this.type = type;
-			this.value = value;
-		}
 	}
 }

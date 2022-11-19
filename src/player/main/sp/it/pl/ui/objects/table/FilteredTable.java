@@ -413,7 +413,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		return computeFieldsAll().stream()
 			.filter(ObjectField::isTypeFilterable)
 			.map(PredicateData::ofField)
-			.sorted(by(e -> e.name))
+			.sorted(by(e -> e.name()))
 			.map(f -> (PredicateData<ObjectField<T,Object>>) (Object) f)
 			.toList();
 	}

@@ -10,7 +10,6 @@ import sp.it.pl.main.IconMD
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.functional.net
 import sp.it.util.reactive.attachNonNullWhile
-import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.hBox

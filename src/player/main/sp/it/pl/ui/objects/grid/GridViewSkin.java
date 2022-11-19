@@ -315,7 +315,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			.filter(ObjectField::isTypeFilterable)
 			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
 			.map(f -> (PredicateData<ObjectField<F,Object>>) f)
-			.sorted(by(e -> e.name))
+			.sorted(by(e -> e.name()))
 			.toList();
 	}
 

@@ -449,14 +449,14 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 //               }
 //         }
          mw.window.stage.installHideOnFocusLost(mwAutohide) { mwShower.hide() }
-         mw.window.stage.scene.onEventDown(DRAG_ENTERED) { mwShower.show() }
-         mw.window.stage.scene.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }
-         mw.window.stage.scene.onEventDown(KEY_RELEASED, SPACE) { mwShower.show() }
-         mw.window.stage.scene.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
-         mw.window.stage.scene.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
-         mw.window.stage.scene.onEventDown(MOUSE_CLICKED, PRIMARY) { mwShower.show() }
-         mw.window.stage.scene.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay() }
-         mw.window.stage.scene.onEventDown(KEY_RELEASED, Z, consume = false) {
+         mw.window.stage.scene.root.onEventDown(DRAG_ENTERED) { mwShower.show() }
+         mw.window.stage.scene.root.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }
+         mw.window.stage.scene.root.onEventDown(KEY_RELEASED, SPACE) { mwShower.show() }
+         mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
+         mw.window.stage.scene.root.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
+         mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, PRIMARY) { mwShower.show() }
+         mw.window.stage.scene.root.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay() }
+         mw.window.stage.scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
             if (it.isMetaDown) {
                mwAutohide.toggle()
                it.consume()
@@ -596,9 +596,9 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       runFX(300.millis) {
          mw.stage.installHideOnFocusLost(mwAutohide, hider)
-         mw.stage.scene.onEventDown(KEY_PRESSED, ESCAPE) { hider() }
-         mw.stage.scene.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) hider() }
-         mw.stage.scene.onEventDown(KEY_RELEASED, Z, consume = false) {
+         mw.stage.scene.root.onEventDown(KEY_PRESSED, ESCAPE) { hider() }
+         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) hider() }
+         mw.stage.scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
             if (it.isMetaDown) {
                mwAutohide.toggle()
                it.consume()

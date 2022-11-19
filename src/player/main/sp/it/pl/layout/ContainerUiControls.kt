@@ -24,14 +24,17 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
+import sp.it.util.functional.supplyIfNotNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.ui.dsl
+import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.removeFromParent
+import sp.it.util.ui.stackPane
 import sp.it.util.units.millis
 
 class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControlsBase() {
@@ -44,12 +47,20 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
             c.opacity = 1 - 0.8*it
       }
    }
+
    private var absB: Icon? = null
    private var autoLayoutB: Icon? = null
 
    init {
       root.id = "container-ui-controls"
       root.styleClass += "container-ui-controls"
+
+      root.layFullArea += supplyIfNotNull(area.container.factoryDeserializing) {
+         stackPane {
+            isMouseTransparent = true
+            lay += label(it.name)
+         }
+      }
       root.lay(0.0, 0.0, null, 0.0) += icons.apply {
          nodeOrientation = LEFT_TO_RIGHT
          alignment = CENTER_RIGHT

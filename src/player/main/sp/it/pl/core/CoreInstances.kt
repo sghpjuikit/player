@@ -10,9 +10,11 @@ import sp.it.pl.ui.nodeinfo.MouseInfo
 import sp.it.pl.ui.nodeinfo.SongAlbumInfo
 import sp.it.pl.ui.nodeinfo.SongInfo
 import sp.it.pl.ui.nodeinfo.WeatherInfo
+import sp.it.pl.ui.objects.ColorInterpolationNode
 import sp.it.pl.ui.objects.GpuNvidiaInfo
 import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.objects.PcControls
+import sp.it.pl.ui.objects.UuidGeneratorNode
 import sp.it.pl.ui.objects.picker.DateClockDigitalIos
 import sp.it.pl.ui.objects.picker.DatePickerContent
 import sp.it.pl.ui.objects.picker.DateTimeClockWin
@@ -47,6 +49,8 @@ object CoreInstances: InstanceMap(), Core {
    @Suppress("RemoveExplicitTypeArguments")
    override fun init() {
       recommendedNodeClassesAsWidgets += listOf(
+         NodeFactory(uuid("399dfa7b-dda1-4698-acaf-77c2297114d2"), UuidGeneratorNode::class, "UUID Generator") { UuidGeneratorNode() },
+         NodeFactory(uuid("13636a4e-7959-443d-b318-55124459a8ae"), ColorInterpolationNode::class, "Color Interpolation") { ColorInterpolationNode() },
          NodeFactory(uuid("07855729-8263-44d7-b69f-6d5ce20348ad"), MdNode::class, "MdNode") { MdNode() },
          NodeFactory(uuid("238844e4-35ef-40f7-a357-035fcd39591a"), GpuNvidiaInfo::class, "GpuNvidiaInfo") { GpuNvidiaInfo() },
          NodeFactory(uuid("d42f049a-7e01-421c-a2e5-16524fd21cbb"), PcControls::class, "PcControls") { PcControls() },

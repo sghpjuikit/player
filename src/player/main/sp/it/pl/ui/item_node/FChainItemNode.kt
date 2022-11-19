@@ -33,7 +33,7 @@ import sp.it.util.type.typeNothingNonNull
  * <li> can be used as a reduction function {@link #getVal()} or a stream of
  * the standalone functions can be obtained {@link #getValues()}.
  * <li> begins with an input type. It determines the type of input of the first
- * function in the chain and input type of the reduction function. By default it
+ * function in the chain and input type of the reduction function. By default, it
  * is Void.class. {@link #getTypeIn()}
  * <li> produces output of type determined by the last function in the chain
  * {@link #getTypeOut()}

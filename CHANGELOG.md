@@ -8,11 +8,16 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `AppSearch` history to remember searched text instead of picked suggestion
 - Implement `AppSearch` number conversions
 - Implement `AppSearch` operating system actions
-- Implement **GitProjects** follow markdown link
+- Implement **Color interpolation** widget
+- Implement **Uuid Generator** widget
+- Implement **FavLocations** widget selection persistence
+- Implement **GitProjects** widget follow Markdown link
 - Implement **CommandBar** widget auto-close
 - Implement **CommandGrid** widget auto-close
 - Implement **Image** widget image operations (move & mirror - mouse & keys)
 - Implement krita image dimension read support
+- Implement showing persistent component name in layout mode
+- Implement better `ContainerSwitchUi` tab loading UX
 - Implement reactive window header content
 - Implement window transparency click-through settings
 - Implement json conversion generic type inference

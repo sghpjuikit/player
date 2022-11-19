@@ -3,15 +3,12 @@
 - Make all window types including standalone widgets consistently styled [prototype using inverse mask]
 - Experiment with StartScreen that keeps content loaded between hide/show
 - Document all used libraries, how they are used, why, where not to use them, etc.
-- `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
 - Implement **Playback Knobs** widget skinnable size
 - `Placeholder` should distinguish file `MOVE` and file `COPY` in description?
-- Improve **kotlinc**/**vlc**/**mpeg** setup should not be `Future`, but restartable `Task`
-- `ObsListConfig.setDefaultValue` not removing disabled items
+- Fix `ObsListConfig.setDefaultValue` not removing disabled items
+- Fix `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
 - Fix manual widget loading not rebinding widget inputs properly
-- Implement `app.stateful` on/off config
-- Drag & drop playlist file support in audio
-- `Configuration.propertiesRaw` are not synced with configs, should be?
+- Fix`Configuration.propertiesRaw` are not synced with configs, should be?
 - Improve **Tagger** widget
   - tagging non audio file with audio extension causes exception and corrupted application state
   - editable song check list not refreshing content properly
@@ -20,6 +17,9 @@
   - make writing to tag handle errors properly (& report read-only files)
 
 ## Potential future work
+- Implement **kotlinc**/**vlc**/**mpeg** setup to be restartable
+- Implement `app.stateful` on/off config
+- Drag & drop playlist file support in audio
 - Migrate `ActionPane`  actions to `AppActions.kt`& integrate with `Action`, adding icon to Action & keys to ActionData 
 - Implement better application running detection: app running without exe and app running from different directory
 - Implement `MdNode` monitor file & reload
@@ -51,8 +51,6 @@
   May be useful in some use cases
 - Reimplement [Tray] using [FXTrayIcon](https://github.com/dustinkredmond/FXTrayIcon)  
   Would add high-dpi support and more
-- Implement **FavLocations** widget selection persistence  
-  Natural idea, low priority
 - Implement **playlists** table  
   Requires deeper integration with **Update library** action, playlist discovery, etc.
 - Implement widget factory ref example **Tester** widget:

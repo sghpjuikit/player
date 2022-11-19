@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode
+package sp.it.pl.ui.item_node
 
 import java.io.File
 import java.nio.charset.Charset

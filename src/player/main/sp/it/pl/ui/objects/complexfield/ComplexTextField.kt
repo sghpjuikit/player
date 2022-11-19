@@ -13,8 +13,8 @@ import sp.it.pl.core.UiStringHelper
 import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.itemnode.ConfigEditor
-import sp.it.pl.ui.itemnode.STYLECLASS_COMBOBOX_CONFIG_EDITOR
+import sp.it.pl.ui.item_node.ConfigEditor
+import sp.it.pl.ui.item_node.STYLECLASS_COMBOBOX_CONFIG_EDITOR
 import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.util.access.readOnly
 import sp.it.util.access.v

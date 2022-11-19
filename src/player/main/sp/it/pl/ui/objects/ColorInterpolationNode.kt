@@ -7,8 +7,8 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.paint.Color.TRANSPARENT
 import sp.it.pl.main.emScaled
-import sp.it.pl.ui.itemnode.ColorCE
-import sp.it.pl.ui.itemnode.ObservableListCE
+import sp.it.pl.ui.item_node.ColorCE
+import sp.it.pl.ui.item_node.ObservableListCE
 import sp.it.util.access.vn
 import sp.it.util.collections.observableList
 import sp.it.util.conf.ConfList

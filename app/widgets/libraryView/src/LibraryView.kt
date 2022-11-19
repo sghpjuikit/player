@@ -49,7 +49,7 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.main.isPlaying
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.pl.main.showConfirmation
-import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
+import sp.it.pl.ui.item_node.FieldedPredicateItemNode.PredicateData
 import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSelectionMenu
 import sp.it.pl.ui.objects.rating.RatingCellFactory

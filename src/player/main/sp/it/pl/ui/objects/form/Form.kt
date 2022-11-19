@@ -128,7 +128,7 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
    }
 
    /**
-    * Returns [Ok] if all editors for configs in [configurable] return [sp.it.pl.ui.itemnode.ConfigEditor.getValid] [Ok].
+    * Returns [Ok] if all editors for configs in [configurable] return [sp.it.pl.ui.item_node.ConfigEditor.getValid] [Ok].
     * If [configurable] is [Validated], its [Validated.isValid] must also return [Ok].
     */
    fun validate(): Try<*, *> {

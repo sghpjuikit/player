@@ -95,7 +95,7 @@ import org.slf4j.LoggerFactory;
 import sp.it.pl.layout.Widget;
 import sp.it.pl.layout.controller.LegacyController;
 import sp.it.pl.layout.controller.SimpleController;
-import sp.it.pl.ui.itemnode.ConfigEditor;
+import sp.it.pl.ui.item_node.ConfigEditor;
 import sp.it.pl.ui.objects.SpitText;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.util.access.V;

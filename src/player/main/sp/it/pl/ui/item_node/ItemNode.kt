@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode
+package sp.it.pl.ui.item_node
 
 import java.util.function.Consumer
 import javafx.scene.Node

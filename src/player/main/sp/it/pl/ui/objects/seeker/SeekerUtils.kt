@@ -28,7 +28,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
-import sp.it.pl.ui.itemnode.STYLECLASS_CONFIG_EDITOR_WARN_BUTTON
+import sp.it.pl.ui.item_node.STYLECLASS_CONFIG_EDITOR_WARN_BUTTON
 import sp.it.pl.ui.objects.SpitText.Companion.computeNaturalWrappingWidth
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.Shower

@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode
+package sp.it.pl.ui.item_node
 
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.ComboBox

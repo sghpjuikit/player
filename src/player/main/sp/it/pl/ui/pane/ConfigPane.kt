@@ -13,10 +13,10 @@ import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
 import sp.it.pl.main.Css
 import sp.it.pl.main.emScaled
-import sp.it.pl.ui.itemnode.ConfigEditor
-import sp.it.pl.ui.itemnode.ConfigurableCE
-import sp.it.pl.ui.itemnode.ObservableListCE
-import sp.it.pl.ui.itemnode.PaginatedObservableListCE
+import sp.it.pl.ui.item_node.ConfigEditor
+import sp.it.pl.ui.item_node.ConfigurableCE
+import sp.it.pl.ui.item_node.ObservableListCE
+import sp.it.pl.ui.item_node.PaginatedObservableListCE
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.pane.ConfigPane.Layout.EXTENSIVE
 import sp.it.pl.ui.pane.ConfigPane.Layout.MINI

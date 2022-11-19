@@ -33,7 +33,7 @@ import sp.it.pl.main.Css
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
-import sp.it.pl.ui.itemnode.ConfigEditor
+import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.minus

@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode
+package sp.it.pl.ui.item_node
 
 import com.twelvemonkeys.util.LinkedMap
 import com.twelvemonkeys.util.LinkedSet
@@ -95,7 +95,7 @@ import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBox
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.ui.ValueToggleButtonGroup
-import sp.it.pl.ui.itemnode.ChainValueNode.ListChainValueNode
+import sp.it.pl.ui.item_node.ChainValueNode.ListChainValueNode
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.SpitComboBox.ImprovedComboBoxListCell

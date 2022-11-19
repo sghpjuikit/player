@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode
+package sp.it.pl.ui.item_node
 
 import java.util.function.Predicate
 import sp.it.util.access.fieldvalue.ObjectField

@@ -33,7 +33,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.emScaled
-import sp.it.pl.ui.itemnode.ConfigEditor
+import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v

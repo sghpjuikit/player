@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode
+package sp.it.pl.ui.item_node
 
 import java.lang.Integer.MAX_VALUE
 import java.util.function.BiPredicate
@@ -13,7 +13,7 @@ import javafx.scene.input.KeyCode.F
 import javafx.scene.input.KeyEvent
 import javafx.util.Callback
 import kotlin.streams.asSequence
-import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
+import sp.it.pl.ui.item_node.FieldedPredicateItemNode.PredicateData
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.asIs

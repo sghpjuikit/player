@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode
+package sp.it.pl.ui.item_node
 
 import java.util.function.BiPredicate
 import java.util.function.Consumer
@@ -16,8 +16,8 @@ import javafx.scene.layout.Priority.ALWAYS
 import javafx.util.Callback
 import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
-import sp.it.pl.ui.itemnode.ListAreaNode.Transformation
-import sp.it.pl.ui.itemnode.ListAreaNode.TransformationRaw
+import sp.it.pl.ui.item_node.ListAreaNode.Transformation
+import sp.it.pl.ui.item_node.ListAreaNode.TransformationRaw
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.textfield.ValueTextField

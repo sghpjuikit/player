@@ -10,7 +10,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.emScaled
-import sp.it.pl.ui.itemnode.ConfigEditor
+import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.v
 import sp.it.util.collections.tabulate0

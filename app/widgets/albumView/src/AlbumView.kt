@@ -29,7 +29,7 @@ import sp.it.pl.main.AppTexts
 import sp.it.pl.main.Double01
 import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.emScaled
-import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
+import sp.it.pl.ui.item_node.FieldedPredicateItemNode.PredicateData
 import sp.it.pl.ui.objects.grid.GridCell
 import sp.it.pl.ui.objects.grid.GridView
 import sp.it.pl.ui.objects.grid.GridView.CellGap

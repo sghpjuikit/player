@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode
+package sp.it.pl.ui.item_node
 
 import javafx.scene.control.TextField
 import sp.it.util.reactive.attach

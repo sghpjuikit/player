@@ -34,7 +34,6 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
-import sp.it.util.reactive.sync
 import sp.it.util.ui.expandToRootAndSelect
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
@@ -53,9 +52,15 @@ import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.butElement
+import sp.it.util.conf.cn
+import sp.it.util.conf.noUi
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
+import sp.it.util.reactive.Suppressor
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
+import sp.it.util.reactive.suppressed
+import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.ui.drag.set
 
@@ -70,11 +75,19 @@ import sp.it.util.ui.drag.set
 class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeature {
 
    private val selected = io.o.create<File?>("Selected", null)
+   private var selectedPersisted by cn<File>(null).noUi()
+   private var selectedIgnore = Suppressor()
+
    private val locations by cList<File>().def(name = "Favourite locations", info = "Favourite locations").butElement { only(DIRECTORY) }
    private val tree = treeView<Any> {
       isShowRoot = false
       selectionModel.selectionMode = SINGLE
-      selectionModel.selectedItemProperty() sync { selected.value = it?.value.asIf<File>() }
+      selectionModel.selectedItemProperty() attach  {
+         selectedIgnore.suppressed {
+            selectedPersisted = it?.value.asIf<File>()
+            selected.value = it?.value.asIf<File>()
+         }
+      }
       cellFactory = Callback { buildTreeCell(it) }
    }
 
@@ -121,6 +134,7 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
                tree("Favourites", locations).apply { isExpanded = true },
                tree("This PC", roots).apply { isExpanded = true }
             )
+            selectedPersisted.ifNotNull(::exploreFile)
          }
          APP.sysEvents.subscribe { refresh() } on onClose
       }
@@ -140,7 +154,9 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
    }
 
    override fun exploreFile(file: File) {
-      tree.root.children[1].findAnyChild(file, File::isAnyChildOf)?.expandToRootAndSelect(tree)
+      selectedIgnore.suppressing { tree.root.children[1].findAnyChild(file, File::isAnyChildOf)?.expandToRootAndSelect(tree) }
+      selectedPersisted = file
+      selected.value = file
    }
 
    override fun focus() = tree.requestFocus()

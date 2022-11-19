@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Spliterator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javafx.animation.FadeTransition;
@@ -18,6 +19,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.layout.controller.io.IOLayer;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
@@ -29,9 +31,13 @@ import static java.lang.Double.NaN;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
 import static java.lang.Math.abs;
+import static java.lang.Math.rint;
 import static java.lang.Math.signum;
+import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.function.Predicate.not;
+import static java.util.stream.StreamSupport.stream;
 import static javafx.animation.Animation.INDEFINITE;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
@@ -56,10 +62,10 @@ import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.util.reactive.UtilKt.syncC;
+import static sp.it.util.ui.NodeExtensionsKt.removeFromParent;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.initClip;
 import static sp.it.util.ui.UtilKt.pseudoclass;
-import static sp.it.util.ui.NodeExtensionsKt.removeFromParent;
 
 /**
  * Pane with switchable content.
@@ -151,9 +157,20 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
         // capture mouse release/click events so lets end the drag right there
         root.addEventFilter(MOUSE_EXITED, this::dragUiEnd);
 
+        // open tab on click
+        root.addEventHandler(MOUSE_CLICKED, e -> {
+            if (e.getButton() == PRIMARY) {
+                var ti = computeTab(e.getX());
+                if (ti!=null) {
+                    addTab(ti);
+                    tabs.get(ti).ui.show();
+                }
+            }
+        });
+
         root.addEventHandler(SCROLL, e -> {
             if (APP.ui.isLayoutMode()) {
-                double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/10d;
+                double i = zoom.getScaleX() + signum(e.getDeltaY())/10d;
                        i = clip(0.2d,i,1d);
                 byx = signum(-1*e.getDeltaY())*(e.getX()-uiWidth()/2);
                 double fromCentre = e.getX()-uiWidth()/2;
@@ -198,8 +215,6 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
         }));
     }
 
-
-
     @Override
     public void dispose() {
         widget_io.dispose();
@@ -214,7 +229,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
 
         var tabWidth = uiWidth();
         var is = -ui.getTranslateX();
-        var shouldBe = -getTabX(componentI);
+        var shouldBe = -computeTabX(componentI);
         var isFullyVisible = shouldBe+sourceBounds.getMinX()>=is && shouldBe+sourceBounds.getMaxX()<=is+tabWidth;
         if (!isFullyVisible) alignTab(componentI);
     }
@@ -318,6 +333,14 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
                     removeTab(it);
             }));
         });
+    }
+
+    private @Nullable Integer computeTab(double rootX) {
+        return stream(spliteratorUnknownSize(container.validChildIndexes().iterator(), Spliterator.NONNULL), false)
+            .limit(1000) // just to be safe
+            .filter(it -> computeTabX(it)+ui.getTranslateX()<=rootX && rootX<=computeTabX(it+1)+ui.getTranslateX())
+            .findFirst()
+            .orElse(null);
     }
 
 /****************************  DRAG ANIMATIONS   ******************************/
@@ -451,7 +474,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
     public int alignTab(int i) {
         uiDrag.stop();
         uiDrag.setOnFinished(a -> updateEmptyTabs());
-        uiDrag.setToX(-getTabX(i));
+        uiDrag.setToX(-computeTabX(i));
         uiDrag.play();
         return i;
     }
@@ -490,11 +513,11 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
         }
 
         var is = ui.getTranslateX();
-        var should_be = -getTabX(currTab());
-        var dist = Math.abs(is-should_be);
-        var threshold1 = ui.getWidth()* snapThresholdRel.get();
+        var should_be = -computeTabX(currTab());
+        var dist = abs(is-should_be);
+        var threshold1 = ui.getWidth()*snapThresholdRel.get();
         var threshold2 = snapThresholdAbs.get();
-        var needsAlign = dist < Math.max(threshold1, threshold2);
+        var needsAlign = dist < max(threshold1, threshold2);
 
         if (needsAlign) alignTabs();
         else updateEmptyTabs();
@@ -505,7 +528,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
      * of the view space on the layout screen.
      */
     public final int currTab() {
-        return (int) Math.rint(currTabAsDouble());
+        return (int) rint(currTabAsDouble());
     }
 
     public final double currTabAsDouble() {
@@ -523,7 +546,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
     }
 
     // get current X position of the tab with the specified index
-    private double getTabX(int i) {
+    private double computeTabX(int i) {
         return i==0 ? 0 : tabWidth()*i;
     }
 
@@ -531,17 +554,16 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
     private void alignNextTab(MouseEvent e) {
         double dist = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;   // distance
         int byT = 0;                            // tabs to travel by
-        double dAbs = Math.abs(dist);
         double threshold1 = ui.getWidth()*switchDistRel.get();
         double threshold2 = switchDistAbs.get();
-        if (dAbs > Math.min(threshold1, threshold2))
-            byT = (int) -Math.signum(dist);
+        if (abs(dist) > min(threshold1, threshold2))
+            byT = (int) -signum(dist);
 
-        int currentT = (int) Math.rint(-1*ui.getTranslateX()/tabWidth());
+        int currentT = (int) rint(-1*ui.getTranslateX()/tabWidth());
         int toT = currentT + byT;
         uiDrag.stop();
         uiDrag.setOnFinished(a -> updateEmptyTabs());
-        uiDrag.setToX(-getTabX(toT));
+        uiDrag.setToX(-computeTabX(toT));
         uiDrag.play();
     }
 
@@ -694,17 +716,17 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
 
 	    @Override
 	    protected void interpolate(double at) {
-	    	node.setTranslateX(Math.rint(from + at * by));
+	    	node.setTranslateX(rint(from + at * by));
 	    }
 
 	    public void setToX(double to) {
-			this.to = Math.rint(to);
+			this.to = rint(to);
 	    }
 
 	    @Override
 	    public void play() {
 	    	from = node.getTranslateX();
-	    	by = Math.rint(to - from);
+	    	by = rint(to - from);
 		    super.play();
 	    }
     }

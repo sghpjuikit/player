@@ -62,7 +62,6 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
 
       root.layFullArea += stackPane {
          isMouseTransparent = true
-
          lay += title
       }
       root.lay(0.0, 0.0, null, null) += icons.apply {

@@ -161,7 +161,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
         root.addEventHandler(MOUSE_CLICKED, e -> {
             if (e.getButton() == PRIMARY) {
                 var ti = computeTab(e.getX());
-                if (ti!=null) {
+                if (ti!=null && tabs.get(ti)==null) {
                     addTab(ti);
                     tabs.get(ti).ui.show();
                 }

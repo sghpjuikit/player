@@ -8,7 +8,7 @@ import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
-import javafx.scene.control.OverrunStyle
+import javafx.scene.control.OverrunStyle.CENTER_ELLIPSIS
 import javafx.scene.control.TextField
 import javafx.scene.input.KeyCode.A
 import javafx.scene.input.KeyCode.BACK_SPACE
@@ -284,7 +284,7 @@ class ConfigSearch: AutoCompletion<Entry> {
       init {
          icon.isFocusTraversable = false
          text.textAlignment = TextAlignment.LEFT
-         text.textOverrun = OverrunStyle.CENTER_ELLIPSIS
+         text.textOverrun = CENTER_ELLIPSIS
          text.setMinPrefMaxSize(USE_COMPUTED_SIZE)
          root.lookupChildAt<HBox>(0).minWidth = 200.0
          root.lookupChildAt<HBox>(0).prefWidthProperty() syncFrom (root.widthProperty() - configNodeRoot.widthProperty() - 10)
@@ -332,6 +332,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                }
                StackPane.setAlignment(node, CENTER_RIGHT)
             }
+            root.requestLayout()
          }
       }
    }

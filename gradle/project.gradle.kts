@@ -131,7 +131,9 @@ allprojects {
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.0")
          implementation("com.github.oshi", "oshi-core", "6.3.2")
-         implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
+         implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0") {
+            exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
+         }
          implementation("com.ezylang", "EvalEx", "3.0.1")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
          implementation("ch.obermuhlner", "big-math", "2.3.2")

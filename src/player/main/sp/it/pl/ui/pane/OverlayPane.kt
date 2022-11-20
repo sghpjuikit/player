@@ -132,13 +132,13 @@ abstract class OverlayPane<in T>: StackPane() {
          if (nv===ov) return
          resizing?.unsubscribe()
 
-         if (ov!=null) ov.styleClass -= CONTENT_STYLECLASS
-         if (nv!=null) nv.styleClass += CONTENT_STYLECLASS
+         if (ov!=null) ov.styleClass -= STYLECLASS_CONTENT
+         if (nv!=null) nv.styleClass += STYLECLASS_CONTENT
 
          if (nv==null) {
             children.clear()
          } else {
-            children setTo listOf(nv, layStack(resizeB, Pos.BOTTOM_RIGHT))
+            children setTo listOf(bgr, nv, layStack(resizeB, Pos.BOTTOM_RIGHT))
             resizeB.parent.isManaged = false
             resizeB.parent.isPickOnBounds = false
             resizing = nv.paddingProperty() syncTo (resizeB.parent as StackPane).paddingProperty()
@@ -148,7 +148,7 @@ abstract class OverlayPane<in T>: StackPane() {
 
    init {
       isVisible = false
-      styleClass += ROOT_STYLECLASS
+      styleClass += STYLECLASS
 
       // autohide
       isShowingWithFocus attachFalse {
@@ -393,8 +393,9 @@ abstract class OverlayPane<in T>: StackPane() {
 
    companion object {
       private const val IS_SHOWN = "visible"
-      private const val ROOT_STYLECLASS = "overlay-pane"
-      private const val CONTENT_STYLECLASS = "overlay-pane-content"
+      private const val STYLECLASS = "overlay-pane"
+      private const val STYLECLASS_BGR = "overlay-pane-bgr"
+      private const val STYLECLASS_CONTENT = "overlay-pane-content"
 
       fun Window.initOverlayWindow(overlay: OverlayPane<*>): Unit = properties.put("overlayWindow", overlay).toUnit()
       fun Window.asOverlayWindow(): OverlayPane<*>? = properties["overlayWindow"].asIf()

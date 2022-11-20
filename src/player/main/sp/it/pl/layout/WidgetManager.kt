@@ -1003,14 +1003,6 @@ sealed interface ComponentLoader: (Component) -> Any {
                      }
                   }
                }
-               if (c is Widget) {
-                  val parent = this
-                  c.ui = object: ComponentUi {
-                     override val root = parent
-                     override fun show() {}
-                     override fun hide() {}
-                  }
-               }
                super.show()
             }
 

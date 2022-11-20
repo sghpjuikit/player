@@ -252,12 +252,17 @@ object FileFilters {
 }
 
 enum class FileFlatter(val flatten: (Collection<File>) -> Sequence<File>) {
-   NONE({ it.asSequence().distinct() }),
+   NONE({
+      it.asSequence().distinct()
+   }),
    DIRS({
       it.asSequence().distinct()
-         .flatMap { sequenceOf(it).filter { it.isFile } + it.walk().filter { it.isDirectory } }
+         .flatMap { it.asDirTree() }
    }),
-   TOP_LVL({ it.asSequence().distinct().flatMap { it.children() } }),
+   TOP_LVL({
+      it.asSequence().distinct()
+         .flatMap { it.children() }
+   }),
    TOP_LVL_AND_DIRS({
       it.asSequence().distinct()
          .flatMap { it.children() }
@@ -282,34 +287,39 @@ enum class FileFlatter(val flatten: (Collection<File>) -> Sequence<File>) {
          }
       }
 
-      it.asSequence().distinct().flatMap { it.walkDirsAndWithCover() }
+      it.asSequence().distinct()
+         .flatMap { it.walkDirsAndWithCover() }
    }),
    ALL_WITH_DIR({
-      it.asSequence().distinct().flatMap {
-         if (it.isDirectory) {
-            val dirs = windowsCmdDir(it, DIRECTORY)
-            val files = windowsCmdDir(it, FILE)
-            (dirs + files).asSequence()
-         } else {
-            sequenceOf(it)
+      it.asSequence().distinct()
+         .flatMap {
+            if (it.isDirectory) {
+               val dirs = windowsCmdDir(it, DIRECTORY)
+               val files = windowsCmdDir(it, FILE)
+               (dirs + files).asSequence()
+            } else {
+               sequenceOf(it)
+            }
          }
-      }
    }),
-   ALL({ it.asSequence().distinct().flatMap { it.asFileTree() } });
+   ALL({
+      it.asSequence().distinct()
+         .flatMap { it.asFileTree() }
+   });
 }
 
+private fun File.asDirTree(): Sequence<File> =
+   when {
+      !isDirectory -> sequenceOf()
+      Os.WINDOWS.isCurrent -> windowsCmdDir(this, DIRECTORY).asSequence()
+      else -> walk().filter(File::isFile)
+   }
+
 private fun File.asFileTree(): Sequence<File> =
-   when (Os.current) {
-      Os.WINDOWS -> {
-         if (isDirectory) {
-            windowsCmdDir(this, FILE).asSequence()
-         } else {
-            sequenceOf(this)
-         }
-      }
-      else -> {
-         walk().filter(File::isFile)
-      }
+   when {
+      !isDirectory -> sequenceOf()
+      Os.WINDOWS.isCurrent -> windowsCmdDir(this, FILE).asSequence()
+      else -> walk().filter(File::isFile)
    }
 
 private fun windowsCmdDir(dir: File, type: FileType): List<FastFile> {
@@ -319,7 +329,7 @@ private fun windowsCmdDir(dir: File, type: FileType): List<FastFile> {
       DIRECTORY -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /on /ad "${dir.absolutePath}" 2>nul"""
       FILE -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /on /a-d "${dir.absolutePath}" 2>nul"""
    }
-
+   println(cmd)
    return try {
       Runtime.getRuntime().execRaw(cmd)
          .inputStream.bufferedReader(Charsets.UTF_8)

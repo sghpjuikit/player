@@ -968,7 +968,9 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
       }
 
       private fun <T> Put<T>.xPutToUi(): String = name
-      private fun <T> Put<T>.xPutValueToUi(): String = "$name: ${type.toUi()}\n${APP.instanceName[value]}"
+      private fun <T> Put<T>.xPutValueToUi(): String =
+         if (this is Output<*>) "${type.toUi()} :$name\n${APP.instanceName[value]}"
+         else "$name: ${type.toUi()}\n${APP.instanceName[value]}"
 
       private fun Node.interact(doLayout: Boolean, noMouse: Boolean, noPick: Boolean) {
          isManaged = doLayout

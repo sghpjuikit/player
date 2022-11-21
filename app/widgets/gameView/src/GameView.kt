@@ -43,7 +43,6 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconTx
 import sp.it.pl.main.IconUN
-import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.isImage
@@ -106,6 +105,7 @@ import sp.it.util.file.toFast
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOr
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.math.max
 import sp.it.util.math.min
@@ -131,7 +131,6 @@ import sp.it.util.ui.anchorPane
 import sp.it.util.ui.dsl
 import sp.it.util.ui.hBox
 import sp.it.util.ui.image.FitFrom.OUTSIDE
-import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
@@ -276,7 +275,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    }
 
    private inner class Cell: GridFileThumbCell() {
-      val playPlaceholderPane by lazy {
+      val playPlaceholderPane = lazy {
          stackPane {
             styleClass += "game-cell-play-placeholder"
 
@@ -290,16 +289,20 @@ class GameView(widget: Widget): SimpleController(widget) {
          }
       }
 
-      val playPlaceholder = Subscribed.delayedFx(350.millis) {
-         val p = playPlaceholderPane
-         onLayoutChildren = { x, y, w, h ->
-            if (it) {
+      val playPlaceholder = Subscribed.delayedFx(750.millis) {
+         if (it) {
+            val p = playPlaceholderPane.value
+            p.opacity = 0.0
+            onLayoutChildren = { x, y, w, h ->
                val mh = h min p.maxHeight
                p.resizeRelocate(x + p.snappedLeftInset(), y + (h-mh-computeCellTextHeight()/2)/2, w-p.snappedLeftInset()-p.snappedRightInset(), mh)
             }
+            root.lay += p
+            anim(200.millis) { p.opacity = it*it }.play()
+         } else {
+            onLayoutChildren = { _, _, _, _ -> }
+            playPlaceholderPane.orNull().ifNotNull { root.lay -= it }
          }
-         if (it) root.lay += p
-         else root.lay -= p
       }
 
       override fun computeCellTextHeight() = cellTextHeight.value!!
@@ -318,7 +321,6 @@ class GameView(widget: Widget): SimpleController(widget) {
       override fun onAction(i: Item, edit: Boolean) = viewGame(i.value)
 
    }
-
 
    private inner class GItemRoot(val locations: List<File>): Item(null, File(""), DIRECTORY) {
       init {

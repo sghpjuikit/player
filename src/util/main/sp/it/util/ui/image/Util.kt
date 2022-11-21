@@ -59,6 +59,9 @@ fun ImageWr.withUrl(file: File?): ImageWr = apply { setField(this, "url", file?.
 @JvmOverloads
 fun ImageBf.toFX(file: File? = null): ImageWr = SwingFXUtils.toFXImage(this, null).withUrl(file)
 
+@JvmOverloads
+fun ImageBf.toFxAndFlush(file: File? = null): ImageWr = toFX(file).also { flush() }
+
 // https://github.com/javafxports/openjdk-jfx/pull/472#issuecomment-500547180
 @JvmOverloads
 fun ImageBf.toFXCustom(file: File? = null): ImageWr {
@@ -237,7 +240,7 @@ private fun loadImagePsd(imgStream: ImageInputStream?, p: Params, highQuality: B
          if (!loadFullSize && p.scaleExact)
             i = i?.toScaledDown(w, h, down = p.scaleExact, up = p.scaleExact)
 
-         i?.toFX(p.file)
+         i?.toFxAndFlush(p.file)
       }
    }
 
@@ -281,7 +284,7 @@ fun loadImageFrames(imgStream: ImageInputStream?, p: Params): List<ImageFrame>? 
                         }
 
                         if (Interrupts.isInterrupted) null
-                        else reader.read(it, irp)?.toFX(p.file)?.net { ImageFrame(delay, duration, it) }
+                        else reader.read(it, irp)?.toFxAndFlush(p.file)?.net { ImageFrame(delay, duration, it) }
                      }
                   }
                   .takeWhile { !Interrupts.isInterrupted }

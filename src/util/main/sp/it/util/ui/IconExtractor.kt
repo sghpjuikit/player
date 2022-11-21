@@ -17,7 +17,7 @@ import sp.it.util.file.writeTextTry
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runIf
 import sp.it.util.system.Os
-import sp.it.util.ui.image.toFX
+import sp.it.util.ui.image.toFxAndFlush
 
 /**
  * Extracts an icon for a file type of specific file.
@@ -46,7 +46,7 @@ object IconExtractor {
       return icons.computeIfAbsent(key) {
          null
             ?: run {
-               file.iconOfExecutable()?.toFX()
+               file.iconOfExecutable()?.toFxAndFlush()
             }
             ?: run {
                val iconFile = null
@@ -91,7 +91,7 @@ object IconExtractor {
    private fun ImageSw.toImage(): ImageFx {
       val image = ImageBf(this.iconWidth, this.iconHeight, TYPE_INT_ARGB)
       paintIcon(null, image.graphics, 0, 0)
-      return image.toFX()
+      return image.toFxAndFlush()
    }
 
 }

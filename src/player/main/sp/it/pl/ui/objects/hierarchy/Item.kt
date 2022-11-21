@@ -52,7 +52,7 @@ import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.Interrupts
 import sp.it.util.ui.image.toBuffered
-import sp.it.util.ui.image.toFX
+import sp.it.util.ui.image.toFxAndFlush
 
 /**
  * File wrapper, content of Cell with an image cover.
@@ -274,7 +274,7 @@ abstract class Item(parent: Item?, value: File, valueType: FileType): Hierarchic
                         bi?.flush()
                         JavaLegacy.destroyImage(img)
                      }
-                     ci = imgFin.toFX()
+                     ci = imgFin.toFxAndFlush()
                   }
                } else if (valType===FILE) {
                   if (value.isVideo() && str.useVideoFrameCover) {

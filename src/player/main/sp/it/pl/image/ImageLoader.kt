@@ -67,7 +67,7 @@ import sp.it.util.ui.image.Interrupts
 import sp.it.util.ui.image.Params
 import sp.it.util.ui.image.loadImagePsd
 import sp.it.util.ui.image.toBuffered
-import sp.it.util.ui.image.toFX
+import sp.it.util.ui.image.toFxAndFlush
 import sp.it.util.ui.image.withUrl
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
@@ -234,7 +234,7 @@ object ImageStandardLoader: KLogging(), ImageLoader {
             "application/pdf" -> {
                runTry {
                   loadPDF(p.file).use {
-                     PDFRenderer(it).renderImageWithDPI(0, p.size.height.toFloat()/8.27f).toFX()
+                     PDFRenderer(it).renderImageWithDPI(0, p.size.height.toFloat()/8.27f).toFxAndFlush(p.file)
                   }
                } orNull {
                   if (!Interrupts.isInterrupted) logger.error(it) { "Unable to load pdf image preview for=${p.file}" }

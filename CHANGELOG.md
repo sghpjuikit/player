@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement better `OrCE` overridable config editor UX
 - Implement better **Flow** skin UX [leverage blur effects]
 - Implement consistent settings editors layout
+- Implement better io layer output name
 - Implement load/animation stutter prevention using delay load delay
 - Implement load/animation stutter prevention using image loading throttling
 - Fix `SpitScrollBarSkin` drag animation interaction
@@ -38,11 +39,14 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `Config` constraints not applied on children sometimes
 - Fix `File.deleteRecursivelyOrThrow` not working correctly
 - Fix `HttpClient.downloadFile` timing out
+- Fix **Game View** widget not laying out placeholders sometimes
+- Fix **Game View** widget slow layout performance
 - Fix **Song Group Table** widget's selection output not being set
 - Fix **Function View** widget precision stuck to 7
 - Fix **Function View** widget slow performance
 - Fix application search being affected by spaces
 - Fix custom config initial value for cases when config is created later
+- Fix App Search layout sometimes broken
 
 ### Window - reactive header content
 Window header content shrinks if window is too small.

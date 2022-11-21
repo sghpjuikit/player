@@ -504,7 +504,8 @@ data class Parser<T>(val type: VType<T>, val args: List<ParserArg<*>>, val build
          args.map {
             when {
                it is String -> ParserArg.Val(it)
-               it is KClass<*> -> ParserArg.Arg(VType(it.createType(it.typeParameters.map { STAR })))
+               it is VType<*> -> ParserArg.Arg(it)
+               it is KClass<*> -> ParserArg.Arg(VType(it.createType(it.typeParameters.map { STAR }, false)))
                it is ParserArg<*> -> it
                else -> fail { "" } }
          },
@@ -559,11 +560,11 @@ data class Parser<T>(val type: VType<T>, val args: List<ParserArg<*>>, val build
 
 }
 
-sealed class ParserArg<T> {
-   abstract val type: VType<T>
+sealed interface ParserArg<T> {
+   val type: VType<T>
 
-   data class Arg<T>(override val type: VType<T>): ParserArg<T>()
-   data class Val(val value: String): ParserArg<String>() {
+   data class Arg<T>(override val type: VType<T>): ParserArg<T>
+   data class Val(val value: String): ParserArg<String> {
       override val type: VType<String> = type()
    }
 }

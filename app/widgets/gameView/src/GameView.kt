@@ -312,9 +312,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
       override fun computeGraphics() {
          super.computeGraphics()
-
          thumb!!.fitFrom syncFrom gridCellCoverFitFrom
-         root install appTooltipForData { thumb!!.representant }
       }
 
       override fun onAction(i: Item, edit: Boolean) = viewGame(i.value)

@@ -307,6 +307,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       override fun updateSelected(selected: Boolean) {
          super.updateSelected(selected)
          playPlaceholder.subscribe(selected)
+         gridView.value?.requestLayout() // TODO: remove fix to layout placeholder
       }
 
       override fun computeGraphics() {

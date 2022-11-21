@@ -17,7 +17,7 @@ import javafx.util.Duration
 import javax.imageio.ImageIO
 import kotlinx.coroutines.withContext
 import mu.KLogging
-import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.Loader.loadPDF
 import org.apache.pdfbox.rendering.PDFRenderer
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.tagging.read
@@ -233,7 +233,7 @@ object ImageStandardLoader: KLogging(), ImageLoader {
             }
             "application/pdf" -> {
                runTry {
-                  PDDocument.load(p.file).use {
+                  loadPDF(p.file).use {
                      PDFRenderer(it).renderImageWithDPI(0, p.size.height.toFloat()/8.27f).toFX()
                   }
                } orNull {

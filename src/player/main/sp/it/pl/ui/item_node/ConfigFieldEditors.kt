@@ -1212,7 +1212,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       editor.textProperty() attach {
          isValueRefreshing.suppressed {
             isNullEvent.suppressed {
-               if (isNull) isNull = false // cancel null mode on text change
+               isNull = false // cancel null mode on text change
                showWarnButton(getValid())
                isValueRefreshingRaw = false
                apply()
@@ -1223,23 +1223,23 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 
       // null
       fun handleNullEvent(e: KeyEvent) {
-         if (isEditable.value)
-            if (config.type.isNullable) {
-               if (isNull) {
-                  editor.text = "" // invokes text change and cancels null mode
-                  e.consume()
-               } else {
-                  if (editor.text.isEmpty()) {
-                     isNullEvent.suppressing {
-                        isNull = true
-                        editor.text = null.toUi()
-                        showWarnButton(getValid())
-                        apply()
-                        e.consume()
-                     }
+         if (isEditable.value) {
+            if (isNull) {
+               // we can get here for non-null type in special occasions, so we allow user back out of (usually initial) null value gracefully
+               editor.text = "" // invokes text change and cancels null mode
+               e.consume()
+            } else {
+               if (config.type.isNullable && editor.text.isEmpty()) {
+                  isNullEvent.suppressing {
+                     isNull = true
+                     editor.text = null.toUi()
+                     showWarnButton(getValid())
+                     apply()
+                     e.consume()
                   }
                }
             }
+         }
       }
       editor.onEventUp(KEY_PRESSED, BACK_SPACE, false, ::handleNullEvent)
       editor.onEventUp(KEY_PRESSED, DELETE, false, ::handleNullEvent)

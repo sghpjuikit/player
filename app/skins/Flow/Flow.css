@@ -25,7 +25,7 @@
     -fx-background-size: stretch;
 }
 
-/** Add focus effect */
+/* Add focus effect */
 .icon:hover {
     -fx-fill: -fx-focus-color;
 }
@@ -45,7 +45,7 @@
     -fx-effect: dropshadow(gaussian, rgba(0,100,255, 1), 25, 0.2 , 0, 0);   /* decreases performance */
 }
 
-/** Add focus glow effect */
+/* Add focus glow effect */
 .icon:hover,
 .inode:hover Text,
 .onode:hover Text,
@@ -72,7 +72,7 @@
     -fx-effect: dropshadow(gaussian, -fx-focus-color, 12,0 , 0,0);
 }
 
-/** Cooler scroll-bar */
+/* Cooler scroll-bar */
 .scroll-bar > .thumb,
 .scroll-bar:horizontal > .thumb,
 .virtual-flow > .scroll-bar > .thumb,
@@ -111,4 +111,61 @@
     -fx-background-insets: 0.825em;
     -fx-background-radius: 0em;
     -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+}
+
+/* Gradient cell effect */
+.list-cell:filled:selected,
+.tree-cell:filled:selected,
+.table-row-cell:filled:selected,
+.tree-table-row-cell:filled:selected,
+.table-row-cell:filled > .table-cell:selected,
+.tree-table-row-cell:filled > .tree-table-cell:selected {
+    -fx-background-color: transparent-ct;
+    -fx-border-insets: -1;
+    -fx-border-width:  +1;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
+}
+.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-color-darker 50%, transparent 100%);
+    -fx-border-insets: -1;
+    -fx-border-width:  +1;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
+}
+.combo-box > .list-cell,
+.combo-box:editable > .list-cell,
+.combo-box:hover > .list-cell {
+    -fx-border-color: transparent;
+}
+
+/* Gradient border effect */
+.combo-box-base:hover,
+.combo-box-base:editable:hover,
+.combo-box-base:showing:hover,
+.choice-box:hover,
+.choice-box:showing:hover,
+.text-input:hover,
+.complex-text-field:hover {
+    -fx-background-color: transparent-ct;
+    -fx-border-insets: -1;
+    -fx-border-width:  +1;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
+}
+.combo-box-base:focused,
+.combo-box-base:editable:focused,
+.combo-box-base:showing:focused,
+.choice-box:focused,
+.choice-box:showing:focused,
+.text-input:focused,
+.text-input:readonly:focused,
+.complex-text-field:focus-within,
+.complex-text-field:focused {
+    -fx-background-color: -skin-color-darker;
+    -fx-border-insets: -1;
+    -fx-border-width:  +1;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
 }

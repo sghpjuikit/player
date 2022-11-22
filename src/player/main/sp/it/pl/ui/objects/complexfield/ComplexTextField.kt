@@ -2,6 +2,7 @@ package sp.it.pl.ui.objects.complexfield
 
 import javafx.scene.control.Label
 import javafx.scene.control.TextField
+import javafx.scene.control.TextInputControl
 import javafx.scene.input.KeyCode.BACK_SPACE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
@@ -26,6 +27,7 @@ import sp.it.util.conf.Config
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.and
+import sp.it.util.functional.asIf
 import sp.it.util.math.max
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.attach
@@ -111,12 +113,6 @@ open class ComplexTextField<T>(val parser: UiStringHelper<T>): FlowPane() {
 
       // BACKSPACE removes last arg
       isFocusTraversable = true
-      val clearLast = {
-         if (hasFocus() && isEditable.value) {
-            valuePosition.setValueOf { (it - 1) max 0 }
-            requestFocus()
-         }
-      }
       onEventDown(MOUSE_CLICKED, PRIMARY) { requestFocus() }
       onEventDown(KEY_PRESSED, BACK_SPACE) { clearLast() }
       comboBox.onEventDown(KEY_PRESSED, BACK_SPACE) { clearLast() }
@@ -135,6 +131,13 @@ open class ComplexTextField<T>(val parser: UiStringHelper<T>): FlowPane() {
       valueTextRw.value = value.toS()
    }
 
+   fun clearLast() {
+      if (hasFocus() && isEditable.value) {
+         valuePosition.setValueOf { (it - 1) max 0 }
+         requestFocus()
+      }
+   }
+
    fun clearValue() {
       valuePartials.clear()
       valueTextRw.value = ""
@@ -151,7 +154,7 @@ open class ComplexTextField<T>(val parser: UiStringHelper<T>): FlowPane() {
             valuePosition.value = position + 1
          }
          is ParserArg.Arg<A> -> {
-            val name = "<${arg.toUi()}>"
+            val name = "<${arg.type.toUi()}>"
             name to {
                lay -= comboBox
                lay += ConfigEditor.create(Config.forProperty(arg.type, name, vn(initialValue))).run {
@@ -161,6 +164,15 @@ open class ComplexTextField<T>(val parser: UiStringHelper<T>): FlowPane() {
                         valuePartials setTo (valuePartials.take(position) + it.toS())
                         lay -= comboBox
                         valuePosition.value = position + 1
+                     }
+                  }
+                  // BACKSPACE removes last arg (editor may ignore BACKSPACE event so use it here)
+                  editor.onEventDown(KEY_PRESSED, BACK_SPACE, false) {
+                     val wasConsumedByEditor = it.isConsumed
+                     val shouldBeConsumedBeEditor = !editor.asIf<TextInputControl>()?.text.isNullOrEmpty()
+                     if (!wasConsumedByEditor && !shouldBeConsumedBeEditor) {
+                        this@ComplexTextField.clearLast()
+                        it.consume()
                      }
                   }
                   editor

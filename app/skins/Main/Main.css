@@ -152,7 +152,7 @@
     -fx-background-color: transparent, transparent, transparent, transparent;
     -fx-background-insets: 0 0 -1 0, 0, 1, 2;
     -fx-background-radius: 3px, 3px, 2px, 1px;
-    -fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
+    -fx-padding: 0.5em 0.666667em 0.5em 0.666667em; /* 6 8 6 8 */
     -fx-text-fill: -fx-text-base-color;
     -fx-alignment: CENTER;
     -fx-content-display: LEFT;
@@ -186,7 +186,7 @@
 .toggle-button.left-pill {
     -fx-background-radius: 3 0 0 3, 3 0 0 3, 2 0 0 2, 1 0 0 1;
     -fx-background-insets: 0 0 -1 0, 0, 1, 2;
-    -fx-padding: 0.333333em 0.666667em 0.333333em 0.75em; /* 4 8 4 9 */
+    -fx-padding: 0.5em 0.666667em 0.5em 0.75em; /* 6 8 6 9 */
 }
 .button.center-pill,
 .toggle-button.center-pill {
@@ -2511,6 +2511,7 @@ Shape, Text, SpitText, TextFlow > * {
  */
 .complex-text-field {
     -fx-padding: 0;
+    -fx-alignment: CENTER-LEFT;
     -fx-hgap: 0.16667em;
     -fx-vgap: 0.16667em;
 }
@@ -2530,7 +2531,7 @@ Shape, Text, SpitText, TextFlow > * {
  */
 .complex-text-field .complex-text-field-tag {
     -fx-content-display: right;
-    -fx-label-padding: 0 0.5em 0 0.5em;
+    -fx-label-padding: 0.2em 0.5em 0.2em 0.5em;
     -fx-border-width: 1;
     -fx-border-radius: 0.5em;
     -fx-border-color: -skin-def-font-color;
@@ -2538,6 +2539,7 @@ Shape, Text, SpitText, TextFlow > * {
 .complex-text-field .complex-text-field-tag:readonly {}
 .complex-text-field .complex-text-field-tag:hover {
     -fx-border-color: -fx-focus-color;
+    -fx-text-fill: -fx-focus-color;
 }
 
 /******************************* pc-controls ***************************************************************************

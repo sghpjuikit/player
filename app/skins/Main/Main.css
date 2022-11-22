@@ -675,7 +675,7 @@
 .choice-box:showing:hover,
 .text-input:readonly:focused,
 .text-input:hover {
-    -fx-background-color: rgba(0,0,0,0.1);
+    -fx-background-color: rgba(0,0,0,0.2);
     -fx-background-insets: 0;
     -fx-background-radius: 0;
     -fx-padding: 0.25em;
@@ -711,7 +711,7 @@
 .combo-box-base:showing:focused,
 .choice-box:focused,
 .choice-box:showing:focused {
-    -fx-padding: -0.5em 0 -0.5em 0;
+    -fx-padding: 0;
 }
 
 .combo-box > .list-cell,
@@ -768,7 +768,7 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-background-color: -skin-popup-def-bgr-color;
     -fx-background-insets: 0;
     -fx-effect: null;
-    -fx-padding: 0 0 -15 0;
+    -fx-padding: 0 0 0 0;
 }
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
     -fx-padding: 0 -0.5em 0 0.5em;
@@ -2465,7 +2465,7 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-vgap: 0.16667em;
 }
 .tag-text-field:hover {
-    -fx-background-color: rgba(0,0,0,0.1);
+    -fx-background-color: rgba(0,0,0,0.2);
 }
 .tag-text-field:has-focus {
     -fx-background-color: -skin-color-darker;
@@ -2510,14 +2510,15 @@ Shape, Text, SpitText, TextFlow > * {
  * pseudoclasses: readonly, focused
  */
 .complex-text-field {
-    -fx-padding: 0.16667em;
+    -fx-padding: 0;
     -fx-hgap: 0.16667em;
     -fx-vgap: 0.16667em;
 }
 .complex-text-field:hover {
-    -fx-background-color: rgba(0,0,0,0.1);
+    -fx-background-color: rgba(0,0,0,0.2);
 }
-.complex-text-field:focused {
+.complex-text-field:focused,
+.complex-text-field:focus-within {
     -fx-background-color: -skin-color-darker;
 }
 
@@ -3153,7 +3154,7 @@ Shape, Text, SpitText, TextFlow > * {
  */
 .form-config-pane {
     -fx-spacing: 0.25em;
-    -fx-padding: 0 2em 0 2em;
+    -fx-padding: 1 2em 1 2em; // TODO: remove vertical padding of 1 fixes weird 1px clipping
     -fx-ui: EXTENSIVE;
 }
 

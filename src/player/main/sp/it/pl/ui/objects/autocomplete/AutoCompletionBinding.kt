@@ -83,12 +83,13 @@ abstract class AutoCompletionBinding<T> {
          runVT {
             suggestionProvider(text)
          } ui { suggestions ->
-            if (!suggestions.isEmpty()) {
-               popup.value.suggestions setTo suggestions
-               showAutoCompletePopup()
-            } else {
-               hideAutoCompletePopup()
-            }
+            if (completionTarget.scene!=null)
+               if (!suggestions.isEmpty()) {
+                  popup.value.suggestions setTo suggestions
+                  showAutoCompletePopup()
+               } else {
+                  hideAutoCompletePopup()
+               }
          }
       }
    }

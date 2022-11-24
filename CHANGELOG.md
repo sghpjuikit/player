@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **CommandGrid** widget auto-close
 - Implement **Image** widget image operations (move & mirror - mouse & keys)
 - Implement krita image dimension read support
+- Implement better and optimized pdf cover support
 - Implement showing persistent component name in layout mode
 - Implement better `ContainerSwitchUi` tab loading UX
 - Implement reactive window header content
@@ -27,7 +28,10 @@ All notable changes to this project will be documented in this file. Format base
 - Implement styleable pop-window edge gap
 - Implement `TextIcon` css support
 - Implement better `OrCE` overridable config editor UX
+- Implement better `ComplexCE` hierarchical auto-completable editor UX
+- Implement mime extension unsealed enumerator [provides user with file extension autocomplete]
 - Implement better **Flow** skin UX [leverage blur effects]
+- Implement better **Flow** skin styling [leverage gradient borders]
 - Implement consistent settings editors layout
 - Implement better io layer output name
 - Implement load/animation stutter prevention using delay load delay
@@ -47,6 +51,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix application search being affected by spaces
 - Fix custom config initial value for cases when config is created later
 - Fix App Search layout sometimes broken
+- Fix various styling & layout issues
 
 ### Window - reactive header content
 Window header content shrinks if window is too small.

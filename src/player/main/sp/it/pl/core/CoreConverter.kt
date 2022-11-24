@@ -99,6 +99,8 @@ import sp.it.util.functional.Functors
 import sp.it.util.functional.Option
 import sp.it.util.functional.PF
 import sp.it.util.functional.Try
+import sp.it.util.functional.Try.Error
+import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.Util
 import sp.it.util.functional.asIs
 import sp.it.util.functional.compose
@@ -220,8 +222,8 @@ object CoreConverter: Core {
          is Optional<*> -> o.toOption().toUi()
          is Option.Some<*> -> "Some(${o.value.toUi()})"
          is Option.None -> "None"
-         is Try.Ok<*> -> "Ok(${o.value.toUi()})"
-         is Try.Error<*> -> "Error(${o.value.toUi()})"
+         is Ok<*> -> "Ok(${o.value.toUi()})"
+         is Error<*> -> "Error(${o.value.toUi()})"
          else -> when {
             o::class.isEnum -> enumToHuman(o as Enum<*>)
             o::class.isObject -> enumToHuman(o::class.simpleName)
@@ -513,12 +515,12 @@ data class Parser<T>(val type: VType<T>, val args: List<ParserArg<*>>, val build
       )
    }
 
-   override fun parse(text: String): Try<T, String> = parseWithErrorPositions(text).mapError { it.second }
+   override fun parse(text: String): Try<T, String> = parseWithErrorPositions(text).toTry()
 
-   fun parseWithErrorPositions(text: String): Try<T, Pair<Int, String>> {
+   fun parseWithErrorPositions(text: String): ParsePart<T> {
       var charAt = 0
       val delimiter = " "
-      val output = mutableListOf<Any?>()
+      val valueParts = mutableListOf<Any?>()
       var error: String? = null
       val errorAt = args.asSequence()
          .mapIndexed { i, arg ->
@@ -539,13 +541,13 @@ data class Parser<T>(val type: VType<T>, val args: List<ParserArg<*>>, val build
                   is ParserArg.Val -> when {
                      text.startsWith(arg.value, charAt) -> {
                         charAt += arg.value.length
-                        output += arg.value
+                        valueParts += arg.value
                      }
                      else -> error = "Does not contain '${arg.value}' at $charAt'"
                   }
                   is ParserArg.Arg<*> -> {
                      val valueAsText = if (isLast) text.substring(charAt) else text.substring(charAt).substringBefore(delimiter)
-                     CoreConverter.general.ofS(arg.type, valueAsText).ifOk { output += it }.ifError { error = it }
+                     CoreConverter.general.ofS(arg.type, valueAsText).ifOk { valueParts += it }.ifError { error = it }
                      charAt += valueAsText.length
                   }
                }
@@ -555,9 +557,17 @@ data class Parser<T>(val type: VType<T>, val args: List<ParserArg<*>>, val build
          .takeWhile { error==null }
          .count()
 
-      return error?.net { Try.error(errorAt to it) } ?: Try.ok(builder(output))
+      return error?.net { ParsePartError(errorAt, it) } ?: ParsePartOk(errorAt, builder(valueParts), valueParts)
    }
 
+   sealed interface ParsePart<T> {
+      fun toTry(): Try<T, String> = when (this) {
+         is ParsePartOk -> Ok(value)
+         is ParsePartError -> Error(message)
+      }
+   }
+   data class ParsePartOk<T>(val at: Int, val value: T, val valueParts: List<Any?>): ParsePart<T>
+   data class ParsePartError<T>(val at: Int, val message: String): ParsePart<T>
 }
 
 sealed interface ParserArg<T> {

@@ -34,7 +34,6 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.control.Slider
 import javafx.scene.control.TextArea
-import javafx.scene.control.TextField
 import javafx.scene.control.ToggleButton
 import javafx.scene.effect.Effect
 import javafx.scene.input.KeyCode
@@ -288,55 +287,24 @@ class ComplexCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    private val v = getObservableValue(c)
    private val isObservable = v!=null
    private val parser = c.findConstraint<UiStringHelper<T>>()!!
-   val editorPrimary = ComplexTextField(parser)
-   val editorSecondary = TextField()
-   override val editor = vBox {
-      lay += editorSecondary
-      lay(ALWAYS) += editorPrimary
-   }
    private val valueChanging = Suppressor()
-   private val valueTextChangingApp = Suppressor()
-   private val valueTextChangingUser = Suppressor()
-   private var valueFromPrimary = true
+   override val editor = ComplexTextField(parser)
 
    init {
-      editorSecondary.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
-
-      // value
-      editorSecondary.apply {
-         editorPrimary.valueText sync {
-            valueTextChangingUser.suppressed {
-               valueTextChangingApp.suppressing {
-                  valueFromPrimary = true
-                  text = it
-               }
-            }
-         }
-         textProperty() attach {
-            valueTextChangingApp.suppressed {
-               valueTextChangingUser.suppressing {
-                  valueFromPrimary = false
-                  editorPrimary.clearValue()
-                  apply()
-               }
-            }
-         }
-      }
-      editorPrimary.updateValue(c.value)
-      editorPrimary.onValueChange attach { valueTextChangingUser.suppressed { valueChanging.suppressing { apply() } } } on disposer
-      v?.attach { valueChanging.suppressed { editorPrimary.updateValue(it) } }.orEmpty() on disposer
+      editor.updateValue(c.value)
+      editor.onValueChange attach { valueChanging.suppressing { apply() } } on disposer
+      v?.attach { valueChanging.suppressed { editor.updateValue(it) } }.orEmpty() on disposer
 
       // readonly
-      isEditable syncTo editorPrimary.isEditable on disposer
-      isEditable syncTo editorSecondary.editable on disposer
+      isEditable syncTo editor.isEditable on disposer
    }
 
-   override fun get() = if (valueFromPrimary) editorPrimary.computeValue() else parser.parse.parse(editorSecondary.text)
+   override fun get() = editor.computeValue()
 
    override fun refreshValue() {
       if (!isObservable)
          valueChanging.suppressed {
-            editorPrimary.updateValue(config.value)
+            editor.updateValue(config.value)
          }
    }
 }
@@ -1229,7 +1197,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
                editor.text = "" // invokes text change and cancels null mode
                e.consume()
             } else {
-               if (config.type.isNullable && editor.text.isEmpty()) {
+               if (isNullable && editor.text.isEmpty()) {
                   isNullEvent.suppressing {
                      isNull = true
                      editor.text = null.toUi()
@@ -1409,7 +1377,6 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
       editor.styleClass += "value-text-field"
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.styleClass += "shortcut-config-editor"
-      editor.isEditable = false
       editor.focusedProperty() attach { refreshValue() } on disposer
       editor.onEventDown(KEY_RELEASED) { e ->
          if (isEditable.value) {
@@ -1454,6 +1421,7 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
 
       // readonly
       isEditable syncTo globB.editable on disposer
+      isEditable syncTo editor.editable on disposer
    }
 
    private fun applyShortcut(newKeys: String) {

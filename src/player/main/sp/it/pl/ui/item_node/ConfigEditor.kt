@@ -205,6 +205,10 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
                                  items {
                                     CoreMenus.menuItemBuilders[value]
                                  }
+                                 if (this@ConfigEditor is ComplexCE<*>) {
+                                    item("Copy as text", keys = "CTRL + C") { editor.copyValueAsText() }
+                                    item("Paste as text", keys = "CTRL + V") { editor.pasteValueAsText() }.apply { if (!editor.pasteValueAsTextPossible()) isDisable = true }
+                                 }
                               }
                            }.apply {
                               configMenuVisible.value = true

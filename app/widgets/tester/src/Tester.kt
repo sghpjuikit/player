@@ -77,6 +77,7 @@ import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.main.Double01
+import sp.it.pl.main.FileFilter
 import sp.it.pl.main.FileFilters
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
@@ -315,10 +316,10 @@ class Tester(widget: Widget): SimpleController(widget) {
          val `cvn(LocalDateTime)` by cvn<LocalDateTime>(null)
          val `cv(Effect)` by cv<Effect>(Blend())
          val `cvn(Effect)` by cvn<Effect>(null)
-         val `cv(Command) with value builder` by cvn<Command>(DoNothing).but(Command.parser.toUiStringHelper())
+         val `cv(Command) with value builder` by cv<Command>(DoNothing).but(Command.parser.toUiStringHelper())
          val `cvn(Command) with value builder` by cvn<Command>(null).but(Command.parser.toUiStringHelper())
-         val `cv(FileFilter) with value builder` by cv(FileFilters.filterPrimary).but(FileFilters.parser.toUiStringHelper())
-         val `cvn(FileFilter) with value builder` by cvn(null).but(FileFilters.parser.toUiStringHelper())
+         val `cv(FileFilter) with value builder` by cv<FileFilter>(FileFilters.filterPrimary).but(FileFilters.parser.toUiStringHelper())
+         val `cvn(FileFilter) with value builder` by cvn<FileFilter>(null).but(FileFilters.parser.toUiStringHelper())
          val `cList(Int)` by cList<Int>(1, 2, 3)
          val `cList(Int?)` by cList<Int?>(1, 2, null)
          val `cCheckList(Boolean)` by cCheckList(CheckList.nonNull(type<Boolean>(), listOf("a", "b", "c"), listOf(true, false, false)))

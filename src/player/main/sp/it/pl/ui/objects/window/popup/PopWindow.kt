@@ -74,7 +74,6 @@ import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.minPrefMaxWidth
-import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.scene
 import sp.it.util.ui.screenXy
 import sp.it.util.ui.setScaleXYByTo

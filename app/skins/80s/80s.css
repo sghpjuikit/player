@@ -8,7 +8,7 @@
 
 * {
     -skin-def-font-color: red;
-    -fx-focus-color: rgb(255,10,111);
+    -fx-focus-color: rgb(255,100,161);
     -fx-faint-focus-color: pink;
     -skin-bgr-color: rgba(21,11,31,1);
     -skin-pane-color: rgba(55,0,255,0.1);
@@ -16,10 +16,7 @@
 }
 
 /** Add shadow effect */
-.list-cell,
-.table-cell,
-Shape, Text, TextFlow > *,
-.label,
+Shape,
 .arrow {
     -fx-effect: dropshadow(one-pass-box , rgba(0, 0, 210, 1), 0,0 , -2,-4);
 }
@@ -28,4 +25,46 @@ Shape, Text, TextFlow > *,
 .markdown-code-background,
 .color-picker-label {
     -fx-effect: none;
+}
+
+/** Add shadow effect - text needs less pronounced */
+.list-cell,
+.table-cell,
+TextFlow > *,
+Text,
+.label {
+    -fx-effect: dropshadow(one-pass-box , rgba(0, 0, 210, 1), 2,1 , -0,-2);
+}
+
+/* Gradient cell effect */
+.list-cell:filled:selected,
+.tree-cell:filled:selected,
+.table-row-cell:filled:selected,
+.tree-table-row-cell:filled:selected,
+.table-row-cell:filled > .table-cell:selected,
+.tree-table-row-cell:filled > .tree-table-cell:selected {
+    -fx-background-color: transparent;
+    -fx-background-insets:  0;
+    -fx-border-insets: -1;
+    -fx-border-width:  +1;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
+}
+.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,0,255,0.2) 50%, transparent 100%),
+                          linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(255,0,0,0.2) 50%, transparent 100%);
+    -fx-background-insets:  0  0  0  0,
+                           -5 -5 +5 +5;
+    -fx-border-insets: -1;
+    -fx-border-width:  +1;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
+}
+.combo-box > .list-cell,
+.combo-box:editable > .list-cell,
+.combo-box:hover > .list-cell {
+    -fx-border-color: transparent;
 }

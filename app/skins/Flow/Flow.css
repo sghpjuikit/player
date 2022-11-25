@@ -9,26 +9,25 @@
 * {
     -skin-bgr-color: rgb(0, 0, 35);
     -skin-popup-def-bgr-color: rgba(0,0,15,0.4);
+    -skin-pane-color: rgba(0,0,20,0.3);
     -skin-def-icon-border-color: rgba(130,180,240, 0.2);
 }
 
-/* Add background. */
-.window,
-.window:transparent-allowed,
-.window:transparent-ct,
-.window:transparent {
-    -fx-background-color: rgba(35,35,55,0.4);
+.window {
+    -fx-background-color: rgba(25,25,45,0.8);
 }
-.window .bgr-image {
-    -fx-opacity: 0.2;
-    -fx-background-image: url("bgr.png");
-    -fx-background-size: stretch;
+.window-slide, .window-dock, .tooltip {
+    -fx-background-color: rgba(12, 12, 30, 0.8);
+}
+.pop-window {
+    -fx-background-color: rgba(12, 12, 30, 0.64);
 }
 
 /* Add focus effect */
 .icon:hover {
     -fx-fill: -fx-focus-color;
 }
+.accordion .titled-pane:focused > .title > .arrow-button .arrow,
 .accordion .titled-pane:focused > .title > .arrow-button .arrow,
 .accordion .titled-pane:expanded > .title > .arrow-button .arrow,
 .accordion .titled-pane:expanded:focused > .title > .arrow-button .arrow {
@@ -120,7 +119,7 @@
 .tree-table-row-cell:filled:selected,
 .table-row-cell:filled > .table-cell:selected,
 .tree-table-row-cell:filled > .tree-table-cell:selected {
-    -fx-background-color: transparent-ct;
+    -fx-background-color: transparent-nct;
     -fx-border-insets: -1;
     -fx-border-width:  +1;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
@@ -150,7 +149,7 @@
 .choice-box:showing:hover,
 .text-input:hover,
 .complex-text-field:hover {
-    -fx-background-color: transparent-ct;
+    -fx-background-color: transparent-nct;
     -fx-border-insets: -1;
     -fx-border-width:  +1;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);

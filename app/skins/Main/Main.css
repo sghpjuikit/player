@@ -10,19 +10,18 @@
     -skin-def-font-color: rgb(160, 160, 180);
     -skin-def-font-color-hover: #ffcc66;
     -skin-sel-font-color: rgb(175, 175, 176);
-    /* Transparent color that is not click-through */
-    -skin-transparent-ct: rgba(0,0,0,0.005);
     -fx-text-base-color: -skin-def-font-color;
     -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
     -skin-color-darker: rgba(0,0,0,0.2);
     -skin-color-lighter: rgba(180,200,255,0.08);
-    /* Default color for panels such as header or widget area or other areas. */
-    -skin-pane-color: rgba(100,130,180,0.1);
-    /* Darker version of pane color. By default used for :dragged pseudoclass */
-    -skin-pane-color-dragged: rgba(10,15,25,0.8);
-    /* Default bgr color for tooltips and popups. */
-    -skin-popup-def-bgr-color: rgba(15,25,45,0.95);
+    -skin-pane-color: rgba(100,130,180,0.1); /* Default color for panels such as header or widget area or other areas. */
+    -skin-pane-color-dragged: rgba(10,15,25,0.8); /* Darker version of pane color. By default used for :dragged pseudoclass */
+    -skin-popup-def-bgr-color: rgba(15,25,45,0.95); /* Default bgr color for tooltips and popups. */
     -skin-value-font-color: rgb(75, 175, 105);
+
+    transparent-nct: rgba(0,0,0,0.005); /* Same as `transparent`, is not click-through */
+
+    -fx-disabled-opacity: 0.4;
     -fx-focus-color: #ffcc66;
     -fx-faint-focus-color: #ffcc66;
     -fx-focused-mark-color: transparent;
@@ -266,7 +265,7 @@
 .tree-table-row-cell:selected:disabled,
 .table-cell:selected:disabled,
 .tree-table-cell:selected:disabled {
-    -fx-opacity: 0.4;
+    -fx-opacity: -fx-disabled-opacity;
 }
 /* ====   MNEMONIC THINGS   ================================================= */
 
@@ -426,7 +425,7 @@
 .slider:focused .thumb,
 .slider:focused .thumb:hover,
 .slider:focused .thumb:pressed {
-    -fx-background-color: -skin-transparent-ct;
+    -fx-background-color: transparent-nct;
 }
 .slider .track {
     -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(255,255,255,0.3) 100%);
@@ -818,7 +817,8 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-background-color: -skin-popup-def-bgr-color;
     -fx-background-radius: 0;
     -fx-background-insets: 0;
-    -fx-border-width: 0;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, derive(-skin-def-font-color, -50%) 50%, transparent 100%);
+    -fx-border-width: 1;
     -fx-padding: 0.5em;
 }
 
@@ -1877,7 +1877,7 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 .icon:disabled {
-    -fx-opacity: 0.4; /* imitate disabled style, should be consistent with it */
+    -fx-opacity: -fx-disabled-opacity;
 }
 
 /**
@@ -1913,7 +1913,7 @@ Shape, Text, SpitText, TextFlow > * {
     opacity: 1;
 }
 .check-icon-disabling:selected {
-    -fx-opacity: 0.4; /* imitate disabled style, should be consistent with it */
+    -fx-opacity: -fx-disabled-opacity;
 }
 
 /**
@@ -1966,8 +1966,8 @@ Shape, Text, SpitText, TextFlow > * {
  *  resized: the window is being resized
  *  moved: the window is being moved
  *  fullscreen: the window is in fullscreen mode
- *  transparent-allowed: the window stage.style==TRANSPARENT, meaning it supports transparency
- *  transparent: the window has forcefully disabled certain decorations to show transparency effects, requires transparent-allowed to work
+ *  transparent: the window has forcefully disabled certain decorations to show transparency effects
+ *  transparent-ct: same as transparent, but window is click-through
  */
 .window {
     -fx-background-color: -skin-bgr-color;
@@ -1975,7 +1975,7 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-border-radius: 0em;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, derive(-skin-def-font-color, -50%) 50%, transparent 100%);
 }
-.window:focused {
+.window:focus-within {
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
 }
 .window:hover {}
@@ -1990,28 +1990,19 @@ Shape, Text, SpitText, TextFlow > * {
 .window-dock {}
 
 /* window transparency */
-.window:transparent-allowed {
-    -fx-background-color: -skin-transparent-ct;
-}
-.window:transparent-allowed .widget-ui,
-.window-slide:transparent-allowed,
-.window-dock:transparent-allowed {
-     -fx-background-color: -skin-popup-def-bgr-color;
-}
-
 .window:transparent-ct {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-border-width: 1;
 }
 .window:focused:transparent-ct {
-    -fx-background-color: -skin-transparent-ct;
-    -fx-border-color: -skin-transparent-ct;
+    -fx-background-color: transparent-nct;
+    -fx-border-color: transparent-nct;
     -fx-border-width: 1;
 }
 .window:transparent {
-    -fx-background-color: -skin-transparent-ct;
-    -fx-border-color: -skin-transparent-ct;
+    -fx-background-color: transparent-nct;
+    -fx-border-color: transparent-nct;
     -fx-border-width: 1;
 }
 .window:transparent    .widget-ui,
@@ -2028,7 +2019,7 @@ Shape, Text, SpitText, TextFlow > * {
 }
 .window:transparent    > #header,
 .window:transparent-ct > #header {
-    -fx-background-color: -skin-transparent-ct; // clickable always
+    -fx-background-color: transparent-nct; // clickable always
 }
 .window:transparent    .bgr-image,
 .window:transparent-ct .bgr-image {
@@ -2094,7 +2085,6 @@ Shape, Text, SpitText, TextFlow > * {
  *
  * inherits: StackPane
  * attributes: -fx-window-padding - gap from edge considered during positioning of this popup in some positions
- * pseudoclasses: pop-window-focused - focus follows focus of the parent window
  */
 .pop-window {
     -fx-background-color: -skin-popup-def-bgr-color;
@@ -2105,7 +2095,7 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-window-padding: 0;
 }
 
-.pop-window:window-focused {
+.pop-window:focus-within {
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
 }
 
@@ -3071,7 +3061,7 @@ Shape, Text, SpitText, TextFlow > * {
 .override-config-editor  {
     -fx-hgap: 0.5em;
     -fx-vgap: 0.5em;
-    -fx-alignment: LEFT_CENTER;
+    -fx-alignment: CENTER_LEFT;
     -fx-rowValignment: CENTER;
 }
 .override-config-editor > * > .override-config-editor-override-editor {

@@ -81,9 +81,15 @@
 }
 
 /* Window radius */
-.window:transparent-allowed, .popup, .pop-window, .context-menu,
-.window:transparent-allowed > #front > #frontContent,
-.window:transparent-allowed > #front {
+.popup,
+.pop-window,
+.context-menu,
+.window:transparent,
+.window:transparent-ct,
+.window:transparent    > #front > #frontContent,
+.window:transparent-ct > #front > #frontContent,
+.window:transparent    > #front,
+.window:transparent-ct > #front {
     -fx-background-radius: 0.6em;
     -fx-border-radius: 0.6em;
 }

@@ -1,6 +1,6 @@
 
 .tag-field:readonly {
-    -fx-opacity: 0.4;
+    -fx-opacity: -fx-disabled-opacity;
 }
 
 .tag-field:committable {

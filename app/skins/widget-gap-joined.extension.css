@@ -8,7 +8,8 @@
 .window .header {
     -fx-background-color: rgba(0,0,0,0.01);
 }
-.window:transparent-allowed .header {
+.window:transparent    .header,
+.window:transparent-ct .header {
      -fx-background-color: -skin-popup-def-bgr-color;
 }
 .window:transparent .header {

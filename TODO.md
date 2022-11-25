@@ -1,5 +1,4 @@
 ## Currently considered
-- Remove transparent-allowed pseudoclass & simplify transparency styling
 - Make all window types including standalone widgets consistently styled [prototype using inverse mask]
 - Experiment with StartScreen that keeps content loaded between hide/show
 - Document all used libraries, how they are used, why, where not to use them, etc.

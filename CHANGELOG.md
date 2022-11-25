@@ -30,8 +30,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement better `OrCE` overridable config editor UX
 - Implement better `ComplexCE` hierarchical auto-completable editor UX
 - Implement mime extension unsealed enumerator [provides user with file extension autocomplete]
-- Implement better **Flow** skin UX [leverage blur effects]
-- Implement better **Flow** skin styling [leverage gradient borders]
+- Implement better styling [leverage blur effects]
 - Implement consistent settings editors layout
 - Implement better io layer output name
 - Implement load/animation stutter prevention using delay load delay
@@ -76,6 +75,12 @@ Opening windows is usually expensive operation.
 This update brings delayed content loading for sliding windows to allow the animation to run smoothly.
 Loading images during loading sliding window or StartScreen overlay is temporarily paused, for the same benefit.
 In the future, these optimizations may be provided more implicitly for any content that loads widgets.
+
+## Styling simplifications
+- For disabled opacity, use `-fx-disabled-opacity` value instead of direct value.
+- Window pseudoclasses `focused`, `window-focused`, `pop-window-focused` have been substituted with `focus-within`.
+- Window pseudoclass `transparent-allowed` has been removed. Simply use `transparent` or `transparent-ct`
+- SKins can now use `transparent-nct` color which is transparent, but not click-through color, as opposed to `transparent`, which is click-thgohu
 
 ## [7.5.0] 2022 11 04
 

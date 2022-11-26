@@ -52,6 +52,7 @@ sealed class FileField<T>: ObjectFieldBase<File, T> {
    object TIME_ACCESSED: FileField<FileTime?>("Time Accessed", "Time Accessed", type(), { if (it is CachingFile) it.timeAccessed else it.readTimeAccessed() })
    object TIME_MODIFIED: FileField<LocalDateTime?>("Time Modified", "Time Modified", type(), { if (it is CachingFile) it.timeModified else it.readTimeModified() })
    object TIME_CREATED: FileField<FileTime?>("Time Created", "Time Created", type(), { if (it is CachingFile) it.timeCreated else it.readTimeCreated() })
+   object TIME_CREATED_SMART: FileField<FileTime?>("Time Created (smart)", "Time Created (includes metadata inspection)", type(), { if (it is CachingFile) it.timeCreatedSmart else it.readTimeCreatedSmart() })
    object TYPE: FileField<FileType>("Type", "Type", type(), { FileType(it) })
    object MIME: FileField<MimeType>("Mime Type", "Mime Type", type(), { it.mimeType() })
    object MIME_GROUP: FileField<String>("Mime Group", "Mime Group", type(), { it.mimeType().group })
@@ -75,7 +76,10 @@ class CachingFile(f: File): File(f.path) {
    /** Time this file was created or null if unable to find out. Lazy. Blocks on first invocation. */
    val timeCreated: FileTime? by lazy { readTimeCreated() }
 
-   /** The minimum of [timeCreated] and [timeModified] or null if unable to find out. Lazy. Blocks on first invocation. */
+   /** Time this file was created (reads metadata as well) or null if unable to find out. Lazy. Blocks on first invocation. */
+   val timeCreatedSmart: FileTime? by lazy { readTimeCreatedSmart() }
+
+   /** The minimum of [timeCreatedSmart] and [timeModified] or null if unable to find out. Lazy. Blocks on first invocation. */
    val timeMinOfCreatedModified: FileTime? by lazy { readTimeMinOfCreatedAndModified() }
 
    /** The size of the file. Lazy. Blocks on first invocation. */
@@ -104,7 +108,10 @@ private fun File.readTimeAccessed(): FileTime? = readBasicFileAttributes()?.last
 private fun File.readTimeModified(): LocalDateTime? = lastModified().localDateTimeFromMillis()
 
 @Blocks
-private fun File.readTimeCreated(): FileTime? {
+private fun File.readTimeCreated(): FileTime? = readBasicFileAttributes()?.creationTime()
+
+@Blocks
+private fun File.readTimeCreatedSmart(): FileTime? {
    val m = this.mimeType()
    return when {
       m == `application∕x-krita` -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()

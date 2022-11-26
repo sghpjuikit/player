@@ -51,6 +51,10 @@ All notable changes to this project will be documented in this file. Format base
 - Fix custom config initial value for cases when config is created later
 - Fix App Search layout sometimes broken
 - Fix various styling & layout issues
+- Fix slow file table/grid performance
+  - Use more `cmd dir`
+  - Use more attribute value caching
+  - Use image metadata for file creation time only if user specifically requests [improves standard sort by creation time considerably]
 
 ### Window - reactive header content
 Window header content shrinks if window is too small.

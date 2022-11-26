@@ -80,12 +80,18 @@ class CachingFile(f: File): File(f.path) {
 
    /** The size of the file. Lazy. Blocks on first invocation. */
    val fileSize: FileSize by lazy { readFileSize() }
-   private val isDirectory = super.isDirectory()
-   override fun isDirectory() = isDirectory
-   private val isFile = if (isDirectory) false else super.isFile()
-   override fun isFile() = isFile
-   private val isHidden = super.isHidden()
-   override fun isHidden() = isHidden
+   private val isD = super.isDirectory()
+   override fun isDirectory() = isD
+   private val isF = if (isD) false else super.isFile()
+   override fun isFile() = isF
+   private val isH: Boolean by lazy { super.isHidden() }
+   override fun isHidden() = isH
+   private val isR: Boolean by lazy { super.canRead() }
+   override fun canRead() = isR
+   private val isW: Boolean by lazy { super.canWrite() }
+   override fun canWrite() = isW
+   private val isE: Boolean by lazy { super.canExecute() }
+   override fun canExecute() = isE
 }
 
 @Blocks

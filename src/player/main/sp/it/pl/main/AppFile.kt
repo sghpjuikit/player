@@ -261,7 +261,7 @@ enum class FileFlatter(val flatten: (Collection<File>) -> Sequence<File>) {
    }),
    TOP_LVL({
       it.asSequence().distinct()
-         .flatMap { it.children() }
+         .flatMap { it.asChildren() }
    }),
    TOP_LVL_AND_DIRS({
       it.asSequence().distinct()
@@ -322,18 +322,27 @@ private fun File.asFileTree(): Sequence<File> =
       else -> walk().filter(File::isFile)
    }
 
-private fun windowsCmdDir(dir: File, type: FileType): List<FastFile> {
+private fun File.asChildren(): Sequence<File> =
+   when {
+      !isDirectory -> sequenceOf()
+      Os.WINDOWS.isCurrent -> (windowsCmdDir(this, DIRECTORY, false) + windowsCmdDir(this, FILE, false)).asSequence()
+      else -> children()
+   }
+
+private fun windowsCmdDir(dir: File, type: FileType, recursive: Boolean = true): List<FastFile> {
    val isFile = type==FILE
    val isDir = type==DIRECTORY
+   val path = if (recursive) "" else dir.absolutePath
+   val rec = if (recursive) "/s" else ""
    val cmd = when (type) {
-      DIRECTORY -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /on /ad "${dir.absolutePath}" 2>nul"""
-      FILE -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /on /a-d "${dir.absolutePath}" 2>nul"""
+      DIRECTORY -> """cmd.exe /c chcp 65001 > nul & cmd /c dir $rec /b /on /ad "${dir.absolutePath}" 2>nul"""
+      FILE -> """cmd.exe /c chcp 65001 > nul & cmd /c dir $rec /b /on /a-d "${dir.absolutePath}" 2>nul"""
    }
    println(cmd)
    return try {
       Runtime.getRuntime().execRaw(cmd)
          .inputStream.bufferedReader(Charsets.UTF_8)
-         .useLines { it.map { FastFile(it, isDir, isFile) }.toList() }
+         .useLines { it.map { FastFile(path + File.separator + it, isDir, isFile) }.toList() }
    } catch (e: Throwable) {
       logger.error(e) { "Failed to read ${type.name.plural()} in $dir using command $cmd" }
       listOf()

@@ -50,11 +50,12 @@ All notable changes to this project will be documented in this file. Format base
 - Fix application search being affected by spaces
 - Fix custom config initial value for cases when config is created later
 - Fix App Search layout sometimes broken
-- Fix various styling & layout issues
+- Fix song notifications not updating when playback changes
 - Fix slow file table/grid performance
   - Use more `cmd dir`
   - Use more attribute value caching
   - Use image metadata for file creation time only if user specifically requests [improves standard sort by creation time considerably]
+- Fix various styling & layout issues
 
 ### Window - reactive header content
 Window header content shrinks if window is too small.
@@ -84,7 +85,7 @@ In the future, these optimizations may be provided more implicitly for any conte
 - For disabled opacity, use `-fx-disabled-opacity` value instead of direct value.
 - Window pseudoclasses `focused`, `window-focused`, `pop-window-focused` have been substituted with `focus-within`.
 - Window pseudoclass `transparent-allowed` has been removed. Simply use `transparent` or `transparent-ct`
-- SKins can now use `transparent-nct` color which is transparent, but not click-through color, as opposed to `transparent`, which is click-thgohu
+- SKins can now use `transparent-nct` color which is transparent, but not click-through color, as opposed to `transparent`, which is click-through
 
 ## [7.5.0] 2022 11 04
 

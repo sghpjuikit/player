@@ -6,7 +6,6 @@
 - `Placeholder` should distinguish file `MOVE` and file `COPY` in description?
 - Fix `ObsListConfig.setDefaultValue` not removing disabled items
 - Fix `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
-- Fix manual widget loading not rebinding widget inputs properly
 - Fix`Configuration.propertiesRaw` are not synced with configs, should be?
 - Improve **Tagger** widget
   - tagging non audio file with audio extension causes exception and corrupted application state
@@ -84,6 +83,10 @@
   Challenging. See [issue](/TODO-ISSUES.md#io-ui)
 
 ## Bugs
+- Popup unable to receive focus sometimes  
+  Might be fixed by [jfx#946](https://github.com/openjdk/jfx/pull/940)
+- Application search shortening result label width unnecessarily
+- Recompiling or manual widget loading does not rebind inputs properly
 
 ## External bugs
 - [ ] [jaudiotagger-65](https://bitbucket.org/ijabz/jaudiotagger/issues/65/add-support-for-ogg-opus-format) opus ogg support

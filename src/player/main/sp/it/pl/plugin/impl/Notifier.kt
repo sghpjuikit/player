@@ -55,10 +55,12 @@ import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemSyncWhile
+import sp.it.util.reactive.sync
 import sp.it.util.type.VType
 import sp.it.util.type.raw
 import sp.it.util.type.type
@@ -79,6 +81,7 @@ class Notifier: PluginBase() {
    private val ns = mutableSetOf<Notification>()
    private lateinit var songNotificationUi: Node
    private lateinit var songNotificationInfo: SongReader
+   private var songNotificationSubscription: Subscription? = null
    private var songPlaybackNotificationUi: StackPane? = null
    private val songRateNotificationUi by lazy { Rating() }
 
@@ -225,19 +228,28 @@ class Notifier: PluginBase() {
 
    private fun songChange(song: Metadata) {
       if (!song.isEmpty()) {
-         val title = "Now playing \t${song.getPlaylistIndexInfo()}"
-         songNotificationInfo.read(song)
+         fun Metadata.computeSongChangeTitle() = "Now playing \t${getPlaylistIndexInfo()}"
 
-         showNotification(title, songNotificationUi)
+         // keep updating song
+         songNotificationSubscription?.unsubscribe()
+         songNotificationSubscription = APP.audio.playingSong.updated sync { songNotificationInfo.read(it) }
+
+         val n = showNotification(song.computeSongChangeTitle(), songNotificationUi)
+
+         // keep updating title
+         val s = APP.audio.playingSong.updated attach { n.title.value = "Now playing \t${it.computeSongChangeTitle()}" }
+         n.onHidden += { s.unsubscribe() }
+         n.onHidden += { songNotificationSubscription?.unsubscribe() }
       }
    }
 
    private fun playbackChange(status: Status) {
       if (status==PAUSED || status==PLAYING || status==STOPPED) {
          val title = "Playback change : $status"
+         val disposer = Disposer()
          val i = (songPlaybackNotificationUi ?: StackPane()).apply {
             lay += SongInfo(false).apply {
-               read(APP.audio.playingSong.value)
+               APP.audio.playingSong.updated sync { read(it) } on disposer
             }
          }
          songPlaybackNotificationUi = i

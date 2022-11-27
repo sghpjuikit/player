@@ -15,22 +15,14 @@ import sp.it.util.ui.image.ImageLoadParamOfData
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.toFX
 
-interface Cover {
+sealed interface Cover {
 
    /** @return if [getImage] is guaranteed to return null */
    fun isEmpty(): Boolean
 
    /** @return the cover image in the request size (not guaranteed) or null if none */
    @Blocks
-   fun getImage(width: Double, height: Double, fit: FitFrom): Image?
-
-   /** @return the cover image in the request size (not guaranteed) or null if none */
-   @Blocks
-   fun getImage(size: ImageSize, fit: FitFrom): Image? = getImage(size.width, size.height, fit)
-
-   /** @return the cover image or null if none */
-   @Blocks
-   fun getImage(): Image?
+   fun getImage(size: ImageSize, fit: FitFrom): Image?
 
    /** @return file denoting the image or null if none */
    fun getFile(): File?
@@ -50,21 +42,17 @@ interface Cover {
 
 /** Empty cover. */
 object EmptyCover: Cover {
-   override fun getImage() = null
    override fun getFile() = null
    override fun isEmpty(): Boolean = true
-   override fun getImage(width: Double, height: Double, fit: FitFrom) = null
    override fun getImage(size: ImageSize, fit: FitFrom) = null
 }
 
 /** Cover represented by a [java.io.File]. */
 data class FileCover(private val file: File?, private val description: String? = null): Cover {
-   override fun getImage() = ImageStandardLoader(file)
-   override fun getImage(width: Double, height: Double, fit: FitFrom) = ImageStandardLoader(file, ImageSize(width, height), fit)
+   override fun getImage(size: ImageSize, fit: FitFrom) = ImageStandardLoader(file, size, fit)
    override fun getFile() = file
    override fun isEmpty() = file==null
 }
-
 
 /** Cover represented by a [javafx.scene.image.Image] or [java.awt.image.BufferedImage]. */
 class ImageCover: Cover {
@@ -85,9 +73,7 @@ class ImageCover: Cover {
       this.description = description
    }
 
-   override fun getImage(): Image? = if (imageB==null) imageI else imageB.toFX(null)
-
-   override fun getImage(width: Double, height: Double, fit: FitFrom): Image? = getImage()
+   override fun getImage(size: ImageSize, fit: FitFrom): Image? = if (imageB==null) imageI else imageB.toFX(null)
 
    override fun getFile(): Nothing? = null
 
@@ -137,9 +123,7 @@ class ArtworkCover: Cover {
       this.description = description
    }
 
-   override fun getImage(): Image? = artwork?.imageOrNull(ImageLoadParamOfData(ImageSize(0,0), FitFrom.OUTSIDE))?.orNull()
-
-   override fun getImage(width: Double, height: Double, fit: FitFrom): Image? = artwork?.imageOrNull(ImageLoadParamOfData(ImageSize(width, height), fit))?.orNull()
+   override fun getImage(size: ImageSize, fit: FitFrom): Image? = artwork?.imageOrNull(ImageLoadParamOfData(size, fit))?.orNull()
 
    override fun getFile(): Nothing? = null
 

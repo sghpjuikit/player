@@ -188,7 +188,7 @@ object ImageStandardLoader: KLogging(), ImageLoader {
 
       return when (p.mime.group) {
          audio -> {
-            if (p.file.isAudio()) SimpleSong(p.file).read().getCover(CoverSource.ANY).getImage()
+            if (p.file.isAudio()) SimpleSong(p.file).read().getCover(CoverSource.ANY).getImage(p.size, p.fit)
             else null
          }
          video -> {

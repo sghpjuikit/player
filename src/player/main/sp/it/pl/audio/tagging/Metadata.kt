@@ -650,7 +650,7 @@ class Metadata: Song, Serializable {
       }
    }
 
-   private fun readCoverFromTag(): Try<ArtworkCover?, Throwable> = readArtworkFromTag().map { ArtworkCover(it, it?.info)}
+   private fun readCoverFromTag(): Try<ArtworkCover?, Throwable> = readArtworkFromTag().map { if (it==null) null else ArtworkCover(it, it.info) }
 
    private fun readArtworkFromTag(): Try<Artwork?, Throwable> = ok(getFile())
       .andAlso { it?.readAudioFile() ?: ok() }

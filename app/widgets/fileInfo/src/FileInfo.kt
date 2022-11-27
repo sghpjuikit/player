@@ -205,9 +205,9 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    private fun setCover(source: CoverSource) {
       val id = data
       runVT {
-         id.getCover(source).getImage()
+         id.getCover(source)
       } ui {
-         if (id===data) cover.loadImage(it)
+         if (id===data) cover.loadCover(it)
       }
    }
 

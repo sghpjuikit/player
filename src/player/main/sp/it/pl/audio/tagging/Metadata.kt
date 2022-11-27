@@ -34,11 +34,11 @@ import sp.it.pl.audio.tagging.Metadata.Companion.EMPTY
 import sp.it.pl.audio.tagging.Metadata.Field
 import sp.it.pl.main.APP
 import sp.it.pl.main.isImage
+import sp.it.pl.ui.objects.image.ArtworkCover
 import sp.it.pl.ui.objects.image.Cover
 import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.pl.ui.objects.image.EmptyCover
 import sp.it.pl.ui.objects.image.FileCover
-import sp.it.pl.ui.objects.image.ImageCover
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.dev.Blocks
@@ -650,8 +650,7 @@ class Metadata: Song, Serializable {
       }
    }
 
-   private fun readCoverFromTag(): Try<ImageCover?, Throwable> = readArtworkFromTag()
-      .map { it?.let { ImageCover(it.imageOrNull, it.info) } }
+   private fun readCoverFromTag(): Try<ArtworkCover?, Throwable> = readArtworkFromTag().map { ArtworkCover(it, it?.info)}
 
    private fun readArtworkFromTag(): Try<Artwork?, Throwable> = ok(getFile())
       .andAlso { it?.readAudioFile() ?: ok() }
@@ -912,7 +911,7 @@ class Metadata: Song, Serializable {
       object DISCS_INFO: Field<NofX>(type(), { it.getDiscInfo() }, { o, or -> o?.toString() ?: or }, "Discs info", "Complete disc number in format: disc/disc total")
       object GENRE: Field<String?>(type(), { it.genre }, { o, or -> o ?: or }, "Genre", "Genre of the song")
       object YEAR: Field<Year?>(type(), { it.getYear() }, { o, or -> o?.toString() ?: or }, "Year", "Year the album was published")
-      object COVER: Field<ImageCover?>(type(), { it.readCoverFromTag().orNull() }, { o, or -> o?.toString() ?: or }, "Cover", "Cover of the song")
+      object COVER: Field<ArtworkCover?>(type(), { it.readCoverFromTag().orNull() }, { o, or -> o?.toString() ?: or }, "Cover", "Cover of the song")
       object RATING: Field<Double?>(type(), { it.getRatingPercent() }, { o, or -> o?.let { "%.2f".format(APP.locale.value, it) } ?: or }, "Rating", "Song rating in 0-1 range")
       object RATING_RAW: Field<Int?>(type(), { it.getRating() }, { o, or -> o?.toString() ?: or }, "Rating (raw)", "Actual song rating value in tag. Maximal value depends on tag type")
       object RATING_RAW_MAX: Field<Int>(type(), { it.getRatingMax() }, { o, or -> o?.toString() ?: or }, "Rating max (raw)", "Maximal song rating value supported by current tag type")

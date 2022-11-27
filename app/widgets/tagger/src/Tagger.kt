@@ -105,8 +105,6 @@ import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.objects.textfield.MoodItemNode
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.image.Cover
-import sp.it.pl.ui.objects.image.ImageCover
 import sp.it.pl.ui.objects.image.ThumbnailWithAdd
 import sp.it.pl.ui.objects.spinner.Spinner
 import sp.it.pl.ui.objects.window.NodeShow.LEFT_CENTER
@@ -181,6 +179,7 @@ import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.complexfield.StringTagTextField
 import sp.it.pl.ui.objects.complexfield.TagTextField
+import sp.it.pl.ui.objects.image.ArtworkCover
 import sp.it.util.access.focused
 import sp.it.util.dev.failCase
 import sp.it.util.functional.orNull
@@ -253,7 +252,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
    var readingAddMode = false
    val validators = mutableListOf<Validation>()
 
-   val coverField = object: TagField<ImageCover?, File?>(COVER, false) {
+   val coverField = object: TagField<ArtworkCover?, File?>(COVER, false) {
       val coverContainer: StackPane = scrollContent.lookupId("coverContainer")
       val coverDescriptionL: Label = scrollContent.lookupId("coverDescriptionL")
       val coverLoadingId = AtomicLong(0)
@@ -296,10 +295,15 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       override fun complete() {
          val s = state
          outputValue = null
-         coverV.loadCover(s.asIf<ReadState.Same<Cover>>()?.value)
+         coverV.loadCover(
+            when (s) {
+               is ReadState.Same -> s.value
+               else -> null
+            }
+         )
          coverDescriptionL.text = when (s) {
             is ReadState.None -> ""
-            is ReadState.Same<ImageCover?> -> s.value?.description ?: ""
+            is ReadState.Same -> s.value?.description ?: ""
             is ReadState.Multi -> AppTexts.textManyVal
             is ReadState.Init -> fail()
          }

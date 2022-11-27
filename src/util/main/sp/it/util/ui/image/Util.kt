@@ -109,12 +109,12 @@ private fun ImageBf.toScaledDown(W: Int, H: Int, down: Boolean, up: Boolean): Im
 }
 
 /** Returns true if the image has at least 1 embedded thumbnail of any size.  */
-private fun imgImplHasThumbnail(reader: ImageReader, index: Int, f: File): Boolean {
+private fun imgImplHasThumbnail(reader: ImageReader, index: Int, f: File?): Boolean {
    return try {
       reader.readerSupportsThumbnails() && reader.hasThumbnails(index) // throws exception -> no thumb
    } catch (e: Exception) {
       // Catching IOException should be enough, but TwelveMonkeys library can screw up rarely
-      logger.warn(e) { "Can't find image thumbnails $f" }
+      logger.warn(e) { "Can't find image thumbnails for file=$f" }
       false
    }
 }
@@ -152,7 +152,10 @@ object Interrupts {
    }
 }
 
-data class Params(val file: File, val size: ImageSize, val fit: FitFrom, val mime: MimeType, val scaleExact: Boolean = false)
+
+sealed interface ImageLoadParam { val file: File?; val size: ImageSize; val fit: FitFrom; val scaleExact: Boolean }
+data class ImageLoadParamOfData(override val size: ImageSize, override val fit: FitFrom, override val scaleExact: Boolean = false): ImageLoadParam { override val file: Nothing? = null }
+data class Params(override val file: File, override val size: ImageSize, override val fit: FitFrom, val mime: MimeType, override val scaleExact: Boolean = false): ImageLoadParam
 
 private fun ImageInputStream.reader(): ImageReader? = ImageIO.getImageReaders(this).asSequence().firstOrNull()?.apply { input = this@reader; abortOnInterrupt() }
 
@@ -174,12 +177,12 @@ private fun ImageReader.abortOnInterrupt() {
    )
 }
 
-fun loadImagePsd(inS: InputStream, p: Params, highQuality: Boolean) = loadImagePsd(runTry { ImageIO.createImageInputStream(inS.buffered()) }.orNull(), p, highQuality)
+fun loadImagePsd(inS: InputStream, p: ImageLoadParam, highQuality: Boolean) = loadImagePsd(runTry { ImageIO.createImageInputStream(inS.buffered()) }.orNull(), p, highQuality)
 
 fun loadImagePsd(p: Params, highQuality: Boolean) = loadImagePsd(runTry { ImageIO.createImageInputStream(FileInputStream(p.file).buffered()) }.orNull(), p, highQuality)
 
 @Suppress("UNUSED_PARAMETER")
-private fun loadImagePsd(imgStream: ImageInputStream?, p: Params, highQuality: Boolean): ImageFx? =
+private fun loadImagePsd(imgStream: ImageInputStream?, p: ImageLoadParam, highQuality: Boolean): ImageFx? =
    imgStream?.use { stream ->
       stream.reader()?.use { reader ->
          var w = 0 max p.size.width.toInt()

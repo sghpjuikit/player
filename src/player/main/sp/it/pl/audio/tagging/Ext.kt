@@ -1,8 +1,9 @@
 package sp.it.pl.audio.tagging
 
-import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
+import javafx.scene.image.Image
 import mu.KotlinLogging
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.audio.AudioFileIO
@@ -16,7 +17,10 @@ import org.jaudiotagger.tag.id3.AbstractID3Tag
 import org.jaudiotagger.tag.images.Artwork
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
 import sp.it.util.functional.Try
+import sp.it.util.functional.runTry
 import sp.it.util.math.clip
+import sp.it.util.ui.image.ImageLoadParamOfData
+import sp.it.util.ui.image.loadImagePsd
 
 private val logger = KotlinLogging.logger {}
 
@@ -61,16 +65,9 @@ fun File.readAudioFile(): Try<AudioFile, Throwable> {
 fun AudioFile.toMetadata() = Metadata(this)
 
 /** @return cover image or null if none or error */
-val Artwork.imageOrNull: BufferedImage?
-   get() = try {
-      // jaudiotagger bug, Artwork.getImage() can throw NullPointerException sometimes
-      // at java.io.ByteArrayInputStream.<init>(ByteArrayInputStream.java:106) ~[na:na]
-      // at org.jaudiotagger.tag.images.StandardArtwork.getImage(StandardArtwork.java:95) ~[jaudiotagger-2.2.6-SNAPSHOT.jar:na]
-      image as? BufferedImage?
-   } catch (e: NullPointerException) {
-      null
-   }
-
+fun Artwork.imageOrNull(p: ImageLoadParamOfData): Try<Image?, Throwable> = runTry {
+   loadImagePsd(ByteArrayInputStream(binaryData ?: return@runTry null), p, false)
+}
 /** @return cover information */
 val Artwork.info: String
    get() = if (width<=0 || height <=0) "$description $mimeType" else "$description $mimeType ${width}x$height"

@@ -4,9 +4,14 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.util.Objects
 import javafx.scene.image.Image
+import org.jaudiotagger.tag.images.Artwork
+import sp.it.pl.audio.tagging.imageOrNull
+import sp.it.pl.audio.tagging.info
 import sp.it.pl.image.ImageStandardLoader
 import sp.it.util.dev.Blocks
+import sp.it.util.functional.orNull
 import sp.it.util.ui.image.FitFrom
+import sp.it.util.ui.image.ImageLoadParamOfData
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.toFX
 
@@ -120,4 +125,37 @@ class ImageCover: Cover {
          }
       }
    }
+}
+
+class ArtworkCover: Cover {
+   private val artwork: Artwork?
+   /** Human-readable information about the cover or null if none. No guarantees about the format. */
+   val description: String?
+
+   constructor(image: Artwork?, description: String?) {
+      this.artwork = image
+      this.description = description
+   }
+
+   override fun getImage(): Image? = artwork?.imageOrNull(ImageLoadParamOfData(ImageSize(0,0), FitFrom.OUTSIDE))?.orNull()
+
+   override fun getImage(width: Double, height: Double, fit: FitFrom): Image? = artwork?.imageOrNull(ImageLoadParamOfData(ImageSize(width, height), fit))?.orNull()
+
+   override fun getFile(): Nothing? = null
+
+   override fun isEmpty() = artwork==null
+
+   override fun equals(other: Any?): Boolean {
+      if (other===this) return true
+      if (other !is ArtworkCover) return false
+      if (other.artwork===artwork) return true
+      return artwork?.width==other.artwork?.width && artwork?.height==other.artwork?.height && artwork?.info==other.artwork?.info && artwork?.binaryData.contentEquals(other.artwork?.binaryData)
+   }
+
+   override fun hashCode(): Int {
+      var hash = 3
+      hash = 37*hash + Objects.hashCode(this.artwork)
+      return hash
+   }
+
 }

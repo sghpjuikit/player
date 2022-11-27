@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `SpitScrollBarSkin` drag animation interaction
 - Fix popup window interaction not working after widget loads in popup
 - Fix `Open widget` action interfering with overlay animation
+- Fix **Tagger** widget slow reading when song tag contains image 
 - Fix `Configurable` hierarchy computation [affected settings hierarchy]
 - Fix `Config` constraints not applied on children sometimes
 - Fix `File.deleteRecursivelyOrThrow` not working correctly

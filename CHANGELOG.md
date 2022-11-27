@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+## [7.6.0] 2022 11 27
+
 - Update dependencies
 - Implement preferred song order settings
 - Implement `AppSearch` history to remember searched text instead of picked suggestion
@@ -58,6 +60,11 @@ All notable changes to this project will be documented in this file. Format base
   - Use more attribute value caching
   - Use image metadata for file creation time only if user specifically requests [improves standard sort by creation time considerably]
 - Fix various styling & layout issues
+
+This update brings tons of improvements and fixes, all in just the span of mere 3 weeks.
+Window options have been improved, with better transparency and blur effect support.
+Styling and UX has been improved all around.
+There is also lots of performance improvements done.
 
 ### Window - reactive header content
 Window header content shrinks if window is too small.

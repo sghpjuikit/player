@@ -120,8 +120,8 @@
 .table-row-cell:filled > .table-cell:selected,
 .tree-table-row-cell:filled > .tree-table-cell:selected {
     -fx-background-color: transparent-nct;
-    -fx-border-insets: -1;
-    -fx-border-width:  +1;
+    -fx-border-insets: 0 -1 0 -1;
+    -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
 }
 .list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
@@ -131,8 +131,8 @@
 .table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
 .tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
     -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-color-darker 50%, transparent 100%);
-    -fx-border-insets: -1;
-    -fx-border-width:  +1;
+    -fx-border-insets: 0 -1 0 -1;
+    -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
 }
 .combo-box > .list-cell,
@@ -150,8 +150,8 @@
 .text-input:hover,
 .complex-text-field:hover {
     -fx-background-color: transparent-nct;
-    -fx-border-insets: -1;
-    -fx-border-width:  +1;
+    -fx-border-insets: 0 -1 0 -1;
+    -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
 }
 .combo-box-base:focused,
@@ -164,7 +164,7 @@
 .complex-text-field:focus-within,
 .complex-text-field:focused {
     -fx-background-color: -skin-color-darker;
-    -fx-border-insets: -1;
-    -fx-border-width:  +1;
+    -fx-border-insets: 0 -1 0 -1;
+    -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
 }

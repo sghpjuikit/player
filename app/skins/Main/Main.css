@@ -1144,10 +1144,22 @@ Shape, Text, SpitText, TextFlow > * {
 
 .split-pane {
     -fx-skin: "sp.it.pl.ui.objects.SpitSplitPaneSkin";
+    -fx-padding: 0;
 }
+.tab-pane.floating > * > .table-view,
+ .tab-pane.floating > * > .tree-table-view,
+ .tab-pane.floating > * > .list-view,
+ .tab-pane.floating > * > .tree-view,
+ .tab-pane.floating > * > .scroll-pane,
+ .tab-pane.floating > * > .split-pane,
+ .tab-pane.floating > * > .text-area,
+ .tab-pane.floating > * > .html-editor {
+     -fx-background-insets: 0, 0;
+     -fx-padding: 0;
+ }
 .split-pane:horizontal > .split-pane-divider {
    -fx-border-color: transparent;
-   -fx-background-color: transparent;
+   -fx-backgrounsd-color: transparent;
    -fx-padding: 0;
 }
 .split-pane:vertical > .split-pane-divider {
@@ -1508,7 +1520,7 @@ Shape, Text, SpitText, TextFlow > * {
 .tab-pane.floating > * > .text-area,
 .tab-pane.floating > * > .html-editor {
     -fx-background-insets: 0;
-    -fx-padding: -1;
+    -fx-padding: 0;
 }
 .split-pane > * > .accordion > .titled-pane > *.content {
     -fx-border-color: null;
@@ -3146,7 +3158,7 @@ Shape, Text, SpitText, TextFlow > * {
  */
 .form-config-pane {
     -fx-spacing: 0.25em;
-    -fx-padding: 1 2em 1 2em; // TODO: remove vertical padding of 1 fixes weird 1px clipping
+    -fx-padding: 0 2em 0 2em; // TODO: remove vertical padding of 1 fixes weird 1px clipping
     -fx-ui: EXTENSIVE;
 }
 

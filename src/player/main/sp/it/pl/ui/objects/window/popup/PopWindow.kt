@@ -337,7 +337,6 @@ open class PopWindow {
                   } on tillHidden
                }
 
-               focusedProperty() sync { root.pseudoClassChanged("window-focused", it) } on tillHidden
                initHideWithOwner()
                initZOrder()
                initHideOnEscapeWhenNoFocus()

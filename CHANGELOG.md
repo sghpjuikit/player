@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Fix popup showing up in taskbar/switcher sometimes
+
 ## [7.6.0] 2022 11 27
 
 - Update dependencies

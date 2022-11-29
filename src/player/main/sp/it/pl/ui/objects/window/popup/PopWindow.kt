@@ -87,7 +87,7 @@ open class PopWindow {
    private var window: WindowFx? = null
    private val stage by lazy {
       stage(TRANSPARENT) {
-         initOwner(APP.windowManager.createStageOwnerNoShow().apply { properties["throwaway"] = true })
+         initOwner(APP.windowManager.createStageOwnerNoShow().apply { properties["throwaway"] = true; show() })
          initPopWindow(this@PopWindow)
          titleProperty() syncFrom this@PopWindow.title
          resizableProperty() syncFrom userResizable

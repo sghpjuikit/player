@@ -22,7 +22,6 @@ import sp.it.pl.main.Actions
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Ui.ICON_CLOSE
-import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.toggle
@@ -33,15 +32,20 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.zip
 import sp.it.util.ui.centre
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.pseudoClassChanged
+import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.toP
+import sp.it.util.ui.x
+import sp.it.util.ui.x2
 
 class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
    val title = Label()
@@ -49,8 +53,9 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
    val absB: Icon
    val lockB: Icon
 
-   private val anim: Anim
-   private val hiderWeak: Subscribed
+   private var lmActivateArea = 20.x2
+   private val lmAnim: Anim
+   private val lmHiderWeak: Subscribed
    var isShowing = false
       private set
    var isShowingWeak = false
@@ -70,7 +75,9 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
          prefRows = 1
          prefColumns = 10
 
-         val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }
+         val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }.apply {
+            root.insetsProperty() zip layoutBoundsProperty() attach { (p, l) -> lmActivateArea = (p.right x p.top) + l.size }
+         }
          menuB = headerIcon(IconFA.CARET_DOWN, "Widget menu") { i ->
             ContextMenu().dsl { items { CoreMenus.menuItemBuilders[area.widget] } }.show(i, Side.BOTTOM, 0.0, 0.0)
          }
@@ -82,7 +89,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
 
       // build animations
       val blur = BoxBlur(0.0, 0.0, 1)
-      anim = anim(APP.ui.layoutModeDuration) {
+      lmAnim = anim(APP.ui.layoutModeDuration) {
          root.opacity = it
          root.isVisible = it!=0.0
          root.isMouseTransparent = it!=1.0
@@ -103,7 +110,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
       val showS = { e: MouseEvent ->
          if (!e.isPrimaryButtonDown && !e.isSecondaryButtonDown && !e.isMiddleButtonDown)
             if (!isShowingWeak && !area.widget.lockedUnder.value && !isShowing) {
-               val isIn = p.width - activatorW.emScaled<e.x && activatorH.emScaled>e.y
+               val isIn = p.width - lmActivateArea.x<e.x && lmActivateArea.y>e.y
                if (inside!=isIn) {
                   inside = isIn
                   if (isIn) showWeak()
@@ -114,7 +121,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
       p.onEventUp(MOUSE_ENTERED) { showS(it) }
       p.onEventUp(MOUSE_EXITED) { inside = false }
 
-      hiderWeak = Subscribed {
+      lmHiderWeak = Subscribed {
          val eh = { _: Any? -> tryHide() }
          Subscription(
             p.onEventUp(MOUSE_EXITED, eh),
@@ -171,17 +178,17 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
 
    private fun showWeak() {
       isShowingWeak = true
-      hiderWeak.subscribe(true)
-      anim.playOpen()
+      lmHiderWeak.subscribe(true)
+      lmAnim.playOpen()
       if (!APP.ui.layoutModeBroad.value) APP.actionStream(Actions.LAYOUT_MODE)
 
       updateAbsB()
    }
 
    private fun hideWeak() {
-      hiderWeak.subscribe(false)
+      lmHiderWeak.subscribe(false)
       isShowingWeak = false
-      anim.playClose()
+      lmAnim.playClose()
    }
 
    private fun tryHideAfterSettings() {
@@ -213,8 +220,6 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
    }
 
    companion object {
-      private const val activatorW = 20.0
-      private const val activatorH = 20.0
       private const val absIconText = ("Absolute size\n\n"
          + "Prevents widget from resizing proportionally to parent container's "
          + "size. Instead, the widget will keep the same size, if possible.")

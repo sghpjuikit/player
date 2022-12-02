@@ -338,7 +338,6 @@ private fun windowsCmdDir(dir: File, type: FileType, recursive: Boolean = true):
       DIRECTORY -> """cmd.exe /c chcp 65001 > nul & cmd /c dir $rec /b /on /ad "${dir.absolutePath}" 2>nul"""
       FILE -> """cmd.exe /c chcp 65001 > nul & cmd /c dir $rec /b /on /a-d "${dir.absolutePath}" 2>nul"""
    }
-   println(cmd)
    return try {
       Runtime.getRuntime().execRaw(cmd)
          .inputStream.bufferedReader(Charsets.UTF_8)

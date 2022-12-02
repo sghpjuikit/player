@@ -9,15 +9,15 @@
 * {
     -skin-bgr-color: rgb(0, 0, 35);
     -skin-popup-def-bgr-color: rgba(0,0,15,0.4);
-    -skin-pane-color: rgba(0,0,20,0.3);
+    -skin-pane-color: rgba(12, 12, 30, 0.6);
     -skin-def-icon-border-color: rgba(130,180,240, 0.2);
 }
 
 .window {
-    -fx-background-color: rgba(25,25,45,0.8);
+    -fx-background-color: rgba(12, 12, 30, 0.2);
 }
 .window-slide, .window-dock, .tooltip {
-    -fx-background-color: rgba(12, 12, 30, 0.8);
+    -fx-background-color: rgba(12, 12, 30, 0.64);
 }
 .pop-window {
     -fx-background-color: rgba(12, 12, 30, 0.64);
@@ -110,6 +110,17 @@
     -fx-background-insets: 0.825em;
     -fx-background-radius: 0em;
     -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+}
+
+/* Gradient cell effect - hover*/
+.list-row-cell:filled:hover,
+.table-row-cell:filled:hover,
+.tree-cell:filled:hover,
+.tree-table-row-cell:filled:hover {
+    -fx-background-color: transparent-nct;
+    -fx-border-insets: 0 -1 0 -1;
+    -fx-border-width: 1;
+    -fx-border-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
 }
 
 /* Gradient cell effect */

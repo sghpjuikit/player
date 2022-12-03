@@ -31,7 +31,7 @@ Preferably use an editor with css syntax highlighting Consult:
 - [Modena.css](https://gist.github.com/maxd/63691840fc372f22f470) to determine what values to override,
 - [Main](Main) to determine what values to override,
 
-### Application skin
+#### Application skin
 
 - Skin must be a `.css` file (it may import/extend other skins).
 - Located in [skins](.) directory and its own subdirectory with the same name.
@@ -42,11 +42,12 @@ Preferably use an editor with css syntax highlighting Consult:
 - The skin can refer to external files (like images). It is recommended to put all required files into the same
   directory as skin's css file
 
-### Widget skin
+#### Widget skin
 
-Some parts of the application or external widgets and the like can use their own skins. Those must be located in the
-widget or module's respective directory. If the skin is named `skin.css` it is automatically picked up. Otherwise,
-developer of those modules must manually specify/load those css files in code or .
+Widgets support providing their own styling.
+Place`skin.css` in the widget root directory for it to be automatically monitored and applied.
+Otherwise, developer must load the stylesheet on his own in the widget's code:
+`root.stylesheets += (location/"skin.css").toURI().toASCIIString()`
 
 #### Extending
 
@@ -76,24 +77,32 @@ Therefore: In order for programmatic values to be applied over skin values, all 
 
 #### Reloading
 
-Skin changes are automatically detected with file monitoring, and the skin is reapplied immediately. The changes in
-imported skins however require application restart.
+Skin changes are automatically detected upon file modification, and the skin is reapplied immediately.
+If the changes do not get reapplied (happens rarely), restart the application.
 
 #### Tips
 
-- use global variables defined within `.root {}` instead of redefining the colors throughout the skin. Example of this
-  practice can be found in Modena.css, and the default skin of this application.
-- document everything with comments
+- Use global variables defined within `.root {}` instead of redefining the color or number value throughout the skin.
+  Example of this practice can be found in main app skin `Main.css` as well as main JavaFX skin `Modena.css`.
+  If the global variable can not be overridden by the extending stylesheet (can happen due to rule application order),
+  move the rule declaration using the variable down in the file. 
+- Document everything with comments
 
 #### Performance
 
-- skins can easily degrade application performance. Particularly effect such shadow or blur when overused (on text for
-  example). Use them wisely. The performance impact is often subtle, but it adds up.
-- Test performance by comparing your skin against the Default skin.
+Skins can easily degrade application performance. The performance impact is often subtle, but it adds up. Use them wisely. 
+Particularly:
+- Effect such shadow or blur when overused (on all application especially)
+- Window image backgrounds
+Some application settings can also affect performance, such as
+- Big windows (4k or higher resolution)
+- Transparent windows
+- Window glass effect has considerable negative effect on performance, and it requires transparent windows as well
+- Test performance by comparing your skin against the Default skin, which is optimized for speed.
 
 ### CSS Basics
 
-### Styleclass
+#### Styleclass
 
 An 'id' for all elements of certain type. Example: .button, .button-arrow
 
@@ -102,14 +111,14 @@ button, and it doesn't have its own unique styleclass (like 'button-label'), but
 the button
 
 The styleclass is specified in .fxml file or java code, native JavaFX controls have respective default styleclasses (
-e.g. Label has `label`, TreeView has `tree-view` etc). Developers can make their own styleclasses.
+e.g. Label has `label`, TreeView has `tree-view`, etc.). Developers can make their own styleclasses.
 
-### Pseudoclass
+#### Pseudoclass
 
 A state of the element. For example hover, focus, etc. Developer can define custom pseudoclasses for example
 .playlist-item:unplayable
 
-### Syntax
+#### Syntax
 
 ```css
 .button {

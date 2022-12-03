@@ -13,10 +13,13 @@ import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppTexts
+import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.util.access.readOnly
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.reactive.attach1IfNonNull
@@ -45,22 +48,20 @@ class GeneralPlayer(state: PlayerState) {
 
       i = song
       p?.disposePlayback()
-      p = p ?: computePlayer()
+      val player = p ?: computePlayer().apply { p = this }
+      val onUnableToPlay = { _: PlaylistSong -> runFX { PlaylistManager.use { it.playNextItem() } } }
 
       _pInfo.value = when (p) {
-         null -> "<none>"
+         null -> textNoVal
          is VlcPlayer -> "VlcPlayer"
          is JavaFxPlayer -> "JavaFX"
-         else -> "Unknown"
       }
 
-      val onUnableToPlay = { _: PlaylistSong -> runFX { PlaylistManager.use { it.playNextItem() } } }
-      val player = p
       if (player==null) {
          logger.info { "Player=null can not play song=$song{}" }
          onUnableToPlay(song)
       } else {
-         runIO {
+         runVT {
             if (song.isCorrupt()) {
                onUnableToPlay(song)
             } else {
@@ -99,7 +100,8 @@ class GeneralPlayer(state: PlayerState) {
       }
    }
 
-   private fun computePlayer(): Play = VlcPlayer()
+   @Suppress("RedundantNullableReturnType")
+   private fun computePlayer(): Play? = VlcPlayer()
 
    fun resume() {
       p.ifNotNull {
@@ -168,7 +170,7 @@ class GeneralPlayer(state: PlayerState) {
 
    companion object: KLogging()
 
-   interface Play {
+   sealed interface Play {
 
       val canDoSongRepeat: Boolean
 

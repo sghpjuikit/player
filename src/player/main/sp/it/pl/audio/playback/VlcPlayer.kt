@@ -99,47 +99,49 @@ class VlcPlayer: GeneralPlayer.Play {
    }
 
    override fun createPlayback(song: Song, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit) {
-      val pf = playerFactory ?: try {
-         MediaPlayerFactory(
-            discoverVlc(APP.audio.playerVlcLocations),
-            "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access"
-         )
-      } catch (e: Throwable) {
-         null
-      }
-      playerFactory = pf
-
-      if (pf==null || APP.audio.playerVlcLocation.value==null) {
-         logger.info { "Playback creation failed: Vlc not available" }
-         onFail(true)
-         VlcSetup.askForDownload()
-         return
-      }
-
-      val p = pf.mediaPlayers().newMediaPlayer()
-      player = p
-
-      state.volume zip state.volumeFadeMultiplier sync { (v, vm) -> p.audio().setVolume((100*v.toDouble() * vm.toDouble()).roundToInt()) } on d
-      state.mute sync { p.audio().isMute = it } on d
-      state.rate sync { p.controls().setRate(it.toFloat()) } on d
-      state.loopMode sync { p.controls().repeat = it==SONG } on d
-
-      p.media().prepare(song.uriAsVlcPath())
-
-      val playbackListener = createPlaybackListener(state)
-      p.events().addMediaPlayerEventListener(PlaybackLogger)
-      p.events().addMediaPlayerEventListener(playbackListener)
-      d += { p.events().removeMediaPlayerEventListener(playbackListener) }
-      d += { p.events().removeMediaPlayerEventListener(PlaybackLogger) }
-
-      if (APP.audio.startTime!=null) {
-         when (state.status.value) {
-            PLAYING -> play()
-            else -> Unit
+         val pf = playerFactory ?: try {
+            MediaPlayerFactory(
+               discoverVlc(APP.audio.playerVlcLocations),
+               "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access"
+            ).apply {
+               playerFactory = this
+            }
+         } catch (e: Throwable) {
+            null
          }
-      }
 
-      onOK()
+         if (pf==null || APP.audio.playerVlcLocation.value==null) {
+            logger.info { "Playback creation failed: Vlc not available" }
+            onFail(true)
+            VlcSetup.askForDownload()
+            return
+         }
+
+         val p = pf.mediaPlayers().newMediaPlayer().apply {
+            player = this
+         }
+
+         state.volume zip state.volumeFadeMultiplier sync { (v, vm) -> p.audio().setVolume((100*v.toDouble()*vm.toDouble()).roundToInt()) } on d
+         state.mute sync { p.audio().isMute = it } on d
+         state.rate sync { p.controls().setRate(it.toFloat()) } on d
+         state.loopMode sync { p.controls().repeat = it==SONG } on d
+
+         p.media().prepare(song.uriAsVlcPath())
+
+         val playbackListener = createPlaybackListener(state)
+         p.events().addMediaPlayerEventListener(PlaybackLogger)
+         p.events().addMediaPlayerEventListener(playbackListener)
+         d += { p.events().removeMediaPlayerEventListener(playbackListener) }
+         d += { p.events().removeMediaPlayerEventListener(PlaybackLogger) }
+
+         if (APP.audio.startTime!=null) {
+            when (state.status.value) {
+               PLAYING -> play()
+               else -> Unit
+            }
+         }
+
+         onOK()
    }
 
    private object PlaybackLogger: MediaPlayerEventListener {
@@ -201,8 +203,8 @@ class VlcPlayer: GeneralPlayer.Play {
 
       override fun stopped(mediaPlayer: MediaPlayer) {
          runFX {
-            if (!APP.audio.isSuspended)
-               state.status.value = STOPPED
+         if (!APP.audio.isSuspended)
+            state.status.value = STOPPED
          }
       }
 
@@ -308,9 +310,9 @@ class VlcPlayer: GeneralPlayer.Play {
                   val os = Os.current
                   val vlcDir = APP.location/"vlc"
                   val vlcZip = vlcDir/"vlc.zip"
-                  val vlcVersion = "3.0.8"
+                  val vlcVersion = "3.0.18"
                   val vlcLink = when (os) {
-                     Os.WINDOWS -> URI("http://download.videolan.org/pub/videolan/vlc/3.0.8/win64/vlc-$vlcVersion-win64.zip")
+                     Os.WINDOWS -> URI("http://download.videolan.org/pub/videolan/vlc/$vlcVersion/win64/vlc-$vlcVersion-win64.zip")
                      else -> fail { "Vlc auto-setup is not supported on $os" }
                   }
 

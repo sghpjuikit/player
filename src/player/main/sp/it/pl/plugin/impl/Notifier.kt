@@ -29,6 +29,7 @@ import sp.it.pl.layout.hasFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppEventLog
+import sp.it.pl.main.emScaled
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.nodeinfo.SongInfo
@@ -134,7 +135,7 @@ class Notifier: PluginBase() {
             .ifNotNull { wf ->
                songNotificationUi = wf.load()
                songNotificationInfo = wf.controller as SongReader
-               (songNotificationUi as Pane).setPrefSize(900.0, 500.0)
+               (songNotificationUi as Pane).setPrefSize(600.emScaled, 250.emScaled)
             }
             .ifNull {
                val ii = SongInfo(true)

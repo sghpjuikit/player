@@ -3447,14 +3447,14 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 /*
- * Text labelling .inode, i.onode, ionode
+ * Text labelling .inode, .onode, .ionode
  * inherits: Text
  * pseudoclasses: node-drag-over - when .inode/.onode/.ionode has pseudoclass 'drag-over'
  *                node-highlighted - when .inode/.onode/.ionode has pseudoclass 'highlighted'
  *                node-selected - when .inode/.onode/.ionode has pseudoclass 'selected'
  *                node-hover - when .inode/.onode/.ionode has pseudoclass 'hover'
  */
-.inode-text {
+.inode-text, .onode-text, .ionode-text {
     -fx-font-size: 0.9em;   /* improves readability */
 }
 .inode-text:node-hover,

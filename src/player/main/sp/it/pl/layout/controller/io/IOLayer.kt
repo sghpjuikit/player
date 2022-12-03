@@ -550,19 +550,15 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
             styleClass += "$iconStyleclass-text"
             translateX = 20.0
             translateY = 20.0
-         }
-         var shift = v(0.0)
-
-         init {
-            if (this@XNode is OutputNode) text.layoutBoundsProperty().attach { shift.value = it.width; updatePosition() }
+            if (this@XNode is OutputNode) layoutBoundsProperty().attach { translateX = -20 - it.width; updatePosition() }
          }
 
          fun isVisible() = text.parent!=null
 
          fun updatePosition() {
-            x = this@XNode.x - shift.value
+            x = this@XNode.x
             y = this@XNode.y
-            text.layoutX = this@XNode.x - shift.value - byX
+            text.layoutX = this@XNode.x - byX
             text.layoutY = this@XNode.y - byY
          }
 
@@ -968,9 +964,14 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
       }
 
       private fun <T> Put<T>.xPutToUi(): String = name
-      private fun <T> Put<T>.xPutValueToUi(): String =
-         if (this is Output<*>) "${type.toUi()} :$name\n${APP.instanceName[value]}"
-         else "$name: ${type.toUi()}\n${APP.instanceName[value]}"
+      private fun <T> Put<T>.xPutValueToUi(): String {
+         val iName = APP.instanceName[value]
+         val tName = type.toUi()
+         return when (this) {
+            is Output<*> -> "$tName :$name\n$iName"
+            else -> "${(iName.length..tName.length).joinToString("") { " " }}$name: $tName\n$iName"
+         }
+      }
 
       private fun Node.interact(doLayout: Boolean, noMouse: Boolean, noPick: Boolean) {
          isManaged = doLayout

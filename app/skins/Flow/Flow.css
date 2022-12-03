@@ -8,21 +8,12 @@
 
 * {
     -skin-bgr-color: rgb(0, 0, 35);
-    -skin-popup-def-bgr-color: rgba(0,0,15,0.4);
+    -skin-window-bgr-color: rgba(0, 0, 0, 0.2);
+    -skin-window-bgr-color-content-free: rgba(12, 12, 30, 0.64);
     -skin-pane-color: rgba(12, 12, 30, 0.6);
     -skin-def-icon-border-color: rgba(130,180,240, 0.2);
     -skin-row-fixed-size: 3em;
     -skin-row-icon-size: 1.5em;
-}
-
-.window {
-    -fx-background-color: rgba(12, 12, 30, 0.2);
-}
-.window-slide, .window-dock, .tooltip {
-    -fx-background-color: rgba(12, 12, 30, 0.64);
-}
-.pop-window {
-    -fx-background-color: rgba(12, 12, 30, 0.64);
 }
 
 /* Add focus effect */

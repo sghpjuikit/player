@@ -16,7 +16,8 @@
     -skin-color-lighter: rgba(180,200,255,0.08);
     -skin-pane-color: radial-gradient(radius 110%, rgba(22,30,86,0.3) 40%, rgba(20,20,42,0.4) 80%, rgba(0,2,5,0.2) 100%);
     -skin-pane-color-dragged: rgba(10,15,25,0.8);
-    -skin-popup-def-bgr-color: rgba(15,25,45,0.95);
+    -skin-window-bgr-color: rgb(10, 10, 25);
+    -skin-window-bgr-color-content-free: rgba(15,25,45,0.95);
     -skin-value-font-color: rgb(75, 175, 105);
     -skin-focus-bgr-color: rgba(22,22,255,0.2);
     -skin-def-icon-border-color: rgba(130,180,240, 0.2);

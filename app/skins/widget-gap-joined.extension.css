@@ -10,7 +10,7 @@
 }
 .window:transparent    .header,
 .window:transparent-ct .header {
-     -fx-background-color: -skin-popup-def-bgr-color;
+     -fx-background-color: -skin-window-bgr-color-content-free;
 }
 .window:transparent .header {
     -fx-background-color: transparent;

@@ -20,7 +20,8 @@
     -skin-def-font-color-light: -skin-pane-color;
     -skin-def-font-color-hover: -skin-green;
     -skin-focus-bgr-color: rgba(255,22,22,0.2);
-    -skin-popup-def-bgr-color: -skin-white;
+    -skin-window-bgr-color: -skin-white-dark;
+    -skin-window-bgr-color-content-free: -skin-white;
     -fx-focus-color: -skin-base-color;
 }
 

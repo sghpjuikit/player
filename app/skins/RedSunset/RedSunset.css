@@ -11,7 +11,8 @@
     -skin-def-font-color: rgb(230, 75, 160);
     -skin-def-font-color-hover: rgb(255, 80, 80);
     -skin-focus-bgr-color: rgba(255,22,22,0.2);
-    -skin-popup-def-bgr-color: rgba(50,0,36,0.95);
+    -skin-window-bgr-color: rgba(50,0,36,1);
+    -skin-window-bgr-color-content-free: rgba(50,0,36,0.95);
     -fx-focus-color: rgb(255, 80, 80);
 }
 

@@ -16,7 +16,8 @@
     -skin-color-lighter: rgba(180,200,255,0.08);
     -skin-pane-color: rgba(100,130,180,0.1); /* Default color for panels such as header or widget area or other areas. */
     -skin-pane-color-dragged: rgba(10,15,25,0.8); /* Darker version of pane color. By default used for :dragged pseudoclass */
-    -skin-popup-def-bgr-color: rgba(15,25,45,0.95); /* Default bgr color for tooltips and popups. */
+    -skin-window-bgr-color: rgb(10, 10, 10); /* Window bgr color for application windows with layout content. */
+    -skin-window-bgr-color-content-free: rgba(15,25,45,0.95); /* Window bgr color for windows without layout content: tooltips and popup, .etc. */
     -skin-value-font-color: rgb(75, 175, 105);
     -skin-row-fixed-size: 2em; /* size for fixed row size */
     -skin-row-icon-size: 1.25em; /* -glyph-size for .icon in tables, should be 0.625*-skin-row-fixed-size */
@@ -766,7 +767,7 @@ Shape, Text, SpitText, TextFlow > * {
 /********* PopupControl that is displayed when the button is pressed **********/
 
 .combo-box-popup > .list-view {
-    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-background-color: -skin-window-bgr-color-content-free;
     -fx-background-insets: 0;
     -fx-effect: null;
     -fx-padding: 0 0 0 0;
@@ -816,7 +817,7 @@ Shape, Text, SpitText, TextFlow > * {
  * PopupMenu
  */
 .context-menu {
-    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-background-color: -skin-window-bgr-color-content-free;
     -fx-background-radius: 0;
     -fx-background-insets: 0;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, derive(-skin-def-font-color, -50%) 50%, transparent 100%);
@@ -1574,7 +1575,7 @@ Shape, Text, SpitText, TextFlow > * {
 
 .tooltip {
     -fx-text-fill: -skin-def-font-color;
-    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-background-color: -skin-window-bgr-color-content-free;
     -fx-background-radius: 5;
     -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
@@ -1615,7 +1616,7 @@ Shape, Text, SpitText, TextFlow > * {
 
 .color-palette {
     -fx-spacing: 1em; /* 10px */
-    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-background-color: -skin-window-bgr-color-content-free;
     -fx-background-insets: 0, 1;
     -fx-background-radius: 6, 5;
     -fx-border-width: 1;
@@ -1983,7 +1984,7 @@ Shape, Text, SpitText, TextFlow > * {
  *  transparent-ct: same as transparent, but window is click-through
  */
 .window {
-    -fx-background-color: -skin-bgr-color;
+    -fx-background-color: -skin-window-bgr-color;
     -fx-border-width: 1;
     -fx-border-radius: 0em;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, derive(-skin-def-font-color, -50%) 50%, transparent 100%);
@@ -1997,10 +1998,14 @@ Shape, Text, SpitText, TextFlow > * {
 .window:fullscreen {}
 
 /* Inherits .window */
-.window-slide {}
+.window-slide {
+    -fx-background-color: -skin-window-bgr-color-content-free;
+}
 
 /* Inherits .window */
-.window-dock {}
+.window-dock {
+    -fx-background-color: -skin-window-bgr-color-content-free;
+}
 
 /* window transparency */
 .window:transparent-ct {
@@ -2100,7 +2105,7 @@ Shape, Text, SpitText, TextFlow > * {
  * attributes: -fx-window-padding - gap from edge considered during positioning of this popup in some positions
  */
 .pop-window {
-    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-background-color: -skin-window-bgr-color-content-free;
     -fx-background-radius: 0em;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, derive(-skin-def-font-color, -50%) 50%, transparent 100%);
     -fx-border-width: 1;

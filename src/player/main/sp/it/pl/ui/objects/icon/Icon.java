@@ -12,6 +12,7 @@ import javafx.css.SimpleStyleableObjectProperty;
 import javafx.css.StyleConverter;
 import javafx.css.Styleable;
 import javafx.css.StyleableProperty;
+import javafx.css.converter.BooleanConverter;
 import javafx.css.converter.EffectConverter;
 import javafx.css.converter.PaintConverter;
 import javafx.geometry.BoundingBox;
@@ -39,7 +40,6 @@ import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sp.it.util.access.V;
 import sp.it.util.access.ref.LazyR;
 import sp.it.util.action.Action;
 import sp.it.util.animation.Anim;
@@ -80,7 +80,7 @@ import static sp.it.util.ui.UtilKt.typeText;
 
 /**
  * Icon.
- *
+ * </p>
  * Selection: icon is selected when focusOwner is focused | focusOwner is hover | select(true) has been called
  */
 public class Icon extends StackPane {
@@ -99,6 +99,7 @@ public class Icon extends StackPane {
 	private static final GlyphIcons DEFAULT_GLYPH = ADJUST;
 	private static final Double DEFAULT_ICON_SIZE = 12d;
 	private static final Double DEFAULT_ICON_GAP = 0d;
+	private static final boolean DEFAULT_IS_ANIMATED = true;
 	private static final String DEFAULT_FONT_SIZE = "1em";
 
 	private final Text node = new Text();
@@ -129,7 +130,6 @@ public class Icon extends StackPane {
 		gap.addListener((o, ov, nv) -> updateSize());
 		icon.addListener((o, ov, nv) -> updateIcon());
 
-		node.setId("icon-text");
 		node.getStyleClass().clear();
 		node.getStyleClass().add(STYLECLASS);
 		styleclass(STYLECLASS);
@@ -213,7 +213,7 @@ public class Icon extends StackPane {
 
 	private final LazyR<Anim> ra = new LazyR<>(() -> A_HOVER.apply(this));
 	private boolean isSelected = false;
-	public final V<Boolean> isAnimated = new V<>(true);
+	public final SimpleStyleableObjectProperty<Boolean> isAnimated = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_ANIMATED, Icon.this, "animated", DEFAULT_IS_ANIMATED);
 
 	public void select(boolean value) {
 		if (value==isSelected) return;
@@ -534,8 +534,13 @@ public class Icon extends StackPane {
 			@Override public Number getInitialValue(Icon styleable) { return DEFAULT_ICON_GAP; }
 		};
 
+		CssMetaData<Icon,Boolean> GLYPH_ANIMATED = new CssMetaData<>("-glyph-animated", BooleanConverter.getInstance()) {
+			@Override public boolean isSettable(Icon node) { return !node.isAnimated.isBound(); }
+			@Override public StyleableProperty<Boolean> getStyleableProperty(Icon node) { return node.isAnimated; }
+		};
+
 		List<CssMetaData<? extends Styleable,?>> STYLEABLES = stream(
-			stream(FILL, GLYPH_NAME, GLYPH_SIZE, GLYPH_GAP),
+			stream(FILL, GLYPH_NAME, GLYPH_SIZE, GLYPH_GAP, GLYPH_ANIMATED),
 			stream(StackPane.getClassCssMetaData()).filter(a -> !"-fx-effect".equals(a.getProperty())) // we use our own effect
 		)
 			.collect(collectingAndThen(toList(), Collections::unmodifiableList));

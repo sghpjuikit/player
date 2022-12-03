@@ -1783,7 +1783,8 @@ Shape, Text, SpitText, TextFlow > * {
 .list-view,
 .table-view,
 .tree-view,
-.tree-table-view {
+.tree-table-view,
+.combo-box-popup > .list-view {
     -fx-fixed-cell-size: 2em;
 }
 
@@ -1792,10 +1793,6 @@ Shape, Text, SpitText, TextFlow > * {
 .tree-view:no-fixed-cell-size,
 .tree-table-view:no-fixed-cell-size {
     -fx-fixed-cell-size: 0;
-}
-
-.combo-box-popup > .list-view {
-    -fx-fixed-cell-size: 2em;
 }
 
 /******************************************************************************
@@ -1874,12 +1871,14 @@ Shape, Text, SpitText, TextFlow > * {
  * properties:
  *   -glyph-name: String = id of the glyph
  *   -glyph-size: Size
+ *   -glyph-animated: boolean
  */
 .icon {
     -fx-fill: -skin-def-font-color;
     -glyph-name: "FontAwesomeIcon.CLOSE";
     -glyph-size: 1em;
     -glyph-gap: 12;
+    -glyph-animated: true;
 }
 
 .icon:selected Text,

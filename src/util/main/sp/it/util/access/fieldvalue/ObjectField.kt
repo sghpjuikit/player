@@ -5,7 +5,6 @@ import java.util.Comparator.naturalOrder
 import java.util.function.Function
 import sp.it.util.functional.Util.SAME
 import sp.it.util.functional.asIs
-import sp.it.util.functional.net
 import sp.it.util.functional.nullsFirst
 import sp.it.util.functional.nullsLast
 import sp.it.util.type.VType

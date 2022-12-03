@@ -14,6 +14,7 @@ import javafx.animation.TranslateTransition;
 import javafx.beans.property.DoubleProperty;
 import javafx.event.Event;
 import javafx.scene.Node;
+import javafx.scene.effect.MotionBlur;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
@@ -704,7 +705,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
      * but always rounds the translation values to integer values to prevent visual artifacts that can result due to
      * double coordinate system.
      */
-    private static class XTransition extends Anim {
+    private class XTransition extends Anim {
     	private final Node node;
 	    private double from, to, by;
 
@@ -714,9 +715,11 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
 		    this.node = node;
 	    }
 
+
 	    @Override
 	    protected void interpolate(double at) {
 	    	node.setTranslateX(rint(from + at * by));
+            root.setEffect(at==1.0 || at==0.0 ? null : new MotionBlur(0.0, clip(0, abs(to-node.getTranslateX())/10, 100)));
 	    }
 
 	    public void setToX(double to) {

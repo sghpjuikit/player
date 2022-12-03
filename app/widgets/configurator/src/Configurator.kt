@@ -63,7 +63,9 @@ import kotlin.math.PI
 import kotlin.math.sin
 import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.formEditorsUiToggleIcon
+import sp.it.pl.ui.objects.icon.NullCheckIcon
 import sp.it.util.access.focused
+import sp.it.util.access.vn
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.conf.Constraint
 import sp.it.util.reactive.syncBiFrom
@@ -97,14 +99,14 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
          text -> { it: Config<*> -> it.group.contains(text, true) || it.nameUi.contains(text, true) }
       }
    }
-   private val filterActions = v(false)
+   private val filterActions = vn(false)
    private val subroot = stackPane {
       lay += vBox {
          lay(NEVER) += hBox(0, CENTER_RIGHT) {
             id = "header"
 
             lay += formEditorsUiToggleIcon(editorsPane.ui)
-            lay += CheckIcon(filterActions).icons(IconFA.COMPRESS).tooltip("No shortcuts\n\nHide shortcuts and action editors as they get in the way.")
+            lay += NullCheckIcon(true, filterActions).icons(IconMA.FILTER_1, IconMA.FILTER_2, IconMA.FILTER).tooltip("Toggle shortcuts\n\nToggle shortcut editors filter only shortcuts | no shortcuts | all")
             lay += filterTextField.apply {
                val focusAnim = anim(200.millis) { prefWidth = (25 + it*125).emScaled }.intpl { sin(PI/2*it) }.applyNow()
                focused zip textProperty() map { (f,t) -> f || t.isNotBlank() } attach focusAnim::playFromDir
@@ -201,7 +203,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    }
 
    fun configureFiltered(groupToSelect: String? = groups.selectionModel.selectedItem?.value?.pathUp) {
-      configsFiltered setTo configs.filter { filter.value?.invoke(it)!=false && (it.type.raw!=Action::class || !filterActions.value) }
+      configsFiltered setTo configs.filter { filter.value?.invoke(it)!=false && filterActions.value.net { a -> a==null || a == (it.type.raw==Action::class) } }
       configSelectionAvoid = true
       groups.isShowRoot = !showsAppSettings
       groups.root = tree(Name.treeOfPaths("All", configsFiltered.map { it.group }))

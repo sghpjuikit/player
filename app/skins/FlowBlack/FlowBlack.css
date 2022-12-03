@@ -93,6 +93,9 @@
     -fx-border-insets: -5;
     -fx-border-color: linear-gradient(from 0% 100% to 0% 0%, transparent 20%, red 50%, transparent 80%);
 }
+.chain-link {
+    -fx-spacing: 0;
+}
 
 /* Make text more readable */
 .list-cell LabeledText,

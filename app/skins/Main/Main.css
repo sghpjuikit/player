@@ -2555,6 +2555,14 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-text-fill: -fx-focus-color;
 }
 
+/******************************* chained ***************************************************************************
+ * Extends HBox
+ */
+.chain-link {
+     -fx-padding: 0 0 0 0.5em;
+     -fx-spacing: 0.5em;
+}
+
 /******************************* pc-controls ***************************************************************************
  * Extends StackPane
  * properties: -fx-orientation = [HORIZONTAL | VERTICAL]

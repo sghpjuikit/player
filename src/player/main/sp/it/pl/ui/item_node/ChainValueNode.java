@@ -10,7 +10,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -257,10 +256,9 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 
 		Link(int initialIndex, C c) {
 			this.initialIndex = initialIndex;
+			getStyleClass().add("chain-link");
 			chained = c;
 			chained.onItemChange = f -> generateValue();
-			setSpacing(5);
-			setPadding(new Insets(0, 0, 0, 5));
 			setAlignment(CENTER_LEFT);
 			HBox.setHgrow(chained.getNode(), ALWAYS);
 
@@ -323,8 +321,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		private final Icon add = new Icon(PLUS, 13);
 
 		public NullLink() {
-			setSpacing(5);
-			setPadding(new Insets(0, 0, 0, 5));
+			getStyleClass().add("chain-link");
 			setAlignment(CENTER_LEFT);
 			getChildren().addAll(rem, add);
 			rem.setOnMouseClicked(e -> { onClear(); onUserItemsCleared.invoke(); });

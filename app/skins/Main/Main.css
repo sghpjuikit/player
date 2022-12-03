@@ -18,6 +18,8 @@
     -skin-pane-color-dragged: rgba(10,15,25,0.8); /* Darker version of pane color. By default used for :dragged pseudoclass */
     -skin-popup-def-bgr-color: rgba(15,25,45,0.95); /* Default bgr color for tooltips and popups. */
     -skin-value-font-color: rgb(75, 175, 105);
+    -skin-row-fixed-size: 2em; /* size for fixed row size */
+    -skin-row-icon-size: 1.25em; /* -glyph-size for .icon in tables, should be 0.625*-skin-row-fixed-size */
 
     transparent-nct: rgba(0,0,0,0.005); /* Same as `transparent`, is not click-through */
 
@@ -1785,7 +1787,7 @@ Shape, Text, SpitText, TextFlow > * {
 .tree-view,
 .tree-table-view,
 .combo-box-popup > .list-view {
-    -fx-fixed-cell-size: 2em;
+    -fx-fixed-cell-size: -skin-row-fixed-size;
 }
 
 .list-view:no-fixed-cell-size,
@@ -2338,6 +2340,11 @@ Shape, Text, SpitText, TextFlow > * {
 }
 .table-row-cell:searchmatchnot > .table-row-cell {
     -fx-opacity: 1;
+}
+
+/* playlist-table play button */
+.playlist-table-cell-playing-icon {
+    -glyph-size: -skin-row-icon-size;
 }
 
 /******************************** ENHANCED TEXT FIELDS ****************************************************************/

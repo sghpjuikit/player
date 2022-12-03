@@ -2,6 +2,10 @@ package sp.it.pl.ui.objects.table
 
 import javafx.scene.media.MediaPlayer.Status.PAUSED as STATE_PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING as STATE_PLAYING
+import javafx.geometry.Pos
+import javafx.geometry.Pos.CENTER
+import javafx.scene.control.ContentDisplay
+import javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableRow
@@ -79,6 +83,8 @@ fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>):
    val cell = object: TableCell<PlaylistSong, Any>() {
       override fun updateItem(item: Any?, empty: Boolean) {
          super.updateItem(item, empty)
+         alignment = CENTER
+         contentDisplay = GRAPHIC_ONLY
          graphic = if (!empty && playlist.playing==tableRow?.item) icon else null
       }
    }

@@ -11,6 +11,8 @@
     -skin-popup-def-bgr-color: rgba(0,0,15,0.4);
     -skin-pane-color: rgba(12, 12, 30, 0.6);
     -skin-def-icon-border-color: rgba(130,180,240, 0.2);
+    -skin-row-fixed-size: 3em;
+    -skin-row-icon-size: 1.5em;
 }
 
 .window {

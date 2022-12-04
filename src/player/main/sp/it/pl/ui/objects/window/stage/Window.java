@@ -145,6 +145,7 @@ import static sp.it.util.ui.UtilKt.getScreen;
 import static sp.it.util.ui.UtilKt.getScreenXy;
 import static sp.it.util.ui.UtilKt.getXy;
 import static sp.it.util.ui.UtilKt.initClip;
+import static sp.it.util.ui.UtilKt.initClipToPadding;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /** Window for application. */
@@ -346,6 +347,7 @@ public class Window extends WindowBase {
 			}
 		});
 
+		initClipToPadding(root);
 		installWindowInteraction(s);
 
 		// header double click maximize, show header on/off

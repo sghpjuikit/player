@@ -66,14 +66,13 @@ import sp.it.util.ui.separator
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
-import sp.it.util.ui.x2
 import sp.it.util.units.version
 import sp.it.util.units.year
 
 class IconViewer(widget: Widget): SimpleController(widget) {
-   val iconSize = 60.emScaled
+   val iconSize = 75.emScaled
    val iconGroups = Glyphs.GLYPH_TYPES.sortedBy { it.simpleName.orEmpty() }.map { IconGroup(it) }
-   val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, iconSize.x2 + (0 x 30.emScaled), 5.emScaled.x2).apply {
+   val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, (iconSize*1.5 x iconSize/2) + (0 x 30.emScaled), 0 x 15.emScaled).apply {
       styleClass += "icon-grid"
       search.field = StringGetter.of { value, _ -> value.name() }
       filterPrimaryField = IconField.NAME

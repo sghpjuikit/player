@@ -21,3 +21,7 @@
  * inherits: .VBox
  */
 .icon-grid-cell-graphics {}
+
+.icon-grid-cell-graphics .label {
+    -fx-background-color: transparent;
+}

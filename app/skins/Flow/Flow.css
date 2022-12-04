@@ -150,14 +150,13 @@
 .text-input:hover,
 .complex-text-field:hover {
     -fx-background-color: transparent-nct;
-    -fx-background-insets: 1;
-    -fx-border-insets: -1;
     -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
 }
-.text-input:hover {
-    -fx-border-insets: 0 -1 0 -1;
+.complex-text-field:hover {
+    -fx-border-insets: -1;
 }
+
 .combo-box-base:focused,
 .combo-box-base:editable:focused,
 .combo-box-base:showing:focused,
@@ -168,11 +167,6 @@
 .complex-text-field:focus-within,
 .complex-text-field:focused {
     -fx-background-color: -skin-color-darker;
-    -fx-border-insets: -1;
     -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
-}
-.text-input:focused,
-.text-input:readonly:focused {
-    -fx-border-insets: 0 -1 0 -1;
 }

@@ -666,8 +666,8 @@
     -fx-highlight-fill: -skin-focus-bgr-color;
     -fx-highlight-text-fill: -fx-focus-color;
     -fx-effect: null;
-    -fx-border-width: 0;
-    -fx-border-insets: 0;
+    -fx-border-width: 1;
+    -fx-border-color: transparent;
 }
 
 .combo-box-base:hover,
@@ -686,7 +686,6 @@
     -fx-highlight-fill: -skin-focus-bgr-color;
     -fx-highlight-text-fill: -fx-focus-color;
     -fx-effect: null;
-    -fx-border-insets: -1;
     -fx-border-width: 1;
     -fx-border-color: rgba(0,0,0,0.3);
 }
@@ -2381,6 +2380,12 @@ Shape, Text, SpitText, TextFlow > * {
 .value-text-field:editable .left-pane,
 .value-text-field:editable .right-pane {
     -fx-background-color: rgba(255,255,255,0.025);
+    -fx-background-insets: 1 0;
+}
+.value-text-field:editable:hover .left-pane,
+.value-text-field:editable:hover .right-pane {
+    -fx-background-color: rgba(180,200,255,0.06);
+    -fx-background-insets: 1 0;
 }
 
 
@@ -2416,7 +2421,7 @@ Shape, Text, SpitText, TextFlow > * {
  * inherits: VBox with two .icon
  */
 .number-text-field .number-text-field-buttons {
-    -fx-padding: 0 0.6em 0 0.6em;
+    -fx-padding: 0.25em 0.7em;
 }
 
 /*

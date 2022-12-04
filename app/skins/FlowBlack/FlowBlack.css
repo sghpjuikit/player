@@ -7,7 +7,7 @@
 @import url("../Main/Main.css");
 
 * {
-    -skin-def-font-color: rgb(200, 210, 220);
+    -skin-def-font-color: rgb(210, 220, 230);
     -skin-def-font-color-hover: rgb(255,0,0);
     -skin-sel-font-color: rgb(225, 225, 226);
     -fx-text-base-color: -skin-def-font-color;
@@ -19,7 +19,7 @@
     -skin-window-bgr-color-content-free: rgba(15,25,45,0.95); /* Default bgr color for tooltips and popups. */
     -skin-value-font-color: red;
 
-    -skin-window-bgr-color: rgba(0, 0, 0, 0.2);
+    -skin-window-bgr-color: rgba(20, 20, 20, 0.7);
     -skin-window-bgr-color-content-free: rgba(0, 0, 0, 0.64);
 
     -fx-focus-color: rgb(255,0,0);
@@ -27,7 +27,7 @@
 
     -skin-bgr-color: rgb(0, 0, 0);
     -skin-window-bgr-color-content-free: rgba(0, 0, 0, 0.64); // needs to be consistent with (.window bgr color > .widget-ui bgr color)
-    -skin-pane-color: rgba(0, 0, 0, 0.6);
+    -skin-pane-color: rgba(10, 10, 10, 0.6);
     -skin-def-icon-border-color: rgba(200,200,200, 0.2);
     -skin-row-fixed-size: 3em;
     -skin-row-icon-size: 1.5em;
@@ -101,7 +101,7 @@
 .menu .label .icon Text,
 .menu-button .label .icon Text,
 .label {
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0, 1), 1,1 , 0,0);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0, 0.5), 1,1 , 0,0);
 }
 .menu .label,
 .menu-button .label {
@@ -202,7 +202,7 @@
 .tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected,
 .table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
 .tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
-    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(255,0,0,0.3) 30%, transparent 60%);
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(255,0,0,0.2) 25%, transparent 70%);
     -fx-border-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(255,0,0,1.0) 50%, transparent 100%);
 }
 .combo-box > .list-cell,
@@ -217,18 +217,15 @@
 .combo-box-base:showing:hover,
 .choice-box:hover,
 .choice-box:showing:hover,
-.text-input:hover,
 .complex-text-field:hover {
     -fx-background-color: transparent-nct;
-    -fx-background-insets: 1;
-    -fx-border-insets: -1;
     -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
 }
-
-.text-input:hover {
-    -fx-border-insets: 0 -1;
+.complex-text-field:hover {
+    -fx-border-insets: -1;
 }
+
 .combo-box-base:focused,
 .combo-box-base:editable:focused,
 .combo-box-base:showing:focused,
@@ -239,11 +236,6 @@
 .complex-text-field:focus-within,
 .complex-text-field:focused {
     -fx-background-color: -skin-color-darker;
-    -fx-border-insets: -1;
     -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
-}
-.text-input:focused,
-.text-input:readonly:focused {
-    -fx-border-insets: 0 -1 0 -1;
 }

@@ -3,7 +3,13 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Update vlcj to 3.0.18
 - Fix popup showing up in taskbar/switcher sometimes
+- Implement better window radius support [clip content to radius]
+- Implement skin **FlowBlack**
+- Implement **Configurator** widget shortcut filter to be 3-valued
+- Improve UX [adjust widget controls activation area size]
+- Improve styling [fix various effects & inconsistencies]
 
 ## [7.6.0] 2022 11 27
 

@@ -25,9 +25,6 @@
 }
 
 /** Change backgrounds */
-.window {
-    -fx-background-color: -skin-white-dark;
-}
 .overlay-pane {
     -fx-background-color: -skin-window-bgr-color-content-free;
 }
@@ -50,7 +47,7 @@
 .icon:hover Text {
     -fx-fill: -fx-focus-color;
     -fx-effect: none;
-    -fx-effect: innershadow(three-pass-box, rgba(0,0,0,1) , 1, 0.0 , 0 , 0 );
+    -fx-effect: innershadow(three-pass-box, rgba(0,0,0,1), 1, 0.0 , 0 , 0 );
 }
 
 /** Remove window focus effect */
@@ -65,32 +62,16 @@
     -fx-background-color: -skin-pane-color;
     -fx-border-width: 0;
     -fx-border-color: transparent;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4em,0.3 , 0,0);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2em,0.3 , 0,0);
     -fx-padding: 0em;    // prevents visual cutoff of shadow effect
     -fx-background-insets: 0em;  // prevents incorrect bgr area due to padding
-}
-
-/* Window bgr */
-.window > #front {
-    -fx-background-color: -skin-white-dark;
-}
-.window > #front > #frontContent {
-    -fx-background-color: transparent;
-}
-.window, .popup, .pop-window, .context-menu {
-    -fx-background-color: -skin-pane-color;
 }
 
 /* Window radius */
 .popup,
 .pop-window,
 .context-menu,
-.window:transparent,
-.window:transparent-ct,
-.window:transparent    > #front > #frontContent,
-.window:transparent-ct > #front > #frontContent,
-.window:transparent    > #front,
-.window:transparent-ct > #front {
+.window, .window .header {
     -fx-background-radius: 0.6em;
     -fx-border-radius: 0.6em;
 }

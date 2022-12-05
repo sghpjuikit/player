@@ -8,6 +8,7 @@ import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.full.companionObject
+import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.valueParameters
 import kotlin.reflect.full.withNullability
@@ -80,7 +81,7 @@ fun <T: Any> ConfigDelegator.collectActionsOf(type: KClass<T>, instance: T?) {
          cr {
             runTry {
                m.isAccessible = true
-               m(instance)
+               f.callBy(f.instanceParameter?.net { mapOf(it to instance) } ?: mapOf())
             }.ifError {
                logger.error(it) { "Failed to run action from method=${m.declaringClass.packageName}.${m.name}" }
             }

@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.8.0-Beta"
+   kotlin("jvm") version "1.8.0-RC"
    application
    id("com.github.ben-manes.versions") version "0.44.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.0"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
@@ -87,7 +87,7 @@ allprojects {
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.4")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.6.4")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.6.4")
-         implementation("org.jetbrains", "annotations", "23.0.0")
+         implementation("org.jetbrains", "annotations", "23.1.0")
       }
 
       "lib" group {
@@ -130,7 +130,7 @@ allprojects {
          implementation("com.github.f4b6a3", "uuid-creator", "5.2.0")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.0")
-         implementation("com.github.oshi", "oshi-core", "6.3.2")
+         implementation("com.github.oshi", "oshi-core", "6.4.0")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
@@ -165,8 +165,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.1.3")
-         implementation("io.ktor", "ktor-client-cio", "2.1.3")
+         implementation("io.ktor", "ktor-server-core", "2.2.1")
+         implementation("io.ktor", "ktor-client-cio", "2.2.1")
       }
 
       "Test" group {

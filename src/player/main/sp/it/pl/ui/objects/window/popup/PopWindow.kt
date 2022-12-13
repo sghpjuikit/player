@@ -344,7 +344,6 @@ open class PopWindow {
 
                if (animated.value) fadeIn()
                show()
-               focus()
                scene.root = root
                sizeToScene()
                xy = shower(stage)

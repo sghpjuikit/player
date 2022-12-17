@@ -132,7 +132,7 @@ val imageExtensions12Monkey: Set<String> = linkedSetOf(
    "gif",
    // 12monkey
    "bmp",
-   "jpg", "jpe", "jpeg", "jp2", "j2k", "jpf", "jpx", "jpm", "mj2",
+   "jpg", "jfif", "jpe", "jpeg", "jp2", "j2k", "jpf", "jpx", "jpm", "mj2",
    "psd",
    "pnm", "pbm", "pgm", "ppm",
    "hdr",

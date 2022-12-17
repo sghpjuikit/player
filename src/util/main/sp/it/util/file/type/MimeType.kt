@@ -678,7 +678,7 @@ class MimeType(val name: String, vararg extensions: String) {
       val `image∕g3fax`: MimeType by mime("g3")
       val `image∕gif`: MimeType by mime("gif")
       val `image∕ief`: MimeType by mime("ief")
-      val `image∕jpeg`: MimeType by mime("jpeg", "jpg", "jpe")
+      val `image∕jpeg`: MimeType by mime("jpeg", "jpg", "jpe", "jfif")
       val `image∕ktx`: MimeType by mime("ktx")
       val `image∕png`: MimeType by mime("png")
       val `image∕prs·btif`: MimeType by mime("btif")

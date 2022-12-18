@@ -487,7 +487,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       fun close() {
          AppAnimator.closeAndDo(this) {
             root.children -= this
-            AppAnimator.openAndDo(grid) {}
+            AppAnimator.openAndDo(grid) { this@GameView.focus() }
          }
       }
 

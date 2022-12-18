@@ -128,6 +128,8 @@ public class Thumbnail {
 
 	protected final ImageView imageView = new ImageView();
 	protected final StackPane root = new StackPane(imageView) {
+		private P xyOld = new P(-1, -1);
+
 		@SuppressWarnings("UnnecessaryLocalVariable")
 		@Override
 		protected void layoutChildren() {
@@ -139,6 +141,9 @@ public class Thumbnail {
 			double imgH = min(H, maxImgH.get());
 
 			ratioTHUMB.setValue(H==0.0 ? 1 : W/H);
+
+			needsApplyViewport = xyOld.getX()!=W || xyOld.getY()!=H;
+			xyOld = new P(W, H);
 			applyViewPortImpl(imageView.getImage());
 
 			// resize thumbnail
@@ -154,7 +159,6 @@ public class Thumbnail {
 					imageView.setFitHeight(H);
 				}
 			}
-
 
 			// lay out other children (maybe introduced in subclass)
 			super.layoutChildren();

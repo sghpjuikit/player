@@ -11,6 +11,7 @@ import sp.it.pl.image.ImageStandardLoader
 import sp.it.util.dev.Blocks
 import sp.it.util.functional.orNull
 import sp.it.util.ui.image.FitFrom
+import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.image.ImageLoadParamOfData
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.toFX
@@ -23,6 +24,10 @@ sealed interface Cover {
    /** @return the cover image in the request size (not guaranteed) or null if none */
    @Blocks
    fun getImage(size: ImageSize, fit: FitFrom): Image?
+
+   /** @return the cover image in original resolution or null if none */
+   @Blocks
+   fun getImageFullSize(): Image? = getImage(ImageSize(0, 0), OUTSIDE)
 
    /** @return file denoting the image or null if none */
    fun getFile(): File?

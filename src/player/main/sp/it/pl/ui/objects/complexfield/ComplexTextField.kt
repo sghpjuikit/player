@@ -103,6 +103,7 @@ open class ComplexTextField<T>(val parser: UiStringHelper<T>): FlowPane() {
    }
 
    /** @return current value or error if value is not computable from current state */
+   @Suppress("UNCHECKED_CAST")
    fun computeValue(text: String? = valueText.value): Try<T, String> =
       if (text==null) Try.ok(null as T) else parser.parse.parse(text) // TODO: make nullability safe
 

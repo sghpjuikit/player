@@ -66,8 +66,8 @@ class GitProjects(widget: Widget): SimpleController(widget) {
 
    init {
       root.prefSize = 400.emScaled x 400.emScaled
-      root.onEventDown(KEY_PRESSED, BACK_SPACE) { popFile() }
-      root.onEventDown(MOUSE_CLICKED, SECONDARY) { popFile() }
+      root.onEventDown(KEY_PRESSED, BACK_SPACE, false) { if (popFilePossible()) { popFile(); it.consume() } }
+      root.onEventDown(MOUSE_CLICKED, SECONDARY, false) { if (popFilePossible()) { popFile(); it.consume() } }
       root.lay += hBox(20.emScaled, CENTER) {
          lay += stackPane {
             padding = Insets(50.emScaled, 0.0, 50.emScaled, 0.0)
@@ -103,11 +103,19 @@ class GitProjects(widget: Widget): SimpleController(widget) {
       } on onClose
    }
 
+   fun visitProject(f: File?) {
+      if (f==null) return
+      mdHistory.clear()
+      visitFile(f)
+   }
+
    fun visitFile(f: File?) {
       if (f==null) return
       mdHistory.push(f)
       md.readFile(f)
    }
+
+   fun popFilePossible(): Boolean = mdHistory.size==1
 
    fun popFile() {
       if (mdHistory.size<=1) return
@@ -130,7 +138,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
          label.select(s)
          if (s) projects.find { it!==this && it.dir.name==selection }?.select(false)
          if (s) selection = dir.name
-         if (s) visitFile(dir.children().find { it.name.equalsNc("README.md") })
+         if (s) visitProject(dir.children().find { it.name.equalsNc("README.md") })
       }
    }
 

@@ -1,6 +1,8 @@
 package gitProjects
 
+import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
+import java.io.File.separatorChar
 import java.util.Stack
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
@@ -9,6 +11,7 @@ import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.input.KeyCode.BACK_SPACE
+import javafx.scene.input.KeyCode.F5
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
@@ -18,12 +21,13 @@ import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconOC
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.LabelWithIcon
 import sp.it.pl.ui.objects.MdNode
-import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.async.runVT
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
@@ -37,12 +41,15 @@ import sp.it.util.file.hasExtension
 import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
+import sp.it.util.functional.net
+import sp.it.util.functional.traverse
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.system.open
 import sp.it.util.text.capitalLower
 import sp.it.util.text.equalsNc
+import sp.it.util.text.nameUi
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupId
@@ -66,6 +73,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
 
    init {
       root.prefSize = 400.emScaled x 400.emScaled
+      root.onEventDown(KEY_PRESSED, F5) { refreshProjects() }
       root.onEventDown(KEY_PRESSED, BACK_SPACE, false) { if (popFilePossible()) { popFile(); it.consume() } }
       root.onEventDown(MOUSE_CLICKED, SECONDARY, false) { if (popFilePossible()) { popFile(); it.consume() } }
       root.lay += hBox(20.emScaled, CENTER) {
@@ -90,28 +98,48 @@ class GitProjects(widget: Widget): SimpleController(widget) {
          }
       }
 
-      inputFile.sync {
-         runVT {
-            it?.children().orEmpty().filter { it.isDirectory }.toList()
-         } ui {
-            projects setTo it.map { Project(it) }
-            root.lookupId<ScrollPane>("projects").content = vBox(0.0, CENTER_LEFT) {
-               lay += projects.map { it.label }
-            }
-            projects.find { it.dir.name==selection }?.select(true)
-         }
-      } on onClose
+      inputFile.sync { refreshProjects(it) } on onClose
    }
 
-   fun visitProject(f: File?) {
-      if (f==null) return
+   fun refreshProjects(root: File? = inputFile.value) {
+      runVT {
+         root?.listProjects().orEmpty().map(::Project).toList()
+      } ui {
+         projects setTo it
+         this.root.lookupId<ScrollPane>("projects").content = vBox(0.0, CENTER_LEFT) {
+            lay += projects.map { it.label }
+         }
+         projects.find { it.name==selection }?.select(true)
+      }
+   }
+
+   fun File.listProjects(depth: Int = 4): Sequence<File> =
+      sequence {
+         if (depth==4) yieldAll(children().flatMap { it.listProjects(3) })
+         if (depth>0) {
+            val children = children()
+            children.filter { it.isDirectory }.forEach {
+               if (children.any { it.name == ".git" }) yield(this@listProjects)
+               else if (children.any { it.name.equalsNc("README.md") }) yield(this@listProjects)
+               else {
+                  if (depth==3) yield(this@listProjects)
+                  yieldAll(it.listProjects(depth-1))
+               }
+            }
+         }
+      }
+      // always include project parent dirs
+      .flatMap { it.traverse { it.parentFile }.takeWhile { it != inputFile.value } }
+      .distinct()
+      .sortedBy { it.path }
+
+   fun visitProject(p: Project?) {
       mdHistory.clear()
-      visitFile(f)
+      visitFile(p?.readmeFile)
    }
 
    fun visitFile(f: File?) {
-      if (f==null) return
-      mdHistory.push(f)
+      if (f!=null) mdHistory.push(f)
       md.readFile(f)
    }
 
@@ -124,7 +152,18 @@ class GitProjects(widget: Widget): SimpleController(widget) {
    }
 
    inner class Project(val dir: File) {
-      val label = LabelWithIcon(IconFA.GIT, dir.name.capitalLower()).apply {
+      val name = dir.name.capitalLower()
+      val depth = inputFile.value?.net { dir.relativeTo(it).path.count { it==separatorChar } } ?: 0
+      val children = dir.children()
+      var gitDir = children.find { it.name == ".git" }
+      var readmeFile = dir.children().find { it.name.equalsNc("README.md") }
+      val glyph: GlyphIcons = when {
+         gitDir!=null -> IconFA.GIT
+         readmeFile!=null -> IconOC.MARKDOWN
+         else -> IconFA.FOLDER
+      }
+      val label = LabelWithIcon(glyph, name).apply {
+         padding = Insets(0.0, 0.0, 0.0, depth*12.emScaled)
          icon.onClickDo(null, null) { _, e ->
             when (e?.button) {
                null, PRIMARY -> this@Project.select(true)
@@ -136,9 +175,9 @@ class GitProjects(widget: Widget): SimpleController(widget) {
 
       fun select(s: Boolean) {
          label.select(s)
-         if (s) projects.find { it!==this && it.dir.name==selection }?.select(false)
-         if (s) selection = dir.name
-         if (s) visitProject(dir.children().find { it.name.equalsNc("README.md") })
+         if (s) projects.find { it!==this && it.name==selection }?.select(false)
+         if (s) selection = name
+         if (s) visitProject(this)
       }
    }
 
@@ -153,6 +192,10 @@ class GitProjects(widget: Widget): SimpleController(widget) {
       override val author = "spit"
       override val contributor = ""
       override val tags = setOf(UTILITY)
-      override val summaryActions = listOf<ShortcutPane.Entry>()
+      override val summaryActions = listOf(
+         Entry("Data", "Refresh projects", F5.nameUi),
+         Entry("Data", "Back (after visiting link)", BACK_SPACE.nameUi),
+         Entry("Data", "Back (after visiting link)", SECONDARY.nameUi),
+      )
    }
 }

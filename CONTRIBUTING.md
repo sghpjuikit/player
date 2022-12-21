@@ -35,6 +35,7 @@
 
 - `./gradlew build` compiles the application
 - `./gradlew run` compiles and runs the application
+    - if the build fails with OutOfMemoryError, increase the Gradle daemon memory in [gradle.properties](#properties) 
 - `./gradlew clean` cleans temporary files
 
 For more tasks:
@@ -42,8 +43,10 @@ For more tasks:
 
 ## Running application
 
+Run one of the binaries or launchers in the [app](/app) directory (which can be copied anywhere on the system).
+
 #### Windows
-- open `SpitPlayer.exe`
+- run `SpitPlayer.exe`
 
 #### Windows console
 - `./SpitPlayerc.exe` starts the application
@@ -56,15 +59,23 @@ For more tasks:
 #### Properties
 
 - [gradle/wrapper/gradle-wrapper.properties](gradle/wrapper/gradle-wrapper.properties)  
-  Project properties, specifies gradle version used
+  Project properties, specifies gradle version used, changed upon gradle updates
 - [gradle.properties](gradle.properties)  
-  Per-developer project properties, specifies optional language, build (gradle) and custom application run properties, which are:
-    - player.memoryMin=100m  // defines -Xms of the JVM of the application
-    - player.memoryMax=3g  // defines -Xmx of the JVM of the application
-    - player.buildDir=Z:/build  // build output directory
-    - player.jvmArgs= // custom JVM arguments
+  Per-developer project properties, specifies gradle build properties
+    ```
+    # gradle daemon jvm arguments
+    org.gradle.jvmargs=-Xmx4g -Dkotlin.daemon.jvm.options=-Xmx3g -Duser.language=en -Duser.region=EN
+    # defines -Xms of the JVM of the application
+    player.memoryMin=100m
+    # defines -Xmx of the JVM of the application
+    player.memoryMax=3g
+    # custom JVM arguments
+    player.jvmArgs=
+    ```
 - [settings.gradle.kts](settings.gradle.kts)  
-  Project properties, defines gradle build configuration, like build files, etc.
+  Project build definition, like build files, etc.
+- [gradle/\<module\>.gradle.kts](gradle/project.gradle.kts)  
+  Project module build definition, like dependencies, etc.
 - [app/user/application.properties](app/user/application.properties)  
   User application properties, managed by application and editable through its ui
 - [app/SpitPlayer.l4j.ini](app/SpitPlayer.l4j.ini)  

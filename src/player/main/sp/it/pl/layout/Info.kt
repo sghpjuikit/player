@@ -48,19 +48,19 @@ interface WidgetInfo: ComponentInfo {
    /** Version of the widget */
    val version: KotlinVersion
 
-   /** Author of the widget */
+   /** Author of the widget, either full name or alias */
    val author: String
 
-   /** Co-developer of the widget */
+   /** Co-developer of the widget. comma separated list of names or aliases of notable contributors */
    val contributor: String
 
    /** Creation time */
    val year: Year
 
-   /** Whether this widget is supported on the current platform */
+   /** Whether this widget is supported on the current OS platform */
    val isSupported: Boolean
 
-   /** Tags categorizing the widget. May be empty. */
+   /** Tags labeling/categorizing the widget. May be empty. For common tags see [sp.it.pl.main.WidgetTags] */
    val tags: Set<WidgetTag>
 
    /** Exact type of the widget (also denotes widget's controller type) */
@@ -79,6 +79,7 @@ interface WidgetInfo: ComponentInfo {
    /** @return true iff widget's controller implements all given features */
    fun hasFeatures(vararg features: KClass<*>) = features.all { hasFeature(it) }
 
+   /** @return summary of available UX actions, typically keyboard and mouse shortcuts, displayed in widget help page */
    val summaryActions
       get() = listOf<ShortcutPane.Entry>()
 

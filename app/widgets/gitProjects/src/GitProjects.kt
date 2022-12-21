@@ -22,6 +22,7 @@ import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
+import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
@@ -191,7 +192,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
       override val year = year(2021)
       override val author = "spit"
       override val contributor = ""
-      override val tags = setOf(UTILITY)
+      override val tags = setOf(UTILITY, DEVELOPMENT)
       override val summaryActions = listOf(
          Entry("Data", "Refresh projects", F5.nameUi),
          Entry("Data", "Back (after visiting link)", BACK_SPACE.nameUi),

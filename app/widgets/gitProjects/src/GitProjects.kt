@@ -114,18 +114,15 @@ class GitProjects(widget: Widget): SimpleController(widget) {
       }
    }
 
-   fun File.listProjects(depth: Int = 4): Sequence<File> =
+   fun File.listProjects(depth: Int = 3): Sequence<File> =
       sequence {
-         if (depth==4) yieldAll(children().flatMap { it.listProjects(3) })
+         if (depth>=2) yield(this@listProjects)
          if (depth>0) {
             val children = children()
             children.filter { it.isDirectory }.forEach {
-               if (children.any { it.name == ".git" }) yield(this@listProjects)
-               else if (children.any { it.name.equalsNc("README.md") }) yield(this@listProjects)
-               else {
-                  if (depth==3) yield(this@listProjects)
-                  yieldAll(it.listProjects(depth-1))
-               }
+               if (children.any { it.name.equalsNc("README.md") }) yield(this@listProjects)
+               else if (children.any { it.name == ".git" }) yield(this@listProjects)
+               else yieldAll(it.listProjects(depth-1))
             }
          }
       }

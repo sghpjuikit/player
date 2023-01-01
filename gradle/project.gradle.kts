@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.8.0-RC"
+   kotlin("jvm") version "1.8.0"
    application
    id("com.github.ben-manes.versions") version "0.44.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.0"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
@@ -129,7 +129,7 @@ allprojects {
       "Misc" group {
          implementation("com.github.f4b6a3", "uuid-creator", "5.2.0")
          implementation("org.atteo", "evo-inflector", "1.3")
-         implementation("com.github.ajalt.clikt", "clikt", "3.5.0")
+         implementation("com.github.ajalt.clikt", "clikt", "3.5.1")
          implementation("com.github.oshi", "oshi-core", "6.4.0")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")

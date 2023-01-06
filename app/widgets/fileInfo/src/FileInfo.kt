@@ -405,20 +405,18 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       override fun layoutChildren() {
          val width = width
          val height = height
-         val cellH = 2.em.emScaled + vgap
+         val cellH = 1.5.em.emScaled + vgap
          val rows = 1 max floor((height max cellH)/cellH).toInt()
          val columns = 1 max ceil(labels.size.toDouble()/rows.toDouble()).toInt()
-         var cellW = when (columns) {
+         val cellW = minColumnWidth.value max when (columns) {
             1, 0 -> width
             else -> (width + hgap)/columns - hgap
          }
 
-         // adhere to requested minimum size
-         cellW = cellW max minColumnWidth.value
          val w = cellW
-//         this.prefWrapLength = w
-//         prefTileWidth = w
+         prefWrapLength = w
          labels.forEach { it.maxWidth = w }
+         labels.forEach { it.minHeight = cellH - vgap }
          super.layoutChildren()
 
          // hyperlinks width fix

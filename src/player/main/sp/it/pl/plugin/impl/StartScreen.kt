@@ -23,12 +23,14 @@ import sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy.Companion.VT_IMAGE_THROT
 import sp.it.pl.ui.objects.window.Resize.NONE
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
+import sp.it.pl.ui.objects.window.stage.osHasWindowExclusiveFullScreen
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.action.IsAction
 import sp.it.util.async.coroutine.await
-import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.coroutine.runSuspendingFx
+import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.bool.TRUE
 import sp.it.util.file.div
 import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.Subscribed
@@ -55,7 +57,11 @@ class StartScreen: PluginBase() {
       APP.actionStream.onEventObject(Events.AppEvent.UserSessionEvent.Stop) { overlay.hide() }
    }
    private val overlayIsActive = Subscribed {
-      fun showerCondition() = APP.windowManager.dockWindow?.isShowing!=true && APP.windowManager.windows.none { it.moving.value || it.resizing.value!=NONE }
+      fun showerCondition() =
+         APP.windowManager.dockWindow?.isShowing!=true &&
+         APP.windowManager.windows.none { it.moving.value || it.resizing.value!=NONE } &&
+         osHasWindowExclusiveFullScreen() != TRUE
+
       val shower = fxTimer(500.millis, 1) {
          if (showerCondition())
             overlay.orBuild.show(Unit)

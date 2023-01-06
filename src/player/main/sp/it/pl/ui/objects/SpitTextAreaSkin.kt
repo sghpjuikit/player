@@ -4,7 +4,6 @@ import javafx.scene.control.TextArea
 import javafx.scene.control.skin.TextAreaSkin
 import javafx.scene.input.ContextMenuEvent
 import javafx.scene.input.MouseButton.SECONDARY
-import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import sp.it.pl.ui.showContextMenu
 import sp.it.util.reactive.Disposer
@@ -18,9 +17,8 @@ class SpitTextAreaSkin(control: TextArea): TextAreaSkin(control) {
 
    fun initCustomContextMenu() {
       val control = skinnable
-      val contextMenuShower: ((MouseEvent) -> Unit) = { showContextMenu(control, it, control::getText, null) }
       control.onEventUp(ContextMenuEvent.ANY) { it.consume() } on disposer
-      control.onEventDown(MOUSE_CLICKED, SECONDARY) { contextMenuShower(it) } on disposer
+      control.onEventDown(MOUSE_CLICKED, SECONDARY) { showContextMenu(control, it, control::getText, null) } on disposer
    }
 
    override fun install() {

@@ -7,6 +7,8 @@ import java.net.URI
 import java.net.URL
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicLong
+import javafx.scene.control.ScrollPane
+import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.TextArea
 import javafx.scene.image.Image
 import javafx.scene.input.Clipboard
@@ -16,6 +18,7 @@ import javafx.scene.input.TransferMode.MOVE
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.SOMETIMES
+import javafx.scene.layout.VBox
 import kotlin.reflect.KClass
 import mu.KLogging
 import org.jaudiotagger.tag.wav.WavTag
@@ -31,17 +34,19 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
-import sp.it.pl.main.computeDataInfo
+import sp.it.pl.main.computeDataInfoUi
 import sp.it.pl.main.detectContent
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.tableViewForClass
+import sp.it.pl.main.textColon
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.pane.ImageFlowPane
 import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.util.Named
 import sp.it.util.async.FX
 import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.getElementClass
@@ -53,16 +58,17 @@ import sp.it.util.file.toFileOrNull
 import sp.it.util.file.type.MimeGroup
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.asIs
-import sp.it.util.functional.getOr
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
+import sp.it.util.named
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.text.Jwt
-import sp.it.util.text.ifNotBlank
 import sp.it.util.ui.image.toFX
+import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
@@ -71,7 +77,8 @@ import sp.it.util.units.year
 
 class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
    private val inputItems = io.i.create("To display", null, ::open)
-   private val info = TextArea()
+   private val infoPane = ScrollPane()
+   private val info = VBox()
    private val dataRepsPane = HBox(15.emScaled)
    private val dataRepThumb = Thumbnail()
    private val dataRepTextArea = TextArea()
@@ -87,8 +94,10 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
          setImage(dataRepThumb)
          setContent(
             dataRepsPane.apply {
-               lay += info.apply {
-                  isEditable = false
+               lay += infoPane.apply {
+                  content = info
+                  hbarPolicy = AS_NEEDED
+                  vbarPolicy = AS_NEEDED
                }
             }
          )
@@ -109,30 +118,36 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
    }
 
    @Blocks
-   fun audioMetadata(d: File): String =
+   fun audioMetadata(d: File): List<Named> =
       d.readAudioFile().map { it.audioHeader to it.tag }.map { (header, tag) ->
-         "\nHeader %s:\n%s\nTag%s:%s".format(
-            "(" + header::class.toUi() + ")",
-            header.toString().lineSequence().map { it.trimStart() }.joinToString("\n\t"),
-            when (tag) {
-               null -> ""
-               is WavTag -> " (" + tag.activeTag::class.toUi() + ")"
-               else -> " (" + tag::class.toUi() + ")"
-            },
-            tag?.net { it.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" } } ?: " <none>"
+         val h = header.toString().lineSequence().map { it.trimStart() }.joinToString("\n\t")
+         val hName = header::class.toUi()
+         val t = tag?.net { it.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" } }
+         val tName = when (tag) {
+            null -> ""
+            is WavTag -> " (" + tag.activeTag::class.toUi() + ")"
+            else -> " (" + tag::class.toUi() + ")"
+         }
+         listOf(
+            "Header ($hName)" named h,
+            "Tag$tName" named t
          )
-      }.getOr("")
-
+      }.getOrSupply {
+         listOf()
+      }
 
    @Blocks
-   fun imageMetadata(f: File): String =
+   fun imageMetadata(f: File): List<Named> =
       runTry {
          ImageMetadataReader.readMetadata(f)
             .directories.asSequence()
             .filter { it.name!="File" }
             .flatMap { it.tags }
-            .joinToString("\n") { "${it.directoryName} > ${it.tagName}: ${it.description.toUi()}" }
-      }.getOr("")
+            .map { "${it.directoryName} > ${it.tagName}" named it.description }
+            .toList()
+      }.getOrSupply {
+         listOf()
+      }
 
    fun openAndDetect(data: Any?, detectContent: Boolean) =
       open(if (detectContent) data.detectContent() else data)
@@ -141,16 +156,19 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
       val d = collectionUnwrap(data)
       val id = openId.incrementAndGet()
 
-      computeDataInfo(d).then {
+      computeDataInfoUi(d).then {
          when {
-            d is File && d.mimeType().group==MimeGroup.image -> it + imageMetadata(d).ifNotBlank { "\n" + it }
-            d is File && d.mimeType().group==MimeGroup.audio -> it + audioMetadata(d).ifNotBlank { "\n" + it }
-            d is Song -> it + d.getFile()?.net { audioMetadata(it) }.orEmpty().ifNotBlank { "\n" + it }
+            d is File && d.mimeType().group==MimeGroup.image -> it + imageMetadata(d)
+            d is File && d.mimeType().group==MimeGroup.audio -> it + audioMetadata(d)
+            d is Song -> it + d.getFile()?.net { audioMetadata(it) }.orEmpty()
             else -> it
          }
       }.onDone(FX) {
          if (id==openId.get()) {
-            info.text = it.toTry().getOr("Failed to obtain data information.")
+            info.lay.clear()
+            info.lay += it.toTry()
+               .map { it.map(::textColon) }
+               .getOrSupply { listOf(label("Failed to obtain data information.")) }
          }
       }
 
@@ -171,7 +189,7 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
       }
 
       dataRepsPane.lay -= dataRepTextArea
-      dataRepsPane.lay -= info
+      dataRepsPane.lay -= infoPane
       dataRepTable.ifNotNull { dataRepsPane.lay -= it.root }
       if (dataAsS!=null) {
          dataRepTextArea.isEditable = false
@@ -186,7 +204,7 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
          dataRepTable = t
          dataRepsPane.lay(SOMETIMES) += t.root
       }
-      dataRepsPane.lay(ALWAYS) += info
+      dataRepsPane.lay(ALWAYS) += infoPane
 
       when (d) {
          is Image -> dataRepThumb.loadImage(d)

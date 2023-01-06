@@ -1,11 +1,17 @@
 package sp.it.util.type
 
 import java.util.Objects
+import java.util.Optional
 import kotlin.reflect.KClass
+import sp.it.util.Na
 import sp.it.util.Named
 import sp.it.util.collections.map.KClassListMap
 import sp.it.util.dev.fail
+import sp.it.util.functional.Option
+import sp.it.util.functional.orNull
 import sp.it.util.named
+import sp.it.util.namedOrNaIfEmpty
+import sp.it.util.namedOrNaIfNull
 
 private typealias Description = Named
 private typealias Descriptions = ArrayList<Description>
@@ -51,7 +57,10 @@ class InstanceDescription {
 
    /** Allows DSL for [InstanceDescription]. */
    class DescriptionBuilder(private val descriptions: Descriptions) {
-      infix fun String.info(value: String) = descriptions.add(this named value)
+      infix fun String.info(value: Any?) = descriptions.add(this named value)
+      infix fun String.infoNaIfNull(value: Any?) = descriptions.add(this namedOrNaIfNull value)
+      infix fun String.infoNaIfEmpty(value: Option<Any?>) = descriptions.add(this namedOrNaIfEmpty value)
+      infix fun String.infoNaIfEmpty(value: Optional<out Any?>) = descriptions.add(this namedOrNaIfEmpty value)
    }
 
 }

@@ -60,6 +60,7 @@ import sp.it.pl.ui.objects.window.Shower
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.pane.ConfigPane
+import sp.it.util.Named
 import sp.it.util.access.fieldvalue.ColumnField.INDEX
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.fieldvalue.ObjectFieldOfDataClass
@@ -96,6 +97,7 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.named
 import sp.it.util.reactive.Unsubscriber
 import sp.it.util.reactive.asDisposer
 import sp.it.util.reactive.attach
@@ -256,11 +258,18 @@ fun appHyperlinkFor(u: URI) = hyperlink(u.toUi()) {
 }
 
 /** @return standardized ui text for the specified data displaying it in the most natural ui form */
+fun textColon(named: Named): Node = textColon(named.name, named.value)
+
+/** @return standardized ui text for the specified data displaying it in the most natural ui form */
 fun textColon(name: String, data: Any?): Node = when (data) {
    null -> text(name + ": " + data.toUi())
    is Path -> textColon(name, data.toFileOrNull() ?: data.toUi())
-   is URL -> textColon(name, data.toURIOrNull() ?: data.toUi())
-   is URI -> textColon(name, data.toFileOrNull() ?: data.toUi())
+   is URL -> data.toURIOrNull()?.net { textColon(name, it) } ?: textColon(name, data.toUi())
+   is URI -> data.toFileOrNull()?.net { textColon(name, it) } ?: hBox {
+      lay(NEVER) += text("$name: ")
+      data.toUi()
+      lay += appHyperlinkFor(data)
+   }
    is File -> hBox {
       lay(NEVER) += text("$name: ")
       lay += appHyperlinkFor(data)
@@ -377,13 +386,43 @@ fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)
    val dKind = "\nType: ${dType.toUi()}"
    val dKindDev = "\nType (exact): ${dClass.qualifiedName ?: dClass.jvmName}".takeIf { APP.developerMode.value }.orEmpty()
    val dInfo = APP.instanceInfo[d]
-      .map { "${it.name}: ${it.value}" }
+      .map { "${it.name}: ${it.value.toUi().replace("\n", "  \n")}" }
       .sorted()
       .joinToString("\n")
       .takeUnless { it.isEmpty() }
       ?.let { "\n$it" } ?: ""
 
    "Data: $dName$dKind$dKindDev$dInfo"
+}
+/** @return future with information inspected by [App.instanceInfo] about the specified data on [IO] executor */
+fun computeDataInfoUi(data: Any?): Fut<List<Named>> = (data as? Fut<*> ?: Fut.fut(data)).then(IO) {
+   fun Any?.stringUnwrap(): Any? = if (this is String && lengthInGraphemes==1) graphemeAt(0) else this
+
+   val d = collectionUnwrap(it).stringUnwrap()
+   val dName = APP.instanceName[d].net {
+      val n = 40
+      val suffix = " (first $n characters)"
+      val firstN = it.lineSequence().flatMap { it.codePoints().asSequence().plus(' '.toChar32().value) }.take(n + 1 + suffix.length).toList()
+      if (firstN.size <= n+suffix.length) it else firstN.take(n).joinToString("") { it.toChar32().toString() } + suffix
+   }
+   val dClass = when (d) {
+      null -> Nothing::class
+      else -> d::class
+   }
+   val dType = when (d) {
+      null -> kTypeNothingNonNull()
+      is List<*> -> List::class.createType(arguments = listOf(invariant(d.getElementType())))
+      is Set<*> -> Set::class.createType(arguments = listOf(invariant(d.getElementType())))
+      is Map<*, *> -> Map::class.createType(arguments = listOf(invariant(d.keys.getElementType()), invariant(d.values.getElementType())))
+      else -> d::class.createTypeStar()
+   }
+
+   buildList {
+      add("Data" named dName)
+      add("Type" named dType)
+      if (!APP.developerMode.value) add("Type (exact)" named (dClass.qualifiedName ?: dClass.jvmName))
+      addAll(APP.instanceInfo[d].sortedBy { it.name })
+   }
 }
 
 fun contextMenuFor(o: Any?): ContextMenu = ValueContextMenu<Any?>().apply { setItemsFor(o) }

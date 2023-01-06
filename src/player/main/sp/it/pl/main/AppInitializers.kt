@@ -42,8 +42,12 @@ import sp.it.util.collections.getElementType
 import sp.it.util.dev.fail
 import sp.it.util.file.FileType
 import sp.it.util.file.Util
+import sp.it.util.file.hasExtension
+import sp.it.util.file.readTextTry
+import sp.it.util.file.type.MimeExt.Companion.url
 import sp.it.util.functional.getOr
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
@@ -55,6 +59,7 @@ import sp.it.util.text.lengthInChars
 import sp.it.util.text.lengthInCodePoints
 import sp.it.util.text.lengthInGraphemes
 import sp.it.util.text.pluralUnit
+import sp.it.util.text.toURLOrNull
 import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
@@ -210,6 +215,9 @@ fun InstanceDescription.initApp() {
          // TODO: load all image/audio metadata
          if (f.isImage())
             "Resolution" info getImageDim(f).map { "${it.width} x ${it.height}" }.getOr("n/a")
+
+         if (f hasExtension url)
+            "Target" infoNaIfNull f.readTextTry().map { it.lines().find { it.startsWith("URL=") }?.substringAfter("URL=")?.toURLOrNull() }.orNull()
       }
 
    }

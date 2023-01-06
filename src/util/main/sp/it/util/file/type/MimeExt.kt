@@ -11,6 +11,7 @@ data class MimeExt(val name: String) {
       const val lnk = "lnk"
       const val md = "md"
       const val txt = "txt"
+      const val url = "url"
 
       private val enumerateUnsealed by lazy { MimeType.enumerateUnsealed().flatMap { it.extensions.asSequence().distinct().map { MimeExt(it) } } }
       override fun toS(o: MimeExt): String = o.name

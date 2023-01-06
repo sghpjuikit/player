@@ -5,33 +5,32 @@ import javafx.geometry.HPos.RIGHT
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos
-import javafx.scene.Cursor
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
-import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.APP
-import sp.it.pl.main.Df.PLAIN_TEXT
+import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.infoIcon
-import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toUi
 import sp.it.util.Named
 import sp.it.util.named
+import sp.it.util.namedOrNaIfEmpty
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
 import sp.it.util.text.capitalLower
 import sp.it.util.toLocalDateTime
 import sp.it.util.ui.Util.layVertically
-import sp.it.util.ui.drag.set
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.scrollPane
+import sp.it.util.ui.show
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.units.javafx
@@ -97,9 +96,9 @@ class InfoPane: OverlayPane<Unit>() {
                val value = n.value.fixASCII()
 
                val nameL = label(name)
-               val valL = label(value) {
-                  cursor = Cursor.HAND
-                  onEventDown(MOUSE_CLICKED, PRIMARY) { sysClipboard[PLAIN_TEXT] = value }
+               val valL = label(value.toUi()) {
+                  isWrapText = true
+                  onEventDown(MOUSE_CLICKED, SECONDARY) { contextMenuFor(value).show(this, it) }
                }
                g.add(valL, 0, i)
                g.add(nameL, 2, i)
@@ -110,28 +109,29 @@ class InfoPane: OverlayPane<Unit>() {
    private fun computeProperties(): Map<String, MutableList<Named>> {
       val ps = System.getProperties()
          .entries.asSequence()
-         .filter { it.key is String && it.value is String }
-         .map { it.key as String named it.value as String }
+         .map { it.key.toString() named it.value }
          .groupByTo(HashMap()) { it.name.getPropertyGroup() }
 
       val p = ProcessHandle.current()
       val pInfo = p.info()
       ps.group("process") += listOf(
-         "pid" named p.pid().toUi(),
-         "arguments" named pInfo.arguments().map { it.joinToString(", ") }.orElse(""),
-         "command" named pInfo.command().orElse(""),
-         "commandline" named pInfo.commandLine().orElse(""),
-         "start time" named pInfo.startInstant().map { it.toLocalDateTime().toUi() }.orElse(""),
-         "running time" named pInfo.totalCpuDuration().map { it.javafx.toHMSMs() }.orElse(""),
-         "user" named pInfo.user().orElse("")
+         "pid" named p.pid().toString(),
+         "arguments" namedOrNaIfEmpty pInfo.arguments().map { it.joinToString(", ") },
+         "command" namedOrNaIfEmpty pInfo.command(),
+         "commandline" namedOrNaIfEmpty pInfo.commandLine(),
+         "start time" namedOrNaIfEmpty pInfo.startInstant().map { it.toLocalDateTime() },
+         "running time" namedOrNaIfEmpty pInfo.totalCpuDuration().map { it.javafx.toHMSMs() },
+         "user" namedOrNaIfEmpty pInfo.user()
       )
-      ps.group("java") += "vm.arguments" named APP.fetchVMArguments().joinToString(" ")
+      ps.group("java") += listOf(
+         "vm.arguments" named APP.fetchVMArguments().joinToString(" ")
+      )
       ps.group("kotlin") += listOf(
-         "version" named KotlinVersion.CURRENT.toUi()
+         "version" named KotlinVersion.CURRENT
       )
       ps.group("app") += listOf(
-         "version" named APP.version.toUi(),
-         "location" named APP.location.path
+         "version" named APP.version,
+         "location" named APP.location
       )
 
       return ps
@@ -145,18 +145,21 @@ class InfoPane: OverlayPane<Unit>() {
 
       private fun String.getPropertyGroup() = substringBefore('.')
 
-      private fun String.fixASCII(): String {
-         when (length) {
+      private fun Any?.fixASCII(): Any? = when (this) {
+         is String -> when (length) {
             1 -> {
-               if (this[0]=='\n') return "\n"
-               if (this[0]=='\r') return "\r"
+               if (this[0]=='\n') "\n"
+               else if (this[0]=='\r') "\r"
+               else this
             }
             2 -> {
-               if (this[0]=='\n' && this[1]=='\r') return "\\n\\r"
-               if (this[0]=='\r' && this[1]=='\n') return "\\r\\n"
+               if (this[0]=='\n' && this[1]=='\r') "\\n\\r"
+               else if (this[0]=='\r' && this[1]=='\n') "\\r\\n"
+               else this
             }
+            else -> this
          }
-         return this
+         else -> this
       }
    }
 

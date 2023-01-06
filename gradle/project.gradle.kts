@@ -165,8 +165,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.2.1")
-         implementation("io.ktor", "ktor-client-cio", "2.2.1")
+         implementation("io.ktor", "ktor-server-core", "2.2.2")
+         implementation("io.ktor", "ktor-client-cio", "2.2.2")
       }
 
       "Test" group {

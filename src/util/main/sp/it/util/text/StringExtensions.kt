@@ -1,6 +1,10 @@
 package sp.it.util.text
 
 import io.ktor.utils.io.core.toByteArray
+import java.net.MalformedURLException
+import java.net.URI
+import java.net.URISyntaxException
+import java.net.URL
 import java.nio.charset.Charset
 import java.text.BreakIterator
 import java.util.Locale
@@ -323,3 +327,20 @@ fun String.splitTrimmed(delimiter: String, ignoreCase: Boolean = false): List<St
 /** Same as Java's [String.split] with no empty string elements */
 fun String.splitNoEmpty(delimiter: String, ignoreCase: Boolean = false): Sequence<String> =
    splitToSequence(delimiter, ignoreCase = ignoreCase).filter { it.isNotEmpty() }
+
+/** @return URL this string is denoting or null if [MalformedURLException] is thrown */
+fun String.toURLOrNull(): URL? =
+   try {
+      URL(this)
+   } catch (e: MalformedURLException) {
+      null
+   }
+
+
+/** @return URI this string is denoting or null if [MalformedURLException] is thrown */
+fun String.toURIOrNull(): URI? =
+   try {
+      URI(this)
+   } catch (e: URISyntaxException) {
+      null
+   }

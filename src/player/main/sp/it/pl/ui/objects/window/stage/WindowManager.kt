@@ -79,6 +79,7 @@ import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
 import sp.it.util.async.runLater
 import sp.it.util.async.runVT
+import sp.it.util.bool.TRUE
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.observableList
 import sp.it.util.collections.readOnly
@@ -438,7 +439,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 //            }
 
             fun hide() = if (showValue==1.0) hider() else Unit
-            fun show() = if (showValue==0.0 && windowsFx.none { it.isOverlayWindow() }) shower() else Unit
+            fun show() = if (showValue==0.0 && windowsFx.none { it.isOverlayWindow() } && osHasWindowExclusiveFullScreen()!=TRUE) shower() else Unit
             fun showWithDelay() = if (showValue==0.0) runFX(dockHoverDelay.value) { if (mw.window.stage.scene.root.isHover) show() }.toUnit() else Unit
             fun showInitially() = showAnim.applyAt(0.0).toUnit()
          }

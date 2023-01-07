@@ -125,7 +125,6 @@ import sp.it.pl.main.textColon
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Util.pyth
-import sp.it.util.async.coroutine.runSuspending
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.cvn

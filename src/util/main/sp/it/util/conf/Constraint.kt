@@ -17,6 +17,7 @@ import sp.it.util.dev.failIfNot
 import sp.it.util.file.FileType
 import sp.it.util.functional.Try
 
+/** Constrains or validates a value. Use [ConstraintSimple] for simple usage. */
 interface Constraint<in T> {
 
    fun isValid(value: T?): Boolean
@@ -188,4 +189,10 @@ interface Constraint<in T> {
       override fun message() = "Is disabled"
    }
 
+}
+
+/** Simple [Constraint] that acts as [FunctionalInterface] */
+class ConstraintSimple<T>(val message: String, val test: (T?) -> Boolean): Constraint<T> {
+   override fun isValid(value: T?): Boolean = test(value)
+   override fun message(): String = message
 }

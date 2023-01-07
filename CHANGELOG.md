@@ -4,12 +4,52 @@ All notable changes to this project will be documented in this file. Format base
 ## [Latest]
 
 - Update vlcj to 3.0.18
-- Fix popup showing up in taskbar/switcher sometimes
+- Update dependencies
+- Implement speech recognition using AI
+- Implement .url file support
+- Implement support for jpeg with jfif extension
 - Implement better window radius support [clip content to radius]
 - Implement skin **FlowBlack**
 - Implement **Configurator** widget shortcut filter to be 3-valued
+- Implement exclusive fullscreen detection
+    - use to avoid displaying **StartScreen** overlays and dock windows when exclusive fullscreen mode application is running
 - Improve UX [adjust widget controls activation area size]
 - Improve styling [fix various effects & inconsistencies]
+- Improve **GitProjects** widget UX
+    - Implement support projects (up to 3 depth)
+    - Implement shortcuts guide
+    - Implement refresh (F5)
+    - Implement UI disambiguation for empty vs markdown vs git projects properly
+    - Improve widget event consuming
+    - Improve lookup algorithm
+- Improve **ObjectInfo** widget UI [display attributes with specialized components based on type]
+- Improve **FileInfo** widget layout
+- Fix popup showing up in taskbar/switcher sometimes
+- Fix `Action.invoke` with default arguments
+- Fix exceptions when popup with focus is shown [remove calling focus unnecessarily]
+- Fix **GameView** widget losing focus after closing game details
+- Fix `Thumbnail` not updating viewport when layout changes
+
+This update brings lots of UX improvements all-around.
+
+### Speech recognition
+The application now comes with a speech recognition plugin.
+The AI runs fully on local device and does not connect to any network.
+The plugin can be enabled in `Plugin Management` settings.
+It provides only basic settings and commands can only be registered programmatically for now.
+However, the recognition accuracy is good and resource usage is low.
+In time, this is expected to become more integrated into the application.
+For now, the goal is to enable user to register custom commands through UI.
+
+### GitProject improvements
+This widget is useful for developers and now becomes much more powerful. Enjoy.
+
+### Jfif images
+Jfif is more or less jpeg image. Some websites use this format and now the application supports these files. Enjoy. 
+
+### Exclusive fullscreen mode detection
+When screen-savers and other D3D applications, like games, are running, certain functionalities should be suppressed,
+to prevent stealing focus. Now this is properly supported. Enjoy your uninterrupted gaming sessions.
 
 ## [7.6.0] 2022 11 27
 

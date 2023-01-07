@@ -78,6 +78,7 @@ allprojects {
       flatDir { dirs("lib") }
    }
 
+   @Suppress("SpellCheckingInspection")
    dependencies {
 
       "Kotlin" group {
@@ -116,14 +117,18 @@ allprojects {
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
+      "Native" group {
+         implementation("net.java.dev.jna", "jna-platform", "5.12.1")
+         implementation("com.github.kwhat", "jnativehook", "2.2.2")
+      }
+
       "Audio" group {
          implementation("uk.co.caprica", "vlcj", "4.8.2")
          implementation("net.jthink", "jaudiotagger", "3.0.1")
       }
 
-      "Native" group {
-         implementation("net.java.dev.jna", "jna-platform", "5.12.1")
-         implementation("com.github.kwhat", "jnativehook", "2.2.2")
+      "AI" group {
+         implementation("com.alphacephei", "vosk", "0.3.45")
       }
 
       "Misc" group {

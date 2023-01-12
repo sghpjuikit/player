@@ -34,8 +34,10 @@ import sp.it.pl.plugin.PluginInfo
 import sp.it.util.access.vn
 import sp.it.util.async.coroutine.pairs
 import sp.it.util.async.coroutine.runSuspendingFx
+import sp.it.util.conf.EditMode
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
+import sp.it.util.conf.cvnro
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.readOnly
@@ -91,6 +93,10 @@ class SpeechRecognition: PluginBase() {
    /** Currently spoken text */
    val speakingText = vn<String>(null)
    val speaking = speakingText.map { it!=null }
+
+   private val speakingTextConf by cvnro(speakingText)
+      .noPersist()
+      .def(name = "Current speech", info = "Shows currently detected speech", editable = EditMode.APP)
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
    val blacklistWords by cList("a", "the", "please")

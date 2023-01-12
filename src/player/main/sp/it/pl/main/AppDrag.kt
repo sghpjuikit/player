@@ -27,7 +27,7 @@ import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.ui.objects.placeholder.DragPane
-import sp.it.util.async.coroutine.CPU
+import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
@@ -230,7 +230,7 @@ private fun futUrl(url: String): Fut<File> = runSuspendingFx {
    AppProgress.start("Downloading $url").reportFor { task ->
       val f = dirTmp/url.substringAfterLast("/", "" + uuid())
       HttpClient(CIO).use { http ->
-         http.downloadFile(url, f).flowOn(CPU).conflate().collect { awaitPulse(); task.reportProgress(it) }
+         http.downloadFile(url, f).flowOn(VT).conflate().collect { awaitPulse(); task.reportProgress(it) }
       }
       f.deleteOnExit()
       f

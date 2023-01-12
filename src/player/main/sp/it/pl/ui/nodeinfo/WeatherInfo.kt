@@ -27,7 +27,7 @@ import sp.it.util.access.ref.LazyR
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.async.*
-import sp.it.util.async.coroutine.CPU
+import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.flowTimer
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.coroutine.toSubscription
@@ -89,7 +89,7 @@ class WeatherInfo: HBox(15.0) {
    val data = vn<Data>(null)
 
    private val monitor = Subscribed {
-      launch(CPU) { flowTimer(0, 600*1000).collect { refresh() } }.toSubscription()
+      launch(VT) { flowTimer(0, 600*1000).collect { refresh() } }.toSubscription()
    }
 
    init {
@@ -138,7 +138,7 @@ class WeatherInfo: HBox(15.0) {
    }
 
    private fun refresh() {
-      launch(CPU) {
+      launch(VT) {
          val dataOld = dataPersistable?.asJson<Data?>()?.takeIf { it.isActual(this) }
          val dataNew = when {
             latitude.value==null || latitude.value==null || latitude.value==null -> null

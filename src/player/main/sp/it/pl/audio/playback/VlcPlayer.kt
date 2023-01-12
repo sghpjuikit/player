@@ -8,7 +8,6 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import kotlin.math.roundToInt
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import mu.KLogging
 import sp.it.pl.audio.Song
@@ -28,6 +27,7 @@ import sp.it.pl.main.reportFor
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.toUi
 import sp.it.util.action.ActionRegistrar
+import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.runFX
 import sp.it.util.conf.getDelegateConfig
@@ -306,7 +306,7 @@ class VlcPlayer: GeneralPlayer.Play {
       private val setup by lazy {
          runSuspendingFx {
             AppProgress.start("Obtaining Vlc").reportFor { task ->
-               withContext(IO) {
+               withContext(VT) {
                   val os = Os.current
                   val vlcDir = APP.location/"vlc"
                   val vlcZip = vlcDir/"vlc.zip"

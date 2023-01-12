@@ -29,19 +29,40 @@ import sp.it.util.async.NewThreadExecutor
 import sp.it.util.async.future.Fut
 import sp.it.util.reactive.Subscription
 
+/** Non-blocking dispatcher for JavaFX UI tasks. See [Dispatchers.JavaFx] */
 val FX = Dispatchers.JavaFx
 
+/** Non-blocking dispatcher for CPU tasks. See [Dispatchers.Default]. Use [Dispatchers.VT] instead. */
 val CPU = Dispatchers.Default
 
+/** Use [Dispatchers.VT] instead. */
 val IO: @BlockingExecutor CoroutineDispatcher = Dispatchers.IO
 
-val NEW = NewThreadExecutor().asCoroutineDispatcher()
+/** Blocking dispatcher for tasks on new thread. Use [Dispatchers.VT] instead. */
+val NEW: @BlockingExecutor CoroutineDispatcher = NewThreadExecutor().asCoroutineDispatcher()
 
+/**
+ * Blocking dispatcher for CPU tasks. Uses virtual threads and as such allows blocking call.
+ * Effectively the same as [Dispatchers.Default] + [Dispatchers.IO], but without the need to switch between the two.
+ * The virtual thread does the switching (called pinning) automatically for all blocking calls - optimal and convenient.
+ */
+val VT: @BlockingExecutor CoroutineDispatcher = sp.it.util.async.VT.asCoroutineDispatcher()
+
+/** Non-blocking dispatcher for JavaFX UI tasks. See [Dispatchers.JavaFx] */
 val Dispatchers.FX: JavaFxDispatcher get() = sp.it.util.async.coroutine.FX
 
+/** Non-blocking dispatcher for CPU tasks. See [Dispatchers.Default]. Use [Dispatchers.VT] instead. */
 val Dispatchers.CPU: CoroutineDispatcher get() = sp.it.util.async.coroutine.CPU
 
-val Dispatchers.NEW: CoroutineDispatcher get() = sp.it.util.async.coroutine.NEW
+/** Blocking dispatcher for tasks on new thread. Use [Dispatchers.VT] instead. */
+val Dispatchers.NEW: @BlockingExecutor CoroutineDispatcher get() = sp.it.util.async.coroutine.NEW
+
+/**
+ * Blocking dispatcher for CPU tasks. Uses virtual threads and as such allows blocking call.
+ * Effectively the same as [Dispatchers.Default] + [Dispatchers.IO], but without the need to switch between the two.
+ * The virtual thread does the switching (called pinning) automatically for all blocking calls - optimal and convenient.
+ */
+val Dispatchers.VT: @BlockingExecutor CoroutineDispatcher get() = sp.it.util.async.coroutine.VT
 
 fun launch(dispatcher: CoroutineDispatcher, start: CoroutineStart = DEFAULT, block: suspend (CoroutineScope) -> Unit) = CoroutineScope(dispatcher).launch(start = start, block = { block(this) })
 

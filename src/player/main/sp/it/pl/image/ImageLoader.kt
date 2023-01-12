@@ -33,7 +33,7 @@ import sp.it.pl.main.runAsAppProgram
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.util.Util.filenamizeString
-import sp.it.util.async.coroutine.IO
+import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
@@ -279,7 +279,7 @@ private val ffmpeg by lazy {
    }
    runSuspendingFx {
       AppProgress.start("Obtaining ffmpeg").reportFor { task ->
-         withContext(IO) {
+         withContext(VT) {
             if (!ffmpegBinary.exists()) {
                if (ffmpegDir.exists()) ffmpegDir.deleteRecursivelyOrThrow()
                downloadFile(ffmpegLink, ffmpegZip, task)

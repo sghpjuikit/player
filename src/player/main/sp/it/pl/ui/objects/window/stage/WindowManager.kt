@@ -33,9 +33,7 @@ import javafx.stage.StageStyle.UTILITY
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import kotlin.math.sqrt
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.invoke
-import kotlinx.coroutines.javafx.JavaFx
 import mu.KLogging
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentDb
@@ -74,6 +72,7 @@ import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.VT
 import sp.it.util.async.future.Fut
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
@@ -652,7 +651,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    }
 
    /** Create, show and return component specified by the specified factoryId. */
-   suspend fun launchComponent(factoryId: String): Component? = Dispatchers.JavaFx {
+   suspend fun launchComponent(factoryId: String): Component? = FX {
       instantiateComponent(factoryId).ifNotNull { showWindow(it) }
    }
 
@@ -660,7 +659,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    suspend fun launchComponent(launcher: File): Component? = instantiateComponent(launcher)?.apply { showWindow(this) }
 
    /** Create component specified by its factoryId. */
-   suspend fun instantiateComponent(factoryId: String): Component? = Dispatchers.JavaFx {
+   suspend fun instantiateComponent(factoryId: String): Component? = FX {
       val f = null
          ?: APP.widgetManager.factories.getComponentFactoryByName(factoryId)
          ?: APP.widgetManager.factories.getFactory(factoryId).orNull()
@@ -668,8 +667,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    }
 
    /** Create component specified by the launcher file. */
-   suspend fun instantiateComponent(launcher: File): Component? = Dispatchers.JavaFx {
-      val id = Dispatchers.IO {
+   suspend fun instantiateComponent(launcher: File): Component? = FX {
+      val id = VT {
          if (!launcher.exists()) null
          else runTry { launcher.useLines { it.take(2).toList().net { if (it.size==1) it[0] else "" } } }.orNull()
       }

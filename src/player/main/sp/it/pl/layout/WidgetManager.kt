@@ -31,7 +31,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.cast
 import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mu.KLogging
@@ -64,7 +63,7 @@ import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.access.Values
 import sp.it.util.access.v
 import sp.it.util.async.FX
-import sp.it.util.async.VT
+import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut.Companion.fut
@@ -170,7 +169,7 @@ class WidgetManager {
    /** Separates entries of a java classpath argument, passed to JVM. */
    private var classpathSeparator = Os.current.classpathSeparator
    private var initialized = false
-   private val compilerThread = VT.named("widget-compiler").limitParallelism(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt())
+   private val compilerThread = sp.it.util.async.VT.named("widget-compiler").limitParallelism(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt())
    private val kotlinc by lazy {
       val kotlinVersion = APP.location.lib.children().map { it.path }.find { "kotlin-stdlib-" in it }?.substringAfter("kotlin-stdlib-")?.substringBefore(".jar") ?: fail { "No lib/kotlin-stdlib found" }
       val kotlincDir = APP.location.kotlinc
@@ -184,7 +183,7 @@ class WidgetManager {
       val kotlincLink = URI("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/$kotlincZipName")
       runSuspendingFx {
          AppProgress.start("Obtaining Kotlin compiler").reportFor { task ->
-            withContext(IO) {
+            withContext(VT) {
                fun isCorrectVersion() = kotlincVersionFile.exists() && kotlincVersionFile.readText()==kotlincLink.toString()
 
                if (!isCorrectVersion() || !kotlincBinary.exists()) {

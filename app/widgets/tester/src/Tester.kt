@@ -108,7 +108,7 @@ import sp.it.util.animation.interpolator.QuadraticInterpolator
 import sp.it.util.animation.interpolator.QuarticInterpolator
 import sp.it.util.animation.interpolator.QuinticInterpolator
 import sp.it.util.animation.interpolator.SineInterpolator
-import sp.it.util.async.coroutine.CPU
+import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.runIoParallel
 import sp.it.util.collections.setToOne
@@ -554,7 +554,7 @@ class Tester(widget: Widget): SimpleController(widget) {
                .onClickDo { taskUiP("Test progress (on UI thread)") { } }
                .withText(RIGHT, CENTER_LEFT, "Run task with progress")
             lay += Icon(IconFA.PLAY)
-               .onClickDo { taskIoP("Test progress (on BGR thread)") { (1..10000000).asFlow().map { it/10000000.0 }.flowOn(CPU) } }
+               .onClickDo { taskIoP("Test progress (on BGR thread)") { (1..10000000).asFlow().map { it/10000000.0 }.flowOn(VT) } }
                .withText(RIGHT, CENTER_LEFT, "Run task with progress")
          }
       }

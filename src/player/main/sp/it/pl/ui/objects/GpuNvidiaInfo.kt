@@ -22,8 +22,8 @@ import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.vn
-import sp.it.util.async.coroutine.CPU
 import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.await
 import sp.it.util.async.coroutine.collectOn
 import sp.it.util.async.coroutine.flowTimer
@@ -88,7 +88,7 @@ class GpuNvidiaInfo: StackPane() {
 
    val monitor = Subscribed {
       var oldTicks by atomic(LongArray(CentralProcessor.TickType.values().size))
-      val s1 = launch(CPU) {
+      val s1 = launch(VT) {
          flowTimer(0, 5000).map {
             val mem = sysInfo.hardware.memory
             val cpu = sysInfoCpu
@@ -113,7 +113,7 @@ class GpuNvidiaInfo: StackPane() {
             sysMem update it.mem
          }
       }
-      val s2 = launch(CPU) {
+      val s2 = launch(VT) {
          flowTimer(0, 5000).map {
             val f = nvidiaSmi.value?.takeIf { it.exists() }
             if (f==null) null

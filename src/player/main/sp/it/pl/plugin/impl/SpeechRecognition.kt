@@ -7,7 +7,6 @@ import javax.sound.sampled.AudioFormat.Encoding.PCM_SIGNED
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.DataLine
 import javax.sound.sampled.TargetDataLine
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
@@ -32,6 +31,7 @@ import sp.it.pl.main.reportFor
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.util.access.vn
+import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.pairs
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.conf.EditMode
@@ -59,7 +59,7 @@ class SpeechRecognition: PluginBase() {
    private val setup by lazy {
       runSuspendingFx {
          AppProgress.start("Obtaining Speech Recognition AI model").reportFor { task ->
-            withContext(Dispatchers.IO) {
+            withContext(VT) {
                val modelZip = modelDir/"vlc.zip"
                val modelLink = URI("https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip")
 

@@ -20,8 +20,8 @@ import sp.it.pl.core.Parse
 import sp.it.pl.core.Parser
 import sp.it.pl.core.ParserOr
 import sp.it.util.access.v
-import sp.it.util.async.coroutine.CPU
 import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.VT
 import sp.it.util.conf.but
 import sp.it.util.conf.cv
 import sp.it.util.dev.failIf
@@ -198,7 +198,7 @@ suspend fun downloadFile(url: URI, file: File, task: StartAppTaskHandle): Unit =
 /** Downloads file to the specified file with [HttpClient.downloadFile] reporting the progress into the specified task. [StartAppTaskHandle.reportDone] must be called by the caller. */
 suspend fun downloadFile(url: String, file: File, task: StartAppTaskHandle): Unit = FX {
    HttpClient(CIO) { install(HttpTimeout) }.use { http ->
-      http.downloadFile(url, file).flowOn(CPU).conflate().collect { awaitPulse(); task.reportProgress(it) }
+      http.downloadFile(url, file).flowOn(VT).conflate().collect { awaitPulse(); task.reportProgress(it) }
    }
 }
 

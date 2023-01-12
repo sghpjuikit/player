@@ -1,13 +1,14 @@
 package sp.it.pl.main
 
+import org.jetbrains.annotations.Range
 
 typealias Bool = Boolean
 
-typealias Byte01 = Double
-typealias Short01 = Double
-typealias Int01 = Double
-typealias Long01 = Double
-typealias Double01 = Double
+typealias Byte01 = @Range(from = 0L, to = 1L) Double
+typealias Short01 = @Range(from = 0L, to = 1L) Double
+typealias Int01 = @Range(from = 0L, to = 1L) Double
+typealias Long01 = @Range(from = 0L, to = 1L) Double
+typealias Double01 = @Range(from = 0L, to = 1L) Double
 
 typealias Glyph  = de.jensd.fx.glyphs.GlyphIcons
 typealias IconTx = sp.it.pl.ui.objects.icon.TextIcon

@@ -41,7 +41,7 @@ import sp.it.pl.ui.objects.image.EmptyCover
 import sp.it.pl.ui.objects.image.FileCover
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.children
@@ -638,7 +638,7 @@ class Metadata: Song, Serializable {
    fun getMusicbrainzReleaseArtistId() = mbReleaseArtistId
 
    /** @return cover using the respective source */
-   @Blocks
+   @Blocking
    fun getCover(source: CoverSource): Cover {
       failIfFxThread()
 

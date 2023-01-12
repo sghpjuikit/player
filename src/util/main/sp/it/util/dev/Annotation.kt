@@ -37,7 +37,11 @@ annotation class Experimental(val reason: String)
 @Target(CLASS, FUNCTION, PROPERTY, PROPERTY_GETTER, PROPERTY_SETTER)
 annotation class ThreadSafe
 
-/** Denotes whether invocation of the method is blocking. Usually useful for ui frameworks. */
+/**
+ * Denotes whether invocation of the method is blocking. Usually useful for ui frameworks.
+ * Use [org.jetbrains.annotations.Blocking] and [org.jetbrains.annotations.NonBlocking]
+ */
+@Deprecated("Use org.jetbrains.annotations instead", level = DeprecationLevel.WARNING)
 @MustBeDocumented
 @Retention(AnnotationRetention.SOURCE)
 @Target(FUNCTION, PROPERTY, PROPERTY_GETTER, PROPERTY_SETTER)

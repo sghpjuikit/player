@@ -21,7 +21,7 @@ import java.time.temporal.ChronoField
 import java.util.zip.ZipFile
 import kotlin.text.Charsets.UTF_8
 import mu.KotlinLogging
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.file.FileType
 import sp.it.util.file.nameOrRoot
 import sp.it.util.file.type.MimeGroup
@@ -98,19 +98,19 @@ class CachingFile(f: File): File(f.path) {
    override fun canExecute() = isE
 }
 
-@Blocks
+@Blocking
 private fun File.readFileSize(): FileSize = FileSize(this)
 
-@Blocks
+@Blocking
 private fun File.readTimeAccessed(): FileTime? = readBasicFileAttributes()?.lastAccessTime()
 
-@Blocks
+@Blocking
 private fun File.readTimeModified(): LocalDateTime? = lastModified().localDateTimeFromMillis()
 
-@Blocks
+@Blocking
 private fun File.readTimeCreated(): FileTime? = readBasicFileAttributes()?.creationTime()
 
-@Blocks
+@Blocking
 private fun File.readTimeCreatedSmart(): FileTime? {
    val m = this.mimeType()
    return when {
@@ -120,13 +120,13 @@ private fun File.readTimeCreatedSmart(): FileTime? {
    }
 }
 
-@Blocks
+@Blocking
 private fun File.readTimeMinOfCreatedAndModified(): FileTime? = readBasicFileAttributes()
    ?.run {
       minOf(creationTime(), lastModifiedTime())
    }
 
-@Blocks
+@Blocking
 private fun File.readBasicFileAttributes(): BasicFileAttributes? =
    try {
       Files.readAttributes(toPath(), BasicFileAttributes::class.java)

@@ -11,7 +11,7 @@ import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.main.FileExtensions.m3u
 import sp.it.pl.main.FileExtensions.m3u8
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.div
@@ -23,7 +23,7 @@ private const val EXTM3U = "#EXTM3U"
 private const val EXTINF = "#EXTINF"
 private val logger = KotlinLogging.logger { }
 
-@Blocks
+@Blocking
 fun readM3uPlaylist(file: File): List<Song> {
    failIfFxThread()
 
@@ -50,7 +50,7 @@ fun readM3uPlaylist(file: File): List<Song> {
    }
 }
 
-@Blocks
+@Blocking
 fun writeM3uPlaylist(playlist: List<Song>, name: String, dir: File) {
    failIfFxThread()
 

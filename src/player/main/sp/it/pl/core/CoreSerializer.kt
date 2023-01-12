@@ -11,7 +11,7 @@ import mu.KotlinLogging
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.util.async.threadFactory
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.div
 import sp.it.util.file.writeSafely
@@ -45,7 +45,7 @@ object CoreSerializer: Core {
     *
     * @return deserialized object or null if none existed or error
     */
-   @Blocks
+   @Blocking
    inline fun <reified T: Serializable> readSingleStorage(): Try<T?,Throwable> {
       val f = APP.location.user.library/(T::class.simpleName ?: T::class.jvmName)
 
@@ -64,7 +64,7 @@ object CoreSerializer: Core {
     * * there can only be one object of the erased type of this type (e.g. List<A> and List<B> produce same type)
     * * any previously stored object is overwritten
     */
-   @Blocks
+   @Blocking
    inline fun <reified T: Serializable> writeSingleStorage(o: T): Try<Nothing?, Throwable> {
       if (APP.rank==SLAVE) return Try.ok()
 

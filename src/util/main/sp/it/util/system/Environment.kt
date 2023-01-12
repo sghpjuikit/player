@@ -16,9 +16,9 @@ import javafx.stage.FileChooser
 import javafx.stage.Screen
 import javafx.stage.Window
 import mu.KotlinLogging
+import org.jetbrains.annotations.NonBlocking
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runVT
-import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType
@@ -407,7 +407,7 @@ private fun File.openWindowsExplorerAndSelect() =
  *
  * @return true if the file is an executable file
  */
-@Blocks(false)
+@NonBlocking
 fun File.isExecutable(): Boolean = when (Os.current) {
    Os.WINDOWS -> hasExtension("exe", "bat") || (this.hasExtension("lnk") && WindowsShortcut.targetedFile(this).orNull()?.isExecutable()==true)
    else -> hasExtension("sh")

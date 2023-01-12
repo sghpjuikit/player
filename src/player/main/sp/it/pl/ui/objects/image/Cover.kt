@@ -8,7 +8,7 @@ import org.jaudiotagger.tag.images.Artwork
 import sp.it.pl.audio.tagging.imageOrNull
 import sp.it.pl.audio.tagging.info
 import sp.it.pl.image.ImageStandardLoader
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.functional.orNull
 import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.image.FitFrom.OUTSIDE
@@ -22,11 +22,11 @@ sealed interface Cover {
    fun isEmpty(): Boolean
 
    /** @return the cover image in the request size (not guaranteed) or null if none */
-   @Blocks
+   @Blocking
    fun getImage(size: ImageSize, fit: FitFrom): Image?
 
    /** @return the cover image in original resolution or null if none */
-   @Blocks
+   @Blocking
    fun getImageFullSize(): Image? = getImage(ImageSize(0, 0), OUTSIDE)
 
    /** @return file denoting the image or null if none */

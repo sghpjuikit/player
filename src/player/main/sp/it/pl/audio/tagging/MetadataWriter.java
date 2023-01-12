@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.Song;
-import sp.it.util.dev.Blocks;
+import org.jetbrains.annotations.Blocking;
 import sp.it.util.functional.Try;
 import sp.it.util.units.NofX;
 import static java.lang.Math.max;
@@ -759,7 +759,7 @@ public class MetadataWriter extends Song {
 	 *
 	 * @return ok containing whether the tag changed or error containing the exception
 	 */
-	@Blocks
+	@Blocking
 	Try<Boolean, Exception> write() {
 		failIfFxThread();
 

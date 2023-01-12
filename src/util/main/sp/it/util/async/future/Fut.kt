@@ -6,6 +6,7 @@ import java.util.concurrent.Executor
 import java.util.function.Consumer
 import javafx.util.Duration
 import mu.KLogging
+import org.jetbrains.annotations.Blocking
 import sp.it.util.async.CURR
 import sp.it.util.async.FX
 import sp.it.util.async.IO
@@ -13,7 +14,6 @@ import sp.it.util.async.future.Fut.Result.ResultFail
 import sp.it.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.util.async.future.Fut.Result.ResultOk
 import sp.it.util.async.sleep
-import sp.it.util.dev.Blocks
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getAny
@@ -85,7 +85,7 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
    }
 
    /** Blocks current thread until [isDone] and returns the result. */
-   @Blocks
+   @Blocking
    fun getDone(): Result<T> = try {
       ResultOk(f.get())
    } catch (e: InterruptedException) {
@@ -95,13 +95,13 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
    }
 
    /** Blocks current thread until [isDone]. Returns this. */
-   @Blocks
+   @Blocking
    fun block(): Fut<T> = apply { getDone() }
 
-   @Blocks
+   @Blocking
    fun blockAndGet(): Result<T> = getDone()
 
-   @Blocks
+   @Blocking
    fun blockAndGetOrThrow(): T = block().getDone().toTryRaw().orThrow
 
    companion object: KLogging() {

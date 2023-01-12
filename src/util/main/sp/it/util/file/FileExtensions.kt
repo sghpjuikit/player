@@ -7,7 +7,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import kotlin.io.path.pathString
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.file.FileType.*
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
@@ -36,11 +36,11 @@ fun File.getFilesR(maxDepth: Int = Int.MAX_VALUE, fileType: FileType?, vararg op
    return runTry { Files.find(toPath(), maxDepth, p, *options).use { it.map(m).toList() } }.orNull().orEmpty()
 }
 
-@Blocks @Throws(IOException::class)
+@Blocking @Throws(IOException::class)
 fun File.deleteOrThrow(): Boolean = delete().also { if (!it) throw IOException("Failed to delete file=$this") }
 
-@Blocks @Throws(IOException::class)
+@Blocking @Throws(IOException::class)
 fun File.deleteRecursivelyOrThrow(): Boolean = deleteRecursively().also { if (!it) throw IOException("Failed to delete file=$this") }
 
-@Blocks @Throws(IOException::class)
+@Blocking @Throws(IOException::class)
 fun File.setExecutableOrThrow(executable: Boolean): Boolean = setExecutable(executable).also { if (!it) throw IOException("Failed to set executable=$executable for file=$this") }

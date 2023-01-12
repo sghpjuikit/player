@@ -11,7 +11,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
 import sp.it.util.collections.setTo
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull
@@ -33,7 +33,7 @@ class PlayerState {
       playback = s.playback.toDomain()
    }
 
-   @Blocks
+   @Blocking
    fun serialize() {
       playlistId = PlaylistManager.active
 
@@ -50,7 +50,7 @@ class PlayerState {
 
    companion object {
 
-      @Blocks
+      @Blocking
       fun deserialize() = run {
          CoreSerializer.readSingleStorage<PlayerStateDB>()
             .ifErrorNotify {

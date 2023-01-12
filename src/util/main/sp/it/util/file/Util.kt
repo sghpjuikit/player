@@ -15,7 +15,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
 import java.util.zip.ZipFile
 import mu.KotlinLogging
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.fail
 import sp.it.util.functional.Try
 import sp.it.util.functional.and
@@ -30,14 +30,14 @@ val File.nameOrRoot: String
    get() = name.takeUnless { it.isEmpty() } ?: toString()
 
 /** @return file itself if exists or its first existing parent or error if null or no parent exists */
-@Blocks
+@Blocking
 fun File.find1stExistingParentFile(): Try<File, Nothing?> = when {
    exists() -> Try.ok(this)
    else -> parentFile?.find1stExistingParentFile() ?: Try.error()
 }
 
 /** @return first existing directory in this file's hierarchy or error if no parent exists */
-@Blocks
+@Blocking
 fun File.find1stExistingParentDir(): Try<File, Nothing?> = when {
    exists() && isDirectory -> Try.ok(this)
    else -> parentFile?.find1stExistingParentDir() ?: Try.error()
@@ -88,15 +88,15 @@ infix fun File.isSiblingOf(sibling: File) = parentFile==sibling.parentFile
  *
  * @return child files of the directory or empty if parameter not a directory or I/O error occurs
  */
-@Blocks
+@Blocking
 fun File.children(): Sequence<File> = listFiles()?.asSequence().orEmpty()
 
 /** @see File.children */
-@Blocks
+@Blocking
 fun File.children(filter: FileFilter): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
 
 /** @see File.children */
-@Blocks
+@Blocking
 fun File.children(filter: FilenameFilter): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
 
 /** @return [File.getParentFile] or self if there is no parent */
@@ -117,6 +117,7 @@ fun Path.toFileOrNull() =
    }
 
 /** @return (File(uri)) file denoting the resource of this URI or null if [IllegalArgumentException] is thrown */
+@Suppress("DEPRECATION")
 fun URI.toFileOrNull() =
    try {
       File(this)
@@ -150,7 +151,7 @@ fun File.toURLOrNull() =
  * * [SecurityException] when security manager exists and file write is not permitted
  * * [java.io.IOException] when error occurs while writing to the file output stream
  */
-@Blocks
+@Blocking
 @JvmOverloads
 fun File.writeTextTry(text: String, charset: Charset = Charsets.UTF_8) = runTry { writeText(text, charset) }
 
@@ -160,7 +161,7 @@ fun File.writeTextTry(text: String, charset: Charset = Charsets.UTF_8) = runTry 
  * * [SecurityException] when security manager exists and file write is not permitted
  * * [java.io.IOException] when error occurs while writing to the file output stream
  */
-@Blocks
+@Blocking
 @JvmOverloads
 fun Sequence<String>.writeToFileTry(file: File, charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_BUFFER_SIZE) = runTry {
    file.bufferedWriter(charset, bufferSize).use { w -> forEach { w.append(it) } }
@@ -184,7 +185,7 @@ fun Sequence<String>.writeLnToFileTry(file: File, charset: Charset = Charsets.UT
  *
  * Note this method can throw [OutOfMemoryError] when file is too big
  */
-@Blocks
+@Blocking
 @JvmOverloads
 fun File.readTextTry(charset: Charset = Charsets.UTF_8) = runTry { readText(charset) }
 
@@ -228,7 +229,7 @@ fun File.readTextTry(charset: Charset = Charsets.UTF_8) = runTry { readText(char
  *
  * @return ok if steps 1 and 2 and 3 and 4 and 5 succeed, error otherwise
  */
-@Blocks
+@Blocking
 fun File.writeSafely(block: (File) -> Try<*, Throwable>): Try<Nothing?, Throwable> {
    val f = absoluteFile
    val fW = f.resolveSibling("$name.w.tmp")
@@ -273,7 +274,7 @@ fun File.tryDeleteIfExists(message: (Throwable) -> String) = runTry { Files.dele
  * Unzips a zip file using [ZipFile] into the specified target directory, retaining the zip structure.
  * Optionally, zip entry path transformer can be used to transform the full entry paths to target-relative file paths.
  */
-@Blocks
+@Blocking
 fun File.unzip(target: File, pathTransformer: (String) -> String = { it }) {
    ZipFile(this).use { zip ->
       zip.entries().asSequence().forEach { entry ->

@@ -27,7 +27,7 @@ import javax.imageio.stream.ImageInputStream
 import kotlin.concurrent.withLock
 import mu.KotlinLogging
 import sp.it.util.async.runFX
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
 import sp.it.util.file.toURLOrNull
@@ -357,7 +357,7 @@ fun imgImplLoadFX(file: File, size: ImageSize, scaleExact: Boolean = false): Ima
  * Returns image size in pixels or error if unable to find out.
  * Involves an i/o operation, but does not read whole image into memory.
  */
-@Blocks
+@Blocking
 fun getImageDim(f: File): Try<Dimension, Throwable> =
    runTry {
       when (f.mimeType()) {

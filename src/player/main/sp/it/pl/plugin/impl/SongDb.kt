@@ -23,7 +23,7 @@ import sp.it.util.async.runNew
 import sp.it.util.async.runVT
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.setTo
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.div
 import sp.it.util.file.readTextTry
@@ -73,7 +73,7 @@ class SongDb {
    /** @return item from library with the specified URI or null if not found */
    fun getSong(uri: URI): Metadata? = songsById[uri.toString()]
 
-   @Blocks
+   @Blocking
    private fun getAllSongs(): MetadatasDB = CoreSerializer.readSingleStorage<MetadatasDB>()
       .orAlsoTry {
          val songs = songListFile.useLines { it.toList() }

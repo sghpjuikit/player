@@ -88,7 +88,7 @@ allprojects {
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.4")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.6.4")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.6.4")
-         implementation("org.jetbrains", "annotations", "23.1.0")
+         implementation("org.jetbrains", "annotations", "24.0.0")
       }
 
       "lib" group {

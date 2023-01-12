@@ -5,7 +5,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.Try
@@ -65,13 +65,13 @@ fun Song.write(setter: (MetadataWriter) -> Unit, action: (Try<Boolean, Exception
 /**
  * @param setter song tag editor
  */
-@Blocks
+@Blocking
 fun Song.writeNoRefresh(setter: (MetadataWriter) -> Unit) = listOf(this).writeNoRefresh(setter)
 
 /**
  * @param setter song tag editor
  */
-@Blocks
+@Blocking
 fun Collection<Song>.writeNoRefresh(setter: (MetadataWriter) -> Unit) {
    failIfFxThread()
    if (APP.audio.readOnly) return

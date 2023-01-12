@@ -6,7 +6,7 @@ import java.nio.file.Files
 import java.time.LocalDateTime
 import kotlin.text.Charsets.UTF_8
 import mu.KotlinLogging
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.file.properties.PropVal.PropValN
 import sp.it.util.functional.Try
@@ -56,7 +56,7 @@ sealed class PropVal {
  * * [SecurityException] when security manager exists and file write is not permitted
  * * [java.io.IOException] when error occurs while writing to the file output stream
  */
-@Blocks
+@Blocking
 fun File.readProperties(): Try<Map<String, PropVal>, Throwable> {
    return runTry {
       useLines(UTF_8) {
@@ -91,7 +91,7 @@ fun File.readProperties(): Try<Map<String, PropVal>, Throwable> {
  * * [SecurityException] when security manager exists and file write is not permitted
  * * [java.io.IOException] when error occurs while writing to the file output stream
  */
-@Blocks
+@Blocking
 fun File.writeProperties(title: String, properties: Collection<Property>): Try<Unit, Throwable> {
    val header = """
         |name: $title

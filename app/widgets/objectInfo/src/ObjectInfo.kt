@@ -50,7 +50,7 @@ import sp.it.util.Named
 import sp.it.util.async.FX
 import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.getElementClass
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.toPrettyS
@@ -117,7 +117,7 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
       )
    }
 
-   @Blocks
+   @Blocking
    fun audioMetadata(d: File): List<Named> =
       d.readAudioFile().map { it.audioHeader to it.tag }.map { (header, tag) ->
          val h = header.toString().lineSequence().map { it.trimStart() }.joinToString("\n\t")
@@ -136,7 +136,7 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
          listOf()
       }
 
-   @Blocks
+   @Blocking
    fun imageMetadata(f: File): List<Named> =
       runTry {
          ImageMetadataReader.readMetadata(f)

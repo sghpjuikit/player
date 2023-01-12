@@ -7,7 +7,7 @@ import sp.it.util.async.future.Fut.Result
 import sp.it.util.async.future.Fut.Result.ResultFail
 import sp.it.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.util.async.future.Fut.Result.ResultOk
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfFxThread
 
@@ -21,7 +21,7 @@ private val logger = KotlinLogging.logger {}
  * Must not be called on fx thread.
  */
 @ThreadSafe
-@Blocks
+@Blocking
 fun <T> Task<T>.runGet(): Result<T> {
    failIfFxThread()
 

@@ -47,7 +47,7 @@ import sp.it.pl.ui.objects.window.stage.WindowDb
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.fieldvalue.IconField
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.fail
 import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsConverter
@@ -183,7 +183,7 @@ class CoreSerializerJson: Core {
       }
    }
 
-   @Blocks
+   @Blocking
    inline fun <reified T: Any> toJson(t: T, file: File): Try<Nothing?, Throwable> {
       return file.writeSafely {
          it.writeTextTry(json.toJsonValue(t).toPrettyS())
@@ -193,7 +193,7 @@ class CoreSerializerJson: Core {
    }
 
    // TODO: error handling on call sites
-   @Blocks
+   @Blocking
    inline fun <reified T> fromJson(file: File): Try<T, Throwable> {
       return if (!file.exists())
          error<T, Throwable>(Exception("Couldn't deserialize ${T::class} from file $file", FileNotFoundException(file.absolutePath)))

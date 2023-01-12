@@ -34,7 +34,7 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
 import sp.it.util.file.div
@@ -400,7 +400,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       }
    }
 
-   @Blocks
+   @Blocking
    fun storeDefaultConfigs() {
       failIf(!isLoaded) { "Must be loaded to export default configs" }
 
@@ -416,7 +416,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
          .forEach(fieldsRaw::putIfAbsent)
    }
 
-   @Blocks
+   @Blocking
    fun clearDefaultConfigs() {
       val configFile = userLocation / "default.properties"
       configFile.delete()

@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import sp.it.util.async.coroutine.runSuspending
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.ThreadSafe
 
 /** @return this executor limiting number of parallel executions to at most the specified times, after which new executions wait for [Semaphore.acquire] */
@@ -47,7 +47,7 @@ class SemaphoreLock {
    private val parallelismBlocked = AtomicLong(0)
 
    @ThreadSafe
-   @Blocks
+   @Blocking
    fun acquireAndRelease() {
       semaphore.acquire()
       semaphore.release()

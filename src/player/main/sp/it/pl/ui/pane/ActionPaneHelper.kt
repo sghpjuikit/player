@@ -24,7 +24,7 @@ import sp.it.util.async.runIO
 import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementClass
 import sp.it.util.conf.Constraint
-import sp.it.util.dev.Blocks
+import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.failIfNotFxThread
@@ -136,7 +136,7 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
    }
 
    @Suppress("UNCHECKED_CAST")
-   @Blocks
+   @Blocking
    @Throws(Throwable::class)
    operator fun invoke(context: ActContext, data: Any?): Any? {
       if (isLong) failIfFxThread()
@@ -151,7 +151,7 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
       }
    }
 
-   @Blocks
+   @Blocking
    fun invokeTry(context: ActContext, data: Any?): Try<Any?, Throwable> {
       return runTry { invoke(context, data) }.mapError { RuntimeException("Running action=$name failed", it) }
    }

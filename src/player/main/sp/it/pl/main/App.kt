@@ -141,20 +141,7 @@ class App: Application(), GlobalConfigDelegator {
    var isInitialized: Try<Unit, Throwable> = Try.error(Exception("Initialization has not run yet"))
       private set
 
-   /** Global event bus. Usage: simply push an event or observe. Use of event constants/objects is advised. */
-   val actionStream = Handler1<Any>().apply {
-      onEvent<Any> {
-         if (it is Throwable) logger.error(it) { "Error:" }
-         else logger.info { "Event: $it" }
-      }
-   }
-   /** History for [actionStream]. */
-   val actionsLog = AppEventLog
 
-   /** Various actions for the application */
-   val actions = AppActions()
-   /** Observable [System.out]. */
-   val systemout = SystemOutListener()
    /** Called just after this application is started (successfully) and fully initialized. Runs at most once, on fx thread. */
    val onStarted = Disposer()
    /** Called just before this application is stopped when it is fully still running. Runs at most once, on fx thread. */
@@ -178,6 +165,19 @@ class App: Application(), GlobalConfigDelegator {
          }
       }
    }
+   /** Global event bus. Usage: simply push an event or observe. Use of event constants/objects is advised. */
+   val actionStream = Handler1<Any>().apply {
+      onEvent<Any> {
+         if (it is Throwable) logger.error(it) { "Error:" }
+         else logger.info { "Event: $it" }
+      }
+   }
+   /** History for [actionStream]. */
+   val actionsLog = AppEventLog
+   /** Various actions for the application */
+   val actions = AppActions()
+   /** Observable [System.out]. */
+   val systemout = SystemOutListener()
 
    /** Configuration core. */
    val configuration = MainConfiguration.apply {

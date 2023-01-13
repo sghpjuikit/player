@@ -1,6 +1,5 @@
 package sp.it.pl.plugin.impl
 
-import java.io.File
 import java.net.URI
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioFormat.Encoding.PCM_SIGNED
@@ -54,8 +53,8 @@ import sp.it.util.text.words
 /** Provides speech recognition and voice control capabilities. See https://alphacephei.com/vosk/models. */
 class SpeechRecognition: PluginBase() {
 
-   private val modelDir = APP.location / "speech-recognition-ai-model" / "vosk-model-small-en-us-0.15"
-   private val modelPath = modelDir.parentFile!!.name + File.separator + modelDir.name
+   private val modelDir = APP.location / "speech-recognition-ai-model"
+   private val modelPath = (modelDir / "vosk-model-small-en-us-0.15").absolutePath
    private val setup by lazy {
       runSuspendingFx {
          AppProgress.start("Obtaining Speech Recognition AI model").reportFor { task ->

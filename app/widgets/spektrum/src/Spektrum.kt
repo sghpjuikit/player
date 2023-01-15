@@ -724,7 +724,7 @@ class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener
 
          // group amplitude together in frequency bin
          while (k<highLimit) {
-            val amplitude = interpolateFunction.value(k)
+            val amplitude = try { interpolateFunction.value(k) } catch (t: Throwable) { 1.0 }
             frequencyAmplitudes[m] = frequencyAmplitudes[m] + amplitude.pow(2) // sum up the "normalized window corrected" energy
             k += step
          }

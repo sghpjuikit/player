@@ -21,6 +21,7 @@ class ValueToggleButtonGroup<T>(val initialValue: T, val values: List<T>, val cu
    val value = vx(initialValue)
 
    init {
+      styleClass += "toggle-group"
       val group = ToggleGroup()
       values.forEachIndexed { i, it ->
          lay += ToggleButton().apply {

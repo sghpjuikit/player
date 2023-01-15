@@ -1834,6 +1834,16 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-text-alignment: justify;
 }
 
+/**************************** TOGGLE BUTTON GROUP *****************************/
+
+/**
+ * Group of ToggleButtons
+ * inherits: HBox
+ */
+.toggle-group {
+    -fx-alignment: CENTER_LEFT;
+}
+
 /*********************************** SLIDER ***********************************/
 
 /**
@@ -3085,7 +3095,7 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 /**
- * inherits: ValueToggleButtonGroup
+ * inherits: toggle-group
  */
 .toggle-group-config-editor {}
 

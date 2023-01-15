@@ -560,7 +560,7 @@ class TarsosAudioEngine(settings: Spektrum) {
             val audioFormat = AudioFormat(settings.sampleRate.value.toFloat(), settings.sampleSizeInBits.value, settings.audioFormatChannels, settings.audioFormatSigned, settings.audioFormatBigEndian)
             val line = obtainLine(mixer, audioFormat, settings.bufferSize.value)
             val audioStream = JVMAudioInputStream(AudioInputStream(line))
-            dispatcher = AudioDispatcher(audioStream, settings.bufferSize.value, settings.bufferOverlap.value).apply {
+            dispatcher = AudioDispatcher(audioStream,(settings.bufferSize.value max settings.bufferOverlap.value).plus(1)/audioFormat.frameSize*audioFormat.frameSize, settings.bufferOverlap.value).apply {
                addAudioProcessor(FFTAudioProcessor(audioFormat, fttListenerList, settings))
             }
             audioThread = audioThreadFactory.start(dispatcher)

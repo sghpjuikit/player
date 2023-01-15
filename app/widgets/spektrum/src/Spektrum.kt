@@ -144,7 +144,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    var effectShift  by c(0.0).between(-1.0, +1.0)
       .def(name = "Bars effect - shift", info = "Shift bars along the shape to left/right by fraction of the shape length")
    var effectMoving by c(ZERO!!)
-      .def(name = "Bars effect - shifting", info = "Keep shifting bars along the shape left/right in the time period ")
+      .def(name = "Bars effect - shifting", info = "Keep shifting bars along the shape to left/right by shape length per the time period ")
    var effectFade   by c(BarFade.NONE)
       .def(name = "Bars effect - fade", info = "Fade bars to 0 towards the edge")
    var barLineCap   by c(StrokeLineCap.ROUND)
@@ -235,7 +235,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
             }
             BarData.FREQUENCY_AMPLITUDES -> barsRaw
          }
-         DrawingData(settings, bars, time).updateBars()
+         DrawingData(settings, bars, time/1000000).updateBars()
       }
 
       init {

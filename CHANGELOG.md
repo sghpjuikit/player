@@ -11,8 +11,10 @@ All notable changes to this project will be documented in this file. Format base
 - Implement better window radius support [clip content to radius]
 - Implement skin **FlowBlack**
 - Implement **Configurator** widget shortcut filter to be 3-valued
+- Implement **GameView** widget game attributes
 - Implement exclusive fullscreen detection
     - use to avoid displaying **StartScreen** overlays and dock windows when exclusive fullscreen mode application is running
+- Implement application process elevation read-only config
 - Improve UX [adjust widget controls activation area size]
 - Improve styling [fix various effects & inconsistencies]
 - Improve **GitProjects** widget UX
@@ -28,7 +30,11 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `Action.invoke` with default arguments
 - Fix exceptions when popup with focus is shown [remove calling focus unnecessarily]
 - Fix **GameView** widget losing focus after closing game details
+- Fix **Spektrum** widget shifting effect off 1000000 times
+- Fix **Spektrum** widget state corruption after out of range exceptions during interpolation
+- Fix **Spektrum** widget audio dispatcher buffer size calculation
 - Fix `Thumbnail` not updating viewport when layout changes
+- Fix `ToggleButtonGroup` styling
 
 This update brings lots of UX improvements all-around.
 
@@ -50,6 +56,11 @@ Jfif is more or less jpeg image. Some websites use this format and now the appli
 ### Exclusive fullscreen mode detection
 When screen-savers and other D3D applications, like games, are running, certain functionalities should be suppressed,
 to prevent stealing focus. Now this is properly supported. Enjoy your uninterrupted gaming sessions.
+
+### Virtual threads
+All `Fut` and `coroutine` based asynchronous behavior now uses virtual threads instead of CPU + IO thread pools.
+Using `Dispatchers.VT` allows blocking inside coroutines unless it is running on a ui thread.
+
 
 ## [7.6.0] 2022 11 27
 

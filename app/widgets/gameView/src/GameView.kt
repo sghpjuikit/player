@@ -38,6 +38,7 @@ import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppEventLog
 import sp.it.pl.main.Events.FileEvent
+import sp.it.pl.main.FutVal
 import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
@@ -47,6 +48,7 @@ import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.isImage
 import sp.it.pl.main.onErrorNotify
+import sp.it.pl.main.textColon
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.objects.grid.GridFileThumbCell
@@ -67,6 +69,7 @@ import sp.it.pl.ui.objects.tree.tree
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.pl.web.WebSearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
+import sp.it.util.Na
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.OrV.OrValue.Initial.Override
 import sp.it.util.access.fieldvalue.CachingFile
@@ -96,6 +99,7 @@ import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.children
+import sp.it.util.file.creationTime
 import sp.it.util.file.div
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.properties.PropVal
@@ -143,6 +147,7 @@ import sp.it.util.ui.typeText
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
+import sp.it.util.units.FileSize
 import sp.it.util.units.millis
 import sp.it.util.units.times
 import sp.it.util.units.version
@@ -416,6 +421,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       private val cover = Thumbnail()
       private val titleL = label()
       private val infoT = MdNode()
+      private val attributesP = VBox()
       private val fileTree = TreeView<File>()
       private val animated = ArrayList<Node>()
 
@@ -428,7 +434,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          cover.pane.isMouseTransparent = true
          cover.borderVisible = false
          cover.fitFrom.value = OUTSIDE
-         animated += sequenceOf(cover.pane, titleL, infoT, fileTree)
+         animated += sequenceOf(cover.pane, titleL, infoT, attributesP, fileTree)
 
          lay += vBox(20, CENTER) {
             lay += anchorPane {
@@ -450,6 +456,9 @@ class GameView(widget: Widget): SimpleController(widget) {
 
                      content = vBox(20, CENTER) {
                         lay += infoT
+                        lay += attributesP.apply {
+                           spacing = 5.emScaled
+                        }
                         lay(ALWAYS) += fileTree.apply {
                            minHeight = 300.emScaled
                         }
@@ -508,6 +517,8 @@ class GameView(widget: Widget): SimpleController(widget) {
                val title = g.name
                val location = g.location.toFast(DIRECTORY)
                val infoFile = g.readmeFile
+               val creationTime = g.location.creationTime().orNull() ?: Na
+               val size = FutVal { runVT { FileSize.ofBytes(g.location.walk().map { it.length() }.sum()) } }
                val info = g.readmeFile.readTextTry().getOr("")
                val coverImage = g.cover.getImage(cover.calculateImageLoadSize(), OUTSIDE)
                val triggerLoading = g.settings
@@ -518,6 +529,12 @@ class GameView(widget: Widget): SimpleController(widget) {
                infoT.readFile(g.readmeFile)
                fileTree.root = tree(it.location)
                titleL.text = ""
+
+               attributesP.children setTo listOf(
+                  textColon("Location", it.location),
+                  textColon("Added to library", it.creationTime),
+                  textColon("Size", it.size)
+               )
 
                val typeTitle = typeText(it.title, ' ')
                anim(30.millis*it.title.length) { titleL.text = typeTitle(it) }.delay(150.millis).play()

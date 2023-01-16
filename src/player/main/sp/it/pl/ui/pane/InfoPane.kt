@@ -21,6 +21,7 @@ import sp.it.pl.main.toUi
 import sp.it.util.Named
 import sp.it.util.named
 import sp.it.util.namedOrNaIfEmpty
+import sp.it.util.namedOrNaIfNull
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
 import sp.it.util.text.capitalLower
@@ -121,7 +122,8 @@ class InfoPane: OverlayPane<Unit>() {
          "commandline" namedOrNaIfEmpty pInfo.commandLine(),
          "start time" namedOrNaIfEmpty pInfo.startInstant().map { it.toLocalDateTime() },
          "running time" namedOrNaIfEmpty pInfo.totalCpuDuration().map { it.javafx.toHMSMs() },
-         "user" namedOrNaIfEmpty pInfo.user()
+         "user" namedOrNaIfEmpty pInfo.user(),
+         "elevated" namedOrNaIfNull APP.processElevated
       )
       ps.group("java") += listOf(
          "vm.arguments" named APP.fetchVMArguments().joinToString(" ")

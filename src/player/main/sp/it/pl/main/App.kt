@@ -2,6 +2,7 @@ package sp.it.pl.main
 
 import sp.it.pl.main.AppSettings.app as conf
 import ch.qos.logback.classic.Level
+import com.sun.jna.platform.win32.Advapi32Util
 import com.sun.tools.attach.VirtualMachine
 import java.io.File
 import java.lang.management.ManagementFactory
@@ -40,14 +41,18 @@ import sp.it.util.access.v
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
 import sp.it.util.async.runLater
+import sp.it.util.conf.ConfigDef
+import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.conf.MainConfiguration
 import sp.it.util.conf.c
+import sp.it.util.conf.cn
 import sp.it.util.conf.collectActionsOf
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
+import sp.it.util.conf.noUi
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
@@ -198,6 +203,10 @@ class App: Application(), GlobalConfigDelegator {
       logger.info { "App Args: ${fetchArguments()}" }
    }
 
+   /** Shows whether this application's process is running with elevated permissions. */
+   val processElevated by cn(if (WINDOWS.isCurrent) Advapi32Util.isCurrentProcessElevated() else null)
+      .noPersist().apply { if (!WINDOWS.isCurrent) noUi() } def ConfigDef("Process elevated", "Whether this application's process is running with elevated permissions", editable = NONE)
+
    /** Environment core. */
    val env = CoreEnv.apply { init() }
    /** Image I/O core. */
@@ -233,34 +242,34 @@ class App: Application(), GlobalConfigDelegator {
    /** Listener for system events, such as USB add/remove. */
    val sysEvents = AppSystemEvents()
 
-   /** Application locale. */
+   /** Application locale. See [conf.locale] */
    val locale by cv(Locale.ENGLISH).valuesUnsealed { Locale.getAvailableLocales().toList() } def conf.locale attach { actions.showSuggestRestartNotification() }
-   /** Developer mode. Enables certain features useful for developers or power users. */
+   /** Developer mode. Enables certain features useful for developers or power users. See [conf.developerMode] */
    val developerMode by cv(false) { v(it || parameterProcessor.cli.dev) } def conf.developerMode
-   /** Os menu integrator. */
+   /** Os menu integrator. See [conf.osMenuIntegration] */
    val menuIntegration by cv(AppOsMenuIntegrator).noPersist().readOnlyUnless(WINDOWS.isCurrent) def conf.osMenuIntegration
-   /** Action that calls [System.gc]. */
+   /** Action that calls [System.gc]. See [conf.runGarbageCollector] */
    val actionCallGc by cr(conf.runGarbageCollector) { System.gc() }.readOnlyUnless(developerMode)
-   /** Action that persists [configuration] to default application properties file. */
+   /** Action that persists [configuration] to default application properties file. See [conf.settings.saveSettings] */
    val actionSettingsSave by cr(conf.settings.saveSettings) {
       configuration.save(name, location.user.application_properties)
    }
-   /** Action that persists [configuration] to user specified file. */
+   /** Action that persists [configuration] to user specified file. See [conf.settings.saveSettingsToFile] */
    val actionSettingsSaveTo by cr(conf.settings.saveSettingsToFile) {
       saveFile("Export settings", location.user.application_properties, "SpitPlayer", null, ExtensionFilter("Properties", "*.properties")).ifOk {
          configuration.save(name, it)
       }
    }
-   /** Action that loads [configuration] to default values. */
+   /** Action that loads [configuration] to default values. See [conf.settings.loadDefaultSettings] */
    val actionSettingsLoadDefault by cr(conf.settings.loadDefaultSettings) {
       configuration.toDefault()
    }
-   /** Action that re-loads [configuration] to values in default application properties file. */
+   /** Action that re-loads [configuration] to values in default application properties file. See [conf.settings.loadSettings] */
    val actionSettingsLoad by cr(conf.settings.loadSettings) {
       configuration.rawAdd(location.user.application_properties)
       configuration.rawSet()
    }
-   /** Action that re-loads [configuration] to values in user specified file. */
+   /** Action that re-loads [configuration] to values in user specified file. See [conf.settings.loadSettingsFromFile] */
    val actionSettingsLoadFrom by cr(conf.settings.loadSettingsFromFile) {
       chooseFile("Import settings", FILE, location.user.application_properties, null, ExtensionFilter("Properties", "*.properties")).ifOk {
          configuration.rawAdd(it)

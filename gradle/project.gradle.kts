@@ -118,7 +118,7 @@ allprojects {
       }
 
       "Native" group {
-         implementation("net.java.dev.jna", "jna-platform", "5.12.1")
+         implementation("net.java.dev.jna", "jna-platform", "5.13.0")
          implementation("com.github.kwhat", "jnativehook", "2.2.2")
       }
 

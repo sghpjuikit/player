@@ -17,10 +17,12 @@ import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Side
 import javafx.scene.Cursor
 import javafx.scene.Node
+import javafx.scene.control.ContentDisplay
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.control.OverrunStyle.LEADING_ELLIPSIS
 import javafx.scene.control.ProgressIndicator
+import javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY
 import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
@@ -60,6 +62,7 @@ import sp.it.pl.ui.objects.window.Shower
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.pane.ConfigPane
+import sp.it.util.Na
 import sp.it.util.Named
 import sp.it.util.access.fieldvalue.ColumnField.INDEX
 import sp.it.util.access.fieldvalue.ObjectField
@@ -72,6 +75,7 @@ import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.animation.interpolator.CircularInterpolator
 import sp.it.util.animation.interpolator.EasingMode
 import sp.it.util.animation.interpolator.ElasticInterpolator
+import sp.it.util.async.FX
 import sp.it.util.async.IO
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
@@ -262,20 +266,47 @@ fun textColon(named: Named): Node = textColon(named.name, named.value)
 
 /** @return standardized ui text for the specified data displaying it in the most natural ui form */
 fun textColon(name: String, data: Any?): Node = when (data) {
-   null -> text(name + ": " + data.toUi())
+   null -> text("$name: ${data.toUi()}")
+   is Na -> text("$name: n/a")
    is Path -> textColon(name, data.toFileOrNull() ?: data.toUi())
    is URL -> data.toURIOrNull()?.net { textColon(name, it) } ?: textColon(name, data.toUi())
    is URI -> data.toFileOrNull()?.net { textColon(name, it) } ?: hBox {
       lay(NEVER) += text("$name: ")
-      data.toUi()
       lay += appHyperlinkFor(data)
    }
-   is File -> hBox {
+   is File -> hBox(0.0, CENTER_LEFT) {
       lay(NEVER) += text("$name: ")
       lay += appHyperlinkFor(data)
    }
+   is Try.Ok<*> -> textColon(name, data.value)
+   is Try.Error<*> -> label("$name: ") {
+      contentDisplay = ContentDisplay.RIGHT
+      graphic = errorIcon(data.value)
+   }
+   is Fut<*> -> stackPane {
+      lay(CENTER_LEFT) += Spinner(INDETERMINATE_PROGRESS)
+      data.onDone(FX) {
+         lay.clear()
+         lay += textColon(name, it.toTryRaw())
+      }
+   }
+   is FutVal<*> -> stackPane {
+      lay(CENTER_LEFT) += hBox(0.0, CENTER_LEFT) {
+         lay(NEVER) += text("$name: ")
+         lay += hyperlink("Compute...") {
+            onEventDown(MOUSE_CLICKED, PRIMARY) {
+               data.value().onDone(FX) {
+                  this@stackPane.lay.clear()
+                  this@stackPane.lay += textColon(name, it.toTryRaw())
+               }
+            }
+         }
+      }
+   }
    else -> text(name + ": " + data.toUi())
 }
+
+data class FutVal<T>(val value: () -> Fut<T>)
 
 fun appProgressIcon(disposer: Unsubscriber): Node {
    var taskList: PopWindow? = null
@@ -538,6 +569,12 @@ fun okIcon(text: String = "", action: () -> Unit) = button(text) {
       isMouseTransparent = true
       focusOwner.value = this@button
    }
+}
+
+fun errorIcon(error: Any?) = Icon().apply {
+   onClickDo { APP.ui.actionPane.show(error) }
+   isFocusTraversable = false
+   isMouseTransparent = true
 }
 
 fun <N: Node> showFloating(title: String, shower: Shower = WINDOW_ACTIVE(CENTER), content: (PopWindow) -> N): PopWindow = PopWindow().apply {

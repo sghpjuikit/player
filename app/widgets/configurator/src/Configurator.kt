@@ -12,7 +12,6 @@ import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.layout.StackPane
 import javafx.util.Callback
-import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.tree.Name
 import sp.it.pl.ui.objects.tree.buildTreeCell
@@ -26,7 +25,6 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.searchTextField
-import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
@@ -67,7 +65,12 @@ import sp.it.pl.ui.objects.icon.NullCheckIcon
 import sp.it.util.access.focused
 import sp.it.util.access.vn
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.async.executor.EventReducer
+import sp.it.util.conf.Configuration
 import sp.it.util.conf.Constraint
+import sp.it.util.dev.printIt
+import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.onChange
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.zip
 import sp.it.util.units.millis
@@ -111,7 +114,6 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
                val focusAnim = anim(200.millis) { prefWidth = (25 + it*125).emScaled }.intpl { sin(PI/2*it) }.applyNow()
                focused zip textProperty() map { (f,t) -> f || t.isNotBlank() } attach focusAnim::playFromDir
             }
-            lay += Icon(IconMA.CANCEL, 13.0).onClickDo { refresh() }.tooltip("Refresh\n\nSet all editors to actual values")
             lay += Icon(IconFA.RECYCLE, 13.0).onClickDo { defaults() }.tooltip("Default\n\nSet all editors to default values")
             lay += Icon().blank()
          }
@@ -150,7 +152,8 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    private val configs = ArrayList<Config<*>>()
    private val configsFiltered = ArrayList<Config<*>>()
    private val configSelectionName = "app.settings.selected_group"
-   private var configSelectionAvoid = false
+   private var configSelectionIgnore = false
+   private val configsDisposer = Disposer()
    private val appConfigurable = APP.configuration
 
    var showsAppSettings by c(true).noUi()
@@ -182,6 +185,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
       filter attach { configureFiltered() } on onClose
       filterActions attach { configureFiltered() }
 
+      onClose += configsDisposer
       root.sync1IfInScene { refresh() }
    }
 
@@ -197,32 +201,55 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    }
 
    override fun configure(configurable: Configurable<*>?, groupToSelect: String?) {
+      configsDisposer()
       showsAppSettings = configurable==appConfigurable
       configs setTo configurable?.getConfigs().orEmpty()
       configureFiltered(groupToSelect)
+      if (configurable is Configuration) {
+         val updater = EventReducer.toLast<Unit>(200.0) {
+            configs setTo configurable.configsObservable
+            configureFilteredChange()
+         }
+         configurable.configsObservable.onChange { updater.push(Unit) } on configsDisposer
+      }
    }
 
    fun configureFiltered(groupToSelect: String? = groups.selectionModel.selectedItem?.value?.pathUp) {
       configsFiltered setTo configs.filter { filter.value?.invoke(it)!=false && filterActions.value.net { a -> a==null || a == (it.type.raw==Action::class) } }
-      configSelectionAvoid = true
+      configSelectionIgnore = true
       groups.isShowRoot = !showsAppSettings
       groups.root = tree(Name.treeOfPaths("All", configsFiltered.map { it.group }))
       groups.root.isExpanded = true
-      configSelectionAvoid = false
+      configSelectionIgnore = false
       storeAppSettingsSelection(groupToSelect)
       groups.expandToRootAndSelect(restoreAppSettingsSelection() ?: groups.root)
    }
 
+   fun configureFilteredChange() {
+      configsFiltered setTo configs.filter { filter.value?.invoke(it)!=false && filterActions.value.net { a -> a==null || a == (it.type.raw==Action::class) } }
+      configSelectionIgnore = true
+      val selection = groups.selectionModel.selectedItem?.value
+      groups.isShowRoot = !showsAppSettings
+      groups.root treeRecreate Name.treeOfPaths("All", configsFiltered.map { it.group })
+      groups.expandToRootAndSelect(groups.root.recurse { it.children }.find { it.value.pathUp==selection?.pathUp } ?: groups.root)
+      configSelectionIgnore = false
+      showConfigs(groups.selectionModel.selectedItem?.value)
+   }
+
    private fun showConfigs(group: Name?) {
+      if (configSelectionIgnore) return
       val c = configsFiltered.filter { it.group==group?.pathUp }.toListConfigurable()
-      editorsScroll.isFitToHeight = c.getConfigs().size==1 && c.getConfigs()[0].hasConstraint<Constraint.UiSingleton>()
-      editorsPane.configure(c)
+      val changed = editorsPane.getConfigs() differ c.getConfigs()
+      if (changed) {
+         editorsScroll.isFitToHeight = c.getConfigs().size==1 && c.getConfigs()[0].hasConstraint<Constraint.UiSingleton>()
+         editorsPane.configure(c)
+      }
    }
 
    private fun refreshConfigs() = editorsPane.getConfigEditors().forEach { it.refreshValue() }
 
    private fun storeAppSettingsSelection(selection: String?) {
-      if (configSelectionAvoid) return
+      if (configSelectionIgnore) return
       selectedGroupPath = selection ?: ""
       if (showsAppSettings && selection!=null) appConfigurable.rawAdd(configSelectionName, PropVal1(selection))
    }
@@ -233,5 +260,9 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
       val selection = if (showsAppSettings) appConfigurable.rawGetAll()[configSelectionName]?.val1 else selectedGroupPath
       return groups.root.recurse { it.children }.find { it.value.pathUp==selection }
    }
+
+   private infix fun <T> Iterable<T>.differ(c: Iterable<T>): Boolean = (this xor c).isNotEmpty()
+   private infix fun <T> Iterable<T>.xor(c: Iterable<T>): Set<T> = this.union(c) - this.intersect(c)
+   private infix fun TreeItem<Name>.treeRecreate(name: Name) { children setTo name.hChildren.map { n -> children.find { it.value.pathUp == n.pathUp }.apply { treeRecreate(n) } ?: tree(n) } }
 
 }

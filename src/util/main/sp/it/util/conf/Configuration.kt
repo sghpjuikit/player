@@ -7,6 +7,8 @@ import sp.it.util.access.toggle
 import sp.it.util.action.Action
 import sp.it.util.action.ActionRegistrar
 import sp.it.util.collections.mapset.MapSet
+import sp.it.util.collections.observableList
+import sp.it.util.collections.readOnly
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.Property
 import sp.it.util.file.properties.readProperties
@@ -23,6 +25,8 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
    private val configToRawKeyMapper = nameMapper compose namePostMapper
    private val properties = ConcurrentHashMap<String, PropVal>()
    private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
+   private val configsObservableImpl = observableList<Config<*>>()
+   val configsObservable = configsObservableImpl.readOnly()
 
    @Suppress("UNCHECKED_CAST")
    override fun getConfig(name: String): Config<Any?> = configs.find { it.name==name } as Config<Any?>
@@ -69,6 +73,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
    fun <C> collect(config: Config<C>) {
       configs += config
+      configsObservableImpl += config
 
       // TODO disabled due to:
       // 1 implemented only for boolean, while it should be for any enumerable config
@@ -86,6 +91,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
                rawSet(a)
                ActionRegistrar.getActions() += a
                configs += a
+               configsObservableImpl += config
             }
 
 
@@ -96,7 +102,8 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
    }
 
    fun <T> drop(config: Config<T>) {
-      configs.remove(config)
+      configs -= config
+      configsObservableImpl -= config
 
       if (config is Action) {
          config.unregister()

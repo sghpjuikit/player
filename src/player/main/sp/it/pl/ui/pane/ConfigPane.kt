@@ -188,7 +188,6 @@ class ConfigPane<T: Any?>: VBox {
          }
       }
       children setTo editorNodes.sortedByConfigWith(editorOrder)
-
    }
 
    fun isSingleEditor(): Boolean = editors.size==1 && editors.first().config.hasConstraint<UiSingleton>()
@@ -242,6 +241,8 @@ class ConfigPane<T: Any?>: VBox {
             h + p.top + pH + p.bottom + space
          }
    }
+
+   fun getConfigs(): List<Config<T>> = editors.map { it.config }.asIs()
 
    fun getConfigEditors(): List<ConfigEditor<T>> = editors.asIs()
 

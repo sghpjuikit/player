@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement application process elevation read-only config
 - Improve UX [adjust widget controls activation area size]
 - Improve styling [fix various effects & inconsistencies]
+- Improve **Configurator** widget (App Settings) performance
 - Improve **GitProjects** widget UX
     - Implement support projects (up to 3 depth)
     - Implement shortcuts guide
@@ -29,6 +30,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix popup showing up in taskbar/switcher sometimes
 - Fix `Action.invoke` with default arguments
 - Fix exceptions when popup with focus is shown [remove calling focus unnecessarily]
+- Fix **Configurator** widget (App Settings) observability [show/hide new/removed Configs automatically]
 - Fix **GameView** widget losing focus after closing game details
 - Fix **Spektrum** widget shifting effect off 1000000 times
 - Fix **Spektrum** widget state corruption after out of range exceptions during interpolation

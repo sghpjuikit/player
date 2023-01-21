@@ -248,7 +248,7 @@ class Notifier: PluginBase() {
       if (status==PAUSED || status==PLAYING || status==STOPPED) {
          val title = "Playback change : $status"
          val disposer = Disposer()
-         val i = (songPlaybackNotificationUi ?: StackPane()).apply {
+         val i = songPlaybackNotificationUi ?: StackPane().apply {
             lay += SongInfo(false).apply {
                APP.audio.playingSong.updated sync { read(it) } on disposer
             }
@@ -257,6 +257,7 @@ class Notifier: PluginBase() {
 
          showNotification(title, i).apply {
             onHidden += { songPlaybackNotificationUi = null }
+            onHidden += { disposer() }
          }
       }
    }

@@ -52,7 +52,7 @@ import sp.it.util.conf.uiConverter
 import sp.it.util.conf.valuesIn
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
-import sp.it.util.functional.supplyIf
+import sp.it.util.functional.supplyIfNotNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
@@ -191,9 +191,9 @@ class Notifier: PluginBase() {
          lay += hyperlink("Show full details") {
             onEventDown(MOUSE_CLICKED, PRIMARY) { AppEventLog.showDetailForLastError() }
          }
-         lay += supplyIf(error.action!=null) {
-            hyperlink(error.action!!.name) {
-               onEventDown(MOUSE_CLICKED, PRIMARY) { error.action.action() }
+         lay += supplyIfNotNull(error.action) { a ->
+            hyperlink(a.name) {
+               onEventDown(MOUSE_CLICKED, PRIMARY) { a.action() }
             }
          }
       }

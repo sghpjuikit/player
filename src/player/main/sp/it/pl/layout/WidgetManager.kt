@@ -688,7 +688,7 @@ class WidgetManager {
        * Controller is returned only if the widget is/has been loaded without any errors.
        */
       fun <F: Any> use(feature: KClass<F>, source: WidgetUse, action: (F) -> Unit) =
-         find({ it.hasFeature(feature) }, source).focusWithWindow().filterIsControllerInstance(feature).ifNotNull(action).toUnit()
+         find({ it.hasFeature(feature) }, source)?.apply { focusWithWindow() }.filterIsControllerInstance(feature).ifNotNull(action).toUnit()
 
       /** Equivalent to: `use(T::class.java, source, action)` */
       inline fun <reified T: Any> use(source: WidgetUse, noinline action: (T) -> Unit) =
@@ -696,10 +696,10 @@ class WidgetManager {
 
       /** Equivalent to: `find(cond, source).ifPresent(action)` */
       fun use(cond: (WidgetInfo) -> Boolean, source: WidgetUse, action: (Widget) -> Unit) =
-         find(cond, source).focusWithWindow().ifNotNull(action).toUnit()
+         find(cond, source)?.apply { focusWithWindow() }.ifNotNull(action).toUnit()
 
       fun use(name: String, source: WidgetUse, action: (Widget) -> Unit) =
-         find(name, source).focusWithWindow().ifNotNull(action).toUnit()
+         find(name, source)?.apply { focusWithWindow() }.ifNotNull(action).toUnit()
 
       /** Select next widget or the first if none selected among the widgets in the specified window. */
       fun selectNextWidget(root: Container<*>) {
@@ -817,7 +817,7 @@ class WidgetManager {
       fun use(source: WidgetUse, action: (FEATURE) -> Unit) {
          APP.widgetManager.widgets
             .find(id, source)
-            .focusWithWindow()
+            ?.apply { focusWithWindow() }
             .filterIsControllerInstance(feature)
             .ifNotNull(action).toUnit()
       }
@@ -855,8 +855,6 @@ class WidgetManager {
       private fun createControllerClassLoader(compileDir: File, libFiles: Sequence<File>): Try<URLClassLoader, Throwable> = runTry {
          (libFiles + compileDir).map { it.toURI().toURL() }.asArray() let_ ::URLClassLoader
       }
-
-      private fun Widget?.focusWithWindow() = this?.apply { window?.requestFocus(); focus(); }
 
       private fun <R: Any> Widget?.filterIsControllerInstance(type: KClass<R>): R? = this?.controller.takeIf(type::isInstance)?.let(type::cast)
 

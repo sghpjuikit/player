@@ -95,6 +95,11 @@ sealed class Component(state: ComponentDb) {
 
    abstract fun focus()
 
+   fun focusWithWindow() {
+      window?.requestFocus()
+      focus()
+   }
+
    /**
     * Removes this component from component graph (layout) and scene graph. Can not be undone.
     * This method is called for every child component (in any depth).

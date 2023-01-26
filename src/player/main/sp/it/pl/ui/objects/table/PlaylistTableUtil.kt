@@ -2,18 +2,21 @@ package sp.it.pl.ui.objects.table
 
 import javafx.scene.media.MediaPlayer.Status.PAUSED as STATE_PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING as STATE_PLAYING
-import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER
-import javafx.scene.control.ContentDisplay
 import javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableRow
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.util.Callback
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.PlaylistSong.Field.LENGTH
 import sp.it.pl.audio.playlist.PlaylistSong.Field.NAME
+import sp.it.pl.layout.ComponentLoader.POPUP
+import sp.it.pl.layout.WidgetSource.OPEN
+import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
 import sp.it.pl.ui.objects.icon.Icon
@@ -58,15 +61,25 @@ fun PlaylistTable.buildPlayingFieldColumn(): TableColumn<PlaylistSong, Any> = ta
 fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>): TableCell<PlaylistSong, Any> {
    fun computeIcon() = if (APP.audio.state.playback.status.value==STATE_PLAYING && playlist.isPlaying) IconMA.PAUSE_CIRCLE_FILLED else IconMA.PLAY_CIRCLE_FILLED
    val icon by lazy {
-      val ic = properties["playing_icon"]?.asIf<Icon>() ?: Icon().apply {
-         properties["playing_icon"] = this
+      val pt = this
+      val ic = pt.properties["playing_icon"]?.asIf<Icon>() ?: Icon().apply {
+               pt.properties["playing_icon"] = this
+
          isFocusTraversable = false
          styleclass("playlist-table-cell-playing-icon")
-         onClickDo {
+         // play/pause on LMB
+         onClickDo(PRIMARY, 1) { _, _ ->
             val song = traverseParents().filterIsInstance<TableRow<*>>().firstOrNull()?.item?.asIf<PlaylistSong>()
             if (APP.audio.state.playback.status.value==STATE_PLAYING && playlist.isPlaying) APP.audio.pause()
             else if (APP.audio.state.playback.status.value==STATE_PAUSED && playlist.isPlaying) APP.audio.resume()
             else playlist.playTransformedItem(song)
+         }
+         // open playback controls on RMB
+         onClickDo(SECONDARY, 1) { _, _ ->
+            val widgetKey = "playlist-table-playback-control-widget}"
+            fun obtainWidget() = APP.widgetManager.widgets.findAll(OPEN).find { widgetKey in it.properties }?.apply { focusWithWindow() }
+            fun buildWidget() = APP.widgetManager.widgets.find("Playback knobs", NEW(POPUP))?.apply { properties[widgetKey] = widgetKey }
+            obtainWidget() ?: buildWidget()
          }
       }
       APP.audio.state.playback.status sync { ic.icon(computeIcon()) } on disposer

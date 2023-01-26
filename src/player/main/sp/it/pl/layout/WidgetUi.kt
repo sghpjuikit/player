@@ -141,7 +141,7 @@ class WidgetUi: ComponentUiBase<Widget> {
 
    override fun hide() = controls.hide()
 
-   private fun buildManualLoadPane() = Placeholder(IconOC.UNFOLD, "") {
+   private fun buildManualLoadPane() = Placeholder(widget.factory.icon ?: IconOC.UNFOLD, "") {
       widget.forceLoading = true
       loadWidget()
       widget.forceLoading = false

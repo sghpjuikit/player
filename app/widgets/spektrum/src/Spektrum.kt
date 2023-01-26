@@ -13,7 +13,6 @@ import java.util.TreeSet
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
-import javafx.scene.canvas.Canvas
 import javafx.scene.paint.Color
 import javafx.scene.shape.StrokeLineCap
 import javafx.scene.shape.StrokeLineJoin
@@ -63,9 +62,8 @@ import sp.it.util.math.abs
 import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.on
 import sp.it.util.reactive.sync1IfInScene
-import sp.it.util.reactive.syncFrom
+import sp.it.util.ui.canvas
 import sp.it.util.ui.lay
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -171,11 +169,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
 
    init {
 
-      root.lay += spectralView.apply {
-         heightProperty() syncFrom spektrum.root.heightProperty() on spektrum.onClose
-         widthProperty() syncFrom spektrum.root.widthProperty() on spektrum.onClose
-      }
-
+      root.lay += spectralView.canvas
       audioEngine.fttListenerList += spectralFFTService
 
       root.sync1IfInScene {
@@ -211,9 +205,10 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       val count = AtomicInteger(count)
    }
 
-   class SpectralView(val spektrum: Spektrum, val fft: FrequencyBarsFFTService): Canvas() {
+   class SpectralView(val spektrum: Spektrum, val fft: FrequencyBarsFFTService) {
       private val settings = spektrum
-      private val gc = graphicsContext2D!!
+              val canvas = canvas({})
+      private val gc = canvas.graphicsContext2D!!
       private val volumeHistory = LinkedList<Double>()
       private val loop = Loop { time ->
          val barsRaw = fft.frequencyBars

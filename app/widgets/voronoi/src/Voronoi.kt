@@ -3,7 +3,6 @@ package voronoi
 import java.util.Random
 import java.util.stream.IntStream
 import javafx.event.Event
-import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseButton.PRIMARY
@@ -45,8 +44,8 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
-import sp.it.util.reactive.syncFrom
 import sp.it.util.text.*
+import sp.it.util.ui.canvas
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
@@ -68,9 +67,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
    init {
       root.prefSize = 850.emScaled x 600.emScaled
       root.lay += canvas.color
-      canvas.heightProperty() syncFrom root.heightProperty() on onClose
-      canvas.widthProperty() syncFrom root.widthProperty() on onClose
-      root.lay += canvas
+      root.lay += canvas.canvas
 
       root.focusedProperty() sync { canvas.pause(!it) } on onClose
       root.onEventDown(MOUSE_CLICKED, PRIMARY) { canvas.pause(false) }
@@ -80,9 +77,10 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       onClose += { canvas.loop.stop() }
    }
 
-   private class RenderNode: Canvas() {
+   private class RenderNode {
       val loop: Loop = Loop({ _ -> loop() })
-      val gc = graphicsContext2D!!
+      val canvas = canvas({})
+      val gc = canvas.graphicsContext2D!!
       val color = Rectangle().apply { isVisible = false; style = "-fx-fill: -skin-def-font-color-hover;" }
       var cells: List<Cell> = listOf()
       var draggedCell: P? = null   // null if none
@@ -98,20 +96,20 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       var highlighting = BY_DISTANCE_ORDER
 
       init {
-         onEventDown(MOUSE_PRESSED, PRIMARY) { draggedCell = selectedCell }
-         onEventDown(MOUSE_RELEASED, PRIMARY) { draggedCell = null }
-         onEventDown(MOUSE_DRAGGED, PRIMARY) {
+         canvas.onEventDown(MOUSE_PRESSED, PRIMARY) { draggedCell = selectedCell }
+         canvas.onEventDown(MOUSE_RELEASED, PRIMARY) { draggedCell = null }
+         canvas.onEventDown(MOUSE_DRAGGED, PRIMARY) {
             mousePos = P(it.x, it.y)
             draggedCell?.x = it.x
             draggedCell?.y = it.y
          }
-         onEventDown(MOUSE_MOVED) { mousePos = P(it.x, it.y) }
-         onEventDown(MOUSE_EXITED) { mousePos = null }
+         canvas.onEventDown(MOUSE_MOVED) { mousePos = P(it.x, it.y) }
+         canvas.onEventDown(MOUSE_EXITED) { mousePos = null }
       }
 
       fun loop() {
-         val w = width
-         val h = height
+         val w = canvas.width
+         val h = canvas.height
          if (w<=0 || h<=0) return
 
          loopId++
@@ -139,8 +137,8 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       fun draw() {
          inputOutputMap.clear()
          val c = color.fill
-         val w = width
-         val h = height
+         val w = canvas.width
+         val h = canvas.height
          val opacityMin = 0.1
          val opacityMax = 0.5
          val distMin = 0.0

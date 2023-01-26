@@ -17,10 +17,12 @@ import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df.PLAIN_TEXT
 import sp.it.pl.main.HelpEntries
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.ICON_BROWSER_NAME
@@ -71,7 +73,7 @@ import sp.it.util.units.year
 
 class IconViewer(widget: Widget): SimpleController(widget) {
    val iconSize = 75.emScaled
-   val iconGroups = Glyphs.GLYPH_TYPES.sortedBy { it.simpleName.orEmpty() }.map { IconGroup(it) }
+   val iconGroups = (Glyphs.GLYPH_TYPES.map(::IconGroupOfGlyphClass) + IconGroupOfWidgets()).sortedBy { it.nameUi }
    val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, (iconSize*1.5 x iconSize/2) + (0 x 30.emScaled), 0 x 15.emScaled).apply {
       styleClass += "icon-grid"
       search.field = StringGetter.of { value, _ -> value.name() }
@@ -131,7 +133,7 @@ class IconViewer(widget: Widget): SimpleController(widget) {
                hbarPolicy = NEVER
                content = vBox(0.0, CENTER_LEFT) {
                   lay += iconGroups.map { it.label }
-                  iconGroups.find { it.type.toS()==selection }?.select(true)
+                  iconGroups.find { it.id==selection }?.select(true)
                }
             }
          }
@@ -141,7 +143,7 @@ class IconViewer(widget: Widget): SimpleController(widget) {
    }
 
    override fun focus() {
-      (iconGroups.find { it.type.toS()==selection } ?: iconGroups.firstOrNull())?.select(true)
+      (iconGroups.find { it.id==selection } ?: iconGroups.firstOrNull())?.select(true)
       iconsView.requestFocus()
    }
 
@@ -159,18 +161,24 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       override val summaryActions = HelpEntries.Grid
    }
 
-   inner class IconGroup(val type: KClass<out GlyphIcons>) {
-      val label = LabelWithIcon(IconMD.IMAGE_FILTER_HDR, type.toUi()).apply {
+   abstract inner class IconGroup(val id: String, val nameUi: String, val values: () -> Sequence<GlyphIcons>) {
+      val label = LabelWithIcon(IconMD.IMAGE_FILTER_HDR, nameUi).apply {
          icon.onClickDo { this@IconGroup.select(true) }
       }
       fun select(s: Boolean) {
          label.select(s)
-         if (s) iconGroups.find { it!==this && it.type.toS()==selection }?.select(false)
-         if (s) selection = type.toS()
-         if (s) iconsView.itemsRaw setTo Glyphs.valuesOf(type)
+         if (s) iconGroups.find { it!==this && it.id==selection }?.select(false)
+         if (s) selection = id
+         if (s) iconsView.itemsRaw setTo values()
          if (s) iconsView.requestFocus()
       }
    }
+
+   inner class IconGroupOfGlyphClass(val type: KClass<out GlyphIcons>): IconGroup(type.toS(), type.toUi(), { Glyphs.valuesOf(type) })
+
+   inner class IconGroupOfWidgets: IconGroup("Widgets", "Widgets", { APP.widgetManager.factories.getFactories().map { IconWidget(it) } })
+
+   class IconWidget(val widget: WidgetFactory<*>, val glyph: GlyphIcons = widget.icon ?: IconFA.PLUG): GlyphIcons by glyph
 
    class IconCellGraphics(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {
       private val nameLabel = Label()
@@ -180,7 +188,7 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       init {
          alignment = CENTER
          styleClass += "icon-grid-cell-graphics"
-         graphics = Icon(icon, iconSize).apply {
+         graphics = Icon(glyph, iconSize).apply {
             isMouseTransparent = true
          }
          onEventDown(MOUSE_CLICKED, PRIMARY) {
@@ -192,14 +200,17 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       }
 
       fun setGlyph(icon: GlyphIcons?) {
-         glyph = icon
-         nameLabel.text = icon?.name()?.capitalLower() ?: ""
-         graphics.icon(icon)
-         graphics.tooltip(icon?.let { "${it.name()}\n${it.unicodeToString()}\n${it.fontFamily}" }.orEmpty())
+         glyph = icon?.raw()
+         nameLabel.text = (if (icon is IconWidget) icon.widget.name else icon?.name())?.capitalLower() ?: ""
+         graphics.icon(glyph)
+         graphics.tooltip(glyph?.let { "$glyph.name()}\n${it.unicodeToString()}\n${it.fontFamily}" }.orEmpty())
       }
 
       fun select(value: Boolean) {
          graphics.select(value)
       }
+
+      fun GlyphIcons.raw(): GlyphIcons = if (this is IconWidget) glyph else this
    }
+
 }

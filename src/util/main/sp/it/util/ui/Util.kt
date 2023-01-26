@@ -14,6 +14,7 @@ import javafx.geometry.Rectangle2D
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.canvas.Canvas
 import javafx.scene.control.Button
 import javafx.scene.control.Hyperlink
 import javafx.scene.control.Label
@@ -183,9 +184,31 @@ fun <T> listViewCellFactory(cellFactory: ListCell<T>.(T?, Boolean) -> Unit) = Ca
       }
    }
 }
+
+/** [Rectangle] builder */
 inline fun rectangle(block: Rectangle.() -> Unit = {}) = Rectangle().apply(block)
+
+/** [Circle] builder */
 inline fun circle(block: Circle.() -> Unit = {}) = Circle().apply(block)
+
+/** [Arc] builder */
 inline fun arc(block: Arc.() -> Unit = {}) = Arc().apply(block)
+
+/** [Canvas] builder. Resizeable if [onResize] not null. */
+inline fun canvas(noinline onResize: (Canvas.() -> Unit)? = null, block: Canvas.() -> Unit = {}) =
+   if (onResize==null) Canvas().apply(block)
+   else object: Canvas() {
+      override fun minWidth(height: Double) = 1.0
+      override fun minHeight(height: Double) = 1.0
+      override fun maxWidth(height: Double) = Double.MAX_VALUE
+      override fun maxHeight(width: Double) = Double.MAX_VALUE
+      override fun isResizable() = true
+      override fun resize(width: Double, height: Double) {
+         super.setWidth(width)
+         super.setHeight(height)
+         onResize()
+      }
+   }.apply(block)
 
 /* ---------- SIZE -------------------------------------------------------------------------------------------------- */
 

@@ -333,12 +333,13 @@ interface Utils {
 	}
 	/** Creates image from icon. */
 	static Image graphics(GlyphIcons icon, double radius, Color c, Effect effect) {
-		Icon i = new Icon(icon,radius);
+		Icon i = new Icon(icon, radius);
 		i.setFill(c);
-		i.scale(2);
+		i.scale(radius/12.0);
 		i.setEffect(effect);
 		return createImage(i, radius);
 	}
+
 	/**
 	 * Sets the transform for the GraphicsContext to rotate around a pivot point.
 	 *
@@ -1497,12 +1498,25 @@ interface Utils {
 			else if (x>width) return modX(x-width);
 			else return x;
 		}
-
 		/** Modular coordinates. Maps coordinates of (-inf,+inf) to (0,map.height)*/
 		public double modY(double y) {
 			if (y<0) return modY(height+y);
 			else if (y>height) return modY(y-height);
 			else return y;
+		}
+
+		public int screenX(double x) {
+			if (x<0) return ((int)x)/((int)width)-1;
+			else return ((int)x)/((int)width);
+		}
+
+		public int screenY(double y) {
+			if (y<0) return ((int)y)/((int)height)-1;
+			else return ((int)y)/((int)height);
+		}
+
+		public boolean screenSame(double x1, double y1, double x2, double y2) {
+			return screenX(x1)==screenX(x2) && screenY(y1)==screenY(y2);
 		}
 
 		public double distX(double x1, double x2) {

@@ -92,6 +92,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sp.it.pl.core.NameUi;
 import sp.it.pl.layout.Widget;
 import sp.it.pl.layout.controller.LegacyController;
 import sp.it.pl.layout.controller.SimpleController;
@@ -101,6 +102,7 @@ import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.conf.Config;
+import sp.it.util.conf.Configurable;
 import sp.it.util.conf.ConfigurableByReflect;
 import sp.it.util.conf.Constraint.ValueSealedSet;
 import sp.it.util.conf.EditMode;
@@ -310,8 +312,8 @@ public class Comet extends SimpleController {
 					new Icon(MaterialDesignIcon.NUMERIC_6_BOX_OUTLINE,15,"Start 6 player game",() -> game.start(6)),
 					new Icon(MaterialDesignIcon.NUMERIC_7_BOX_OUTLINE,15,"Start 7 player game",() -> game.start(7)),
 					new Icon(MaterialDesignIcon.NUMERIC_8_BOX_OUTLINE,15,"Start 8 player game",() -> game.start(8)),
-					new Icon(null,16){{ syncC(game.paused, it -> icon(it, MaterialDesignIcon.PLAY, MaterialDesignIcon.PAUSE)); }}.action(() -> game.pause(!game.paused.get())),
-					new Icon(FontAwesomeIcon.GEARS,14,"Settings").action(e -> APP.windowManager.showSettings(toConfigurableByReflect(this),e)),
+					new Icon(null,16){{ syncC(game.paused, it -> icon(it, MaterialDesignIcon.PLAY, MaterialDesignIcon.PAUSE)); }}.action(() -> game.pauseToggle()),
+					new Icon(FontAwesomeIcon.GEARS,14,"Settings").action(e -> APP.windowManager.showSettings(new UiSettings(), e)),
 					new Icon(FontAwesomeIcon.INFO,14,"How to play").action(() -> new HowToPane().show(game))
 				),
 				layStack(rootContent, sanvas, playerStats, message)
@@ -432,7 +434,7 @@ public class Comet extends SimpleController {
 		double UFO_BULLET_OFFSET = 10; // pc
 		double UFO_RADAR_RADIUS = 70;
 		double UFO_DISC_RADIUS = 4;
-		double UFO_DISC_HIT_RADIUS = 10;
+		double UFO_DISC_HIT_RADIUS = 8;
 		int UFO_DISC_DECISION_TIME_TTL = (int) ttl(millis(500));
 		double UFO_EXPLOSION_RADIUS = 100;
 		double UFO_DISC_EXPLOSION_RADIUS = 8;
@@ -572,6 +574,13 @@ public class Comet extends SimpleController {
 		o.dy += fy;
 		o.dx *= 0.9;
 		o.dy *= 0.9;
+	}
+
+	class UiSettings implements Configurable<Object>, NameUi {
+		Configurable<Object> c = (Configurable<Object>) toConfigurableByReflect(Comet.this);
+		@NotNull @Override public String getNameUi() { return widget.getCustomName().getValue(); }
+		@NotNull @Override public Collection<Config<Object>> getConfigs() { return c.getConfigs(); }
+		@Nullable @Override public Config<Object> getConfig(@NotNull String name) { return c.getConfig(name); }
 	}
 
 	/** Encompasses entire game. */
@@ -871,6 +880,10 @@ public class Comet extends SimpleController {
 			paused.set(v);
 			if (v) loop.stop(); else loop.start();
 			mode.pause(v);
+		}
+
+		public void pauseToggle() {
+			pause(!paused.get());
 		}
 
 		@Override
@@ -2166,9 +2179,11 @@ public class Comet extends SimpleController {
 				children.add(this);
 				scheduleActivation();
 
-				double sync_reps = Ship.this instanceof Rocket r ? r.player.id.get() :
-					Ship.this instanceof Shuttle s ? s.owner.player.id.get() :
-						1+randInt(5);
+				double sync_reps = Ship.this instanceof Rocket r
+					? r.player.id.get()
+					: Ship.this instanceof Shuttle s
+						? s.owner.player.id.get()
+						: 1+randInt(5);
 				double syncs_range = sync_reps*D360;
 				double syncs_range_d = syncs_range/syncs_len;
 				for (int i=0; i<syncs_len; i++)
@@ -2179,7 +2194,7 @@ public class Comet extends SimpleController {
 			@Override public void dispose() {} // no dispose
 			@Override public void doLoop() {
 				KSenergy = min(KSenergy_max,KSenergy+KSenergy_rate);
-				if (KSemitter !=null) KSemitter.doLoop();
+				if (KSemitter!=null) KSemitter.doLoop();
 
 				if (large.is()) {
 					largeTTL -= 0.3;
@@ -2227,14 +2242,16 @@ public class Comet extends SimpleController {
 				gc.setStroke(COLOR_DB);
 				gc.setLineWidth(2);
 				for (int i=0; i<syncs_amount; i++) {
-					double angle = direction+i*syncs_angle;
+					double angle = i*syncs_angle;
 					double acos = cos(angle);
 					double asin = sin(angle);
-					double alen = 0.3*r*syncs[floorMod(i*syncs_len/syncs_amount+sync_index_real,syncs_len)];
+					double alen = large.isTimes()==0 ? 1 : 0.3*r*syncs[floorMod(i*syncs_len/syncs_amount+sync_index_real,syncs_len)];
 					gc.strokeLine(x+r*acos,y+r*asin,x+(r-alen)*acos,y+(r-alen)*asin);
 					// draw a 'ring' to signal full shield to the player
 					// note drawing opacity will always be approximately 1 here
+					if (energy_full) gc.setStroke(COLOR_DB_BRIGHT);
 					if (energy_full) gc.strokeLine(x+r*acos,y+r*asin,x+(r-1)*acos,y+(r-1)*asin);
+					if (energy_full) gc.setStroke(COLOR_DB);
 				}
 				gc.setGlobalAlpha(1);
 			}
@@ -2325,12 +2342,12 @@ public class Comet extends SimpleController {
 			class ShieldPulseEmitter implements LO {
 				double ttl = 0;
 
-				public void doLoop() {
+				@Override public void doLoop() {
 					ttl--;
 					if (ttl<0) {
-						ttl = ttl(seconds(1+kinetic_shield.KSradius/100*0.7));
+						ttl = ttl(seconds(1+kinetic_shield.KSradius/30));
 						ShieldPulse p = new ShieldPulse(Ship.this,x,y);
-						p.dxy = 0.4;
+						p.dxy = 0.1;
 						p.ttld = 1/(1.3*KSradius/0.4);
 					}
 				}
@@ -2504,11 +2521,14 @@ public class Comet extends SimpleController {
 
 		@Override
 		boolean isHitDistance(SO o) {
-			if (o instanceof Bullet && kinetic_shield!=null)
-				return isDistanceLess(o,kinetic_shield.KSradius+o.radius);
-			if (o instanceof Asteroid && kinetic_shield!=null && kineticEto(o)<kinetic_shield.KSenergy)
-				return isDistanceLess(o,kinetic_shield.KSradius+o.radius);
-			return isDistanceLess(o,radius+o.radius);
+			if (kinetic_shield!=null) {
+				if (o instanceof Bullet) return isDistanceLess(o, kinetic_shield.KSradius + o.radius);
+				if (o instanceof Ufo) return isDistanceLess(o, kinetic_shield.KSradius + o.radius);
+				if (o instanceof UfoSwarmer) return isDistanceLess(o, kinetic_shield.KSradius + o.radius);
+				if (o instanceof Asteroid && kineticEto(o)<kinetic_shield.KSenergy) return isDistanceLess(o, kinetic_shield.KSradius + o.radius);
+				return isDistanceLess(o, radius + o.radius);
+			} else
+				return isDistanceLess(o, radius + o.radius);
 		}
 
 		double computeBulletRange() {
@@ -2737,8 +2757,7 @@ public class Comet extends SimpleController {
 		double ddirectionMax = ttlVal(D360,seconds(3));
 
 		public UfoSwarmer(double X, double Y, double DIR) {
-			super(UfoSwarmer.class, X, Y,0,0, game.settings.UFO_DISC_HIT_RADIUS, null,
-				game.settings.UFO_ENERGY_INITIAL,game.settings.UFO_E_BUILDUP);
+			super(UfoSwarmer.class, X, Y,0,0, game.settings.UFO_DISC_HIT_RADIUS, null, game.settings.UFO_ENERGY_INITIAL,game.settings.UFO_E_BUILDUP);
 			mass = 4;
 			direction = DIR;
 			engine = new Engine() {
@@ -3107,13 +3126,13 @@ public class Comet extends SimpleController {
 	/** Gun projectile. */
 	class Bullet extends PO {
 		final Ship owner; // can be null
-		double ttl;
-		double ttl_d;
+		double ttl, ttl_d;
+		double xTmp, yTmp;
 		boolean isBlackHole = false;
 		boolean isHighEnergy = false;
 		private double tempX, tempY;    // cache for collision checking
 		private short bounced = 0;    // prevents multiple bouncing off shield per loop
-		private final TtlDrawer<BulletDraw> drawer = new TtlDrawer<>((int) FPS, () -> new BulletDraw(x, y, 0.5, isHighEnergy ?  5 : 2));
+		private final TtlDrawer<BulletDraw> drawer = new TtlDrawer<>((int) FPS, () -> new BulletDraw(xTmp, yTmp, 0.5, isHighEnergy ?  5 : 2));
 
 		Bullet(Ship ship, double x, double y, double dx, double dy, double hit_radius, double TTL) {
 			super(Bullet.class,x,y,dx,dy,hit_radius,null);
@@ -3127,6 +3146,8 @@ public class Comet extends SimpleController {
 			if (bounced==1 || bounced==2) bounced++;
 			x += dx;
 			y += dy;
+			xTmp = x;
+			yTmp = y;
 			doLoopOutOfField();
 
 			ttl -= g_potential*ttl_d;
@@ -3157,17 +3178,21 @@ public class Comet extends SimpleController {
 			g.setGlobalAlpha(1);
 
 			drawer.drawTtl((d1, d2, ttl) -> {
-				g.setGlobalAlpha(ttl*d2.opacity);
-				g.setLineWidth(d2.w);
-//				strokeLine(g, d2.x, d2.y, game.field.dist(d2.x, d2.y, d1.x, d1.y), rad);
-				g.setLineCap(StrokeLineCap.BUTT);
-				g.setLineJoin(StrokeLineJoin.BEVEL);
-				g.setStroke(game.colors.hud);
-				g.strokeLine(d2.x, d2.y, d1.x, d1.y);
-				g.setGlobalAlpha(1);
+				if (game.field.screenSame(d1.x, d1.y, d2.x, d2.y)) {
+					g.setGlobalAlpha(ttl*d2.opacity);
+					g.setLineWidth(d2.w);
+	//				strokeLine(g, d2.x, d2.y, game.field.dist(d2.x, d2.y, d1.x, d1.y), rad);
+					g.setLineCap(StrokeLineCap.BUTT);
+					g.setLineJoin(StrokeLineJoin.BEVEL);
+					g.setStroke(game.colors.hud);
+					g.strokeLine(game.field.modX(d2.x), game.field.modY(d2.y), game.field.modX(d1.x), game.field.modY(d1.y));
+					g.setGlobalAlpha(1);
+				}
 			});
 		}
+
 		record BulletDraw(double x, double y, double opacity, double w) {}
+
 		static class TtlDrawer<T> {
 			final ArrayDeque<T> draws = new ArrayDeque<>();
 			final Supplier<T> builder;
@@ -3599,19 +3624,23 @@ public class Comet extends SimpleController {
 	}
 
 	static Color COLOR_DB = new Color(0.11764706f,0.5647059f,1.0f,0.2);
+	static Color COLOR_DB_BRIGHT = color(COLOR_DB, 0.8);
+
 	class ShieldPulse extends Particle {
 		double dxy;
-		Color color;
+		final Color color;
 		final Ship s;
 
 		ShieldPulse(Ship ship, double x, double y) {
 			super(x,y,0,0,0);
-			color = Color.DODGERBLUE;
-			radius = 0;
 			s = ship;
+			color = Color.DODGERBLUE;
+			radius = ship.kinetic_shield==null ? 0 : s.kinetic_shield.KSradius;
 		}
 
 		@Override public void doLoop() {
+			x = s.x;
+			y = s.y;
 			radius += dxy;
 			super.doLoop();
 		}
@@ -3621,10 +3650,10 @@ public class Comet extends SimpleController {
 		}
 		@Override void draw() {
 			if (s.dead) return;
-			gc.setGlobalAlpha((s.kinetic_shield.KSenergy/s.kinetic_shield.KSenergy_max)*sqrt(ttl));
+			gc.setGlobalAlpha((s.kinetic_shield.KSenergy/s.kinetic_shield.KSenergy_max)*0.5*sqrt(0.5-abs(ttl-0.5)));
 			gc.setStroke(null);
 			gc.setFill(new RadialGradient(0,0,0.5,0.5,0.5,true,NO_CYCLE,new Stop(0.3,Color.TRANSPARENT),new Stop(0.85,COLOR_DB),new Stop(1,Color.TRANSPARENT)));
-			drawOval(gc,x,y,radius);
+			drawOval(gc,x,y,radius*1.4);
 			gc.setGlobalAlpha(1);
 		}
 	}

@@ -15,8 +15,8 @@ import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.input.ScrollEvent.SCROLL
-import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
+import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.paint.Color.AQUA
 import javafx.scene.paint.CycleMethod.NO_CYCLE
@@ -49,20 +49,18 @@ import sp.it.util.math.StrExF
 import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.attachFrom
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.text.keys
 import sp.it.util.ui.alpha
-import sp.it.util.ui.anchorPane
+import sp.it.util.ui.canvas
 import sp.it.util.ui.hBox
 import sp.it.util.ui.initClip
 import sp.it.util.ui.initMouseDrag
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
-import sp.it.util.ui.layFullArea
 import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.setMinPrefMaxSize
@@ -201,12 +199,12 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
       yMax.setValueOf { yMax.value.setScale(precision, UP) }
    }
 
-   inner class Plot: AnchorPane() {
+   inner class Plot: StackPane() {
       val animation = v(1.0)
       val coordRoot: Canvas
+      val coordGc: GraphicsContext
       val pathRoot: Canvas
       val pathGc: GraphicsContext
-      val coordGc: GraphicsContext
       var ignorePlotting = false
       val isInvalidRange get() = xMin.value>=xMax.value || yMin.value>=yMax.value
       val gradient = LinearGradient(0.0, 1.0, 0.0, 0.0, true, NO_CYCLE, Stop(1.0, AQUA.alpha(0.6)), Stop(0.0, AQUA.alpha(0.2)))
@@ -218,35 +216,18 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          setMinSize(0.0, 0.0)
          setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
          setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
-         pathRoot = Canvas()
+         initClip()
+
+         pathRoot = canvas()
          pathGc = pathRoot.graphicsContext2D
-         coordRoot = Canvas()
+         coordRoot = canvas({ pathRoot.width = width; pathRoot.height = height; plot(functionPlotted) })
          coordGc = coordRoot.graphicsContext2D
          isMouseTransparent = true
 
-         layFullArea += anchorPane {
-            setMinSize(0.0, 0.0)
-            setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
-            setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
-            layFullArea += coordRoot.apply {
-               this.widthProperty() attachFrom this@anchorPane.widthProperty()
-               this.heightProperty() attachFrom this@anchorPane.heightProperty()
-            }
-         }
-         layFullArea += anchorPane {
-            setMinSize(0.0, 0.0)
-            setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
-            setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
-            initClip()
+         lay += stackPane(coordRoot)
+         lay += stackPane(pathRoot) {
             animation sync { opacity = it }
-
-            layFullArea += pathRoot.apply {
-               this.widthProperty() attachFrom this@anchorPane.widthProperty()
-               this.heightProperty() attachFrom this@anchorPane.heightProperty()
-            }
          }
-
-         layoutBoundsProperty() sync { plot(functionPlotted) }
       }
 
       fun plot(function: Fun) {

@@ -1,13 +1,16 @@
 package sp.it.pl.ui.objects.placeholder
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.geometry.HPos
+import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.VPos
 import javafx.scene.Node
 import javafx.scene.layout.Pane
-import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
 import kotlin.math.sqrt
+import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
@@ -20,6 +23,7 @@ import sp.it.util.functional.traverse
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.sync
 import sp.it.util.ui.containsMouse
+import sp.it.util.ui.flowPane
 import sp.it.util.ui.lay
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
@@ -28,7 +32,6 @@ import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
-import sp.it.util.ui.vBox
 import sp.it.util.ui.x2
 import sp.it.util.units.millis
 
@@ -67,9 +70,13 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
          }
       }
 
-      lay += vBox(8.0, CENTER) {
+      lay(CENTER) += flowPane(8.emScaled, 8.emScaled) {
+         orientation = VERTICAL
+         columnHalignment = HPos.CENTER
+         rowValignment = VPos.CENTER
+         alignment = CENTER
          minSize = 0.x2
-         lay(ALWAYS) += stackPane {
+         lay += stackPane {
             minSize = 0.x2
             isMouseTransparent = true
             lay += icon

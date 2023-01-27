@@ -38,6 +38,7 @@ import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
 import javafx.util.Callback
+import javafx.util.Duration
 import kotlin.math.sqrt
 import kotlin.reflect.KClass
 import kotlin.reflect.KTypeProjection.Companion.invariant
@@ -721,16 +722,18 @@ abstract class AnimationBuilder {
       a.applyAt(position)
    }
 
-   open fun closeAndDo(n: Node, action: (() -> Unit)?) {
+   open fun closeAndDo(n: Node, action: (() -> Unit)?): Anim {
       val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
       if (!a.isPlaying()) a.applyAt(1.0)
       a.playCloseDo(action)
+      return a
    }
 
-   open fun openAndDo(n: Node, action: (() -> Unit)?) {
+   open fun openAndDo(n: Node, action: (() -> Unit)?): Anim {
       val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
       if (!a.isPlaying()) a.applyAt(0.0)
       a.playOpenDo(action)
+      return a
    }
 
    protected abstract fun buildAnimation(n: Node): Anim
@@ -755,17 +758,20 @@ class DelayAnimator: AnimationBuilder() {
    private val animDelay = AtomicLong(0)
    private val animDelayResetter = EventReducer.toLast<Void>(200.0) { animDelay.set(0) }
 
-   override fun closeAndDo(n: Node, action: (() -> Unit)?) {
-      super.closeAndDo(n, action)
-      animDelay.incrementAndGet()
+   private fun computeDelay(): Duration = (animDelay.get()*300.0).millis
+
+   override fun closeAndDo(n: Node, action: (() -> Unit)?): Anim {
+      val a = super.closeAndDo(n, action)
       animDelayResetter.push(null)
+      return a
    }
 
-   override fun openAndDo(n: Node, action: (() -> Unit)?) {
-      super.openAndDo(n, action)
+   override fun openAndDo(n: Node, action: (() -> Unit)?): Anim {
+      val a = super.openAndDo(n, action)
       animDelay.incrementAndGet()
       animDelayResetter.push(null)
+      return a
    }
 
-   override fun buildAnimation(n: Node) = AppAnimator.buildAnimation(n).delay((animDelay.get()*300.0).millis)
+   override fun buildAnimation(n: Node) = AppAnimator.buildAnimation(n).delay(computeDelay())
 }

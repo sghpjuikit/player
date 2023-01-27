@@ -1,6 +1,8 @@
 package sp.it.pl.layout
 
 import javafx.scene.layout.AnchorPane
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 import sp.it.pl.layout.Widget.LoadType.AUTOMATIC
 import sp.it.pl.layout.Widget.LoadType.MANUAL
 import sp.it.pl.layout.controller.io.IOLayer
@@ -10,11 +12,13 @@ import sp.it.pl.main.DelayAnimator
 import sp.it.pl.main.Df
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
+import sp.it.pl.main.Ui.FPS
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.toS
 import sp.it.pl.ui.objects.placeholder.Placeholder
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.functional.net
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
@@ -27,6 +31,7 @@ import sp.it.util.ui.layFullArea
 import sp.it.util.ui.pseudoclass
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.styleclassToggle
+import sp.it.util.units.kt
 
 /**
  * UI allowing user to manage [Widget] instances. Manages widget's lifecycle and user's interaction with the widget.
@@ -105,9 +110,15 @@ class WidgetUi: ComponentUiBase<Widget> {
             manualLoadPane = null
 
             // load widget
-            animation.openAndDo(contentRoot, null)
-            content.children.clear()
-            content.layFullArea += widget.load()
+            val anim = animation.openAndDo(contentRoot, null) on disposer
+            val delay = anim.delay
+            val delayOffset = (1000/FPS*2).milliseconds // 2 frames
+            runSuspendingFx {
+               delay(delay.kt - delayOffset) // delay with animation, but invoke before animation starts loading
+               content.children.clear()
+               content.layFullArea += widget.load()
+            } on disposer
+
 
             // put controls to new widget
             widget.padding sync { content.style = it?.net { "-fx-padding:${it.toS()};" } } on disposer
@@ -117,7 +128,7 @@ class WidgetUi: ComponentUiBase<Widget> {
          widget.loadType.value==MANUAL -> {
             AppAnimator.closeAndDo(contentRoot) {
                content.children.clear()
-               animation.openAndDo(contentRoot, null)
+               animation.openAndDo(contentRoot, null) on disposer
 
                // put controls to new widget
                widget.padding sync { content.style = it?.net { "-fx-padding:${it.toS()};" } } on disposer
@@ -126,7 +137,7 @@ class WidgetUi: ComponentUiBase<Widget> {
 
                manualLoadPane = buildManualLoadPane()
                manualLoadPane?.showFor(content)
-            }
+            } on disposer
          }
       }
    }

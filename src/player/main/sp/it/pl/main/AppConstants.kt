@@ -58,6 +58,8 @@ object Actions {
 }
 
 object Ui {
+   const val FPS = 60.0 // frames per second (locked)
+
    const val STYLE_FONT_STYLE_NORMAL = "text-style-normal"
    const val STYLE_FONT_STYLE_ITALIC = "text-style-italic"
    const val STYLE_FONT_WEIGHT_NORMAL = "text-weight-normal"

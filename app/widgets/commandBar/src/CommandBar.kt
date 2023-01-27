@@ -1,6 +1,7 @@
 package commandBar
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.geometry.Side
 import javafx.scene.control.ContextMenu
 import javafx.scene.input.KeyCode.DOWN
 import javafx.scene.input.KeyCode.UP
@@ -20,6 +21,7 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
@@ -36,6 +38,7 @@ import sp.it.util.conf.def
 import sp.it.util.conf.max
 import sp.it.util.conf.min
 import sp.it.util.conf.values
+import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.math.clip
 import sp.it.util.math.max
@@ -45,7 +48,7 @@ import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
-import sp.it.util.type.property
+import sp.it.util.ui.dsl
 import sp.it.util.ui.flowPane
 import sp.it.util.ui.lay
 import sp.it.util.ui.menuItem
@@ -66,14 +69,12 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
       .def(name = "Icons", info = "List of icons. Icon has an icon and command.")
    val iconPlusVisible by cv(true)
       .def(name = "Show 'Add icon' icon")
-   val iconPlus = icon(IconFA.PLUS).tooltip("Add icon")
+   val iconPlus = icon(IconFA.CARET_DOWN).onClickDo { buildMenu().show(it, Side.BOTTOM, 0.0, 0.0) }
    val iconPane = flowPane(5.0, 5.0)
 
    init {
       root.prefSize = 400.emScaled x 50.emScaled
       root.lay += iconPane
-
-      iconPlus.onClickDo { addIcon() }
 
       iconPlusVisible attach { updateIcons() }
       icons.onChange { updateIcons() } on onClose
@@ -91,9 +92,15 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
          it.consume()
       }
 
-      root.onEventDown(MOUSE_CLICKED, SECONDARY) {
-         ContextMenu(menuItem("Add") { addIcon() }).show(root, it)
+      root.onEventDown(MOUSE_CLICKED, SECONDARY) { buildMenu().show(root, it) }
+   }
+
+   fun buildMenu() = ContextMenu().dsl {
+      item("Add", Icon(IconFA.PLUS)) { addIcon() }
+      menu("Remove", Icon(IconFA.MINUS)) {
+         items(icons.asSequence(), { it.command.toUi() }, { Icon(it.glyph) }) {}
       }
+      item("Settings", Icon(IconFA.COG)) { APP.windowManager.showSettings(widget, root) }
    }
 
    fun updateIcons() {
@@ -127,12 +134,10 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
       val command by cv(icon.command).attach { icon.command = it }.def(name = "Command").but(Command.parser.toUiStringHelper())
    }
 
-   private var Icon.commandImpl: Command by property { Command.DoNothing }
-
    private var Icon.command: Command
-      get() = commandImpl
+      get() = properties["command"]?.asIs<Command>() ?: Command.DoNothing
       set(value) {
-         commandImpl = value
+         properties["command"] = value
          when (value) {
             is Command.DoAction -> when (val a = value.toAction()) {
                null -> onClickDo { value(); autoClose() }

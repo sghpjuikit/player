@@ -6,10 +6,22 @@ import sp.it.util.dev.Dependency
 import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util
+import kotlin.time.Duration as DurationKt
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit.NANOSECONDS
 import sp.it.util.functional.runTry
 
 /** Converts to javafx [Dur] */
 val Duration.javafx: Dur get() = toMillis().millis
+
+/** Converts to javafx [Dur] */
+val DurationKt.javafx: Dur get() = toDouble(NANOSECONDS).millis
+
+/** Converts to [Duration] */
+val Dur.java: Duration get() = Duration.ofMillis(toMillis().toLong())
+
+/** Converts to [DurationKt] */
+val Dur.kt: DurationKt get() = toMillis().milliseconds
 
 /** @return human-readable duration value in the smallest possible units (millis if less than second, etc.)*/
 fun Dur.formatToSmallestUnit(): String {

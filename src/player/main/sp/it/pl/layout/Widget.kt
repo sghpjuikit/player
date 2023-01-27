@@ -99,7 +99,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
     *
     * This field allows widget to control its lifecycle and context from its controller.
     */
-   var ui: ComponentUi? = null
+   var ui: WidgetUi? = null
 
    /**
     * The graphics of the widget. It provides access to public behavior of the widget.
@@ -287,6 +287,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       graphics?.onNodeDispose()
       graphics?.removeFromParent()
       graphics = null
+      ui?.dispose()
 
       WidgetIoManager.ios.removeIf { it.widget===this }
       onClose.invoke()

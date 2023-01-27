@@ -12,12 +12,20 @@ All notable changes to this project will be documented in this file. Format base
 - Implement skin **FlowBlack**
 - Implement **Configurator** widget shortcut filter to be 3-valued
 - Implement **GameView** widget game attributes
+- Implement **IconViewer** widget icon group showing icons used for widgets
+- Implement **CommandBar** context menu & other small UX changes
 - Implement exclusive fullscreen detection
     - use to avoid displaying **StartScreen** overlays and dock windows when exclusive fullscreen mode application is running
 - Implement application process elevation read-only config
+- Implement `PlaylistTable` playing column icon open controls action
+- Implement `WidgetUi` widget load delay
+- Implement `WidgetUi` disposing & animation stopping on widget close
+- Improve `Placeholder` layout to be reactive
 - Improve UX [adjust widget controls activation area size]
 - Improve styling [fix various effects & inconsistencies]
+- Improve widget unloading UX [use widget icon]
 - Improve **Configurator** widget (App Settings) performance
+- Improve **FunctionViewer** widget code & performance
 - Improve **GitProjects** widget UX
     - Implement support projects (up to 3 depth)
     - Implement shortcuts guide
@@ -35,8 +43,10 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Spektrum** widget shifting effect off 1000000 times
 - Fix **Spektrum** widget state corruption after out of range exceptions during interpolation
 - Fix **Spektrum** widget audio dispatcher buffer size calculation
+- Fix **Comet** widget issues of various kind
 - Fix `Thumbnail` not updating viewport when layout changes
 - Fix `ToggleButtonGroup` styling
+- Fix playback status change notification ui created multiple times
 
 This update brings lots of UX improvements all-around.
 
@@ -63,6 +73,10 @@ to prevent stealing focus. Now this is properly supported. Enjoy your uninterrup
 All `Fut` and `coroutine` based asynchronous behavior now uses virtual threads instead of CPU + IO thread pools.
 Using `Dispatchers.VT` allows blocking inside coroutines unless it is running on a ui thread.
 
+### Widget loading
+Until now, widgets loading in short succession loaded with an incrementally delayed animation.
+However, this was only visual effect. From now on the loading is truly asynchronous.
+This improves UI performance when loading multiple widgets at once.
 
 ## [7.6.0] 2022 11 27
 

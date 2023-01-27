@@ -640,6 +640,11 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       size = newSize min scrSize
    }
 
+   /**
+    * Shows [sp.it.pl.ui.objects.form.Form] in new [PopWindow] for the specified configurable.
+    * The popup title shows the name of the configurable, using [toUi].
+    * As such, providing custom name is possible by implementing [sp.it.pl.core.NameUi].
+    */
    fun <T> showSettings(c: Configurable<T>, atNode: Node) = PopWindow().apply {
       title.value = "${c.toUi()} Settings"
       content.value = form(c).apply {

@@ -97,14 +97,20 @@ fun Job.asFut(): Fut<Unit> = Fut(asCompletableFuture())
 /** @return this job as [Subscription] that [Job.cancel] this job */
 fun Job.toSubscription() = Subscription { cancel() }
 
+/** Launch coroutine and return it as [Fut]. Canceling the future cancels the coroutine (see [future]). */
 fun <T> runSuspending(dispatcher: CoroutineDispatcher, start: CoroutineStart = DEFAULT, block: suspend CoroutineScope.() -> T) : Fut<T> = Fut(CoroutineScope(dispatcher).future(EmptyCoroutineContext, start, block))
 
+/** Launch coroutine on [FX] ([UNDISPATCHED] if on fx thread already) and return it as [Fut]. Canceling the future cancels the coroutine (see [future]). */
 fun <T> runSuspendingFx(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(FX, if (Platform.isFxApplicationThread()) UNDISPATCHED else DEFAULT, block)
 
+/** Launch coroutine on [FX] and return it as [Fut]. Canceling the future cancels the coroutine (see [future]). */
 fun <T> runSuspendingFxLater(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(FX, DEFAULT, block)
 
+/** Launch coroutine and return it as [Fut]. Canceling the future cancels the coroutine (see [future]). */
 fun <T> CoroutineScope.runSuspending(start: CoroutineStart = DEFAULT, block: suspend CoroutineScope.() -> T) : Fut<T> = Fut((this + FX).future(EmptyCoroutineContext, start, block))
 
+/** Launch coroutine on [FX] ([UNDISPATCHED] if on fx thread already) and return it as [Fut]. Canceling the future cancels the coroutine (see [future]). */
 fun <T> CoroutineScope.runSuspendingFx(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(if (Platform.isFxApplicationThread()) UNDISPATCHED else DEFAULT, block)
 
+/** Launch coroutine on [FX] and return it as [Fut]. Canceling the future cancels the coroutine (see [future]). */
 fun <T> CoroutineScope.runSuspendingFxLater(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(DEFAULT, block)

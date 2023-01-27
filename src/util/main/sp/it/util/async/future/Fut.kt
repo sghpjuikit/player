@@ -24,7 +24,7 @@ import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 
 /**
- * Future monad implementation.
+ * Future monad implementation backed by [CompletableFuture].
  *
  * Represents time sensitive value, enriched with computation context. Lazy.
  *
@@ -69,6 +69,9 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
    fun thenRecover(): Fut<Try<T, Throwable>> = thenRecover(CURR) { it.toTryRaw() }
 
    fun thenRecoverNull(): Fut<T?> = thenRecover(CURR) { it.orGet { null } }
+
+   /** Invokes [CompletableFuture.cancel] */
+   fun cancel(): Boolean = f.cancel(true)
 
    /** @return whether this future completed regardless of success */
    fun isDone(): Boolean = f.isDone

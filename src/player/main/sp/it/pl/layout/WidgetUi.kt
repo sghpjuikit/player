@@ -51,6 +51,7 @@ class WidgetUi: ComponentUiBase<Widget> {
    val contentRoot = AnchorPane()
    val controls: WidgetUiControls
    val content = AnchorPane()
+   private var disposed = false
    private val disposer = Disposer()
    private var manualLoadPane: Placeholder? = null
 
@@ -162,6 +163,8 @@ class WidgetUi: ComponentUiBase<Widget> {
    }
 
    override fun dispose() {
+      if (disposed) return
+      disposed = true
       disposer()
       controls.root.removeFromParent()
       controls.showSettingsClose()

@@ -6,6 +6,8 @@ import javafx.scene.control.Skin
 import javafx.scene.text.Text
 import kotlin.reflect.KClass
 import sp.it.pl.layout.NodeFactory
+import sp.it.pl.main.Widgets.ICON_BROWSER_NAME
+import sp.it.pl.ui.nodeinfo.IconPickerContent
 import sp.it.pl.ui.nodeinfo.MouseInfo
 import sp.it.pl.ui.nodeinfo.SongAlbumInfo
 import sp.it.pl.ui.nodeinfo.SongInfo
@@ -58,7 +60,7 @@ object CoreInstances: InstanceMap(), Core {
          NodeFactory(uuid("539ffb5c-96d2-47f5-a6f8-cf398dc0f6b8"), DatePickerContent::class, "DatePickerContent") { DatePickerContent() },
          NodeFactory(uuid("12f4b8c2-1162-4189-b056-986b551be943"), DateTimeClockWin::class, "DateTimeClockWin") { DateTimeClockWin() },
          NodeFactory(uuid("15d41fa3-7801-4276-a484-50e4b4619580"), DateTimePickerContent::class, "DateTimePickerContent") { DateTimePickerContent() },
-         NodeFactory(uuid("1806a117-8636-47e2-a14b-f185fd0ca937"), FontPickerContent::class, "FontPickerContent") { FontPickerContent() },
+         NodeFactory(uuid("1806a117-8636-47e2-a14b-f185fd0ca937"), FontPickerContent::class, "Font Browser") { FontPickerContent() },
          NodeFactory(uuid("6ac8bd91-9432-4070-87ab-fb7c1f41b2a0"), TimeClockAnalog::class, "TimeClockAnalog") { TimeClockAnalog() },
          NodeFactory(uuid("8bd6ca12-caa4-4f42-985a-6d4b9749cd32"), TimeClockDigital::class, "TimeClockDigital") { TimeClockDigital() },
          NodeFactory(uuid("20a08e65-f3e8-4129-9c32-6d72cf07360a"), TimeClockDigitalIos::class, "TimeClockDigitalIos") { TimeClockDigitalIos() },
@@ -69,6 +71,7 @@ object CoreInstances: InstanceMap(), Core {
          NodeFactory(uuid("4f0a352d-8c80-46f5-a98f-46c354579c9f"), WeatherInfo::class, "Weather Info") { WeatherInfo() },
          NodeFactory(uuid("ae85ff79-d119-4677-a108-ca8f07bd4626"), javafx.scene.control.Label::class, "JavaFX Label") { Label("Label") },
          NodeFactory(uuid("5528126f-c9d5-40a7-ad72-a50f3bd9ab14"), javafx.scene.text.Text::class, "JavaFX Text") { Text("Text") },
+         NodeFactory(uuid("109cbb7f-958b-47f7-8c89-072736a1b4c7"), IconPickerContent::class, ICON_BROWSER_NAME) { IconPickerContent() },
       )
 
       addInstances<SearchUriBuilder>(

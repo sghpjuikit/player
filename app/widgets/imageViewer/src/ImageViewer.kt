@@ -305,7 +305,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
          The widget can also follow playing or selected songs, displaying images in their parent directory.
          The image search within the location is recursive and search depth is configurable.
       """
-      override val icon = IconFA.FONTICONS
+      override val icon = IconFA.IMAGE
       override val version = version(1, 0, 0)
       override val isSupported = true
       override val year = year(2015)

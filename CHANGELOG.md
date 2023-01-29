@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. Format base
 - Update vlcj to 3.0.18
 - Update dependencies
 - Implement speech recognition using AI
+- Implement Node base widget support for widget metadata [WidgetCompanion]
+- Implement icon config editor with icon picker
 - Implement .url file support
 - Implement support for jpeg with jfif extension
 - Implement better window radius support [clip content to radius]
@@ -71,12 +73,20 @@ to prevent stealing focus. Now this is properly supported. Enjoy your uninterrup
 
 ### Virtual threads
 All `Fut` and `coroutine` based asynchronous behavior now uses virtual threads instead of CPU + IO thread pools.
-Using `Dispatchers.VT` allows blocking inside coroutines unless it is running on a ui thread.
+Using `Dispatchers.VT` allows blocking inside coroutines unless it is running on an ui thread.
 
 ### Widget loading
 Until now, widgets loading in short succession loaded with an incrementally delayed animation.
 However, this was only visual effect. From now on the loading is truly asynchronous.
 This improves UI performance when loading multiple widgets at once.
+
+### Node-based widget
+Widgets based on JavaFX Node types instantiated through the **Node** widget now support `WidgetCompanion` like ordinary widgets.
+This brings the two closer and allows Node widgets to provide metadata, such as icon, version, etc.
+
+### Icon widget and pickers
+The **IconViewer** widget has been reimplemented as ordinary Node `IconPickerContent` and is provided now as Node-based widget.
+`IconPickerContent` is used for `IconTextField` which is used for `IconCE` - config editor for icons, which provides much better UX that the autocomplete.
 
 ## [7.6.0] 2022 11 27
 

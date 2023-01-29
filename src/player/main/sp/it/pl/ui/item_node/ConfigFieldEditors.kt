@@ -110,8 +110,10 @@ import sp.it.pl.ui.objects.textfield.DateTimeTextField
 import sp.it.pl.ui.objects.textfield.EffectTextField
 import sp.it.pl.ui.objects.textfield.FileTextField
 import sp.it.pl.ui.objects.textfield.FontTextField
+import sp.it.pl.ui.objects.textfield.IconTextField
 import sp.it.pl.ui.objects.textfield.SpitTextField
 import sp.it.pl.ui.objects.textfield.TimeTextField
+import sp.it.pl.ui.objects.textfield.ValueTextFieldBi
 import sp.it.pl.ui.pane.ConfigPane
 import sp.it.util.access.OrV
 import sp.it.util.access.Values
@@ -161,8 +163,10 @@ import sp.it.util.functional.map
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.functional.supplyIfNotNull
 import sp.it.util.functional.toOption
 import sp.it.util.math.clip
+import sp.it.util.parsing.nullOf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
@@ -497,27 +501,47 @@ class ValueToggleButtonGroupCE<T>(c: Config<T>, val values: List<T>, customizer:
    }
 }
 
-class FontCE(c: Config<Font?>): ConfigEditor<Font?>(c) {
+open class ValueTextFieldBasedCE<T>(c: Config<T>, editorBuilder: (T) -> ValueTextFieldBi<T & Any>): ConfigEditor<T>(c) {
+   final override val editor = editorBuilder(config.value)
+   private val valueConverter = editor.valueConverter.nullOf(config.type)
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = FontTextField(config.value)
+   private val warnI = lazy {
+      Icon().apply {
+         styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON)
+      }
+   }
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
 
+      editor.textProperty() sync { showWarnButton(getValid()) } on disposer
+
       // readonly
+      editor.selection
       isEditable syncTo editor.editable on disposer
    }
 
-   override fun get() = Try.ok(editor.value)
+   override fun get() = valueConverter.ofS(editor.text)
 
    override fun refreshValue() {
       if (!isObservable)
          editor.value = config.value
    }
+
+   private fun showWarnButton(value: Try<*, String>) {
+      val shouldBeVisible = value.isError && isEditable.value
+      editor.right setTo editor.right.filter { it !== warnI.value }.toMutableList().apply { if (shouldBeVisible) add(0, warnI.value) }
+      warnI.orNull()?.isVisible = shouldBeVisible
+      warnI.orNull()?.tooltip(value.switch().map { appTooltip(it) }.orNull())
+   }
 }
+
+class FontCE(c: Config<Font?>): ValueTextFieldBasedCE<Font?>(c, ::FontTextField)
+
+class IconCE(c: Config<GlyphIcons?>): ValueTextFieldBasedCE<GlyphIcons?>(c, ::IconTextField)
 
 class ColorCE(c: Config<Color?>): ConfigEditor<Color?>(c) {
    private val v = getObservableValue(c)
@@ -1017,7 +1041,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                            lay += text(f.descriptionLong.toUi())
                            lay += text {
                               val fs = f.features
-                              "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString("\n") { "\t${it.name} - ${it.description}" })
+                              text = "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString("\n") { "\t${it.name} - ${it.description}" })
                            }
                         }
                      }
@@ -1029,8 +1053,24 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                         lay += textColon("File", f.launcher)
                      }
                      is NodeFactory<*> -> {
+                        lay += textColon("Id", f.id)
+                        lay += textColon("Supported", f.info?.isSupported ?: true)
                         lay += textColon("Type", "Ui component ${f.type.toUi()}")
-                        lay += textColon("Version", "bundled")
+                        lay += textColon("Version", f.info?.version ?: "bundled")
+                        lay += textColon("Year", f.info?.year)
+                        lay += textColon("Author", f.info?.author)
+                        lay += textColon("Contributor", f.info?.contributor)
+                        lay += textColon("Location (user data)", f.userLocation)
+                        lay += textFlow {
+                           styleClass += "h4p"
+                           lay += supplyIfNotNull(f.info?.descriptionLong) {
+                              text(it.toUi())
+                           }
+                           lay += text {
+                              val fs = f.info?.features.orEmpty()
+                              text = "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString("\n") { "\t${it.name} - ${it.description}" })
+                           }
+                        }
                      }
                      is NoFactoryFactory -> {
                         lay += textColon("Type", "Substitute for 'missing component'")
@@ -1053,6 +1093,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
       val ComponentFactory<*>?.uiIcon: GlyphIcons
          get() = when (this) {
             is WidgetFactory<*> -> this.icon ?: IconOC.PLUG
+            is NodeFactory<*> -> this.info?.icon ?: IconOC.PLUG
             else -> IconOC.PACKAGE
          }
    }

@@ -1,5 +1,6 @@
 package sp.it.pl.ui.item_node
 
+import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import java.nio.charset.Charset
 import java.time.LocalDate
@@ -320,6 +321,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
          put<Color> { ColorCE(it.asIs()) }
          put<File> { FileCE(it.asIs()) }
          put<Font> { FontCE(it.asIs()) }
+         put<GlyphIcons> { IconCE(it.asIs()) }
          put<TextAlignment> {
             ValueToggleButtonGroupCE(it.asIs(), it.asIs<Config<TextAlignment?>>().type.enumValues(), {
                   textIcon(

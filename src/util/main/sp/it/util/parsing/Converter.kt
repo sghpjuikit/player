@@ -38,8 +38,10 @@ abstract class Converter {
    inline fun <reified T> isValid(text: String): Boolean = ofS<T>(text).isOk
 
    /** @return converter for specified type utilizing this converter */
-   inline fun <reified T> toConverterOf(): ConverterString<T> = object: ConverterString<T> {
-      val type = type<T>()
+   inline fun <reified T> toConverterOf(): ConverterString<T> = toConverterOf(type<T>())
+
+   /** @return converter for specified type utilizing this converter */
+   fun <T> toConverterOf(type: VType<T>): ConverterString<T> = object: ConverterString<T> {
       override fun toS(o: T) = this@Converter.toS(o)
       override fun ofS(s: String) = this@Converter.ofS(type, s)
    }

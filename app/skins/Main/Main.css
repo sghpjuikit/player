@@ -2450,6 +2450,16 @@ Shape, Text, SpitText, TextFlow > * {
 /*
  * inherits: .value-text-field
  */
+.icon-text-field {
+    -fx-pref-column-count: 10;
+}
+.file-text-field .icon-icon {
+    -glyph-size: 0.8em;
+}
+
+/*
+ * inherits: .value-text-field
+ */
 .font-text-field {
     -fx-pref-column-count: 10;
 }
@@ -3140,7 +3150,7 @@ Shape, Text, SpitText, TextFlow > * {
 .value-text-field .right-pane .config-editor-warn-button,
 .value-text-field .right-pane .config-editor-warn-button:hover {
     -glyph-name: "FontAwesomeIcon.EXCLAMATION_TRIANGLE";
-    -glyph-size: 0.66667em; /* 8 */
+    -glyph-size: 0.8em;
     -fx-fill: -fx-focus-color;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
@@ -3812,6 +3822,33 @@ Shape, Text, SpitText, TextFlow > * {
 /* Unmatched items. */
 .grid-cell:searchmatchnot {
     -fx-opacity: 0.4;
+}
+
+/********************************** ICON GRID *********************************
+ * Icon grid
+ * inherits: .grid-view
+ */
+.icon-grid {}
+
+/*
+ * Icon grid cell
+ * inherits: .grid-cell
+ */
+.icon-grid-cell,
+.icon-grid-cell:hover,
+.icon-grid-cell:selected {
+    -fx-background-color: null;
+    -fx-font-size: 0.8em;
+}
+
+/*
+ * Icon grid cell
+ * inherits: .VBox
+ */
+.icon-grid-cell-graphics {}
+
+.icon-grid-cell-graphics .label {
+    -fx-background-color: transparent;
 }
 
 /***************************** GRID FILE THUMB CELL ***************************

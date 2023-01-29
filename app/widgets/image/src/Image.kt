@@ -100,7 +100,7 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
       override val name = "Image"
       override val description = "Shows a static image"
       override val descriptionLong = "$description."
-      override val icon = IconFA.FONTICONS
+      override val icon = IconFA.IMAGE
       override val version = version(1, 1, 0)
       override val isSupported = true
       override val year = year(2015)

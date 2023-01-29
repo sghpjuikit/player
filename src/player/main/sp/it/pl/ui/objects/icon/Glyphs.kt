@@ -13,17 +13,20 @@ import de.jensd.fx.glyphs.weathericons.WeatherIcon
 import de.jensd.fx.glyphs.weathericons.WeatherIconView
 import javafx.scene.text.Font
 import kotlin.reflect.KClass
+import sp.it.pl.core.orMessage
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.functional.runTry
+import sp.it.util.parsing.ConverterString
 import sp.it.util.text.Char32
 import sp.it.util.text.toChar32
 import sp.it.util.type.enumValues
 
-object Glyphs {
+object Glyphs: ConverterString<GlyphIcons> {
 
    private var GLYPH_ENUM_TYPES: Set<KClass<out GlyphIcons>> = setOf(
       FontAwesomeIcon::class,
@@ -40,16 +43,7 @@ object Glyphs {
    val GLYPHS: MapSet<String, GlyphIcons> = GLYPH_ENUM_TYPES
       .asSequence()
       .flatMap { it.enumValues.asSequence() }
-      .toCollection(MapSet { it.javaClass.simpleName + "." + it.name() })
-
-   /** Inverse of [GlyphIcons.id]. Throws if fails. */
-   operator fun get(id: String): Try<GlyphIcons, Throwable> = runTry {
-      when {
-         id.startsWith("TextIcon.") -> TextIcon(id.substringAfter("TextIcon."))
-         id.startsWith("UnicodeIcon.") -> UnicodeIcon(id.substringAfter("Unicode.").toInt())
-         else -> GLYPHS[id] ?: fail { "No such icon=$id" }
-      }
-   }
+      .toCollection(MapSet(::toS))
 
    fun <ICON: GlyphIcons> valuesOf(type: KClass<ICON>): Sequence<ICON> = when (type) {
       UnicodeIcon::class -> UnicodeIcon.values().asIs()
@@ -68,19 +62,29 @@ object Glyphs {
       Font.loadFont(MaterialIconView::class.java.getResource(MaterialIconView.TTF_PATH)!!.openStream(), 10.0)
       Font.loadFont(OctIconView::class.java.getResource(OctIconView.TTF_PATH)!!.openStream(), 10.0)
    }
+
+   override fun toS(o: GlyphIcons): String = when (o) {
+      is TextIcon -> "TextIcon.${o.name()}"
+      is UnicodeIcon -> "UnicodeIcon.${o.name()}"
+      is FontAwesomeIcon -> "FontAwesomeIcon.${o.name()}"
+      is WeatherIcon -> "WeatherIcon.${o.name()}"
+      is MaterialDesignIcon -> "MaterialDesignIcon.${o.name()}"
+      is MaterialIcon -> "MaterialIcon.${o.name()}"
+      is OctIcon -> "OctIcon.${o.name()}"
+      else -> fail { "Unsupported glyph: $this" }
+   }
+
+   override fun ofS(s: String): Try<GlyphIcons, String>  = runTry {
+      when {
+         s.startsWith("TextIcon.") -> TextIcon(s.substringAfter("TextIcon."))
+         s.startsWith("UnicodeIcon.") -> UnicodeIcon(s.substringAfter("UnicodeIcon.").drop(2).net { Integer.parseInt(it, 16) })
+         else -> GLYPHS[s] ?: fail { "No such icon=$s" }
+      }
+   }.orMessage()
 }
 
-/** Inverse of [Glyphs.get] */
-fun GlyphIcons.id(): String = when (this) {
-   is TextIcon -> "TextIcon.${name()}"
-   is UnicodeIcon -> "UnicodeIcon.${name()}"
-   is FontAwesomeIcon -> "FontAwesomeIcon.${name()}"
-   is WeatherIcon -> "WeatherIcon.${name()}"
-   is MaterialDesignIcon -> "MaterialDesignIcon.${name()}"
-   is MaterialIcon -> "MaterialIcon.${name()}"
-   is OctIcon -> "OctIcon.${name()}"
-   else -> fail { "Unsupported glyph: $this" }
-}
+/** Equivalent to [Glyphs.toS] */
+fun GlyphIcons.id(): String = Glyphs.toS(this)
 
 data class TextIcon(val text: String): GlyphIcons {
    override fun characterToString() = text

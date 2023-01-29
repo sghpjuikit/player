@@ -51,6 +51,7 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
@@ -205,6 +206,12 @@ class Node(widget: Widget): SimpleController(widget) {
             io.i.create(property.name, property.type, propertyValue) { property.value.value = it }
          }
       }
+   }
+
+   override fun focus() {
+      nodeInstance.value.node
+         .ifNotNull { it.requestFocus() }
+         .ifNull { root.requestFocus() }
    }
 
    companion object: WidgetCompanion, KLogging() {

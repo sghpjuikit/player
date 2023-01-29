@@ -294,6 +294,8 @@ class Tester(widget: Widget): SimpleController(widget) {
          var `c(File)·only(ANY)` by c<File>(APP.location).only(ANY)
          var `cn(Font)` by cn<Font>(null)
          val `cvn(Font)` by cvn<Font>(null)
+         var `cn(Icon)` by cn<GlyphIcons>(null)
+         val `cvn(Icon)` by cvn<GlyphIcons>(null)
          val `cvn(TextAlignment)` by cvn<TextAlignment>(null)
          val `cvn(Orientation)` by cvn<Orientation>(null)
          var `cn(Insets)` by cn<Insets>(EMPTY)

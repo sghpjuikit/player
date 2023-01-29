@@ -76,7 +76,6 @@ import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginBox
 import sp.it.pl.ui.objects.icon.Glyphs
-import sp.it.pl.ui.objects.icon.id
 import sp.it.pl.ui.objects.table.TableColumnInfo
 import sp.it.pl.ui.objects.tree.Name
 import sp.it.util.Util.enumToHuman
@@ -205,6 +204,7 @@ object CoreConverter: Core {
          is Duration -> o.formatToSmallestUnit()
          is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
          is FileSize -> FileSize.toUiS(o, APP.locale.value)
+         is GlyphIcons -> o.toS()
          is Effect -> o::class.toUi()
          is Component -> o.name
          is PluginBase -> o.name
@@ -391,7 +391,7 @@ object CoreConverter: Core {
       addParserToS(Node::class) { it::class.jvmName }
       addParserToS(Skin::class) { it::class.jvmName }
       addParserToS(Scene::class) { it::class.jvmName }
-      addT<GlyphIcons>({ it.id() }, { Glyphs[it].orMessage() })
+      addP<GlyphIcons>(Glyphs)
       addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it, false, null) })
       addT<KClass<*>>({ it.javaObjectType.name }, tryF(Throwable::class) {
          val defaultKClassToStringPrefix = "class"
@@ -434,7 +434,6 @@ object CoreConverter: Core {
       addP<Command.CommandActionId>(Command.CommandActionId)
       addP<Command.CommandComponentId>(Command.CommandComponentId)
       addT<SkinCss>({ it.file.absolutePath }, { Try.ok(SkinCss(File(it))) })
-
    }
 
    private inline fun <reified T: Any> ConverterDefault.addP(converter: ConverterString<T>) = addParser(T::class, converter)

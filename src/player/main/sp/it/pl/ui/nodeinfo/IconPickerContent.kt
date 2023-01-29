@@ -1,4 +1,4 @@
-package iconViewer
+package sp.it.pl.ui.nodeinfo
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Insets
@@ -10,21 +10,20 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import kotlin.reflect.KClass
 import mu.KLogging
-import sp.it.pl.layout.Widget
+import sp.it.pl.layout.NodeFactory
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.WidgetFactory
-import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df.PLAIN_TEXT
 import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
-import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.ICON_BROWSER_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.sysClipboard
@@ -33,35 +32,33 @@ import sp.it.pl.main.toUi
 import sp.it.pl.ui.LabelWithIcon
 import sp.it.pl.ui.objects.grid.GridCell
 import sp.it.pl.ui.objects.grid.GridView
-import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.KEY_PRESS
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_CLICK
-import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_HOVER
 import sp.it.pl.ui.objects.grid.GridViewSkin
 import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.id
-import sp.it.util.access.OrV.OrValue.Initial.Inherit
-import sp.it.util.access.OrV.OrValue.Initial.Override
 import sp.it.util.access.fieldvalue.IconField
 import sp.it.util.access.fieldvalue.StringGetter
+import sp.it.util.access.readOnly
+import sp.it.util.access.toWritable
+import sp.it.util.access.vn
 import sp.it.util.collections.setTo
-import sp.it.util.conf.c
-import sp.it.util.conf.cOr
-import sp.it.util.conf.defInherit
-import sp.it.util.conf.noUi
-import sp.it.util.file.div
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.syncFrom
 import sp.it.util.text.capitalLower
 import sp.it.util.text.nameUi
 import sp.it.util.ui.drag.set
 import sp.it.util.ui.dsl
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
+import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.separator
@@ -71,14 +68,17 @@ import sp.it.util.ui.x
 import sp.it.util.units.version
 import sp.it.util.units.year
 
-class IconViewer(widget: Widget): SimpleController(widget) {
+class IconPickerContent: StackPane() {
+   val root = this
+   val onClose = root.onNodeDispose
    val iconSize = 75.emScaled
    val iconGroups = (Glyphs.GLYPH_TYPES.map(::IconGroupOfGlyphClass) + IconGroupOfWidgets()).sortedBy { it.nameUi }
    val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, (iconSize*1.5 x iconSize/2) + (0 x 30.emScaled), 0 x 15.emScaled).apply {
       styleClass += "icon-grid"
       search.field = StringGetter.of { value, _ -> value.name() }
       filterPrimaryField = IconField.NAME
-      selectOn setTo listOf(MOUSE_HOVER, MOUSE_CLICK, KEY_PRESS)
+      selectOn setTo listOf(MOUSE_CLICK, KEY_PRESS)
+      selectedItem
       cellFactory.value = {
          object: GridCell<GlyphIcons, GlyphIcons>() {
 
@@ -111,16 +111,18 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       }
    }
 
-   val gridShowFooter by cOr(APP.ui::gridShowFooter, iconsView.footerVisible, Override(false), onClose)
-      .defInherit(APP.ui::gridShowFooter)
-   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, iconsView.cellAlign, Inherit(), onClose)
-      .defInherit(APP.ui::gridCellAlignment)
-   var selection by c("").noUi()
+   /** Currently selected icon group */
+   private val selectionGroup = vn<IconGroup>(null)
+   /** Currently selected icon */
+   val selection = iconsView.selectedItem.map { it?.raw }.readOnly().toWritable {
+      val iconType = it?.raw?.net { it::class }
+      (iconGroups.find { it is IconGroupOfGlyphClass && it.type==iconType } ?: iconGroups.firstOrNull())?.select(true)
+      iconsView.skinImpl?.select(it)
+   }
 
    init {
       root.prefSize = 700.emScaled x 500.emScaled
       root.consumeScrolling()
-      root.stylesheets += (location/"skin.css").toURI().toASCIIString()
 
       root.lay += hBox(20.emScaled, CENTER) {
          lay += stackPane {
@@ -133,17 +135,20 @@ class IconViewer(widget: Widget): SimpleController(widget) {
                hbarPolicy = NEVER
                content = vBox(0.0, CENTER_LEFT) {
                   lay += iconGroups.map { it.label }
-                  iconGroups.find { it.id==selection }?.select(true)
+                  iconGroups.find { it==selectionGroup.value }?.select(true)
                }
             }
          }
          lay += separator(VERTICAL) { maxHeight = 200.emScaled }
-         lay(ALWAYS) += iconsView
+         lay(ALWAYS) += iconsView.apply {
+            cellAlign syncFrom APP.ui.gridCellAlignment on onClose
+            footerVisible.value = false
+         }
       }
    }
 
-   override fun focus() {
-      (iconGroups.find { it.id==selection } ?: iconGroups.firstOrNull())?.select(true)
+   override fun requestFocus() {
+      (iconGroups.find { it==selectionGroup.value } ?: iconGroups.firstOrNull())?.select(true)
       iconsView.requestFocus()
    }
 
@@ -151,7 +156,7 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       override val name = ICON_BROWSER_NAME
       override val description = "Displays glyph icons of supported fonts"
       override val descriptionLong = "$description."
-      override val icon = IconUN(0x2e2a)
+      override val icon = IconFA.FONTICONS
       override val version = version(1, 1, 1)
       override val isSupported = true
       override val year = year(2020)
@@ -159,6 +164,8 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       override val contributor = ""
       override val tags = setOf(UTILITY, DEVELOPMENT)
       override val summaryActions = HelpEntries.Grid
+
+      val GlyphIcons.raw get() = if (this is IconWidget) glyph else this
    }
 
    abstract inner class IconGroup(val id: String, val nameUi: String, val values: () -> Sequence<GlyphIcons>) {
@@ -167,8 +174,8 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       }
       fun select(s: Boolean) {
          label.select(s)
-         if (s) iconGroups.find { it!==this && it.id==selection }?.select(false)
-         if (s) selection = id
+         if (s) iconGroups.find { it!==this && it==selectionGroup.value }?.select(false)
+         if (s) selectionGroup.value = this
          if (s) iconsView.itemsRaw setTo values()
          if (s) iconsView.requestFocus()
       }
@@ -176,9 +183,15 @@ class IconViewer(widget: Widget): SimpleController(widget) {
 
    inner class IconGroupOfGlyphClass(val type: KClass<out GlyphIcons>): IconGroup(type.toS(), type.toUi(), { Glyphs.valuesOf(type) })
 
-   inner class IconGroupOfWidgets: IconGroup("Widgets", "Widgets", { APP.widgetManager.factories.getFactories().map { IconWidget(it) } })
+   inner class IconGroupOfWidgets: IconGroup("Widgets", "Widgets", { IconWidget.all() })
 
-   class IconWidget(val widget: WidgetFactory<*>, val glyph: GlyphIcons = widget.icon ?: IconFA.PLUG): GlyphIcons by glyph
+   class IconWidget(val name: String, val glyph: GlyphIcons): GlyphIcons by glyph {
+      companion object {
+         operator fun invoke(it: WidgetFactory<*>) = IconWidget(it.name, it.icon ?: IconFA.PLUG)
+         operator fun invoke(it: NodeFactory<*>) = IconWidget(it.name, it.info?.icon ?: IconFA.PLUG)
+         fun all() = APP.widgetManager.factories.getFactories().map { invoke(it) } + APP.instances.recommendedNodeClassesAsWidgets.map { invoke(it) }
+      }
+   }
 
    class IconCellGraphics(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {
       private val nameLabel = Label()
@@ -188,10 +201,10 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       init {
          alignment = CENTER
          styleClass += "icon-grid-cell-graphics"
-         graphics = Icon(glyph, iconSize).apply {
+         graphics = Icon(glyph?.raw, iconSize).apply {
             isMouseTransparent = true
          }
-         onEventDown(MOUSE_CLICKED, PRIMARY) {
+         onEventDown(MOUSE_CLICKED, PRIMARY, false) {
             sysClipboard[PLAIN_TEXT] = glyph?.id()
          }
 
@@ -200,8 +213,8 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       }
 
       fun setGlyph(icon: GlyphIcons?) {
-         glyph = icon?.raw()
-         nameLabel.text = (if (icon is IconWidget) icon.widget.name else icon?.name())?.capitalLower() ?: ""
+         glyph = icon?.raw
+         nameLabel.text = (if (icon is IconWidget) icon.name else icon?.name())?.capitalLower() ?: ""
          graphics.icon(glyph)
          graphics.tooltip(glyph?.let { "$glyph.name()}\n${it.unicodeToString()}\n${it.fontFamily}" }.orEmpty())
       }
@@ -210,7 +223,6 @@ class IconViewer(widget: Widget): SimpleController(widget) {
          graphics.select(value)
       }
 
-      fun GlyphIcons.raw(): GlyphIcons = if (this is IconWidget) glyph else this
    }
 
 }

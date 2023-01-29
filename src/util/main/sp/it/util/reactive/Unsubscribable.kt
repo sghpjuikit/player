@@ -19,6 +19,8 @@ fun interface Unsubscribable {
  */
 infix fun <T: Unsubscribable> T.on(disposer: Unsubscriber): T = apply(disposer)
 
+infix fun <T: Unsubscribable> T.on(disposer: Handler0): T = apply { disposer += ::unsubscribe }
+
 /** Converts [Fut.cancel] to [Unsubscribable] and calls [on] */
 infix fun <T: Any?> Fut<T>.on(disposer: Unsubscriber): Fut<T> = apply { Unsubscribable { cancel() } on disposer }
 

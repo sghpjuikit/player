@@ -173,7 +173,6 @@ public class FontPickerContent extends GridPane {
 		FontStyle style = selectedOr(styleListView, null);
 		if (style==null) {
 			return Font.font(selectedOr(fontListView, null), selectedOr(sizeListView, 12.0));
-
 		} else {
 			return Font.font(selectedOr(fontListView, null), style.getWeight(), style.getPosture(), selectedOr(sizeListView, 12.0));
 		}

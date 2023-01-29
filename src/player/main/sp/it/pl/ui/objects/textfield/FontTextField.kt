@@ -1,18 +1,17 @@
 package sp.it.pl.ui.objects.textfield
 
 import javafx.scene.text.Font
-import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.picker.FontPicker
 import sp.it.pl.ui.objects.window.NodeShow.RIGHT_CENTER
-import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.syncFrom
+import sp.it.util.type.type
 
 /** [ValueTextField] for [Font]. */
-class FontTextField(initialValue: Font? = null): ValueTextField<Font>(initialValue) {
+class FontTextField(initialValue: Font? = null): ValueTextFieldBi<Font>(initialValue, type()) {
    private var picker: FontPicker? = null
    private var valueChanging = Suppressor()
 
@@ -22,21 +21,22 @@ class FontTextField(initialValue: Font? = null): ValueTextField<Font>(initialVal
       textProperty() attach {
          if (!valueChanging.isSuppressed) {
             valueChanging.isSuppressed = true
-            APP.converter.general.ofS<Font?>(it).ifOk { value = it }
+            valueConverter.ofS(it).ifOk { value = it }
             valueChanging.isSuppressed = false
          }
       }
    }
 
    override fun onDialogAction() {
-      val d = Disposer()
       val pc = picker ?: FontPicker { valueChanging.suppressing { value = it } }.apply {
          picker = this
-         pickerContent.font = this@FontTextField.value ?: Font.getDefault()
-         editable syncFrom this@FontTextField.editableProperty() on d
+         editable syncFrom this@FontTextField.editableProperty() on popup.onHiding
+         popup.onShown += {
+            pickerContent.font = this@FontTextField.value ?: Font.getDefault()
+         }
          popup.onHiding += {
-            d()
             picker = null
+            this@FontTextField.requestFocus()
          }
       }
 

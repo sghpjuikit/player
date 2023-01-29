@@ -12,9 +12,11 @@ import javafx.geometry.Side.BOTTOM
 import javafx.geometry.VPos.CENTER
 import javafx.scene.control.ContextMenu
 import javafx.scene.layout.HBox
+import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconWH
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
@@ -23,6 +25,7 @@ import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.WindDir
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.ref.LazyR
 import sp.it.util.access.v
 import sp.it.util.access.vn
@@ -61,6 +64,8 @@ import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.em
 import sp.it.util.units.uri
+import sp.it.util.units.version
+import sp.it.util.units.year
 
 /** Basic display for song album information. */
 class WeatherInfo: HBox(15.0) {
@@ -401,8 +406,21 @@ class WeatherInfo: HBox(15.0) {
       }
    }
 
-   companion object {
+   companion object: WidgetCompanion {
+      override val name = "Weather Info"
+      override val description = "Displays current weather data and weather forecast"
+      override val descriptionLong = "$description."
+      override val icon = IconWH.YAHOO_44
+      override val version = version(1, 0, 0)
+      override val isSupported = true
+      override val year = year(2022)
+      override val author = "spit"
+      override val contributor = ""
+      override val tags = setOf(UTILITY)
+      override val summaryActions = listOf<ShortcutPane.Entry>()
+
       inline fun <reified T> String.asJson(): T? = APP.serializerJson.json.fromJson<T>(this).orNull()
+
       fun Instant.isOlderThan1Hour() = Instant.now().isBefore(plusSeconds(3500))
 
       object Types {

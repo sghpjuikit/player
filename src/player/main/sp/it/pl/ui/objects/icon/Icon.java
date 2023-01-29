@@ -44,7 +44,6 @@ import sp.it.util.access.ref.LazyR;
 import sp.it.util.action.Action;
 import sp.it.util.animation.Anim;
 import sp.it.util.functional.Functors.F1;
-import sp.it.util.functional.TryKt;
 import sp.it.util.reactive.Subscription;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static java.lang.Math.signum;
@@ -60,6 +59,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.util.animation.Anim.mapTo01;
+import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.EventsKt.onEventUp;
@@ -447,7 +447,7 @@ public class Icon extends StackPane {
 	public GlyphIcons getGlyph() {
 		String n = getGlyphName();
 		if (glyph==null || !GlyphsKt.id(glyph).equals(n))
-			glyph = TryKt.getOr(Glyphs.INSTANCE.get(n), DEFAULT_GLYPH);
+			glyph = getOr(Glyphs.INSTANCE.ofS(n), DEFAULT_GLYPH);
 		return glyph;
 	}
 

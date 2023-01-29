@@ -1,4 +1,10 @@
 ## Currently considered
+- thumb scaling
+- - REACTIVE WEATHER UI
+- calendar icon
+- popup out of screen position fix
+- plugin management easier enabling
+- LibraryView not refreshing on song library add sometimes
 - Make all window types including standalone widgets consistently styled [prototype using inverse mask]
 - Experiment with StartScreen that keeps content loaded between hide/show
 - Document all used libraries, how they are used, why, where not to use them, etc.
@@ -83,8 +89,7 @@
   Challenging. See [issue](/TODO-ISSUES.md#io-ui)
 
 ## Bugs
-- Popup unable to receive focus sometimes  
-  Might be fixed by [jfx#946](https://github.com/openjdk/jfx/pull/940)
+- Popup unable to receive focus sometimes
 - Application search shortening result label width unnecessarily
 - Recompiling or manual widget loading does not rebind inputs properly
 

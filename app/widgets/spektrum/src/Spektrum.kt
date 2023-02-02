@@ -95,8 +95,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    var weight by c(dBZ)
       .def(name = "Signal weighting", info = "")
    val signalAmplification by cv(100).between(0, 250)
-      .def(name = "Signal amplification (factor)", info = "")
-   val signalThreshold by cv(-28).between(-50, 0)
+      .def(name = "Signal amplification (%)", info = "")
+   val signalThreshold by cv(-28).between(-100, 0)
       .def(name = "Signal threshold (db)", info = "")
 
    var frequencyStart by c(39).between(1, 24000)
@@ -892,20 +892,17 @@ class BarsHeightCalculator(settings: Spektrum) {
    }
 
    private fun convertDbToPixels(dbAmplitude: DoubleArray): DoubleArray {
-      val signalThreshold: Int = settings.signalThreshold.value
-      val maxBarHeight: Double = settings.barMaxHeight.value
-      val signalAmplification: Int = settings.signalAmplification.value
-
+      val signalThreshold = settings.signalThreshold.value.abs
+      val maxBarHeight = settings.barMaxHeight.value
+      val signalAmplification = settings.signalAmplification.value/100.0
       val pixelsAmplitude = DoubleArray(dbAmplitude.size)
 
       for (i in pixelsAmplitude.indices) {
-         val maxHeight = signalThreshold.abs.toDouble()
-         var newHeight = dbAmplitude[i]
-         newHeight += signalThreshold.abs
+         val maxHeight = signalThreshold.toDouble()
+         var newHeight = dbAmplitude[i]+signalThreshold
          // normalizing the bar to the height of the window
          newHeight = newHeight*maxBarHeight/maxHeight
-         newHeight *= (signalAmplification/100.0)
-         pixelsAmplitude[i] = newHeight
+         pixelsAmplitude[i] = signalAmplification*newHeight
       }
 
       return pixelsAmplitude

@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
    kotlin("jvm") version "1.8.0"
    application
-   id("com.github.ben-manes.versions") version "0.44.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
+   id("com.github.ben-manes.versions") version "0.45.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.0"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
 }
 
@@ -170,8 +170,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.2.2")
-         implementation("io.ktor", "ktor-client-cio", "2.2.2")
+         implementation("io.ktor", "ktor-server-core", "2.2.3")
+         implementation("io.ktor", "ktor-client-cio", "2.2.3")
       }
 
       "Test" group {

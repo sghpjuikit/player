@@ -74,7 +74,7 @@ abstract class Song {
    /**
     * Returns initial name. Name derived purely from URI of the song.
     *
-    * Name can denote an song such as PlaylistSong.
+    * Name can denote a song such as PlaylistSong.
     *
     * Use as an initialization value when only URI is known about the song and
     * more user-friendly information is desired than the raw uri.

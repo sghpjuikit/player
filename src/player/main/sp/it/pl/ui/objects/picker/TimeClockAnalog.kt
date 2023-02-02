@@ -61,7 +61,7 @@ class TimeClockAnalog: StackPane() {
       onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { unit.value.adder(it, -e.deltaY.sign.toLong()) } }
    }
 
-   /** The twelve hour labels */
+   /** The twelve-hour labels */
    private val hourLabels = (1..12).map {
       label("$it") {
          styleClass += "time-clock-analog-hour-label"

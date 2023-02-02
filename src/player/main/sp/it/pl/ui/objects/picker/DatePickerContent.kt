@@ -20,7 +20,6 @@ import sp.it.util.collections.setTo
 import sp.it.util.collections.tabulate0
 import sp.it.util.math.max
 import sp.it.util.math.min
-import sp.it.util.reactive.map
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.ui.flowPane

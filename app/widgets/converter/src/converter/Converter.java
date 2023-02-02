@@ -120,7 +120,6 @@ import static sp.it.util.ui.UtilKt.menuItem;
 import static sp.it.util.ui.UtilKt.text;
 import static sp.it.util.ui.UtilKt.textFlow;
 
-@SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal"})
 @Widget.Info(
     author = "Martin Polakovic",
     name = Widgets.CONVERTER_NAME,

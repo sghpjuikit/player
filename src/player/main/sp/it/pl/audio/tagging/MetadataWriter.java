@@ -71,7 +71,7 @@ import static sp.it.util.functional.UtilKt.orNull;
  * The writer is stateful and must not be used concurrently.
  * It is reusable for multiple songs using {@link #reset(sp.it.pl.audio.Song)}.
  */
-// TODO: limit rating bounds value, multiple values, id3 popularimeter mail settings
+@SuppressWarnings("AccessStaticViaInstance")
 public class MetadataWriter extends Song {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataWriter.class);
@@ -526,7 +526,7 @@ public class MetadataWriter extends Song {
 	 * <p/>
 	 * Note: Don't abuse this method in loops and use {@link #setChapters(java.util.Collection)}.
 	 *
-	 * @param chapter chapter to ad
+	 * @param chapter chapter to add
 	 * @param metadata Source metadata for chapter data. In order to retain rest of the chapters, the metadata for the
 	 * item are necessary.
 	 */

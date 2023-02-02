@@ -1,4 +1,4 @@
-@file:Suppress("RemoveCurlyBracesFromTemplate", "SpellCheckingInspection")
+@file:Suppress("SpellCheckingInspection")
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
@@ -56,7 +56,7 @@ abstract class LinkJDK : DefaultTask {
 
    @TaskAction
    fun linkJdk() {
-      val jdkLocation: File = launcher.get().executablePath.asFile.parentFile.parentFile
+      val jdkLocation: File = launcher.get().executablePath.asFile.parentFile!!.parentFile!!
       linkLocation.delete() // delete invalid symbolic link
       logger.info("Creating link at $linkLocation to $jdkLocation...")
       try {

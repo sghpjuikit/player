@@ -50,7 +50,7 @@ class SelectionMenuItem(text: String? = "", selectedInitial: Property<Boolean> =
 
    /**
     * Overrides default click implementation which changes the selection value.
-    * After using this method, icon will still reflect the selection, but it it
+    * After using this method, icon will still reflect the selection, but it
     * will not change unless changed manually from the handler.
     *
     * This is useful for cases, where the menu lists items to choose from and

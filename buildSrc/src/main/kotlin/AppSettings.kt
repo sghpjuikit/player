@@ -75,7 +75,7 @@ val appSetting = Setting.root {
    "Plugins" {
       "Screen Dock" {
          config("Enable") {
-            info = "Enable/disable this plugin. Whether application has docked window in the top of the screen"
+            info = "Enable/disable this plugin. Whether application has docked window at the top of the screen"
          }
          config("Content") {
             info = "Component displayed as content in the dock"

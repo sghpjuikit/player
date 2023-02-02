@@ -97,7 +97,6 @@ open class Input<T>: Put<T> {
       return Subscription { unbind(output) }
    }
 
-   @Suppress("UNCHECKED_CAST")
    @Idempotent
    fun bindAllIdentical() {
       val allWidgets = APP.widgetManager.widgets.findAll(OPEN).filter { it.isLoaded }.toList()

@@ -68,7 +68,6 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.conf.Configuration
 import sp.it.util.conf.Constraint
-import sp.it.util.dev.printIt
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.syncBiFrom

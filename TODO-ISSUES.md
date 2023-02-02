@@ -1,6 +1,6 @@
 
 ###### Styling
-One of the pain-points is styling. The styling css file has, over time, become huge! It has 4500 lines of css, mode than JavaFX' **Modena**!
+One of the pain-points is styling. The styling css file has, over time, become huge! It has 4500 lines of css, more than JavaFX **Modena**!
 The size would not be an issue, if the css was not severely lacking in features. Variables, traits/mixins, etc.
 I have been thinking about using some preprocessor, such as sass/less, but I am very reluctant to bring these technologies in.
 Integrating them with the project would bring in some challenges, such as style reloading, which would require a compilation step.

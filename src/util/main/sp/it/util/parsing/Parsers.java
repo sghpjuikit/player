@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.Nullable;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
 import static java.util.stream.Collectors.joining;
@@ -25,7 +26,8 @@ public interface Parsers {
 
     ConverterDefault DEFAULT = new ConverterDefault();
 
-    static Method getValueOfStatic(Class<?> type) {
+    @SuppressWarnings("deprecation")
+    static @Nullable Method getValueOfStatic(Class<?> type) {
         if (type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
             type = type.getEnclosingClass();
 
@@ -37,7 +39,7 @@ public interface Parsers {
         }
     }
 
-    static Method getMethodStatic(String name, Class<?> type) {
+    static @Nullable Method getMethodStatic(String name, Class<?> type) {
         try {
             Method m = type.getDeclaredMethod(name, String.class);
             if (!m.getReturnType().equals(type)) throw new NoSuchMethodException();

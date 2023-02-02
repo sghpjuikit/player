@@ -40,6 +40,7 @@ import sp.it.util.units.millis
  *
  * Useful mostly instead of empty content like "click to add items" or to signal interactive ui element.
  */
+@Suppress("LeakingThis")
 open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () -> Unit): StackPane() {
 
    val icon = Icon()

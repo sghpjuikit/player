@@ -400,7 +400,6 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       }
    }
 
-   @Suppress("MoveVariableDeclarationIntoWhen")
    private inner class FieldsPane: FlowPane(VERTICAL, 10.0, 0.0) {
       override fun layoutChildren() {
          val width = width

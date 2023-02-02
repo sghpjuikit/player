@@ -16,7 +16,7 @@ import sp.it.util.reactive.sync
  * Customized [TextField] that displays a nullable object value. Normally a non-editable text
  * field that brings up a popup picker for its item type. Useful as an editor with value selection feature.
  *
- * In addition there is a dialog button calling implementation dependant item
+ * In addition, there is a dialog button calling implementation dependant item
  * chooser expected in form of a pop-up.
  *
  * @param <T> type of the value

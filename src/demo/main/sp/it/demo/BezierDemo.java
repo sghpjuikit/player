@@ -24,10 +24,10 @@ import javafx.util.Duration;
  */
 public class BezierDemo extends Application {
 
-	public static void main(String[] args) throws Exception { launch(args); }
+	public static void main(String[] args) { launch(args); }
 
 	@Override
-	public void start(final Stage stage) throws Exception {
+	public void start(final Stage stage) {
 
 		//Create a curve
 		CubicCurve curve = new CubicCurve();

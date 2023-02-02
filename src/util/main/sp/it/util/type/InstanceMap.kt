@@ -38,7 +38,7 @@ open class InstanceMap {
     *
     * @return read only observable list of instances of the type represented by the specified generic type argument
     */
-   @Suppress("UNCHECKED_CAST", "RemoveExplicitTypeArguments")
+   @Suppress("RemoveExplicitTypeArguments")
    inline fun <reified T: Any?> getInstances(): ObservableListRO<T> {
       val list = getInstances<T>(kType<T>())
       val isNullable = null is T
@@ -52,7 +52,6 @@ open class InstanceMap {
    }
 
    /** [Sequence] version of [getInstances] */
-   @Suppress("UNCHECKED_CAST", "RemoveExplicitTypeArguments")
    inline fun <reified T: Any?> getInstancesAsSeq(): Sequence<T> {
       val seq = getInstances<T>(kType<T>()).asSequence()
       val isNullable = null is T

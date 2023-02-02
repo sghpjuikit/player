@@ -63,6 +63,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
     * @param controllerType of the controller of the widget this factory will create
     * @param location parent directory of the widget
     */
+   @Suppress("LeakingThis")
    constructor(controllerType: KClass<C>, location: File) {
       val companionObject = try { controllerType.companionObjectInstance } catch (t: Throwable) { null } // this can happen in dev environment due to binary incompatibility
       val info = companionObject?.asIf<WidgetInfo>()

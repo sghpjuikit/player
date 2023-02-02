@@ -1,9 +1,7 @@
 package sp.it.pl.main
 
 import com.drew.imaging.ImageMetadataReader
-import com.drew.imaging.ImageProcessingException
 import java.io.File
-import java.io.IOException
 import java.net.URISyntaxException
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT

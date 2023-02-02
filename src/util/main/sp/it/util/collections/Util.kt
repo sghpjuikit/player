@@ -15,8 +15,6 @@ import javafx.collections.ObservableSet
 import javafx.collections.SetChangeListener
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
-import kotlin.reflect.KTypeProjection.Companion.STAR
-import kotlin.reflect.full.createType
 import kotlin.reflect.full.withNullability
 import sp.it.util.functional.Option
 import sp.it.util.functional.Try

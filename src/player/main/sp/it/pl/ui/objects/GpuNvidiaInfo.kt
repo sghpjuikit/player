@@ -1,5 +1,3 @@
-@file:Suppress("RedundantSemicolon")
-
 package sp.it.pl.ui.objects
 
 import java.io.File

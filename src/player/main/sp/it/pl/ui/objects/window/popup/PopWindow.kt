@@ -20,6 +20,7 @@ import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
 import javafx.stage.Popup
+import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST
@@ -66,12 +67,15 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncWhile
 import sp.it.util.system.hasFileChooserOpen
+import sp.it.util.ui.areaBy
 import sp.it.util.ui.borderPane
 import sp.it.util.ui.hBox
 import sp.it.util.ui.initClip
 import sp.it.util.ui.initMouseDrag
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
+import sp.it.util.ui.max
+import sp.it.util.ui.min
 import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.scene
@@ -79,6 +83,7 @@ import sp.it.util.ui.screenXy
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.size
 import sp.it.util.ui.stage
+import sp.it.util.ui.x
 import sp.it.util.ui.xy
 import sp.it.util.units.millis
 
@@ -346,7 +351,10 @@ open class PopWindow {
                show()
                scene.root = root
                sizeToScene()
-               xy = shower(stage)
+               xy = shower(stage).net {
+                  val s = Screen.getScreensForRectangle(it.areaBy(1 x 1)).first()
+                  it max s.bounds.min min (s.bounds.max - size)
+               }
 
                onIsShowing1st { initAutohide() } on tillHidden
             }
@@ -362,7 +370,10 @@ open class PopWindow {
                if (animated.value) fadeIn()
                show(windowOwner ?: UNFOCUSED_OWNER.value)
                sizeToScene()
-               xy = shower(this)
+               xy = shower(this).net {
+                  val s = Screen.getScreensForRectangle(it.areaBy(1 x 1)).first()
+                  it max s.bounds.min min (s.bounds.max - size)
+               }
                onContentShown()
             }
          }

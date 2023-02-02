@@ -11,7 +11,7 @@ import javafx.stage.StageStyle;
 class JavaFxStagePlaygroundDemo extends Application {
 
 	@Override
-	public void start(Stage primaryStage) throws Exception {
+	public void start(Stage primaryStage) {
 		StackPane testPane = new StackPane();
 		testPane.setStyle("-fx-background-color:transparent;");
 		Label someText = new Label("TEXT AGAINST TRANSPARENT SCENE");

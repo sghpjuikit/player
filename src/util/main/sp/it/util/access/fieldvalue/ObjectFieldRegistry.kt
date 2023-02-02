@@ -1,7 +1,6 @@
 package sp.it.util.access.fieldvalue
 
 import kotlin.reflect.KClass
-import kotlin.reflect.full.createType
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.dev.failIf
 import sp.it.util.functional.Functors

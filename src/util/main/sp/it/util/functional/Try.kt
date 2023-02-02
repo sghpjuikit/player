@@ -177,7 +177,7 @@ inline fun <R, E, E1: E, E2: E> Try<R, E1>.and(and: (R) -> Try<*, @UV E2>): Try<
 /**
  * Applies short-circuit boolean && operation.
  * Returns Ok if both Try are Ok, otherwise Error.
- * Hence, the specified predicate is only invoked if this is Ok. Note how this' OK parameter is never used.
+ * Hence, the specified predicate is only invoked if this is Ok. Note how this Try's OK parameter is never used.
  * This operation is not commutative, these: `a [Try.andAlso] b`, `b [Try.andAlso] a` are not same, however these are: `a [Try.andAlso] b`, `b [Try.and] a`.
  *
  * @return this if error otherwise the specified Try
@@ -224,7 +224,7 @@ inline fun <R, E, R1: R, R2: R> Try<R1, E>.or(or: (E) -> Try<@UV R2, *>): Try<R,
 /**
  * Applies short-circuit boolean || operation.
  * Returns Error if both Try are Error, otherwise Ok.
- * The specified Try is only considered if this is Error. Note how this' ERROR parameter is never used.
+ * The specified Try is only considered if this is Error. Note how this Try's ERROR parameter is never used.
  * This operation is not commutative, these: `a [Try.orAlso] b`, `b [Try.orAlso] a` are not same, however these are: `a [Try.orAlso] b`, `b [Try.or] a`.
  *
  * @return this if ok otherwise the specified Try

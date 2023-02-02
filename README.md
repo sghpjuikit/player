@@ -70,8 +70,8 @@ Building from the latest sources:
 
 ### Guiding Principles
 
-- **Customizability** - User uses the application how he wants, not how it was designed to be used. 
-    Therefore emphasis on customization, skins, settings, etc.
+- **Customizable** - User uses the application how he wants, not how it was designed to be used. 
+    Therefore, emphasis on customization, skins, settings, etc.
 - **Portability** - No installation (or need for java or other programs), run from anywhere, little/no trace, 
     everything is packaged along. Any OS.
 - **Modular functionality** - User can launch or use only selected components he is interested in and 
@@ -114,7 +114,7 @@ Tables:
 	it is possible to use **any** combination of attributes (columns), 'comparators' and permissible values. Filters can be inverted (negation) or chained (conjunction).
 - group by - e.g. table of groups of songs per attribute (e.g. year or artist) Searching, filtering and sorting fully supported of course.
 - multiple column sorting by any attribute (artist, year, rating, bitrate, etc)
-- cascading - link tables to other tables as filters and display only selected songs (e.g. show songs of autor A's  albums X,D,E in year Y in three linked tables reacting on table selection). Basically library widgets allow linking selection of the table as an input, while simultaneously providing its selection as an output to other tables. Use however library widgets (each having 1 table) you wish and link them up in any way you want.
+- cascading - link tables to other tables as filters and display only selected songs (e.g. show songs of author A's  albums X,D,E in year Y in three linked tables reacting on table selection). Basically library widgets allow linking selection of the table as an input, while simultaneously providing its selection as an output to other tables. Use however library widgets (each having 1 table) you wish and link them up in any way you want.
 
 ### Tag audio
 
@@ -123,7 +123,7 @@ Spit Player supports reading & writing of song tags
 - individually
 - by group
   - using Tagger to write the same data to multiple tags (songs may share an artist)
-  - using Converter to write multiple data to multiple tags (e.g. using titles from a tracklist)
+  - using Converter to write multiple data to multiple tags (e.g. using titles from a track list)
 
 Supported are:
 - all file types (see at the top), including wma and mp4 (which normally can not have a tag)
@@ -132,11 +132,11 @@ Supported are:
 The aim is to be interoperable with other players, where possible. Noteworthy or nonstandard supported tags include:
 ##### Rating
 - values are in percent values independent of implementation (mp3=0-255, flac/ogg=0-100)
-- floating values (0-1). Values like {1,2,3,4,5} are obsolete, illogical and nobody agrees on what they mean. Use full granularity (limited only by tag (1/255 for mp3, 1/100 for other formats)) and pick graphical representation (progress bar or any number of "stars" you want). Basically rate 1) how you want 2) all audio types the same 3) be happy the value is in the tag 4) visualie the rating value as you want - be it 3 stars or 10 or a progress bar.
+- floating values (0-1). Values like {1,2,3,4,5} are obsolete, illogical and nobody agrees on what they mean. Use the full granularity (limited only by tag (1/255 for mp3, 1/100 for other formats)) and pick graphical representation (progress bar or any number of "stars" you want). Basically rate 1) how you want 2) all audio types the same 3) be happy the value is in the tag 4) visualize the rating value as you want - be it 3 stars or 10 or a progress bar.
 - interoperable with other players (POPM frame), but most of them will only recognize the value in their own way
 ##### Playcount
-- number of times the song has been played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily, or edit the value manually (increment/decrement/set arbitrary number - its your collection, excert your power!).
-- the data are written in custom tag (in mp3, written duplicitly in POPM frame counter)
+- number of times the song has been played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily, or edit the value manually (increment/decrement/set arbitrary number - it is your collection, accept your power!).
+- the data are written in custom tag (in mp3, written also in `POPM` frame counter)
 ##### Time comments/chapters
 - comments associated with specific time/part of the song. They can be added during playback on the seeker and viewed in popup menus.
 - the GUI makes it really easy to add or edit these and takes no space, since uses the seekbar and popup windows.
@@ -178,22 +178,22 @@ Shows cover and song metadata. Supports cover download (url drag & drop) and rat
 Tag editor
 ##### Converter
 Object-object converting facility.
-  - Displays objects as text while allowing user to apply function transformations. Handy file renamer and per-song 
+  - Displays data as text while allowing user to apply function transformations. Handy file renamer and per-song 
     group tagger. Supports object lists, text transformations, manual text editing, regex, writing to file etc.
   - Provides set of functions that transform java objects (such as String or File). User can then set some kind of input 
     (formally List<INPUT>) and apply and chain these transformation functions (on every element of the list) to get some 
-    result (List<OUTPUT>. It may sound confusing at first, but its a intuitive and very powerful thing, particularly when 
+    result (List<OUTPUT>). It may sound confusing at first, but it is an intuitive and very powerful thing, particularly when 
     combined with the ability to see the transformation output as a text at every step and the ability to manually edit 
     that text and reuse it as an input for further transformation. The final output can be used as text or for an action, 
     such as
     - file renaming
     - tagging
 
-This makes it possible to import song titles from copy-pasted tracklist found on web by 'cleaning' it up with text line 
+This makes it possible to import song titles from copy-pasted track list found on web by 'cleaning' it up with text line 
 transformations (remove x characters from start, etc.) rather than manually. Changing extension or names of a bunch of 
-files is a peace of cake.
+files is a piece of cake.
 ##### Library & LibraryView
-Song tables. User can link them up so they display increasingly filtered/sepecialized content. For example, 1st table can display all artists (all unique artists in entire song library), 2nd table linked to 1st would display all unique albums of songs by any artist/s selected in the 1st table. So on until Nth table displays the songs. Combinations are endless. In addition, because of the modular gui, you can set up table size and position as you wish and the layout is not restricted to area of the window (layout has own virtual space, like virtual desktops). Lastly, in is possible to set up widgets (in this case individual tables) to be 'passive' until user allows them to load properly - it is possible to create a multiple views with lots of tables with practically no performance impact at all (by using views only when needed and have them 'sleep', but be prepared and configured all the time).
+Song tables. User can link them up, so they display increasingly filtered/specialized content. For example, 1st table can display all artists (all unique artists in entire song library), 2nd table linked to 1st would display all unique albums of songs by any artist/s selected in the 1st table. So on until Nth table displays the songs. Combinations are endless. In addition, because of the modular gui, you can set up table size and position as you wish and the layout is not restricted to area of the window (layout has own virtual space, like virtual desktops). Lastly, in is possible to set up widgets (in this case individual tables) to be 'passive' until user allows them to load properly - it is possible to create a multiple views with lots of tables with practically no performance impact at all (by using views only when needed and have them 'sleep', but be prepared and configured all the time).
 ##### Image
 Image viewer - displays an image
 ##### ImageViewer
@@ -206,16 +206,16 @@ Displays images and thumbnails for images in a directory
 Configuring facility displaying settings for either:
   - application
   - widget
-  - JavaFX scenegraph
+  - JavaFX scene-graph
   - other java object implementing Configurable. There are methods to turn plain java objects into Configurable. 
   	For example using annotations on fields or using JavaFX properties.
 ##### Inspector
 Displays hierarchies:
   - application modules
   - file system
-  - scene graph (this is taking the idea from the ScenicView app and works basically the same). When used with the combination of Settings widget its a great way to debug the application scenegraph (yeah from within the application)
+  - scene graph (this is taking the idea from the ScenicView app and works basically the same). When used with the combination of Settings widget it is a great way to debug the application scene-graph (yeah from within the application)
 ##### Logger
-Displays System.out in a TextArea, meant for developers
+Displays `System.out` in a `TextArea`, meant for developers
 ##### IconBox
 Configurable icon bar/dock. User can add/remove custom icons executing some predefined.
 ##### FunctionViewer
@@ -235,8 +235,8 @@ The application in its self-contained form:
 The Interface is minimalistic but powerful and fully modular.<br>
 Modules (widgets) are part of layout hierarchy, which can be manipulated, saved or even loaded as standalone application. 
 
-- minimalistic - shows only whats important, no endless headers and borders taking up important space. With headerless and borderless window mode 100% of the space is given to the widgets.
-- powerful - infinite virtual space, horizontally scrollable, zoomable
+- minimalistic - shows only what is important, no endless headers and borders taking up important space. With headerless and borderless window mode 100% of the space is given to the widgets.
+- powerful - infinite virtual space, horizontally scrollable, zoom-able
 - layout mode - temporary 2nd ui layer allowing user to edit and configure the layout, widgets and more, alleviating normal user interface from all this
 - completely skinnable (css)(skin discovery + change + refresh does not require application restart)
 
@@ -254,7 +254,7 @@ Modules (widgets) are part of layout hierarchy, which can be manipulated, saved 
 
 ##### Windows
 - snap to screen edges and other windows, screen-to-screen edges also supported.
-- auto-resize when put into screen edges and corners (altogether 7 different modes - all, left/right half, right half, topleft/topright/bottomleft/bottomright quadrant)
+- auto-resize when put into screen edges and corners (altogether 7 different modes - all, left/right half, right half, top-left/top-right/bottom-left/bottom-right quadrant)
 - system tray, taskbar, fullscreen, always on top
 - mini mode - a docked bar snapped to the top edge of the screen
 - multiple screen support
@@ -263,7 +263,7 @@ Modules (widgets) are part of layout hierarchy, which can be manipulated, saved 
 
 ### Hotkeys
 
-- global hotkey supported - shortcuts dont need application focus if so desired
+- global hotkey supported - shortcuts don't need application focus if so desired
 - media keys supported
 - customizable (any combination of keys:  "F5", "CTRL+L", etc)
 - large number of actions (playback control, layout, etc)
@@ -278,12 +278,12 @@ Modules (widgets) are part of layout hierarchy, which can be manipulated, saved 
 	Multiple units are supported when possible, e.g., using 2000ms or 2s has the same effect. 
 	This is all supported in application settings or in table filter queries.  
 - validation: Designed to eliminate input errors by preventing user to input incorrect data. 
-	Warning icons signal incorrect input. Really helps with writing regular exressions.
-- defaults: Every settings has a default value you can revert to easily.
+	Warning icons signal incorrect input. Really helps with writing regular expressions.
+- defaults: Every setting has a default value you can revert to.
 - shortcuts: Quick & easy control over the application anytime.
 - smart ui: Notifications that can be closed when they get in the way or keep being open when mouse hovers over. 
 	Throw notifications manually or put whole widgets in it. Tables or docked window that monitor user activity. 
-	Clickless ui reacting on mouse hover rather than click.
+	Click-less ui reacting on mouse hover rather than click.
 
 ### More
 

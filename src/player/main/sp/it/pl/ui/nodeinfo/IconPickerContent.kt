@@ -174,7 +174,7 @@ class IconPickerContent: StackPane() {
       }
       fun select(s: Boolean) {
          label.select(s)
-         if (s) iconGroups.find { it!==this && it==selectionGroup.value }?.select(false)
+         if (s) iconGroups.find { it!=this && it==selectionGroup.value }?.select(false)
          if (s) selectionGroup.value = this
          if (s) iconsView.itemsRaw setTo values()
          if (s) iconsView.requestFocus()

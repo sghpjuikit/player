@@ -312,12 +312,12 @@ This adds/removes registry key HKEY_CLASSES_ROOT\*\shell\SpitPlayer. This may re
          /** Name of the group. */
          const val name = "Screen Dock"
 
-         /** Enable/disable this plugin. Whether application has docked window in the top of the screen */
+         /** Enable/disable this plugin. Whether application has docked window at the top of the screen */
          object `enable`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Enable"""
             /** Compile-time constant equivalent to [info]. */
-            const val cinfo: String = """Enable/disable this plugin. Whether application has docked window in the top of the screen"""
+            const val cinfo: String = """Enable/disable this plugin. Whether application has docked window at the top of the screen"""
             /** Compile-time constant equivalent to [group]. */
             const val cgroup: String = """Plugins.Screen Dock"""
             /** Name of the config. */

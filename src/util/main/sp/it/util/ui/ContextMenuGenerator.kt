@@ -33,7 +33,6 @@ class ContextMenuGenerator {
    }
 
    /** Adds menu builder for `null`. */
-   @Suppress("UNCHECKED_CAST")
    fun addNull(block: ListMenuOwnerBlock<Nothing?>): Subscription {
       val b: Builder = { value -> ListMenuOwner(mutableListOf(), value as Nothing?).apply(block).owner.asSequence() }
       mNull += b

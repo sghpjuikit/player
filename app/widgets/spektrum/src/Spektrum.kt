@@ -1,8 +1,11 @@
+@file:Suppress("UsePropertyAccessSyntax")
+
 package spektrum
 
 import be.tarsos.dsp.AudioDispatcher
 import be.tarsos.dsp.AudioEvent
 import be.tarsos.dsp.AudioProcessor
+import be.tarsos.dsp.MultichannelToMono
 import be.tarsos.dsp.io.jvm.JVMAudioInputStream
 import be.tarsos.dsp.util.fft.FFT
 import be.tarsos.dsp.util.fft.HannWindow
@@ -28,6 +31,7 @@ import kotlin.math.exp
 import kotlin.math.log10
 import kotlin.math.min
 import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
 import mu.KLogging
@@ -38,6 +42,7 @@ import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.Double01
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.Ui.FPS
 import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.ui.pane.ShortcutPane.Entry
@@ -65,6 +70,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.ui.canvas
 import sp.it.util.ui.lay
+import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
 import spektrum.OctaveGenerator.getHighLimit
@@ -76,20 +82,18 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    val inputDevice by cv("Primary Sound Capture").attach { audioEngine.restartOnNewThread() } // support refresh on audio device add/remove, see https://stackoverflow.com/questions/29667565/jna-detect-audio-device-arrival-remove
       .valuesUnsealed { AudioSystem.getMixerInfo().filter { it.description.contains("Capture") }.map { it.name } }
       .def(name = "Audio input device", info = "")
-   val audioFormatChannels by c(1)
-      .def(name = "Audio format channels", info = "", editable = NONE).readOnly()
+   val audioFormatChannels by c(2)
+      .def(name = "Audio format channels", info = "Information regarding the format the audio is read for FFT", editable = NONE).readOnly()
    val audioFormatSigned by c(true)
-      .def(name = "Audio format signed", info = "", editable = NONE).readOnly()
+      .def(name = "Audio format signed", info = "Information regarding the format the audio is read for FFT", editable = NONE).readOnly()
    val audioFormatBigEndian by c(false)
-      .def(name = "Audio format big endian", info = "", editable = NONE).readOnly()
+      .def(name = "Audio format big endian", info = "Information regarding the format the audio is read for FFT", editable = NONE).readOnly()
    val sampleSizeInBits by cv(16).readOnly().attach { audioEngine.restartOnNewThread() }
-      .def(name = "Audio sample in bits", info = "", editable = NONE)
+      .def(name = "Audio sample in bits", info = "Information regarding the format the audio is read for FFT", editable = NONE)
    val sampleRate by cv(48000).values(listOf(44100, 48000)).attach { audioEngine.restartOnNewThread() }
-      .def(name = "Audio sample rate", info = "")
-   val bufferSize by cv(6000).between(32, 24000).attach { audioEngine.restartOnNewThread() }
-      .def(name = "Audio buffer size", info = "")
-   val bufferOverlap by cv(4976).between(0, 23744).attach { audioEngine.restartOnNewThread() }
-      .def(name = "Audio buffer overlap", info = "")
+      .def(name = "Audio sample rate", info = "Information regarding the format the audio is read for FFT")
+   val bufferSize by cv(50).between(25, 5000).readOnly().attach { audioEngine.restartOnNewThread() }
+      .def(name = "Audio buffer size (ms)", info = "Audio buffer for the FFT. Buffer is necessary and bigger size improves accuracy, but introduces delay")
    val maxLevel by cv("RMS").values(listOf("RMS", "Peak"))
       .def(name = "Signal max level", info = "")
    var weight by c(dBZ)
@@ -99,11 +103,11 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    val signalThreshold by cv(-28).between(-100, 0)
       .def(name = "Signal threshold (db)", info = "")
 
-   var frequencyStart by c(39).between(1, 24000)
+   var frequencyStart by c(20).between(1, 24000)
       .def(name = "Frequency range start", info = "")
    var frequencyCenter by c(1000).between(1, 24000)
       .def(name = "Frequency range center", info = "")
-   var frequencyEnd by c(16001).between(1, 24000)
+   var frequencyEnd by c(16000).between(1, 24000)
       .def(name = "Frequency range end", info = "")
    var octave by c(6).between(1, 24)
       .def(name = "Frequency octave (1/n)", info = "")
@@ -553,9 +557,13 @@ class TarsosAudioEngine(settings: Spektrum) {
          obtainMixer().ifNotNull { mixer ->
             mixerRef = mixer
             val audioFormat = AudioFormat(settings.sampleRate.value.toFloat(), settings.sampleSizeInBits.value, settings.audioFormatChannels, settings.audioFormatSigned, settings.audioFormatBigEndian)
-            val line = obtainLine(mixer, audioFormat, settings.bufferSize.value)
+            val uiFrameFrameSize = (1.seconds.toSeconds()/FPS*audioFormat.sampleRate).roundToInt()*audioFormat.frameSize//*audioFormat.channels
+            val bufferSize = 2*uiFrameFrameSize // roughly 50ms
+            val bufferOverlap = 1*uiFrameFrameSize // the remaining
+            val line = obtainLine(mixer, audioFormat, bufferSize)
             val audioStream = JVMAudioInputStream(AudioInputStream(line))
-            dispatcher = AudioDispatcher(audioStream,(settings.bufferSize.value max settings.bufferOverlap.value).plus(1)/audioFormat.frameSize*audioFormat.frameSize, settings.bufferOverlap.value).apply {
+            dispatcher = AudioDispatcher(audioStream, bufferSize, bufferOverlap).apply {
+               addAudioProcessor(MultichannelToMono(audioFormat.channels, true))
                addAudioProcessor(FFTAudioProcessor(audioFormat, fttListenerList, settings))
             }
             audioThread = audioThreadFactory.start(dispatcher)
@@ -680,14 +688,12 @@ class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener
    private val windowFunction: WindowFunction = HannWindow()
    private val windowCorrectionFactor = 2.0
 
-   override fun process(audioEvent: AudioEvent): Boolean {
-      val audioFloatBuffer = audioEvent.floatBuffer
-
+   override fun process(e: AudioEvent): Boolean {
       // the buffer must be copied into another array for processing otherwise strange behaviour
       // the audioFloatBuffer buffer is reused because of the offset
       // modifying it will create strange issues
-      val transformBuffer = FloatArray(audioFloatBuffer.size)
-      System.arraycopy(audioFloatBuffer, 0, transformBuffer, 0, audioFloatBuffer.size)
+      val transformBuffer = FloatArray(e.floatBuffer.size)
+      System.arraycopy(e.floatBuffer, 0, transformBuffer, 0, e.floatBuffer.size)
       val amplitudes = FloatArray(transformBuffer.size/2)
 
       val fft = FFT(transformBuffer.size, windowFunction)

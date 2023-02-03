@@ -45,6 +45,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Spektrum** widget shifting effect off 1000000 times
 - Fix **Spektrum** widget state corruption after out of range exceptions during interpolation
 - Fix **Spektrum** widget audio dispatcher buffer size calculation
+- Fix **Spektrum** widget ignoring right channel
 - Fix **Comet** widget issues of various kind
 - Fix `Thumbnail` not updating viewport when layout changes
 - Fix `ToggleButtonGroup` styling
@@ -63,6 +64,10 @@ For now, the goal is to enable user to register custom commands through UI.
 
 ### GitProject improvements
 This widget is useful for developers and now becomes much more powerful. Enjoy.
+
+### Spektrum improvements
+The widget fixed crashes in certain states. It now averages left and right channel (previously only left channel was visualized).
+The buffer settings has been simplified and set up to minimize visualization delay.
 
 ### Jfif images
 Jfif is more or less jpeg image. Some websites use this format and now the application supports these files. Enjoy. 

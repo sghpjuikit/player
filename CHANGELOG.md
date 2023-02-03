@@ -50,6 +50,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `Thumbnail` not updating viewport when layout changes
 - Fix `ToggleButtonGroup` styling
 - Fix playback status change notification ui created multiple times
+- Fix popup outside screen position fix not working sometimes
 
 This update brings lots of UX improvements all-around.
 
@@ -67,6 +68,7 @@ This widget is useful for developers and now becomes much more powerful. Enjoy.
 
 ### Spektrum improvements
 The widget fixed crashes in certain states. It now averages left and right channel (previously only left channel was visualized).
+The color gradient settings is now simpler and fades into itself for circular layout.
 The buffer settings has been simplified and set up to minimize visualization delay.
 
 ### Jfif images

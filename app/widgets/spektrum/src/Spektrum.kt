@@ -77,6 +77,8 @@ import spektrum.OctaveGenerator.getHighLimit
 import spektrum.OctaveGenerator.getLowLimit
 import spektrum.WeightWindow.dBZ
 
+// based on https://github.com/89iuv/visualizer
+// for intro into audio processing see https://towardsdatascience.com/understanding-audio-data-fourier-transform-fft-spectrogram-and-speech-recognition-a4072d228520
 class Spektrum(widget: Widget): SimpleController(widget) {
 
    val inputDevice by cv("Primary Sound Capture").attach { audioEngine.restartOnNewThread() } // support refresh on audio device add/remove, see https://stackoverflow.com/questions/29667565/jna-detect-audio-device-arrival-remove
@@ -156,10 +158,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
 
    val spectralColorPosition by cv(180).between(0, 360)
       .def(name = "Color spectral position (degrees)", info = "")
-   val spectralColorRange by cv(360).between(0, 360)
+   val spectralColorRange by cv(180).between(-360, +360)
       .def(name = "Color spectral range (degrees)", info = "")
-   val spectralColorInverted by cv(false)
-      .def(name = "Color spectral inverted", info = "")
    val saturation by cv(100).between(0, 100)
       .def(name = "Color saturation (%)", info = "")
    val brightness by cv(100).between(0, 100)
@@ -288,6 +288,12 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                   val barSin = sin(2*PI*i/barCount - PI/2)
                   barPositionsLow += P(w/2 + min*barCos, h/2 + min*barSin)
                   barPositionsHig += P(w/2 + max*barCos, h/2 + max*barSin)
+
+                  // fade effect, can we generalize this?
+                  // gc.lineWidth = barW
+                  // gc.stroke = LinearGradient(barPositionsLow[i].x, barPositionsLow[i].y, w/2 + max*1.5*barCos, h/2 + max*1.5*barSin, false, CycleMethod.NO_CYCLE, Stop(0.0, bar.color), Stop(1.0, Color.TRANSPARENT))
+                  // gc.strokeLine(barPositionsLow[i].x, barPositionsLow[i].y, w/2 + max*1.5*barCos, h/2 + max*1.5*barSin)
+                  // gc.lineWidth = 0.0
                }
             }
          }
@@ -513,34 +519,21 @@ class Spektrum(widget: Widget): SimpleController(widget) {
 
       fun createFrequencyBars(binsHz: DoubleArray, amplitudes: DoubleArray): List<FrequencyBar> {
 
-         fun setColor(frequencyBars: List<FrequencyBar>, pos: Double, saturation: Double, brightness: Double, i: Int) {
-            val color = Color.hsb(pos, saturation, brightness)
+         fun color(pos: Double, saturation: Double, brightness: Double): Color =
+            Color.hsb(pos, saturation, brightness)
             // interpolate opacity based on intensity
-            // color = settings.baseColor.value.interpolate(color, frequencyBars[i].height / settings.barMaxHeight.value);
-            frequencyBars[i].color = color
-         }
+            // .let { color -> settings.baseColor.value.interpolate(color, frequencyBars[i].height / settings.barMaxHeight.value) }
 
-         val frequencyBars = ArrayList<FrequencyBar>(binsHz.size)
-         for (i in binsHz.indices) {
-            frequencyBars.add(FrequencyBar(binsHz[i], amplitudes[i], Color.BLACK))
-         }
-         var pos = settings.spectralColorPosition.value.toDouble()
-         val range = settings.spectralColorRange.value.toDouble()
          val saturation = settings.saturation.value/100.0
          val brightness = settings.brightness.value/100.0
-         val inverted = settings.spectralColorInverted.value
-         if (!inverted) {
-            for (i in binsHz.indices) {
-               setColor(frequencyBars, pos, saturation, brightness, i)
-               pos += range/binsHz.size
-            }
-         } else {
-            for (i in binsHz.indices.reversed()) {
-               setColor(frequencyBars, pos, saturation, brightness, i)
-               pos += range/binsHz.size
+         var pos = settings.spectralColorPosition.value.toDouble()
+         val posConnect = settings.barAlignment.connect
+         val posBy = settings.spectralColorRange.value.toDouble()/binsHz.size * (if (posConnect) 2.0 else 1.0)
+         return binsHz.indices.map {
+            FrequencyBar(binsHz[it], amplitudes[it], color(pos, saturation, brightness)).apply {
+               pos += posBy * (if (posConnect && it>binsHz.size/2) -1.0 else +1.0)
             }
          }
-         return frequencyBars
       }
    }
 }

@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **GameView** widget game attributes
 - Implement **IconViewer** widget icon group showing icons used for widgets
 - Implement **CommandBar** context menu & other small UX changes
+- Implement **Hue** widget run command icon
 - Implement exclusive fullscreen detection
     - use to avoid displaying **StartScreen** overlays and dock windows when exclusive fullscreen mode application is running
 - Implement application process elevation read-only config

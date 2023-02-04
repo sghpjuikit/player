@@ -137,6 +137,7 @@ import sp.it.util.math.min
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
+import sp.it.util.system.browse
 import sp.it.util.text.capitalLower
 import sp.it.util.text.nameUi
 import sp.it.util.text.split3
@@ -144,6 +145,7 @@ import sp.it.util.ui.centre
 import sp.it.util.ui.label
 import sp.it.util.ui.lookupId
 import sp.it.util.ui.stackPane
+import sp.it.util.units.uri
 
 class Hue(widget: Widget): SimpleController(widget) {
 
@@ -419,6 +421,11 @@ class Hue(widget: Widget): SimpleController(widget) {
                onClickDo { refresh() }
                withText(RIGHT, "Refresh")
             }
+            lay += Icon(IconFA.PLAY).run {
+               tooltip("Run commandsto bridge manually")
+               onClickDo { uri("https://$hueBridgeIp/debug/clip.html").browse() }
+               withText(RIGHT, "Commands")
+            }
          }
          lay(ALWAYS) += hBox(30.emScaled, TOP_LEFT) {
             lay(ALWAYS) += scrollPane {
@@ -677,8 +684,10 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
    }
 
-   // https://developers.meethue.com/develop/hue-api/
-   // https://developers.meethue.com/develop/hue-api/supported-devices/
+   /*
+    * https://developers.meethue.com/develop/hue-api/
+    * https://developers.meethue.com/develop/hue-api/supported-devices/
+    */
    companion object: WidgetCompanion, KLogging() {
       override val name = "Hue Scenes"
       override val description = "Manages Phillips Hue bulbs, groups & scenes"

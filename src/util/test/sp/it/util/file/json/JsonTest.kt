@@ -19,7 +19,10 @@ import java.util.TreeSet
 import java.util.Vector
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import sp.it.util.functional.Try
+import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
+import sp.it.util.functional.getAny
 import sp.it.util.functional.net
 import sp.it.util.type.kType
 import sp.it.util.type.raw
@@ -28,8 +31,37 @@ import sp.it.util.type.type
 @Suppress("RemoveExplicitTypeArguments")
 class JsonTest: FreeSpec({
    val j = Json()
+   val nf = "\n"
 
+   "Equals" {
+      // @formatter:off
+                            JsNull shouldBe JsNull
+                            JsTrue shouldBe JsTrue
+                           JsFalse shouldBe JsFalse
+                  JsString("text") shouldBe JsString("text")
+               JsNumber(123456789) shouldBe JsNumber(123456789)
+                         JsArray() shouldBe JsArray()
+              JsArray(JsNumber(1)) shouldBe JsArray(JsNumber(1))
+                        JsObject() shouldBe JsObject()
+      JsObject("a" to JsNumber(1)) shouldBe JsObject("a" to JsNumber(1))
+      // @formatter:on
+   }
    "Read (raw)" - {
+      "ast" {
+         j.ast("") shouldBeTry Error("Missing json AST node")
+         j.ast(" ") shouldBeTry Error("Missing json AST node")
+         j.ast("text") shouldBeTry Error("Unrecognized token 'text': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')\n at [Source: (String)\"text\"; line: 1, column: 5]")
+         j.ast("null") shouldBe Ok(JsNull)
+         j.ast("""""""") shouldBe Ok(JsString(""))
+         j.ast("""" """") shouldBe Ok(JsString(" "))
+         j.ast(""""null"""") shouldBe Ok(JsString("null"))
+         j.ast(""""text"""") shouldBe Ok(JsString("text"))
+         j.ast("123456789") shouldBe Ok(JsNumber(123456789))
+         j.ast("[1, 2, 3]") shouldBe Ok(JsArray(JsNumber(1), JsNumber(2), JsNumber(3)))
+         j.ast("[1,\n 2, 3\n]") shouldBe Ok(JsArray(JsNumber(1), JsNumber(2), JsNumber(3)))
+         j.ast("""{"name": "John", "age": 42}""") shouldBe Ok(JsObject("name" to JsString("John"), "age" to JsNumber(42)))
+         j.ast("""{$nf"name":$nf "John", "age": 42}""") shouldBe Ok(JsObject("name" to JsString("John"), "age" to JsNumber(42)))
+      }
       "simple json" {
          j.fromJson<String>("\"\"") shouldBe Ok("")
          j.fromJson<UByte>("55") shouldBe Ok(55L.toUByte())
@@ -47,19 +79,19 @@ class JsonTest: FreeSpec({
 
             val json = JsNull
 
-            j.fromJsonValue<Any>(json).errorOrThrow.message shouldBe "null is not kotlin.Any"
+            j.fromJsonValue<Any>(json) shouldBeTry Error("null is not kotlin.Any")
             j.fromJsonValue<Any?>(json) shouldBe Ok(null)
-            j.fromJsonValue<String>(json).errorOrThrow.message shouldBe "null is not kotlin.String"
+            j.fromJsonValue<String>(json) shouldBeTry Error("null is not kotlin.String")
             j.fromJsonValue<String?>(json) shouldBe Ok(null)
-            j.fromJsonValue<Unit>(json).errorOrThrow.message shouldBe "null is not kotlin.Unit"
+            j.fromJsonValue<Unit>(json) shouldBeTry Error("null is not kotlin.Unit")
             j.fromJsonValue<Unit?>(json) shouldBe Ok(null)
-            j.fromJsonValue<Int>(json).errorOrThrow.message shouldBe "null is not kotlin.Int"
+            j.fromJsonValue<Int>(json) shouldBeTry Error("null is not kotlin.Int")
             j.fromJsonValue<Int?>(json) shouldBe Ok(null)
-            j.fromJsonValue<UInt>(json).errorOrThrow.message shouldBe "null is not kotlin.UInt"
+            j.fromJsonValue<UInt>(json) shouldBeTry Error("null is not kotlin.UInt")
             j.fromJsonValue<UInt?>(json) shouldBe Ok(null)
-            j.fromJsonValue<List<*>>(json).errorOrThrow.message shouldBe "null is not kotlin.collections.List<*>"
+            j.fromJsonValue<List<*>>(json) shouldBeTry Error("null is not kotlin.collections.List<*>")
             j.fromJsonValue<List<*>?>(json) shouldBe Ok(null)
-            j.fromJsonValue<Data>(json).errorOrThrow.message shouldBe "null is not sp.it.util.file.json.`JsonTest\$1\$2\$1\$1\$Data`"
+            j.fromJsonValue<Data>(json) shouldBeTry Error("null is not sp.it.util.file.json.`JsonTest\$1\$3\$1\$1\$Data`")
             j.fromJsonValue<Data?>(json) shouldBe Ok(null)
          }
       }
@@ -103,26 +135,26 @@ class JsonTest: FreeSpec({
 
             val json = JsArray(listOf(JsNull, JsNull))
 
-            j.fromJsonValue<Any>(json).orThrow shouldBe listOf(null, null)
-            j.fromJsonValue<Any?>(json).orThrow shouldBe listOf(null, null)
-            j.fromJsonValue<Array<*>>(json).orThrow shouldBe arrayOf<Any?>(null, null)
-            j.fromJsonValue<Array<Any>>(json).errorOrThrow.message shouldBe "null is not kotlin.Any"
-            j.fromJsonValue<Array<Any?>>(json).orThrow shouldBe arrayOf<Any?>(null, null)
-            j.fromJsonValue<Array<Data>>(json).errorOrThrow.message shouldBe "null is not sp.it.util.file.json.`JsonTest\$1\$2\$3\$1\$Data`"
-            j.fromJsonValue<Array<Data?>>(json).orThrow shouldBe arrayOf<Data?>(null, null)
-            j.fromJsonValue<List<*>>(json).orThrow shouldBe listOf(null, null)
-            j.fromJsonValue<List<Any>>(json).errorOrThrow.message shouldBe "null is not kotlin.Any"
-            j.fromJsonValue<List<Any?>>(json).orThrow shouldBe listOf(null, null)
-            j.fromJsonValue<List<Data>>(json).errorOrThrow.message shouldBe "null is not sp.it.util.file.json.`JsonTest\$1\$2\$3\$1\$Data`"
-            j.fromJsonValue<List<Data?>>(json).orThrow shouldBe listOf(null, null)
-            j.fromJsonValue<ByteArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Byte"
-            j.fromJsonValue<CharArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Char"
-            j.fromJsonValue<ShortArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Short"
-            j.fromJsonValue<IntArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Int"
-            j.fromJsonValue<LongArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Long"
-            j.fromJsonValue<FloatArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Float"
-            j.fromJsonValue<DoubleArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Double"
-            j.fromJsonValue<BooleanArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Boolean"
+            j.fromJsonValue<Any>(json) shouldBeTry Ok(listOf(null, null))
+            j.fromJsonValue<Any?>(json) shouldBeTry Ok(listOf(null, null))
+            j.fromJsonValue<Array<*>>(json) shouldBeTry Ok(arrayOf<Any?>(null, null))
+            j.fromJsonValue<Array<Any>>(json) shouldBeTry Error("null is not kotlin.Any")
+            j.fromJsonValue<Array<Any?>>(json) shouldBeTry Ok(arrayOf<Any?>(null, null))
+            j.fromJsonValue<Array<Data>>(json) shouldBeTry Error("null is not sp.it.util.file.json.`JsonTest\$1\$3\$3\$1\$Data`")
+            j.fromJsonValue<Array<Data?>>(json) shouldBeTry Ok(arrayOf<Data?>(null, null))
+            j.fromJsonValue<List<*>>(json) shouldBeTry Ok(listOf(null, null))
+            j.fromJsonValue<List<Any>>(json) shouldBeTry Error("null is not kotlin.Any")
+            j.fromJsonValue<List<Any?>>(json) shouldBeTry Ok(listOf(null, null))
+            j.fromJsonValue<List<Data>>(json) shouldBeTry Error("null is not sp.it.util.file.json.`JsonTest\$1\$3\$3\$1\$Data`")
+            j.fromJsonValue<List<Data?>>(json) shouldBeTry Ok(listOf(null, null))
+            j.fromJsonValue<ByteArray>(json) shouldBeTry Error("null is not kotlin.Byte")
+            j.fromJsonValue<CharArray>(json) shouldBeTry Error("null is not kotlin.Char")
+            j.fromJsonValue<ShortArray>(json) shouldBeTry Error("null is not kotlin.Short")
+            j.fromJsonValue<IntArray>(json) shouldBeTry Error("null is not kotlin.Int")
+            j.fromJsonValue<LongArray>(json) shouldBeTry Error("null is not kotlin.Long")
+            j.fromJsonValue<FloatArray>(json) shouldBeTry Error("null is not kotlin.Float")
+            j.fromJsonValue<DoubleArray>(json) shouldBeTry Error("null is not kotlin.Double")
+            j.fromJsonValue<BooleanArray>(json) shouldBeTry Error("null is not kotlin.Boolean")
          }
          "to exact collection item type" {
             val json = JsArray(listOf(JsNumber(1), JsNumber(1)))
@@ -328,6 +360,7 @@ private      class GenCls<out T>(val value: T) {
 @JvmInline value class InlineInt(val value: Int)
 @JvmInline value class InlineComplex(val value: Complex)
 
+private infix  fun Try<*,Throwable>.shouldBeTry(o: Try<*,String>) { this::class shouldBe o::class; mapError { it.message }.getAny() shouldBe o.getAny() }
 private inline fun <reified T: Any> Any?.shouldBeInstance() = T::class.isInstance(this) shouldBe true
 private infix  fun                  Any?.shouldBeInstance(type: KClass<*>) = type.isInstance(this) shouldBe true
 private infix  fun                  Any?.shouldBeInstance(type: KType) = type.raw.isInstance(this) shouldBe true

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.BooleanNode
+import com.fasterxml.jackson.databind.node.MissingNode
 import com.fasterxml.jackson.databind.node.NullNode
 import com.fasterxml.jackson.databind.node.NumericNode
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -39,6 +40,7 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
+import kotlin.reflect.jvm.jvmName
 import kotlin.text.Charsets.UTF_8
 import sp.it.util.collections.map.KClassListMap
 import sp.it.util.dev.fail
@@ -95,14 +97,16 @@ object JsTrue: JsValue()
 
 object JsFalse: JsValue()
 
-class JsString(val value: String): JsValue()
+data class JsString(val value: String): JsValue()
 
-class JsNumber(val value: Number): JsValue()
+data class JsNumber(val value: Number): JsValue()
 
-class JsArray(val value: List<JsValue>): JsValue(), JsRoot
+data class JsArray(val value: List<JsValue>): JsValue(), JsRoot {
+   constructor(vararg values: JsValue): this(values.toList())
+}
 
-class JsObject(val value: Map<String, JsValue>): JsValue(), JsRoot {
-   constructor(entry: Pair<String, JsValue>): this(mapOf(entry))
+data class JsObject(val value: Map<String, JsValue>): JsValue(), JsRoot {
+   constructor(vararg entries: Pair<String, JsValue>): this(entries.toMap(LinkedHashMap()))
 }
 
 interface JsConverter<T> {
@@ -117,9 +121,9 @@ open class JsonAst {
       enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
    }
 
-   fun ast(json: String): Try<JsValue, Throwable> = runTry { fromKlaxonAST(om.readTree(json)) }
+   fun ast(json: String): Try<JsValue, Throwable> = runTry { fromJacksonAST(om.readTree(json)) }
 
-   fun ast(json: InputStream): Try<JsValue, Throwable> = runTry { fromKlaxonAST(om.readTree(json)) }
+   fun ast(json: InputStream): Try<JsValue, Throwable> = runTry { fromJacksonAST(om.readTree(json)) }
 }
 
 class Json: JsonAst() {
@@ -593,7 +597,7 @@ fun JsValue.toPrettyS(indent: String = "  ", newline: String = "\n"): String {
    }
 }
 
-fun fromKlaxonAST(ast: Any?): JsValue {
+fun fromJacksonAST(ast: Any?): JsValue {
    return when (ast) {
       null -> JsNull
       true -> JsTrue
@@ -601,12 +605,13 @@ fun fromKlaxonAST(ast: Any?): JsValue {
       is String -> JsString(ast)
       is NullNode -> JsNull
       is Number -> JsNumber(ast)
-      is BooleanNode -> fromKlaxonAST(ast.booleanValue())
+      is BooleanNode -> fromJacksonAST(ast.booleanValue())
       is TextNode -> JsString(ast.textValue())
       is NumericNode -> JsNumber(ast.numberValue())
-      is ArrayNode -> JsArray(ast.elements().asSequence().map { fromKlaxonAST(it) }.toList())
-      is ObjectNode -> JsObject(ast.fields().asSequence().associate { it.key to fromKlaxonAST(it.value) })
-      else -> fail { "Unrecognized klaxon AST representation=$ast" }
+      is ArrayNode -> JsArray(ast.elements().asSequence().map { fromJacksonAST(it) }.toList())
+      is ObjectNode -> JsObject(ast.fields().asSequence().associate { it.key to fromJacksonAST(it.value) })
+      is MissingNode -> fail { "Missing json AST node" }
+      else -> fail { "Unrecognized json AST node=${ast::class.jvmName}($ast)" }
    }
 }
 

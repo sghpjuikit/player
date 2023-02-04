@@ -1,14 +1,22 @@
 package commandBar
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.geometry.Pos.CENTER
 import javafx.geometry.Side
 import javafx.scene.control.ContextMenu
+import javafx.scene.input.DragEvent.DRAG_DONE
+import javafx.scene.input.DragEvent.DRAG_DROPPED
+import javafx.scene.input.DragEvent.DRAG_OVER
 import javafx.scene.input.KeyCode.DOWN
 import javafx.scene.input.KeyCode.UP
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
+import javafx.scene.input.TransferMode.MOVE
+import javafx.scene.shape.Rectangle
 import kotlin.math.roundToInt
 import sp.it.pl.conf.Command
 import sp.it.pl.layout.Widget
@@ -16,6 +24,7 @@ import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.HorizontalDock
 import sp.it.pl.main.APP
+import sp.it.pl.main.Df
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.UTILITY
@@ -44,10 +53,13 @@ import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
-import sp.it.util.reactive.onChange
+import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.sync
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
+import sp.it.util.ui.drag.handlerAccepting
+import sp.it.util.ui.drag.set
 import sp.it.util.ui.dsl
 import sp.it.util.ui.flowPane
 import sp.it.util.ui.lay
@@ -65,20 +77,32 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
       .def(name = "Auto-close", info = "Try closing the window of this widget after a command is invoked. Useful for launchers that employ auto-hide.")
    val iconSize by cv(1).min(1).max(20)
       .def(name = "Icon size", info = "Size of icons specified in em units - application font size multiplies.")
+   val iconAlignment by cv(CENTER)
+      .def(name = "Icons alignment")
    val icons by cList<Icon>(::icon, ::asConfigurable)
       .def(name = "Icons", info = "List of icons. Icon has an icon and command.")
    val iconPlusVisible by cv(true)
       .def(name = "Show 'Add icon' icon")
+
    val iconPlus = icon(IconFA.CARET_DOWN).onClickDo { buildMenu().show(it, Side.BOTTOM, 0.0, 0.0) }
    val iconPane = flowPane(5.0, 5.0)
+   var drag: Pair<Int,Icon>? = null
+   val dragMarker = Rectangle()
 
    init {
       root.prefSize = 400.emScaled x 50.emScaled
-      root.lay += iconPane
+      root.lay += iconPane.apply {
+         iconAlignment sync ::setAlignment
+      }
+      root.lay += dragMarker.apply {
+         style = "-fx-fill: -skin-def-font-color;"
+         isMouseTransparent = true
+         isManaged = false
+         isVisible = true
+      }
 
       iconPlusVisible attach { updateIcons() }
-      icons.onChange { updateIcons() } on onClose
-      updateIcons()
+      icons.onChangeAndNow { updateIcons() }
 
       APP.ui.font attach { updateIconSize() } on onClose
       iconSize attach { updateIconSize() }
@@ -118,9 +142,42 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
    }
 
    fun icon(glyph: GlyphIcons = IconFA.CIRCLE): Icon = Icon(glyph, iconSize.value.em.emScaled).also { icon ->
+      // remove context menu
       icon.onEventDown(MOUSE_CLICKED, SECONDARY) {
          if (icon!=iconPlus)
             ContextMenu(menuItem("Remove") { icons -= icon }).show(icon, it)
+      }
+      // move on drag
+      icon.onEventDown(DRAG_DETECTED, PRIMARY) {
+         val db = icon.startDragAndDrop(MOVE)
+         db.dragView = icon.snapshot(null, null)
+         drag = icons.indexOf(icon) to icon
+         db[Df.PLAIN_TEXT] = "" //dummy value
+      }
+      icon.addEventHandler(DRAG_OVER, handlerAccepting { drag!=null })
+      icon.addEventHandler(DRAG_DROPPED) {
+         it.consume()
+
+         if (drag!=null && drag?.second !== icon) {
+            icons setTo buildList {
+               addAll(icons)
+               remove(drag!!.second)
+               add(indexOf(icon) + (if (icon.layoutBounds.width/2<it.x) 1 else 0 ), drag!!.second)
+            }
+         }
+      }
+      // move on drag - marker
+      icon.addEventHandler(DRAG_OVER) {
+         if (drag!=null) {
+            dragMarker.isVisible = true
+            dragMarker.width = 1.0
+            dragMarker.height = icon.height/2
+            dragMarker.layoutX = icon.layoutX + if (icon.layoutBounds.width/2>it.x) 0.0 else icon.width
+            dragMarker.layoutY = icon.layoutY + (icon.height-dragMarker.height)/2
+         }
+      }
+      icon.onEventDown(DRAG_DONE) {
+         dragMarker.isVisible = false
       }
    }
 

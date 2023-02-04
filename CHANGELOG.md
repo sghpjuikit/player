@@ -15,7 +15,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Configurator** widget shortcut filter to be 3-valued
 - Implement **GameView** widget game attributes
 - Implement **IconViewer** widget icon group showing icons used for widgets
-- Implement **CommandBar** context menu & other small UX changes
+- Implement **CommandBar** context menu
+- Implement **CommandBar** reorder icons by drag&drop
 - Implement **Hue** widget run command icon
 - Implement exclusive fullscreen detection
     - use to avoid displaying **StartScreen** overlays and dock windows when exclusive fullscreen mode application is running
@@ -71,6 +72,12 @@ This widget is useful for developers and now becomes much more powerful. Enjoy.
 The widget fixed crashes in certain states. It now averages left and right channel (previously only left channel was visualized).
 The color gradient settings is now simpler and fades into itself for circular layout.
 The buffer settings has been simplified and set up to minimize visualization delay.
+
+### CommandBar improvements
+This widget is a good fit fot start screen or various docks.
+The widget now provides a context menu and an optional caret icon instead of previous plus icon.
+It is now possible to reorder the icons by dragging them around.
+An alignment option has been added as well.
 
 ### Jfif images
 Jfif is more or less jpeg image. Some websites use this format and now the application supports these files. Enjoy. 

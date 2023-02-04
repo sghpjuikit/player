@@ -563,38 +563,40 @@ operator fun JsValue?.div(index: Int): JsValue? = when (this) {
 }
 
 fun JsValue.toCompactS(): String {
-   fun String.toJsonString() = "\"${this.escapeJson()}\""
+   fun String.js() = "\"${this.escapeJson()}\""
    return when (this) {
       is JsNull -> "null"
       is JsTrue -> "true"
       is JsFalse -> "false"
-      is JsString -> value.toJsonString()
+      is JsString -> value.js()
       is JsNumber -> value.toString()
       is JsArray ->
          if (value.isEmpty()) "[]"
          else "[" + value.joinToString(",") { it.toCompactS() } + "]"
       is JsObject ->
          if (value.isEmpty()) "{}"
-         else "{" + value.entries.asSequence().sortedBy { it.key }.joinToString(",") { it.key.toJsonString() + ":" + it.value.toCompactS() } + "}"
+         else "{" + value.entries.sortedBy { it.key }.joinToString(",") { it.key.js() + ":" + it.value.toCompactS() } + "}"
    }
 }
 
-fun JsValue.toPrettyS(indent: String = "  ", newline: String = "\n"): String {
-   fun String.toJsonString() = "\"${this.escapeJson()}\""
-   fun String.reIndent() = replace(newline, newline + indent)
-   return when (this) {
-      is JsNull -> "null"
-      is JsTrue -> "true"
-      is JsFalse -> "false"
-      is JsString -> value.toJsonString()
-      is JsNumber -> value.toString()
+fun JsValue.toPrettyS(indent: String = "  ", newline: String = "\n", indentRaw: String = "", builder: StringBuilder = StringBuilder()): String {
+   fun String.js() = "\"${this.escapeJson()}\""
+   fun String.a() = builder.append(this)
+   val (nl, indent1) = newline to indentRaw + indent
+   when (this) {
+      is JsNull -> "null".a()
+      is JsTrue -> "true".a()
+      is JsFalse -> "false".a()
+      is JsString -> value.js().a()
+      is JsNumber -> value.toString().a()
       is JsArray ->
-         if (value.isEmpty()) "[]"
-         else "[$newline$indent" + value.joinToString(",$newline") { it.toPrettyS() }.reIndent() + newline + "]"
+         if (value.isEmpty()) "[]".a()
+         else value.joinTo(builder, ",$nl", "[$nl$indentRaw", "$nl$indentRaw]") { indent1.a(); it.toPrettyS(indent, nl, indent1, builder); "" }
       is JsObject ->
-         if (value.isEmpty()) "{}"
-         else "{$newline$indent" + value.entries.asSequence().sortedBy { it.key }.joinToString(",$newline") { it.key.toJsonString() + ": " + it.value.toPrettyS() }.reIndent() + newline + "}"
+         if (value.isEmpty()) "{}".a()
+         else value.entries.sortedBy { it.key }.joinTo(builder, ",$nl", "{$nl", "$nl$indent}") { indent1.a(); it.key.js().a(); ": ".a(); it.value.toPrettyS(indent, nl, indent1, builder); "" }
    }
+   return builder.toString()
 }
 
 fun fromJacksonAST(ast: Any?): JsValue {

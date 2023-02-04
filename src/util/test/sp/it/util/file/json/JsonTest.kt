@@ -42,6 +42,8 @@ class JsonTest: FreeSpec({
                JsNumber(123456789) shouldBe JsNumber(123456789)
                          JsArray() shouldBe JsArray()
               JsArray(JsNumber(1)) shouldBe JsArray(JsNumber(1))
+                     JsNumber(1.0) shouldBe JsNumber(1.0)
+       JsNumber(BigDecimal("1.0")) shouldBe JsNumber(BigDecimal("1.0"))
                         JsObject() shouldBe JsObject()
       JsObject("a" to JsNumber(1)) shouldBe JsObject("a" to JsNumber(1))
       // @formatter:on
@@ -346,6 +348,28 @@ class JsonTest: FreeSpec({
             j.toJsonValue<Any>(g).net { j.fromJsonValue<Any>(it) }.orThrow shouldBe g
          }
       }
+   }
+   "toCompactS" {
+      val json = JsArray(JsNull, JsString(""), JsNumber(1), JsArray(), JsObject(), JsObject("a" to JsTrue, "b" to JsFalse))
+      val jsonS = """[null,"",1,[],{},{"a":true,"b":false}]"""
+      json.toCompactS() shouldBe jsonS
+   }
+   "toPrettyS" {
+      val json = JsArray(JsNull, JsString(""), JsNumber(1), JsArray(), JsObject(), JsObject("a" to JsTrue, "b" to JsFalse))
+      val jsonS = """
+         [
+           null,
+           "",
+           1,
+           [],
+           {},
+           {
+             "a": true,
+             "b": false
+           }
+         ]
+      """.trimIndent()
+      json.toPrettyS() shouldBe jsonS
    }
 })
 

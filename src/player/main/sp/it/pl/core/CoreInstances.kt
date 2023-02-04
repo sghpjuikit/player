@@ -31,14 +31,23 @@ import sp.it.pl.ui.objects.rating.RatingSkinNumber1
 import sp.it.pl.ui.objects.rating.RatingSkinNumber100
 import sp.it.pl.ui.objects.rating.RatingSkinNumberPercent
 import sp.it.pl.ui.objects.rating.RatingSkinStar
+import sp.it.pl.web.AOLWebSearchUriQBuilder
+import sp.it.pl.web.AskWebSearchUriQBuilder
+import sp.it.pl.web.BaiduWebSearchUriQBuilder
 import sp.it.pl.web.BingImageSearchQBuilder
 import sp.it.pl.web.BingSearchQBuilder
 import sp.it.pl.web.DuckDuckGoImageQBuilder
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.GoogleImageQBuilder
 import sp.it.pl.web.GoogleQBuilder
+import sp.it.pl.web.QwantWebSearchUriQBuilder
 import sp.it.pl.web.SearchUriBuilder
+import sp.it.pl.web.StartPageWebSearchUriQBuilder
+import sp.it.pl.web.WebSearchUriQBuilder
 import sp.it.pl.web.WikipediaQBuilder
+import sp.it.pl.web.WolframAlphaWebSearchUriQBuilder
+import sp.it.pl.web.YahooWebSearchUriQBuilder
+import sp.it.pl.web.YandexWebSearchUriQBuilder
 import sp.it.util.collections.observableSet
 import sp.it.util.type.InstanceMap
 import sp.it.util.units.uuid
@@ -82,6 +91,15 @@ object CoreInstances: InstanceMap(), Core {
          BingImageSearchQBuilder,
          GoogleQBuilder,
          GoogleImageQBuilder,
+         YahooWebSearchUriQBuilder,
+         AOLWebSearchUriQBuilder,
+         BaiduWebSearchUriQBuilder,
+         YandexWebSearchUriQBuilder,
+         AskWebSearchUriQBuilder,
+         WolframAlphaWebSearchUriQBuilder,
+         WebSearchUriQBuilder,
+         QwantWebSearchUriQBuilder,
+         StartPageWebSearchUriQBuilder,
       )
       addInstances<KClass<out Skin<Rating>>>(
          RatingSkinStar::class,

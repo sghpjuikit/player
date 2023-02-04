@@ -579,7 +579,9 @@ fun JsValue.toCompactS(): String {
    }
 }
 
-fun JsValue.toPrettyS(indent: String = "  ", newline: String = "\n", indentRaw: String = "", builder: StringBuilder = StringBuilder()): String {
+fun JsValue.toPrettyS(indent: String = "  ", newline: String = "\n"): String = toPrettyS(indent, newline, "", StringBuilder())
+
+private fun JsValue.toPrettyS(indent: String, newline: String, indentRaw: String, builder: StringBuilder): String {
    fun String.js() = "\"${this.escapeJson()}\""
    fun String.a() = builder.append(this)
    val (nl, indent1) = newline to indentRaw + indent

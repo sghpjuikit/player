@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.8.0"
+   kotlin("jvm") version "1.8.10"
    application
    id("com.github.ben-manes.versions") version "0.45.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.0"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin

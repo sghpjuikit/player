@@ -29,7 +29,6 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.log10
-import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -66,7 +65,7 @@ import sp.it.util.math.P
 import sp.it.util.math.abs
 import sp.it.util.math.clip
 import sp.it.util.math.max
-import sp.it.util.reactive.attach
+import sp.it.util.math.min
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.ui.canvas
 import sp.it.util.ui.lay
@@ -75,6 +74,7 @@ import sp.it.util.units.version
 import sp.it.util.units.year
 import spektrum.OctaveGenerator.getHighLimit
 import spektrum.OctaveGenerator.getLowLimit
+import spektrum.Spektrum.FrequencyBarsProcessor
 import spektrum.WeightWindow.dBZ
 
 // based on https://github.com/89iuv/visualizer
@@ -133,8 +133,6 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       .def(name = "Bar data", info = "Data displayed by the bars")
    val barMinHeight by cv(2.0).min(0.0)
       .def(name = "Bar min height", info = "")
-   val barMaxHeight by cv(750.0).min(0.0)
-      .def(name = "Bar max height", info = "")
    val barGap       by cv(8).min(0)
       .def(name = "Bar gap", info = "")
    var barAlignment by c(BarShape.CIRCLE_MIDDLE)
@@ -167,15 +165,12 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    val baseColor by cv(Color.color(0.1, 0.1, 0.1)!!).noUi()
       .def(name = "Color Base", info = "")
 
-   val spectralFFTService = FrequencyBarsFFTService(this)
-   val audioEngine = TarsosAudioEngine(this)
-   val spectralView = SpectralView(this, spectralFFTService)
+   val spectralFbProcessor = FrequencyBarsProcessor(this)
+   val audioEngine = TarsosAudioEngine(this, spectralFbProcessor)
+   val spectralView = SpectralView(this, spectralFbProcessor)
 
    init {
-
       root.lay += spectralView.canvas
-      audioEngine.fttListenerList += spectralFFTService
-
       root.sync1IfInScene {
          onClose += audioEngine::dispose
          audioEngine.start()
@@ -209,7 +204,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       val count = AtomicInteger(count)
    }
 
-   class SpectralView(val spektrum: Spektrum, val fft: FrequencyBarsFFTService) {
+   class SpectralView(val spektrum: Spektrum, val fft: FrequencyBarsProcessor) {
       private val settings = spektrum
               val canvas = canvas({})
       private val gc = canvas.graphicsContext2D!!
@@ -237,13 +232,10 @@ class Spektrum(widget: Widget): SimpleController(widget) {
          DrawingData(settings, bars, time/1000000).updateBars()
       }
 
-      init {
-         spektrum.root.heightProperty() attach { settings.barMaxHeight.value = it.toDouble() }
-      }
-
       fun DrawingData.updateBars() {
          val w = spektrum.root.width
          val h = spektrum.root.height
+         val wh = w min h
          val barWg = w/barCount.toDouble()
          val barW = barWg-settings.barGap.value.toDouble() max 1.0
          val pulseEffect = if (settings.effectPulse) avg/15.0 else 0.0
@@ -259,29 +251,29 @@ class Spektrum(widget: Widget): SimpleController(widget) {
             BarShape.CENTER -> {
                bars.forEachIndexed { i, bar ->
                   val f = fade(i)
-                  barPositionsLow += P(i*barWg, h/2 - f*bar.height/2)
-                  barPositionsHig += P(i*barWg, h/2 + f*bar.height/2)
+                  barPositionsLow += P(i*barWg, h/2 - f*bar.height*wh/2)
+                  barPositionsHig += P(i*barWg, h/2 + f*bar.height*wh/2)
                }
             }
             BarShape.BOTTOM -> {
                bars.forEachIndexed { i, bar ->
                   val f = fade(i)
                   barPositionsLow += P(i*barWg, h)
-                  barPositionsHig += P(i*barWg, h - f*bar.height)
+                  barPositionsHig += P(i*barWg, h - f*bar.height*wh)
                }
             }
             BarShape.TOP -> {
                bars.forEachIndexed { i, bar ->
                   val f = fade(i)
                   barPositionsLow += P(i*barWg, 0.0)
-                  barPositionsHig += P(i*barWg, f*bar.height)
+                  barPositionsHig += P(i*barWg, f*bar.height*wh)
                }
             }
             BarShape.CIRCLE_IN, BarShape.CIRCLE_MIDDLE, BarShape.CIRCLE_OUT -> {
                bars.forEachIndexed { i, bar ->
                   val f = fade(i)
-                  val barH = f*bar.height*min(h, w)/2.0/settings.barMaxHeight.value
-                  val base = min(h, w)/5.0 + pulseEffect
+                  val barH = f*bar.height*wh/2.0
+                  val base = wh/5.0 + pulseEffect
                   val max = base + (if (settings.barAlignment==BarShape.CIRCLE_IN) 0.0 else barH/4.0)
                   val min = base - (if (settings.barAlignment==BarShape.CIRCLE_OUT) 0.0 else barH/8.0)
                   val barCos = cos(2*PI*i/barCount - PI/2)
@@ -406,49 +398,6 @@ class Spektrum(widget: Widget): SimpleController(widget) {
 
    enum class BarFade { NONE, IN, OUT, IN_OUT }
 
-   object GlobalColorCalculator {
-      fun getGlobalColor(settings: Spektrum, frequencyBars: List<FrequencyBar>, startHz: Int, endHz: Int, peak: GlobalColorCalculatorPeak): Color {
-         if (frequencyBars.isEmpty())
-            return Color.BLACK
-
-         var sumIntensity = 0.0
-         var maxIntensity = 0.0
-         var sumRed = 0.0
-         var sumGreen = 0.0
-         var sumBlue = 0.0
-         var nrBars = 0
-         for (frequencyBar in frequencyBars) {
-            if (startHz<=frequencyBar.hz && frequencyBar.hz<=endHz) {
-               val barHeight = frequencyBar.height
-               val barIntensity = barHeight/settings.barMaxHeight.value
-               val barColor = frequencyBar.color
-               sumRed += barColor.red*barIntensity
-               sumGreen += barColor.green*barIntensity
-               sumBlue += barColor.blue*barIntensity
-               sumIntensity += barIntensity
-               if (barIntensity>maxIntensity) {
-                  maxIntensity = barIntensity
-               }
-               nrBars++
-            }
-         }
-         val avgRed = sumRed/nrBars
-         val avgGreen = sumGreen/nrBars
-         val avgBlue = sumBlue/nrBars
-         val avgIntensity = sumIntensity/nrBars
-         var intensity = when (peak) {
-            GlobalColorCalculatorPeak.AVG -> avgIntensity
-            GlobalColorCalculatorPeak.MAX -> maxIntensity
-         }
-         intensity *= (settings.brightness.value/100.0)
-         var color = Color.color(avgRed, avgGreen, avgBlue)
-         color = settings.baseColor.value.interpolate(color, maxIntensity)
-         color = Color.hsb(color.hue, color.saturation, intensity)
-         return color
-      }
-
-   }
-   enum class GlobalColorCalculatorPeak { AVG, MAX }
    data class FrequencyBar(var hz: Double, var height: Double, var color: Color)
 
    /**
@@ -456,7 +405,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
     * - timeFiltering a.k.a. smoothness
     * - previous bar heights that are used in bad decay calculation
     */
-   class FrequencyBarsFFTService(settings: Spektrum): FFTListener {
+   class FrequencyBarsProcessor(settings: Spektrum) {
       private val settings = settings
       private val oldTime = System.currentTimeMillis()
 
@@ -474,7 +423,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       private val fftSpaceFilter = FFTSpaceFilter(settings)
       private val barsHeightCalculator = BarsHeightCalculator(settings)
 
-      override fun frame(hzBins: DoubleArray?, normalizedAmplitudes: DoubleArray?) {
+      fun frame(hzBins: DoubleArray?, normalizedAmplitudes: DoubleArray?) {
          try {
             lock.lock()
             this.hzBins = hzBins
@@ -518,7 +467,6 @@ class Spektrum(widget: Widget): SimpleController(widget) {
          }
 
       fun createFrequencyBars(binsHz: DoubleArray, amplitudes: DoubleArray): List<FrequencyBar> {
-
          fun color(pos: Double, saturation: Double, brightness: Double): Color =
             Color.hsb(pos, saturation, brightness)
             // interpolate opacity based on intensity
@@ -538,12 +486,10 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    }
 }
 
-class TarsosAudioEngine(settings: Spektrum) {
-   private val settings = settings
+class TarsosAudioEngine(val settings: Spektrum, val fft: FrequencyBarsProcessor) {
    private var dispatcher: AudioDispatcher? = null
    private var audioThread: Thread? = null
    private var mixerRef: Mixer? = null
-   val fttListenerList = LinkedList<FFTListener>()
 
    fun start() {
       runTry {
@@ -557,7 +503,7 @@ class TarsosAudioEngine(settings: Spektrum) {
             val audioStream = JVMAudioInputStream(AudioInputStream(line))
             dispatcher = AudioDispatcher(audioStream, bufferSize, bufferOverlap).apply {
                addAudioProcessor(MultichannelToMono(audioFormat.channels, true))
-               addAudioProcessor(FFTAudioProcessor(audioFormat, fttListenerList, settings))
+               addAudioProcessor(FFTAudioProcessor(audioFormat, fft, settings))
             }
             audioThread = audioThreadFactory.start(dispatcher)
          }
@@ -630,10 +576,10 @@ class TarsosAudioEngine(settings: Spektrum) {
 object OctaveGenerator {
    private val cache = ConcurrentHashMap<OctaveSettings, List<Double>>()
 
-   fun getOctaveFrequencies(centerFrequency_: Int, band: Double, lowerLimit_: Int, upperLimit_: Int): List<Double> {
-      val fStart = centerFrequency_.clip(1, 23998).toDouble()
-      val fEnd = upperLimit_.clip(centerFrequency_+2, 24000).toDouble()
-      val fCenter = lowerLimit_.toDouble().clip(fStart+1.0, fEnd-1.0)
+   fun getOctaveFrequencies(centerFrequency: Int, band: Double, lowerLimit: Int, upperLimit: Int): List<Double> {
+      val fStart = centerFrequency.clip(1, 23998).toDouble()
+      val fEnd = upperLimit.clip(centerFrequency+2, 24000).toDouble()
+      val fCenter = lowerLimit.toDouble().clip(fStart+1.0, fEnd-1.0)
       val octaveSettings = OctaveSettings(fCenter, band, fStart, fEnd)
       return cache.computeIfAbsent(octaveSettings) {
          TreeSet<Double>().apply {
@@ -668,15 +614,8 @@ object OctaveGenerator {
    private data class OctaveSettings(val centerFrequency: Double, val band: Double, val lowerLimit: Double, val upperLimit: Double)
 }
 
-interface FFTListener {
-   fun frame(hzBins: DoubleArray?, normalizedAmplitudes: DoubleArray?)
-}
-
 @Suppress("UseWithIndex")
-class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener>, settings: Spektrum): AudioProcessor {
-   private val audioFormat = audioFormat
-   private val listenerList = listenerList
-   private val settings = settings
+class FFTAudioProcessor(val audioFormat: AudioFormat, val onProcess: FrequencyBarsProcessor, val settings: Spektrum): AudioProcessor {
    private val interpolator: UnivariateInterpolator = SplineInterpolator()
    private val windowFunction: WindowFunction = HannWindow()
    private val windowCorrectionFactor = 2.0
@@ -732,7 +671,7 @@ class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener
          m++
       }
 
-      listenerList.forEach { listener: FFTListener -> listener.frame(frequencyBins, frequencyAmplitudes) }
+      onProcess.frame(frequencyBins, frequencyAmplitudes)
       return true
    }
 
@@ -882,41 +821,25 @@ class BarsHeightCalculator(settings: Spektrum) {
          oldDecayDecelerationSize = DoubleArray(newAmplitudes.size)
          return convertDbToPixels(newAmplitudes)
       }
-      val millisToZero = settings.millisToZero.value
-      val millisPassed = millisPassed
 
       val pixelAmplitudes = convertDbToPixels(newAmplitudes)
-      oldAmplitudes = decayPixelsAmplitudes(oldAmplitudes!!, pixelAmplitudes, millisToZero.toDouble(), millisPassed)
+      oldAmplitudes = decayPixelsAmplitudes(oldAmplitudes!!, pixelAmplitudes, settings.millisToZero.value.toDouble(), millisPassed)
       return oldAmplitudes
    }
 
    private fun convertDbToPixels(dbAmplitude: DoubleArray): DoubleArray {
-      val signalThreshold = settings.signalThreshold.value.abs
-      val maxBarHeight = settings.barMaxHeight.value
+      val signalThreshold = settings.signalThreshold.value.abs.toDouble()
       val signalAmplification = settings.signalAmplification.value/100.0
-      val pixelsAmplitude = DoubleArray(dbAmplitude.size)
-
-      for (i in pixelsAmplitude.indices) {
-         val maxHeight = signalThreshold.toDouble()
-         var newHeight = dbAmplitude[i]+signalThreshold
-         // normalizing the bar to the height of the window
-         newHeight = newHeight*maxBarHeight/maxHeight
-         pixelsAmplitude[i] = signalAmplification*newHeight
-      }
-
-      return pixelsAmplitude
+      return DoubleArray(dbAmplitude.size) { signalAmplification*(dbAmplitude[it]+signalThreshold)/signalThreshold }
    }
 
    private fun decayPixelsAmplitudes(oldAmplitudes: DoubleArray, newAmplitudes: DoubleArray, millisToZero: Double, secondsPassed: Double): DoubleArray {
       val processedAmplitudes = DoubleArray(newAmplitudes.size)
-      val maxBarHeight: Double = settings.barMaxHeight.value
-      val minBarHeight: Double = settings.barMinHeight.value
 
       for (i in processedAmplitudes.indices) {
          val oldHeight = oldAmplitudes[i]
          val newHeight = newAmplitudes[i]
-         val decayRatePixelsPerMilli = maxBarHeight/millisToZero
-         val dbPerSecondDecay = decayRatePixelsPerMilli*secondsPassed
+         val dbPerSecondDecay = secondsPassed/millisToZero
          if (newHeight<oldHeight - dbPerSecondDecay) {
             var decaySize = dbPerSecondDecay
             val accelerationStep: Double = 1.0/settings.accelerationFactor.value*decaySize
@@ -924,16 +847,10 @@ class BarsHeightCalculator(settings: Spektrum) {
                oldDecayDecelerationSize[i] = oldDecayDecelerationSize[i] + accelerationStep
                decaySize = oldDecayDecelerationSize[i]
             }
-            processedAmplitudes[i] = oldHeight - decaySize
+            processedAmplitudes[i] = (oldHeight - decaySize).clip(0.0, 1.0)
          } else {
-            processedAmplitudes[i] = newHeight
+            processedAmplitudes[i] = newHeight.clip(0.0, 1.0)
             oldDecayDecelerationSize[i] = 0.0
-         }
-
-         // apply limits
-         if (processedAmplitudes[i]<minBarHeight) {
-            // below floor
-            processedAmplitudes[i] = minBarHeight
          }
       }
 

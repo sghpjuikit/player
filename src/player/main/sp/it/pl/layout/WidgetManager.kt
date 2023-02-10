@@ -557,6 +557,7 @@ class WidgetManager {
                "-language-version", "1.8",
                "-jvm-target", "19",
                "-progressive",
+               "-language-version", "2.0",
                "-Xno-call-assertions",
                "-Xno-param-assertions",
                "\"-Xjvm-default=all\"",

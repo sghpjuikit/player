@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file. Format base
     - Improve lookup algorithm
 - Improve **ObjectInfo** widget UI [display attributes with specialized components based on type]
 - Improve **FileInfo** widget layout
+- Improve widget compilation speed [use K2 compiler]
 - Fix popup showing up in taskbar/switcher sometimes
 - Fix `Action.invoke` with default arguments
 - Fix exceptions when popup with focus is shown [remove calling focus unnecessarily]

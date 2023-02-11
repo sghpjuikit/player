@@ -13,6 +13,8 @@ import comet.Utils.ClassicMode;
 import comet.Utils.CollisionHandlers;
 import comet.Utils.Displayable;
 import comet.Utils.Draw;
+import comet.Utils.DrawImg;
+import comet.Utils.DrawNode;
 import comet.Utils.EndGamePane;
 import comet.Utils.Events;
 import comet.Utils.GameMode;
@@ -99,6 +101,7 @@ import sp.it.pl.layout.controller.SimpleController;
 import sp.it.pl.ui.item_node.ConfigEditor;
 import sp.it.pl.ui.objects.SpitText;
 import sp.it.pl.ui.objects.icon.Icon;
+import sp.it.pl.ui.objects.icon.TextIcon;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.conf.Config;
@@ -217,6 +220,7 @@ import static sp.it.util.functional.Util.listF;
 import static sp.it.util.functional.Util.repeat;
 import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.Util.with;
 import static sp.it.util.reactive.UtilKt.attachC;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.computeTextHeight;
@@ -1018,31 +1022,18 @@ public class Comet extends SimpleController {
 			placeholder(text, null, x, y);
 		}
 		void placeholder(String text, PO o, double x, double y) {
+			var graphics = new DrawNode(new Icon(new TextIcon(text), FONT_PLACEHOLDER.getSize()/game.scale));
 			boolean isFollow = o!=null;
-			double fW = computeTextWidth(FONT_PLACEHOLDER, text);
-			double fH = computeTextHeight(FONT_PLACEHOLDER, text);
+			graphics.init(gc, sanvas);
+			game.runNext.add(seconds(2), () -> graphics.disp(gc, sanvas));
 			game.runNext.addAnim01(seconds(2), p -> {
 				double s = sqrt(map01To010(p, 0.9));
 				double tx = game.field.modX(isFollow ? o.x-15 : x);
 				double ty = game.field.modY(isFollow ? o.y-15 : y);
 
-				Affine sa = new Affine();
-				sa.append(new Scale(s,s, tx + fW/2,ty - fH/2));
-
-				Affine a1 = gc.getTransform();
-				Affine a2 = gc_bgr.getTransform();
-				gc.setTransform(sa);
-				gc.setFont(FONT_PLACEHOLDER);
-				gc.setFill(game.colors.main);
-				gc.setGlobalAlpha(1);
-				gc.fillText(text, tx, ty);
-				gc.setTransform(a1);
-				gc_bgr.setTransform(sa);
-				gc_bgr.setFont(FONT_PLACEHOLDER);
-				gc_bgr.setFill(game.colors.main);
-				gc_bgr.setGlobalAlpha(1);
-				gc_bgr.fillText(text, tx, ty);
-				gc_bgr.setTransform(a2);
+				((Icon)graphics.graphics()).setFill(game.colors.main);
+				((Icon)graphics.graphics()).updateFont(FONT_PLACEHOLDER);
+				graphics.draw(gc, sanvas, game.scale, tx, ty, s, 0.0);
 			});
 		}
 
@@ -1583,12 +1574,12 @@ public class Comet extends SimpleController {
 		double direction = -D90;
 		double ddirection = 0;
 
-		PO(Class<?> TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Image GRAPHICS) {
+		PO(Class<?> TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, @Nullable Draw GRAPHICS) {
 			type = TYPE;
 			x = X; y = Y; dx = DX; dy = DY;
 			radius = HIT_RADIUS;
 			mass = 2*HIT_RADIUS*HIT_RADIUS; // 4/3d*PI*HIT_RADIUS*HIT_RADIUS*HIT_RADIUS;
-			graphics = GRAPHICS==null ? null : new Draw(GRAPHICS);
+			graphics = GRAPHICS;
 			init();
 		}
 
@@ -1613,16 +1604,18 @@ public class Comet extends SimpleController {
 		@Override void draw() {
 			if (graphics!=null) {
 				double scale = graphicsScale*(clip(0.7,20*g_potential,1));
-				graphics.draw(gc, x, y, scale, graphicsDir);
+				graphics.draw(gc, sanvas, game.scale, x, y, scale, graphicsDir);
 			}
 		}
 
 		void init() {
+			if (graphics!=null) graphics.init(gc, sanvas);
 			game.os.add(this);
 			game.oss.add(this);
 		}
 
 		@Override public void dispose() {
+			if (graphics!=null) graphics.disp(gc, sanvas);
 			if (children!=null) list(children).forEach(LO::dispose);
 		}
 
@@ -1685,7 +1678,7 @@ public class Comet extends SimpleController {
 		double dx_old = 0; // allows calculating ddx (2nd derivation - acceleration)
 		double dy_old = 0;
 
-		public Ship(Class<?> TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Image GRAPHICS, double E, double dE) {
+		public Ship(Class<?> TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Draw GRAPHICS, double E, double dE) {
 			super(TYPE, X, Y, DX, DY, HIT_RADIUS, GRAPHICS);
 			energy = E;
 			energy_buildup_rate = dE;
@@ -2404,7 +2397,7 @@ public class Comet extends SimpleController {
 			super(
 				Rocket.class,
 				game.field.width/2,game.field.height/2,0,0,game.settings.PLAYER_HIT_RADIUS,
-				graphics(MaterialDesignIcon.ROCKET,34,PLAYER.color.get(),null),
+				new DrawImg(graphics(MaterialDesignIcon.ROCKET,34,PLAYER.color.get(),null)),
 				game.settings.PLAYER_ENERGY_INITIAL,game.settings.PLAYER_E_BUILDUP
 			);
 			player = PLAYER;
@@ -2578,7 +2571,7 @@ public class Comet extends SimpleController {
 				Ufo.class,
 				(side==Side.RIGHT ? 1 : 0) * game.field.width,
 				rand01()*game.field.height,0,0, game.settings.UFO_HIT_RADIUS,
-				graphics(MaterialDesignIcon.BIOHAZARD,40,game.colors.ufos,null),
+				new DrawNode(with(new Icon(MaterialDesignIcon.BIOHAZARD,40), i -> i.setFill(game.colors.ufos))),
 				game.settings.UFO_ENERGY_INITIAL,game.settings.UFO_E_BUILDUP
 			);
 			direction = x<game.field.width/2 ? 0 : PI; // left->right || left<-right
@@ -2912,7 +2905,7 @@ public class Comet extends SimpleController {
 		public Shuttle(Rocket r) {
 			super(
 				Shuttle.class, r.x+50,r.y-50,0,0,game.settings.PLAYER_HIT_RADIUS,
-				graphics(FontAwesomeIcon.SPACE_SHUTTLE,40,game.colors.humansTech,null), 0,0
+				new DrawNode(with(new Icon(FontAwesomeIcon.SPACE_SHUTTLE,40), i -> i.setFill(game.colors.humansTech))), 0,0
 			);
 			graphicsScale = 0;
 			owner = r;
@@ -2948,7 +2941,7 @@ public class Comet extends SimpleController {
 		public SuperShield(Rocket r) {
 			super(
 				SuperShield.class, r.x+50,r.y-50,0,0,10,
-				graphics(MaterialIcon.DETAILS, 20, game.colors.humansTech, null), 0,0
+				new DrawNode(with(new Icon(MaterialIcon.DETAILS, 20), i -> i.setFill(game.colors.humansTech))), 0,0
 			);
 			graphicsScale = 0;
 			owner = r;
@@ -2995,9 +2988,9 @@ public class Comet extends SimpleController {
 			this(x, y, null, game.settings.PLAYER_RESPAWN_TIME.divide(2), 0,null);
 		}
 		public SuperDisruptor(SO OWNER) {
-			this(OWNER.x + 50, OWNER.y - 50, OWNER, seconds(50), 10, graphics(MaterialIcon.DISC_FULL, 20, game.colors.humansTech, null));
+			this(OWNER.x + 50, OWNER.y - 50, OWNER, seconds(50), 10, new DrawNode(with(new Icon(MaterialIcon.DISC_FULL, 20), i -> i.setFill(game.colors.humansTech))));
 		}
-		private SuperDisruptor(double x, double y, SO OWNER, Duration TTL, double HIT_RADIUS, Image GRAPHICS) {
+		private SuperDisruptor(double x, double y, SO OWNER, Duration TTL, double HIT_RADIUS, Draw GRAPHICS) {
 			super(SuperDisruptor.class, x, y, 0, 0, HIT_RADIUS, GRAPHICS, 0, 0);
 			ttl = ttl(TTL);
 			graphicsScale = 0;
@@ -3067,13 +3060,15 @@ public class Comet extends SimpleController {
 				s.x,s.y,
 				s instanceof Shuttle ? 0.2*cos(DIR) : s.dx,
 				s instanceof Shuttle ? 0.2*sin(DIR) : s.dy,
-				game.settings.SATELLITE_RADIUS/2, null
+				game.settings.SATELLITE_RADIUS/2,
+				null
 			);
 			e = s instanceof Shuttle
 				? randOf(stream(game.mode.enhancers()).filter(en -> !"Shuttle support".equals(en.name)).toList())
 				: ((Satellite)s).e;
 			children = new HashSet<>(2);
-			graphics = new Draw(graphics(game.humans.intelOn.is() ? e.icon : MaterialDesignIcon.SATELLITE_VARIANT, 40, game.colors.humansTech, null));
+			graphics = new DrawNode(with(new Icon(game.humans.intelOn.is() ? e.icon : MaterialDesignIcon.SATELLITE_VARIANT, 40), i -> i.setFill(game.colors.humansTech)));
+			graphics.init(gc, sanvas);
 			small();
 		}
 
@@ -3087,7 +3082,7 @@ public class Comet extends SimpleController {
 			super(Satellite.class,
 				(dir==Side.LEFT ? 0 : 1)*game.field.width, rand01()*game.field.height,
 				(dir==Side.LEFT ? 1 : -1)*game.settings.SATELLITE_SPEED, 0,
-				game.settings.SATELLITE_RADIUS, graphics(MaterialDesignIcon.SATELLITE_VARIANT, 40, game.colors.humansTech, null)
+				game.settings.SATELLITE_RADIUS, new DrawNode(with(new Icon(MaterialDesignIcon.SATELLITE_VARIANT, 40), i -> i.setFill(game.colors.humansTech)))
 			);
 			e = randOf(game.mode.enhancers());
 			children = new HashSet<>(2);
@@ -3096,7 +3091,7 @@ public class Comet extends SimpleController {
 
 		Satellite small() {
 			isLarge = false;
-			graphicsScale = 0.5;
+			graphicsScale = 0.75;
 			return this;
 		}
 
@@ -4893,7 +4888,7 @@ public class Comet extends SimpleController {
 		double ttl;
 		final PO owner;
 		final int index;
-		final Icon icon;
+		final DrawNode graphics;
 
 		public EIndicator(PO OWNER, Enhancer enhancer) {
 			owner = OWNER;
@@ -4902,21 +4897,20 @@ public class Comet extends SimpleController {
 				.filter(EIndicator.class::isInstance).map(EIndicator.class::cast)
 				.noneMatch(o -> o.index==i));
 			owner.children.add(this);
-			icon = new Icon(enhancer.icon, 15);
-			sanvas.getChildren().add(icon);
+			graphics = new DrawNode(new Icon(enhancer.icon, 15));
+			if (graphics!=null) graphics.init(gc, sanvas);
 		}
 
 		@Override
 		public void doLoop() {
 			ttl--;
 			if (ttl<0) game.runNext.add(this::dispose);
-			icon.setLayoutX(game.scale * (owner.x+30+20*index) - icon.getLayoutBounds().getWidth());
-			icon.setLayoutY(game.scale * (owner.y-30) - icon.getLayoutBounds().getHeight());
+			graphics.draw(gc, sanvas, game.scale, owner.x+30+20*index, owner.y-30);
 		}
 
 		@Override
 		public void dispose() {
-			sanvas.getChildren().remove(icon);
+			if (graphics!=null) graphics.disp(gc, sanvas);
 			owner.children.remove(this);
 		}
 

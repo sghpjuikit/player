@@ -680,21 +680,42 @@ interface Utils {
 		}
 	}
 
-	class Draw {
-		Image graphics;
-
-		public Draw(Image graphics) {
-			this.graphics = graphics;
-		}
-
-		public void draw(GraphicsContext gc, double x, double y) {
+	sealed interface Draw {
+		void init(GraphicsContext gc, Pane sanvas);
+		void draw(GraphicsContext gc, Pane sanvas, double gameScale, double x, double y);
+		void draw(GraphicsContext gc, Pane sanvas, double gameScale, double x, double y, double scale, double angle);
+		void disp(GraphicsContext gc, Pane sanvas);
+	}
+	record DrawImg(Image graphics) implements Draw {
+		@Override public void init(GraphicsContext gc, Pane sanvas) {}
+		@Override public void disp(GraphicsContext gc, Pane sanvas) {}
+		@Override public void draw(GraphicsContext gc, Pane sanvas, double gameScale, double x, double y) {
 			gc.setGlobalAlpha(1);
 			gc.drawImage(graphics, x-graphics.getWidth()/2, y-graphics.getHeight()/2);
 		}
-
-		public void draw(GraphicsContext gc, double x, double y, double scale, double angle) {
+		@Override public void draw(GraphicsContext gc, Pane sanvas, double gameScale, double x, double y, double scale, double angle) {
 			gc.setGlobalAlpha(1);
 			drawImageRotatedScaled(gc, graphics, deg(angle), x, y, scale);
+		}
+	}
+	record DrawNode(Node graphics) implements Draw {
+		@Override public void init(GraphicsContext gc, Pane sanvas) {
+			sanvas.getChildren().add(graphics);
+		}
+		@Override public void disp(GraphicsContext gc, Pane sanvas) {
+			sanvas.getChildren().remove(graphics);
+		}
+		@Override public void draw(GraphicsContext gc, Pane sanvas, double gameScale, double x, double y) {
+			graphics.setLayoutX(gameScale*x - graphics.getLayoutBounds().getWidth()/2);
+			graphics.setLayoutY(gameScale*y - graphics.getLayoutBounds().getHeight()/2);
+			graphics.setScaleX(1);
+			graphics.setScaleY(1);
+		}
+		@Override public void draw(GraphicsContext gc, Pane sanvas, double gameScale, double x, double y, double scale, double angle) {
+			graphics.setLayoutX(gameScale*x - graphics.getLayoutBounds().getWidth()/2);
+			graphics.setLayoutY(gameScale*y - graphics.getLayoutBounds().getHeight()/2);
+			graphics.setScaleX(scale);
+			graphics.setScaleY(scale);
 		}
 	}
 

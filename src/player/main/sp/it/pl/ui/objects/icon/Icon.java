@@ -43,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import sp.it.util.access.ref.LazyR;
 import sp.it.util.action.Action;
 import sp.it.util.animation.Anim;
+import sp.it.util.dev.Experimental;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.reactive.Subscription;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
@@ -500,6 +501,12 @@ public class Icon extends StackPane {
 		Font f = new Font(i.getFontFamily().replace("'", ""), node.getFont().getSize());
 		node.setFont(f);
 		node.setText(i.characterToString());
+	}
+
+	@Experimental(reason = "Expert API")
+	public void updateFont(Font font) {
+		Font f = new Font(font.getFamily(), node.getFont().getSize());
+		node.setFont(f);
 	}
 
 	@SuppressWarnings("unchecked")

@@ -640,6 +640,7 @@ class EffectCE(c: Config<Effect?>, effectType: KClass<out Effect>): ConfigEditor
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value.value = config.value
       editor.value attach { apply() } on disposer
+      editor.editors.ui syncFrom APP.ui.formLayout on disposer
       v?.attach { editor.value.value = it }.orEmpty() on disposer
 
       // readonly
@@ -1153,6 +1154,7 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
    }
 
    init {
+      configPane.ui syncFrom APP.ui.formLayout on disposer
       configPane.onChange = onChange
       configPane.onChangeOrConstraint = onChangeOrConstraint
       next()

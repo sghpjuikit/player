@@ -43,7 +43,7 @@ class EffectTextField(isNullable: Boolean, effectType: KClass<out Effect>? = nul
    private val isNullable: Boolean = isNullable
    private val limitedToType: KClass<out Effect>? = if (effectType==Effect::class) null else effectType
    private val comboBox = SpitComboBox<EffectType>({ it.name })
-   private val editors = ConfigPane<Any?>()
+   val editors = ConfigPane<Any?>()
    val value = vn(initialValue)
    val editable = v(true)
 

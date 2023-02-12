@@ -15,6 +15,7 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
+import de.jensd.fx.glyphs.octicons.OctIcon;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -75,6 +76,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.ui.objects.SpitText;
 import sp.it.pl.ui.objects.icon.Icon;
+import sp.it.pl.ui.objects.icon.UnicodeIcon;
 import sp.it.pl.ui.pane.OverlayPane;
 import sp.it.util.access.ref.R;
 import sp.it.util.animation.Anim;
@@ -586,6 +588,9 @@ interface Utils {
 	enum GunControl {
 		AUTO,MANUAL
 	}
+	enum PlayersQuantum {
+		TRUE, PER_PLAYER
+	}
 	enum AbilityState {
 		ACTIVATING, PASSSIVATING, OFF, ON
 	}
@@ -1051,6 +1056,22 @@ interface Utils {
 					return is;
 				}
 			};
+		}
+	}
+
+	class DoubleTo {
+		double value;
+		double by;
+
+		public DoubleTo(double value, double by) {
+			failIf(by<=0);
+			this.value = value;
+			this.by = by;
+		}
+
+		void run(double to) {
+			if (value<to) value = min(value+by,to);
+			else if (value>to) value = max(value-by,to);
 		}
 	}
 
@@ -1543,19 +1564,19 @@ interface Utils {
 		public double distX(double x1, double x2) {
 			// because we use modular coordinates (infinite field connected by borders), distance
 			// calculation needs a tweak
-			// return abs(x1-x2);
+			 return abs(x1-x2);
 
-			if (x1<x2) return min(x2-x1, x1+width-x2);
-			else return min(x1-x2, x2+width-x1);
+//			if (x1<x2) return min(x2-x1, x1+width-x2);
+//			else return min(x1-x2, x2+width-x1);
 		}
 
 		public double distY(double y1, double y2) {
 			// because we use modular coordinates (infinite field connected by borders), distance
 			// calculation needs a tweak
-			// return abs(y1-y2);
+			 return abs(y1-y2);
 
-			if (y1<y2) return min(y2-y1, y1+height-y2);
-			else return min(y1-y2, y2+height-y1);
+//			if (y1<y2) return min(y2-y1, y1+height-y2);
+//			else return min(y1-y2, y2+height-y1);
 		}
 
 		public double distXSigned(double x1, double x2) {
@@ -1827,7 +1848,7 @@ interface Utils {
 						+ " with the number of targets. Annihilate the most dense enemy area with ease."
 				),
 				// TODO: make useful
-				//			new Enhancer("Black hole cannon", MaterialDesignIcon.CAMERA_IRIS, seconds(5), r -> r.gun.blackhole.inc(),
+				//			new Enhancer("Black hole cannon", UnicodeIcon.U+058e, seconds(5), r -> r.gun.blackhole.inc(),
 				//				"- Fires a bullet generating a black hole",
 				//				"- Lethal to everything, including players",
 				//				"- Player receives partial score for all damage caused by the black hole",
@@ -1850,7 +1871,7 @@ interface Utils {
 					"- Adds permanent engine",
 					"- Increases acceleration, speed, maneuverability"
 				),
-				game.new Enhancer("Intel", MaterialDesignIcon.EYE, minutes(2), r ->  game.humans.intelOn.inc(), r -> game.humans.intelOn.dec(), false,
+				game.new Enhancer("Intel", MaterialDesignIcon.EYE, minutes(2), r -> game.humans.intelOn.inc(), r -> game.humans.intelOn.dec(), false,
 					"- Reports incoming ufo time & location",
 					"- Reports incoming upgrade time & location",
 					"- Reveals exact upgrade type before it is picked up",
@@ -1898,6 +1919,11 @@ interface Utils {
 					"- Increases kinetic shield energy accumulation " + (game.settings.KINETIC_SHIELD_LARGE_E_RATE) +" times",
 					"Tip: You are not invincible, but anyone should think twice about hitting you. Go on the offensive. Move."
 				),
+				game.new Enhancer("Quantum tunnelling", new UnicodeIcon(0x2235), seconds(5),
+					r -> r.quantum.active.inc(),
+					"- Allows rockets to pass through each other",
+					"Tip: Make use of increased mobility and opportunity to co-operate."
+				),
 				game.new Enhancer("Battery", MaterialDesignIcon.BATTERY_PLUS, seconds(5),
 					r -> {
 						r.energy_max *= 1.1;
@@ -1917,6 +1943,16 @@ interface Utils {
 				game.new Enhancer("Energy (L)", MaterialDesignIcon.BATTERY, seconds(5),
 					r -> r.energy = min(r.energy+10000,r.energy_max),
 					"- Increases energy by up to 10000"
+				),
+				game.new Enhancer("Stealth", new UnicodeIcon(0x27c1), seconds(5),
+					r -> r.isStealth.inc(),
+					"- Invisible to UFO faction"
+				),
+				game.new Enhancer("Legacy", OctIcon.CIRCUIT_BOARD, seconds(5),
+					r -> r.legacy.inc(),
+					r -> {},
+					false,
+					"- Leaves upgrades behind after death"
 				)
 			);
 		}

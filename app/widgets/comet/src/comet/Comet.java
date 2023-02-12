@@ -12,6 +12,7 @@ import comet.Utils.BounceHellMode;
 import comet.Utils.ClassicMode;
 import comet.Utils.CollisionHandlers;
 import comet.Utils.Displayable;
+import comet.Utils.DoubleTo;
 import comet.Utils.Draw;
 import comet.Utils.DrawImg;
 import comet.Utils.DrawNode;
@@ -31,6 +32,7 @@ import comet.Utils.ObjectStore;
 import comet.Utils.PTtl;
 import comet.Utils.Play;
 import comet.Utils.PlayerSpawn;
+import comet.Utils.PlayersQuantum;
 import comet.Utils.Side;
 import comet.Utils.StatsGame;
 import comet.Utils.StatsPlayer;
@@ -44,7 +46,9 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
+import de.jensd.fx.glyphs.octicons.OctIcon;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -386,6 +390,8 @@ public class Comet extends SimpleController {
 		int ROT_LIMIT = 100; // smooths rotation at small scale, see use
 		int ROT_DEL = 10; // smooths rotation at small scale, see use
 
+
+		PlayersQuantum playerQuantum = PlayersQuantum.PER_PLAYER;
 		double PLAYER_BULLET_SPEED = 420 / FPS; // bullet speed in px/s/fps
 		double PLAYER_BULLET_TTL = ttl(seconds(0.7)); // bullet time of living
 		double PLAYER_BULLET_RANGE = PLAYER_BULLET_SPEED * PLAYER_BULLET_TTL;
@@ -556,7 +562,7 @@ public class Comet extends SimpleController {
 	/** Finds closest non-hyperspace rocket to the object. */
 	Rocket findClosestRocketTo(SO to) {
 		return game.oss.get(Rocket.class).stream()
-			.filter(r -> !r.isHyperspace)
+			.filter(r -> !r.isHyperspace && !r.isStealth.is())
 			.min(by(to::distance))
 			.orElse(null);
 	}
@@ -773,7 +779,7 @@ public class Comet extends SimpleController {
 			Comet.this.mode.enumerateValues().forEach(Play::init);
 
 			collisionStrategies.add(Rocket.class,Rocket.class, (r1,r2) -> {
-				if (!r1.isHyperspace && !r2.isHyperspace && r1.isHitDistance(r2)) {
+				if (!r1.isHyperspace && !r2.isHyperspace && r1.isHitDistance(r2) && !(r1.quantum.trigger(r2.quantum))) {
 					if (r1.ability.isActiveOfType(Shield.class)) {
 						((Shield) r1.ability).onHit(r2);
 					} else {
@@ -1332,6 +1338,7 @@ public class Comet extends SimpleController {
 				if (isShareable && Game.this.humans.share_enhancers) {
 					Game.this.oss.get(Rocket.class).forEach(starter);
 					Game.this.oss.get(Rocket.class).forEach(rk -> new EIndicator(rk, this));
+					Game.this.oss.get(Rocket.class).forEach(rk -> rk.legacyEnhancers.add(this));
 				} else {
 					starter.accept(r);
 					new EIndicator(r,this);
@@ -1339,8 +1346,12 @@ public class Comet extends SimpleController {
 			}
 
 			void stop(Rocket r) {
-				if (isShareable && Game.this.humans.share_enhancers) Game.this.oss.get(Rocket.class).forEach(stopper);
-				else stopper.accept(r);
+				if (isShareable && Game.this.humans.share_enhancers) {
+					Game.this.oss.get(Rocket.class).forEach(stopper);
+					Game.this.oss.get(Rocket.class).forEach(rk -> rk.legacyEnhancers.remove(this));
+				} else {
+					stopper.accept(r);
+				}
 			}
 		}
 	}
@@ -1416,7 +1427,7 @@ public class Comet extends SimpleController {
 			if (!alive) return;
 			game.stats.playerDied(this);
 			alive = false;
-			rocket.dead = true;
+			rocket.die(null);
 			if (lives.getValue()>0) {
 				stats.accDeath(game.loop.id);
 				game.grid.applyExplosiveForce(100, new Vec(rocket.x,rocket.y), 50);
@@ -1443,7 +1454,7 @@ public class Comet extends SimpleController {
 			rocket.voronoiArea = null;
 			rocket.voronoiAreaCenterDistance = null;
 			rocket.changeAbility(ability_type.get());
-			if (!game.settings.playerNoKineticShield) game.new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
+			if (!game.settings.playerNoKineticShield) game.new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), false, "").enhance(rocket);
 			createHyperSpaceAnimIn(game, rocket);
 		}
 
@@ -2388,10 +2399,14 @@ public class Comet extends SimpleController {
 		final InEffectValue<Double> powerFire = new InEffectValue<>(0, times -> 1+0.5*times, times -> computeBulletRange());
 		final InEffect energyFire = new InEffect();
 		final InEffect splitFire = new InEffect();
+		final InEffect isStealth = new InEffect();
+		final InEffect legacy = new InEffect();
+		final List<Enhancer> legacyEnhancers = new ArrayList<>();
 		double bulletRange = computeBulletRange();
 		final double cacheRandomVoronoiTranslation = randOf(-1,1)*randMN(0.01,0.012);
 		Double voronoiArea = null;
 		Double voronoiAreaCenterDistance = null;
+		final Quantum quantum = new Quantum();
 
 		Rocket(Player PLAYER) {
 			super(
@@ -2411,23 +2426,23 @@ public class Comet extends SimpleController {
 				() -> direction + randMN(-0.08, 0.08),
 				dir -> splitFire.is()
 					? new SplitBullet(
-					this,
-					x + game.settings.PLAYER_BULLET_OFFSET*cos(dir),
-					y + game.settings.PLAYER_BULLET_OFFSET*sin(dir),
-					dx + powerFire.value()*cos(dir)*game.settings.PLAYER_BULLET_SPEED,
-					dy + powerFire.value()*sin(dir)*game.settings.PLAYER_BULLET_SPEED,
-					0,
-					game.settings.PLAYER_BULLET_TTL
-				)
+						this,
+						x + game.settings.PLAYER_BULLET_OFFSET*cos(dir),
+						y + game.settings.PLAYER_BULLET_OFFSET*sin(dir),
+						dx + powerFire.value()*cos(dir)*game.settings.PLAYER_BULLET_SPEED,
+						dy + powerFire.value()*sin(dir)*game.settings.PLAYER_BULLET_SPEED,
+						0,
+						game.settings.PLAYER_BULLET_TTL
+					)
 					: new Bullet(
-					this,
-					x + game.settings.PLAYER_BULLET_OFFSET*cos(dir),
-					y + game.settings.PLAYER_BULLET_OFFSET*sin(dir),
-					dx + powerFire.value()*cos(dir)*game.settings.PLAYER_BULLET_SPEED,
-					dy + powerFire.value()*sin(dir)*game.settings.PLAYER_BULLET_SPEED,
-					0,
-					game.settings.PLAYER_BULLET_TTL
-				)
+						this,
+						x + game.settings.PLAYER_BULLET_OFFSET*cos(dir),
+						y + game.settings.PLAYER_BULLET_OFFSET*sin(dir),
+						dx + powerFire.value()*cos(dir)*game.settings.PLAYER_BULLET_SPEED,
+						dy + powerFire.value()*sin(dir)*game.settings.PLAYER_BULLET_SPEED,
+						0,
+						game.settings.PLAYER_BULLET_TTL
+					)
 			);
 		}
 
@@ -2435,6 +2450,7 @@ public class Comet extends SimpleController {
 		void doLoopBegin() {
 			super.doLoopBegin();
 			player.stats.accTravel(cache_speed);
+			quantum.doLoop();
 		}
 
 		@Override
@@ -2450,6 +2466,16 @@ public class Comet extends SimpleController {
 			gc.setStroke(c);
 			gc.setGlobalAlpha(1);
 			drawTriangle(gc, x,y,scale*15, direction, 3*PI/4);
+
+			if (quantum.is()) {
+				var dist = 10.0 * sqrt(quantum.isTriggeredAt.value);
+				var d = direction;
+				gc.setGlobalAlpha(c.getOpacity()/2);
+				drawTriangle(gc, x + dist*cos(d+0f*PI/3f), y + dist*sin(d+0f*PI/3f), scale*15, d, 3*PI/4);
+				drawTriangle(gc, x + dist*cos(d+2f*PI/3f), y + dist*sin(d+2f*PI/3f), scale*15, d, 3*PI/4);
+				drawTriangle(gc, x + dist*cos(d+4f*PI/3f), y + dist*sin(d+4f*PI/3f), scale*15, d, 3*PI/4);
+				gc.setGlobalAlpha(1);
+			}
 
 			// draw speed effect
 			if (!isHyperspace) {
@@ -2531,7 +2557,34 @@ public class Comet extends SimpleController {
 		@Override
 		void die(Object cause) {
 			super.die(cause);
-			game.grid.applyExplosiveForce(9000f, new Vec(x,y), 2000);
+			// game.grid.applyExplosiveForce(9000f, new Vec(x,y), 2000);
+			if (legacy.is()) new Satellite(this);
+		}
+
+		class Quantum {
+			InEffect active = new InEffect();
+			Duration triggerActivationDuration = millis(200);
+			boolean isTriggered = false;
+			DoubleTo isTriggeredAt = new DoubleTo(0, ttlVal(1.0, triggerActivationDuration));
+
+			boolean is() {
+				return game.settings.playerQuantum==PlayersQuantum.TRUE || active.is();
+			}
+
+			boolean trigger(Quantum q) {
+				return trigger() || q.trigger();
+			}
+
+			boolean trigger() {
+				var a = is();
+				if (a) isTriggered = true;
+				return a;
+			}
+
+			void doLoop() {
+				quantum.isTriggeredAt.run(quantum.isTriggered ? 1.0 : 0.0);
+				quantum.isTriggered = false;
+			}
 		}
 	}
 	/** Default enemy ship. */
@@ -3067,7 +3120,18 @@ public class Comet extends SimpleController {
 				? randOf(stream(game.mode.enhancers()).filter(en -> !"Shuttle support".equals(en.name)).toList())
 				: ((Satellite)s).e;
 			children = new HashSet<>(2);
-			graphics = new DrawNode(with(new Icon(game.humans.intelOn.is() ? e.icon : MaterialDesignIcon.SATELLITE_VARIANT, 40), i -> i.setFill(game.colors.humansTech)));
+			graphics = new DrawNode(with(new Icon(game.humans.intelOn.is() ? e.icon : OctIcon.CIRCUIT_BOARD, 40), i -> i.setFill(game.colors.humansTech)));
+			graphics.init(gc, sanvas);
+			small();
+		}
+
+		/** Creates small satellite as a rocket remains. */
+		public Satellite(Rocket r) {
+			super(Satellite.class, r.x, r.y, r.dx, r.dy, game.settings.SATELLITE_RADIUS/2, null);
+			var enhancers = r.legacyEnhancers;
+			e = game.new Enhancer("Legacy", OctIcon.CIRCUIT_BOARD, seconds(5), rk -> enhancers.forEach(it -> it.enhance(rk)), rk -> {}, false, "");
+			children = new HashSet<>(2);
+			graphics = new DrawNode(with(new Icon(game.humans.intelOn.is() ? e.icon : OctIcon.CIRCUIT_BOARD, 40), i -> i.setFill(game.colors.humansTech)));
 			graphics.init(gc, sanvas);
 			small();
 		}
@@ -3082,7 +3146,7 @@ public class Comet extends SimpleController {
 			super(Satellite.class,
 				(dir==Side.LEFT ? 0 : 1)*game.field.width, rand01()*game.field.height,
 				(dir==Side.LEFT ? 1 : -1)*game.settings.SATELLITE_SPEED, 0,
-				game.settings.SATELLITE_RADIUS, new DrawNode(with(new Icon(MaterialDesignIcon.SATELLITE_VARIANT, 40), i -> i.setFill(game.colors.humansTech)))
+				game.settings.SATELLITE_RADIUS, new DrawNode(with(new Icon(OctIcon.CIRCUIT_BOARD, 40), i -> i.setFill(game.colors.humansTech)))
 			);
 			e = randOf(game.mode.enhancers());
 			children = new HashSet<>(2);

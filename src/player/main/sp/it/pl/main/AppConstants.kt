@@ -27,7 +27,7 @@ object Widgets {
    const val TESTER_NAME = "Tester"
 
    val CONVERTER = FactoryRef(CONVERTER_NAME, "Converter")
-   val ICON_BROWSER = FactoryRef(ICON_BROWSER_NAME, "Icon Browser")
+   val ICON_BROWSER = FactoryRef("Icon Browser", "IconPickerContent")
    val INSPECTOR = FactoryRef(INSPECTOR_NAME, "Inspector")
    val SONG_GROUP_TABLE = FactoryRef(SONG_GROUP_TABLE_NAME, "LibraryView")
    val SONG_TABLE = FactoryRef(SONG_TABLE_NAME, "Library")

@@ -32,7 +32,7 @@ object AppActionsAppHelp {
    }
 
    val openIconBrowser = action<AppHelp>("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.FONTICONS) {
-      launch(FX) { WINDOW(APP.widgetManager.factories.getFactory(ICON_BROWSER.id).orNone().create()) }.toUnit()
+      launch(FX) { WINDOW(APP.widgetManager.factories.getComponentFactoryByName(ICON_BROWSER.name)!!.create()) }.toUnit()
    }
 
    val openUiInspector = action<AppHelp>("Open UI inspector", "Open widget for inspecting UI elements.", IconFA.EYEDROPPER) {

@@ -81,7 +81,6 @@
 .tree-table-view > .virtual-flow > .scroll-bar:horizontal > .thumb {
     -fx-padding: 0;
     -fx-background-color: -skin-def-font-color;
-    -fx-background-insets: 0.825em;
     -fx-background-radius: 1em; /* 3px */
     -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
 }
@@ -94,14 +93,11 @@
 .list-view > .virtual-flow > .scroll-bar > .thumb,
 .list-view > .virtual-flow > .scroll-bar:vertical > .thumb,
 .tree-view > .virtual-flow > .scroll-bar > .thumb,
+.tree-view > .virtual-flow > .scroll-bar:vertical > .thumb,
 .table-view > .virtual-flow > .scroll-bar > .thumb,
 .table-view > .virtual-flow > .scroll-bar:vertical > .thumb,
 .tree-table-view > .virtual-flow > .scroll-bar > .thumb,
 .tree-table-view > .virtual-flow > .scroll-bar:vertical > .thumb {
-    -fx-padding: 0;
-    -fx-background-color: -skin-def-font-color;
-    -fx-background-insets: 0.825em;
-    -fx-background-radius: 0em;
     -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
 }
 

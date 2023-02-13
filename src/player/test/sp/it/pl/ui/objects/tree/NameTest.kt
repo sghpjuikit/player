@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 
 class NameTest: FreeSpec({
 
-   Name::treeOfPaths.name {
+   Name.Companion::treeOfPaths.name {
       Name.treeOfPaths("R", setOf("", "A", "A", "B", "B.A", "B.B", "C.A.A")).toString() shouldBe """
          R
            A

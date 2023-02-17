@@ -49,6 +49,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Spektrum** widget state corruption after out of range exceptions during interpolation
 - Fix **Spektrum** widget audio dispatcher buffer size calculation
 - Fix **Spektrum** widget ignoring right channel
+- Fix **Hue** widget bulb color selector layout broken sometimes
+- Fix **Hue** widget `All` bulb group not showing bulb status
 - Fix **Comet** widget issues of various kind
 - Fix `Thumbnail` not updating viewport when layout changes
 - Fix `ToggleButtonGroup` styling

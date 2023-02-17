@@ -45,37 +45,60 @@ import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
+import javafx.scene.paint.Color.TRANSPARENT
 import javafx.scene.shape.Circle
 import javafx.scene.text.TextAlignment
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import mu.KLogging
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.appProperty
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
+import sp.it.pl.main.IconMD
+import sp.it.pl.main.IconOC
+import sp.it.pl.main.IconWH
+import sp.it.pl.main.Key
+import sp.it.pl.main.WidgetTags.IOT
+import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.showFloating
+import sp.it.pl.main.textColon
 import sp.it.pl.main.toUi
+import sp.it.pl.plugin.impl.SpeechRecognition
+import sp.it.pl.plugin.impl.SpeechRecognition.SpeakHandler
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.form.Validated
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.pl.ui.pane.ShortcutPane.Entry
+import sp.it.util.Util.pyth
 import sp.it.util.access.v
+import sp.it.util.async.coroutine.await
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cCheckList
 import sp.it.util.conf.cv
+import sp.it.util.conf.cvn
 import sp.it.util.conf.def
+import sp.it.util.conf.lengthMax
 import sp.it.util.conf.uiConverterElement
 import sp.it.util.conf.uiInfoConverter
 import sp.it.util.dev.fail
@@ -88,20 +111,38 @@ import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.div
 import sp.it.util.file.json.toPrettyS
 import sp.it.util.functional.Try
+import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.math.clip
+import sp.it.util.math.min
+import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.notNull
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.suppressed
+import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync1IfInScene
+import sp.it.util.reactive.syncFrom
+import sp.it.util.system.browse
+import sp.it.util.text.capitalLower
 import sp.it.util.text.keys
+import sp.it.util.text.nameUi
+import sp.it.util.text.split3
 import sp.it.util.type.atomic
+import sp.it.util.ui.centre
 import sp.it.util.ui.dsl
 import sp.it.util.ui.flowPane
 import sp.it.util.ui.hBox
+import sp.it.util.ui.label
 import sp.it.util.ui.lay
+import sp.it.util.ui.lookupId
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.scrollPane
@@ -109,43 +150,9 @@ import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.seconds
+import sp.it.util.units.uri
 import sp.it.util.units.version
 import sp.it.util.units.year
-import kotlin.math.PI
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlinx.coroutines.CoroutineScope
-import sp.it.pl.main.WidgetTags.IOT
-import sp.it.pl.main.IconMD
-import sp.it.pl.main.IconOC
-import sp.it.pl.main.IconWH
-import sp.it.pl.main.Key
-import sp.it.pl.main.textColon
-import sp.it.pl.ui.objects.image.Thumbnail
-import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.util.Util.pyth
-import sp.it.util.async.coroutine.runSuspendingFx
-import sp.it.util.conf.EditMode.NONE
-import sp.it.util.conf.cvn
-import sp.it.util.conf.lengthMax
-import sp.it.util.functional.asIf
-import sp.it.util.functional.asIs
-import sp.it.util.functional.net
-import sp.it.util.math.clip
-import sp.it.util.math.min
-import sp.it.util.reactive.Suppressor
-import sp.it.util.reactive.suppressed
-import sp.it.util.reactive.suppressing
-import sp.it.util.system.browse
-import sp.it.util.text.capitalLower
-import sp.it.util.text.nameUi
-import sp.it.util.text.split3
-import sp.it.util.ui.centre
-import sp.it.util.ui.label
-import sp.it.util.ui.lookupId
-import sp.it.util.ui.stackPane
-import sp.it.util.units.uri
 
 class Hue(widget: Widget): SimpleController(widget) {
 
@@ -237,8 +244,13 @@ class Hue(widget: Widget): SimpleController(widget) {
 
       fun groups() = runSuspendingFx {
          val response = client.getText("$url/groups")
-         val groups = response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueGroup>().copy(id = id) }
-         groups + HueGroup("0", "All", listOf(), HueGroupState(false, false))
+         response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueGroup>().copy(id = id) }
+      }
+
+      fun bulbsAndGroups() = runSuspendingFx {
+         val bulbs = bulbs().await()
+         val groups = groups().await()
+         bulbs to groups + HueGroup("0", "All", listOf(), HueGroupState(bulbs.all { it.state.on }, bulbs.any { it.state.on }))
       }
 
       fun scenes() = runSuspendingFx {
@@ -337,12 +349,20 @@ class Hue(widget: Widget): SimpleController(widget) {
          isVisible = false
          stroke = Color.BLACK
          strokeWidth = 1.0
+         fillProperty() syncFrom color.notNull(TRANSPARENT)
       }
       val node = vBox {
          alignment = TOP_CENTER
          lay += form(configurable)
-         lay += stackPane {
-            this.lay += Thumbnail(selectorRadius*2, selectorRadius*2).run {
+         lay += object: StackPane() {
+            override fun layoutChildren() {
+               super.layoutChildren()
+               val c = color.value ?: TRANSPARENT
+               selector.centerX =  width/2 + cos(c.hue/360*2*PI + PI)*(selectorRadius*(if (c.opacity==1.0) 0.5*c.saturation else 1 - 0.5*c.opacity))
+               selector.centerY = height/2 + sin(c.hue/360*2*PI + PI)*(selectorRadius*(if (c.opacity==1.0) 0.5*c.saturation else 1 - 0.5*c.opacity))
+            }
+         }.apply {
+            lay += Thumbnail(selectorRadius*2, selectorRadius*2).run {
                loadImage(drawGradientCir(selectorRadius.toInt()))
 
                fun updateFromMouse(it: MouseEvent) {
@@ -367,7 +387,7 @@ class Hue(widget: Widget): SimpleController(widget) {
 
                pane
             }
-            this.lay += selector
+            lay += selector
          }
       }
 
@@ -379,19 +399,17 @@ class Hue(widget: Widget): SimpleController(widget) {
             sat.value = 0
             bri.value = 1
             selector.isVisible = false
+            selector.parent?.requestLayout()
          }
       }
       fun changeToBulb(bulb: HueBulb) {
          avoidApplying.suppressing {
-            val c = Color.hsb(bulb.state.hue.toDouble()*360.0/65535.0, bulb.state.sat.toDouble()/254.0, 1.0, bulb.state.bri.minus(1).toDouble()/253.0)
-            color.value = c
+            color.value = Color.hsb(bulb.state.hue.toDouble()*360.0/65535.0, bulb.state.sat.toDouble()/254.0, 1.0, bulb.state.bri.minus(1).toDouble()/253.0)
             hue.value = bulb.state.hue
             sat.value = bulb.state.sat
             bri.value = bulb.state.bri
             selector.isVisible = true
-            selector.centerX = selector.parent.layoutBounds.centerX + cos(c.hue/360*2*PI + PI)*(selectorRadius*(if (c.opacity==1.0) 0.5*c.saturation else 1 - 0.5*c.opacity))
-            selector.centerY = selector.parent.layoutBounds.centerY + sin(c.hue/360*2*PI + PI)*(selectorRadius*(if (c.opacity==1.0) 0.5*c.saturation else 1 - 0.5*c.opacity))
-            selector.fill = c
+            selector.parent?.requestLayout()
          }
       }
 
@@ -530,7 +548,7 @@ class Hue(widget: Widget): SimpleController(widget) {
 
                   override fun isValid() = when {
                      name.isEmpty() -> Try.error("Name can not be empty")
-                     bulbs.selected(true).isEmpty() && type in setOf(Luminaire, LightGroup, Lightsource) -> Try.error("$type can not have no bulbs")
+                     this.bulbs.selected(true).isEmpty() && type in setOf(Luminaire, LightGroup, Lightsource) -> Try.error("$type can not have no bulbs")
                      else -> Try.ok()
                   }
                }.configure("Create group") {
@@ -538,8 +556,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                }
             }
          }
-      }
-      hueBridge.bulbs() ui { bulbs ->
+
          bulbsPane.children setTo bulbs.map { bulb ->
             hueBulbCells.getOrPut(bulb.id) {
                HueIcon(null, 40.0, bulb).run {

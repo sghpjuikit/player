@@ -35,6 +35,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
@@ -231,6 +232,7 @@ class Json: JsonAst() {
          null -> JsNull
          true -> JsTrue
          false -> JsFalse
+         is JsValue -> value
          else -> {
             val type = value::class
             val typeAsRaw = typeAs.raw
@@ -266,8 +268,16 @@ class Json: JsonAst() {
                is FloatArray -> JsArray(value.map { toJsonValue(kType<Float>(), it) })
                is DoubleArray -> JsArray(value.map { toJsonValue(kType<Double>(), it) })
                is BooleanArray -> JsArray(value.map { toJsonValue(kType<Boolean>(), it) })
-               is Collection<*> -> JsArray(value.map { toJsonValue(typeAs.argOf(Collection::class, 0).typeOrAny, it) })   // TODO: preserve collection/map type
-               is Map<*, *> -> JsObject(value.mapKeys { keyMapConverter.toS(it.key) }.mapValues { toJsonValue(typeAs.argOf(Map::class, 1).typeOrAny, it.value) })
+               is Collection<*> -> JsArray(
+                  // TODO: preserve map type
+                  value.map { toJsonValue(if (typeAsRaw.isSubclassOf(Collection::class)) typeAs.argOf(Collection::class, 0).typeOrAny else kType<Any>(), it) }
+               )
+               is Map<*, *> -> JsObject(
+                  // TODO: preserve collection type
+                  value.mapKeys { keyMapConverter.toS(it.key) }.mapValues {
+                     toJsonValue(if (typeAsRaw.isSubclassOf(Map::class)) typeAs.argOf(Map::class, 1).typeOrAny else kType<Any>(), it.value)
+                  }
+               )
                else -> {
                   when {
                      type.isValue -> {

@@ -444,6 +444,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		private boolean needsRemoveCachedCells = false;
 		private boolean needsRebuildCells = true;
 		private final double scrollSpeedMultiplier = 3;
+		private boolean firstLayout = true;
 
 		public Flow(GridViewSkin<T,F> skin) {
 			this.skin = skin;
@@ -541,7 +542,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		@Override
 		protected void layoutChildren() {
-
+			boolean wasFirstLayout = firstLayout; firstLayout = false;
 			boolean wasFocused = hasFocus(skin.flow);
 			double w = getWidth();
 			double h = getHeight();
@@ -673,6 +674,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			// TODO: enable (requires observation of cases where this should be invoked, it should not invoke when scrolling takes place)
 //			skin.selectedCI = skin.selectedC==null ? NO_SELECT : skin.selectedC.getIndex();
 //			skin.grid.getSelectedItem().set(skin.selectedC==null ? null : skin.selectedC.getItem());
+			if (wasFirstLayout && grid.getSelectedItem().getValue()!=null) skin.select(grid.getSelectedItem().getValue());
 
 			needsAdjustSize = false;
 

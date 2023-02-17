@@ -38,6 +38,7 @@ import sp.it.pl.ui.objects.grid.GridViewSkin
 import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.id
+import sp.it.util.access.WithSetterObservableValue
 import sp.it.util.access.fieldvalue.IconField
 import sp.it.util.access.fieldvalue.StringGetter
 import sp.it.util.access.readOnly
@@ -69,11 +70,11 @@ import sp.it.util.units.version
 import sp.it.util.units.year
 
 class IconPickerContent: StackPane() {
+
    val root = this
-   val onClose = root.onNodeDispose
    val iconSize = 75.emScaled
    val iconGroups = (Glyphs.GLYPH_TYPES.map(::IconGroupOfGlyphClass) + IconGroupOfWidgets()).sortedBy { it.nameUi }
-   val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, (iconSize*1.5 x iconSize/2) + (0 x 30.emScaled), 0 x 15.emScaled).apply {
+   val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, (iconSize*1.5 x iconSize/2) + (0 x 30.emScaled), 15 x 15.emScaled).apply {
       styleClass += "icon-grid"
       search.field = StringGetter.of { value, _ -> value.name() }
       filterPrimaryField = IconField.NAME
@@ -110,14 +111,17 @@ class IconPickerContent: StackPane() {
       }
    }
 
-   /** Currently selected icon group */
-   private val selectionGroup = vn<IconGroup>(null)
    /** Currently selected icon */
-   val selection = iconsView.selectedItem.map { it?.raw }.readOnly().toWritable {
+   val selection: WithSetterObservableValue<GlyphIcons?> = iconsView.selectedItem.map { it?.raw }.readOnly().toWritable {
       val iconType = it?.raw?.net { it::class }
       (iconGroups.find { it is IconGroupOfGlyphClass && it.type==iconType } ?: iconGroups.firstOrNull())?.select(true)
+      iconsView.selectedItem.value = it
       iconsView.skinImpl?.select(it)
    }
+   /** Currently selected icon group */
+   private val selectionGroup = vn<IconGroup>(null)
+   /** Invoked on close */
+   private val onClose = root.onNodeDispose
 
    init {
       root.prefSize = 700.emScaled x 500.emScaled

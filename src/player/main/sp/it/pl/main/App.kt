@@ -214,7 +214,7 @@ class App: Application(), GlobalConfigDelegator {
    /** String-Object converter core. */
    val converter = CoreConverter.apply { init() }
    /** Json converter core. */
-   val serializerJson = CoreSerializerJson()
+   val serializerJson = CoreSerializerJson().apply { init() }
    /** Single persistent storage per type core. */
    val serializer = CoreSerializer
    /** File mime type core. */
@@ -300,7 +300,6 @@ class App: Application(), GlobalConfigDelegator {
          instanceName.initApp()
          instanceInfo.initApp()
          serializer.init()
-         serializerJson.init()
          imageIo.init()
          instances.init()
          contextMenus.init()

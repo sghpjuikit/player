@@ -236,6 +236,7 @@ class Json: JsonAst() {
             val typeAsRaw = typeAs.raw
             val isObject = type.isObject
             val isAmbiguous = typeAsRaw==Any::class || typeAsRaw.isSealed || isObject || type!=typeAsRaw
+            val converter = converters.byType.getElementOfSuper(value::class).asIf<JsConverter<Any>>()?.takeIf { it.canConvert(value) }
 
             fun typeWitness() = "_type" to JsString(
                typeAliases.byType[type]
@@ -245,7 +246,10 @@ class Json: JsonAst() {
 
             fun JsValue.withAmbiguity(a: Boolean = isAmbiguous) = if (a) JsObject(mapOf("value" to this, typeWitness())) else this
 
-            when (value) {
+            if (converter!=null) {
+               val isStillAmbiguous = typeAsRaw==Any::class
+               converter.toJson(value).withAmbiguity(isStillAmbiguous)
+            } else when (value) {
                is Number -> JsNumber(value).withAmbiguity()
                is UByte -> JsNumber(value.toShort()).withAmbiguity()
                is UShort -> JsNumber(value.toInt()).withAmbiguity()
@@ -265,17 +269,13 @@ class Json: JsonAst() {
                is Collection<*> -> JsArray(value.map { toJsonValue(typeAs.argOf(Collection::class, 0).typeOrAny, it) })   // TODO: preserve collection/map type
                is Map<*, *> -> JsObject(value.mapKeys { keyMapConverter.toS(it.key) }.mapValues { toJsonValue(typeAs.argOf(Map::class, 1).typeOrAny, it.value) })
                else -> {
-                  val converter = converters.byType.getElementOfSuper(value::class).asIf<JsConverter<Any>>()?.takeIf { it.canConvert(value) }
                   when {
-                     converter!=null -> {
-                        val isStillAmbiguous = typeAsRaw==Any::class
-                        converter.toJson(value).withAmbiguity(isStillAmbiguous)
-                     }
                      type.isValue -> {
                         val p = type.declaredMemberProperties.first()
                         val v = p.getter.call(value)
                         toJsonValue(p.returnType, v).withAmbiguity()
                      }
+
                      type.isData -> {
                         val typeParams = type.typeParameters.withIndex().associate { (i, p) -> i to p.name }
                         val typeArgs = typeAs.arguments.withIndex().associate { (i, a) -> typeParams[i] to a.typeOrAny }
@@ -295,6 +295,7 @@ class Json: JsonAst() {
                            }
                         JsObject(values)
                      }
+
                      else -> {
                         val typeParams = type.typeParameters.withIndex().associate { (i, p) -> i to p.name }
                         val typeArgs = typeAs.arguments.withIndex().associate { (i, a) -> typeParams[i] to a.typeOrAny }

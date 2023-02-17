@@ -108,7 +108,7 @@ class Node(widget: Widget): SimpleController(widget) {
                         if (config.name in configs) {
                            APP.serializerJson.json.fromJsonValue(config.type, configs[config.name]!!)
                               .ifOk { config.value = it }
-                              .ifError { it.printStackTrace() }
+                              .ifError { logger.warn(it) { "Failed to deserialize config ${config.name}:${config.type}" } }
                         }
                      }
                   }

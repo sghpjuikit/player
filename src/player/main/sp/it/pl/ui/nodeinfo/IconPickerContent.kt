@@ -78,7 +78,6 @@ class IconPickerContent: StackPane() {
       search.field = StringGetter.of { value, _ -> value.name() }
       filterPrimaryField = IconField.NAME
       selectOn setTo listOf(MOUSE_CLICK, KEY_PRESS)
-      selectedItem
       cellFactory.value = {
          object: GridCell<GlyphIcons, GlyphIcons>() {
 

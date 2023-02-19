@@ -52,6 +52,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Hue** widget bulb color selector layout broken sometimes
 - Fix **Hue** widget `All` bulb group not showing bulb status
 - Fix **Comet** widget issues of various kind
+- Fix **Tray** plugin icon scaling on high DPI systems
+- Fix **Tray** plugin threading issues
 - Fix `Thumbnail` not updating viewport when layout changes
 - Fix `ToggleButtonGroup` styling
 - Fix playback status change notification ui created multiple times

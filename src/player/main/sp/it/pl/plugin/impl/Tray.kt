@@ -5,7 +5,6 @@ import java.awt.SystemTray
 import java.awt.TrayIcon
 import java.awt.event.MouseAdapter
 import java.io.File
-import java.io.IOException
 import javafx.scene.control.ContextMenu
 import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.FORWARD
@@ -15,6 +14,7 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.stage.Screen
 import javafx.stage.Stage
 import mu.KLogging
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -23,16 +23,19 @@ import sp.it.pl.main.App
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
+import sp.it.util.async.AWT
+import sp.it.util.async.future.Fut
 import sp.it.util.async.runAwt
 import sp.it.util.async.runFX
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
-import sp.it.util.functional.Try
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.syncFalse
 import sp.it.util.reactive.syncWhileTrue
+import sp.it.util.type.volatile
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.createImageBlack
 import sp.it.util.ui.image.loadBufferedImage
@@ -51,12 +54,12 @@ class Tray: PluginBase() {
          }
       }
    }
-   private var tray: SystemTray? = null
-   private val trayIconImageDefault: File = APP.location.resources.icons.icon24_png
-   private var trayIconImage: File = trayIconImageDefault
-   private var trayIcon: TrayIcon? = null
+   private var tray: Fut<SystemTray>? = null
+   private val trayIconImageDefault: File = APP.location.resources.icons.icon48_png
+   private var trayIconImage: File by volatile(trayIconImageDefault)
+   private var trayIcon: TrayIcon? by volatile(null)
    private val onClickDefault: (MouseEvent) -> Unit = { APP.ui.toggleMinimize() }
-   private var onClick = onClickDefault
+   private var onClick by volatile(onClickDefault)
    private var contextMenu: ContextMenu? = null
    private var contextMenuOwner: Stage? = null
 
@@ -76,15 +79,16 @@ class Tray: PluginBase() {
       contextMenuOwner = cmOwner
       contextMenu = cm
 
-      runAwt {
-         tray = SystemTray.getSystemTray().apply {
+      tray = runAwt {
+         SystemTray.getSystemTray().apply {
             val image = loadBufferedImage(trayIconImage)
-               .ifError { logger.warn { "Failed to load tray icon" } }
+               .ifError { logger.warn { "Failed to load tray icon=$trayIconImage" } }
                .orNull()
-               ?.getScaledInstance(trayIconSize.width, -1, Image.SCALE_SMOOTH)
-               ?: createImageBlack(ImageSize(trayIconSize.size))
+               ?.scaledToTray(this)
+               ?: createImageBlack(ImageSize(1, 1))
             val trayIconTmp = TrayIcon(image).apply {
                toolTip = tooltipText
+               isImageAutoSize = true
                addMouseListener(object: MouseAdapter() {
                   override fun mouseClicked(e: java.awt.event.MouseEvent) {
                      val b = when (e.button) {
@@ -134,10 +138,8 @@ class Tray: PluginBase() {
       contextMenuOwner?.close()
       contextMenuOwner = null
 
-      runAwt {
-         tray?.remove(trayIcon)
-         tray = null
-      }
+      tray?.then(AWT) { it.remove(trayIcon) }?.cancel()
+      tray = null
    }
 
    /**
@@ -152,11 +154,6 @@ class Tray: PluginBase() {
       runAwt { trayIcon?.toolTip = t }
    }
 
-   /** Equivalent to: `showNotification(caption,text,NONE)`.  */
-   fun showNotification(caption: String, text: String) {
-      runAwt { trayIcon?.displayMessage(caption, text, TrayIcon.MessageType.NONE) }
-   }
-
    /**
     * Shows an OS tray bubble message notification.
     *
@@ -164,22 +161,23 @@ class Tray: PluginBase() {
     * @param text - the text displayed for the particular message
     * @param type - an enum indicating the message type
     */
-   fun showNotification(caption: String, text: String, type: TrayIcon.MessageType) {
+   fun showNotification(caption: String, text: String, type: TrayIcon.MessageType = TrayIcon.MessageType.NONE) {
       runAwt { trayIcon?.displayMessage(caption, text, type) }
    }
 
    /** Set tray icon. Null sets default icon. */
-   fun setIcon(img: File?): Try<Nothing?, IOException> {
+   fun setIcon(img: File?) {
       trayIconImage = img ?: trayIconImageDefault
-      return if (trayIcon!=null) {
-         loadBufferedImage(trayIconImage)
-            .ifOk {
-               trayIcon?.image?.flush()
-               trayIcon?.image = it
-            }
-            .map { null }
-      } else {
-         Try.ok()
+
+      tray?.then(AWT) { tray ->
+         tray.trayIcons.first().ifNotNull { trayIcon ->
+            loadBufferedImage(trayIconImage)
+               .ifError { logger.warn { "Failed to load tray icon=$trayIconImage" } }
+               .ifOk {
+                  trayIcon.image?.flush()
+                  trayIcon.image = it.scaledToTray(tray)
+               }
+         }
       }
    }
 
@@ -194,5 +192,8 @@ class Tray: PluginBase() {
       override val isSupported get() = SystemTray.isSupported()
       override val isSingleton = true
       override val isEnabledByDefault = true
+
+      private fun SystemTray.trayIconSizeRaw() = (trayIconSize.width * (Screen.getScreens().maxOfOrNull { it.outputScaleX } ?: 1.0)).toInt()
+      private fun Image.scaledToTray(tray: SystemTray) = getScaledInstance(tray.trayIconSizeRaw(), -1, Image.SCALE_SMOOTH)
    }
 }

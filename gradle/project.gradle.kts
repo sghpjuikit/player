@@ -80,6 +80,7 @@ allprojects {
    repositories {
       mavenCentral()
       maven("https://jitpack.io")
+      maven("https://mlt.jfrog.io/artifactory/mlt-mvn-releases-local") // for voice-cmu-slt-hsmm
       flatDir { dirs("lib") }
    }
 
@@ -134,6 +135,10 @@ allprojects {
 
       "AI" group {
          implementation("com.alphacephei", "vosk", "0.3.45")
+         implementation("de.dfki.mary", "voice-cmu-slt-hsmm", "5.2.1") {
+            exclude("com.twmacinta", "fast-md5")
+            exclude("gov.nist.math", "Jampack")
+         }
       }
 
       "Misc" group {
@@ -145,7 +150,7 @@ allprojects {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
          implementation("org.apache.pdfbox", "pdfbox", "3.0.0-RC1")
-         implementation("com.ezylang", "EvalEx", "3.0.1")
+         implementation("com.ezylang", "EvalEx", "3.0.2")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
          implementation("ch.obermuhlner", "big-math", "2.3.2")
       }
@@ -180,8 +185,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.5.4")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.5.4")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.5.5")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.5.5")
       }
 
    }

@@ -29,6 +29,7 @@ import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.plugin.impl.PlaycountIncrementer
 import sp.it.pl.plugin.impl.ScreenRotator
 import sp.it.pl.plugin.impl.SpeechRecognition
+import sp.it.pl.plugin.impl.SpeechSynthesizer
 import sp.it.pl.plugin.impl.StartScreen
 import sp.it.pl.plugin.impl.Tray
 import sp.it.pl.plugin.impl.Waifu2k
@@ -291,4 +292,5 @@ fun PluginManager.initForApp() {
    installPlugin<WallpaperChanger>()
    installPlugin<StartScreen>()
    installPlugin<SpeechRecognition>()
+   installPlugin<SpeechSynthesizer>()
 }

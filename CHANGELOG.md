@@ -5,7 +5,8 @@ All notable changes to this project will be documented in this file. Format base
 
 - Update vlcj to 3.0.18
 - Update dependencies
-- Implement speech recognition using AI
+- Implement **Speech Recognition** plugin
+- Implement **Speech Synthesizer** plugin
 - Implement Node base widget support for widget metadata [WidgetCompanion]
 - Implement icon config editor with icon picker
 - Implement .url file support

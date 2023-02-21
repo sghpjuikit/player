@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `WidgetUi` widget load delay
 - Implement `WidgetUi` disposing & animation stopping on widget close
 - Improve `Placeholder` layout to be reactive
+- Improve UI performance [JavaFX css improvements]
 - Improve UX [adjust widget controls activation area size]
 - Improve styling [fix various effects & inconsistencies]
 - Improve widget unloading UX [use widget icon]

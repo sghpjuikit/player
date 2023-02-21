@@ -66,20 +66,25 @@ fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>):
                pt.properties["playing_icon"] = this
 
          isFocusTraversable = false
+         isAnimated.value = false
+         select(true)
          styleclass("playlist-table-cell-playing-icon")
-         // play/pause on LMB
-         onClickDo(PRIMARY, 1) { _, _ ->
-            val song = traverseParents().filterIsInstance<TableRow<*>>().firstOrNull()?.item?.asIf<PlaylistSong>()
-            if (APP.audio.state.playback.status.value==STATE_PLAYING && playlist.isPlaying) APP.audio.pause()
-            else if (APP.audio.state.playback.status.value==STATE_PAUSED && playlist.isPlaying) APP.audio.resume()
-            else playlist.playTransformedItem(song)
-         }
-         // open playback controls on RMB
-         onClickDo(SECONDARY, 1) { _, _ ->
-            val widgetKey = "playlist-table-playback-control-widget}"
-            fun obtainWidget() = APP.widgetManager.widgets.findAll(OPEN).find { widgetKey in it.properties }?.apply { focusWithWindow() }
-            fun buildWidget() = APP.widgetManager.widgets.find("Playback knobs", NEW(POPUP))?.apply { properties[widgetKey] = widgetKey }
-            obtainWidget() ?: buildWidget()
+         onClickDo(null, 1) { _, e ->
+            if (e==null) return@onClickDo
+            // play/pause on LMB
+            if (e.button==PRIMARY) {
+               val song = traverseParents().filterIsInstance<TableRow<*>>().firstOrNull()?.item?.asIf<PlaylistSong>()
+               if (APP.audio.state.playback.status.value==STATE_PLAYING && playlist.isPlaying) APP.audio.pause()
+               else if (APP.audio.state.playback.status.value==STATE_PAUSED && playlist.isPlaying) APP.audio.resume()
+               else playlist.playTransformedItem(song)
+            }
+            if (e.button==SECONDARY) {
+               // open playback controls on RMB
+               val widgetKey = "playlist-table-playback-control-widget}"
+               fun obtainWidget() = APP.widgetManager.widgets.findAll(OPEN).find { widgetKey in it.properties }?.apply { focusWithWindow() }
+               fun buildWidget() = APP.widgetManager.widgets.find("Playback knobs", NEW(POPUP))?.apply { properties[widgetKey] = widgetKey }
+               obtainWidget() ?: buildWidget()
+            }
          }
       }
       APP.audio.state.playback.status sync { ic.icon(computeIcon()) } on disposer

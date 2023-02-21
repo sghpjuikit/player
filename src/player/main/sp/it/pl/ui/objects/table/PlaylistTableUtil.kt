@@ -66,7 +66,6 @@ fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>):
                pt.properties["playing_icon"] = this
 
          isFocusTraversable = false
-         isAnimated.value = false
          styleclass("playlist-table-cell-playing-icon")
          selectHard(true)
          onClickDo(null, 1) { _, e ->

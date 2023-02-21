@@ -33,12 +33,10 @@
 }
 
 /** Add glow effect */
-.icon {
-    -fx-effect: dropshadow(gaussian, rgba(0,100,255, 1), 25, 0.2 , 0, 0);   /* decreases performance */
+.icon Text {
+    -fx-effect: dropshadow(gaussian, rgba(0,100,255, 1), 1em, 0.2 , 0, 0);   /* decreases performance */
 }
-
-/* Add focus glow effect */
-.icon:hover,
+.icon:hover Text,
 .inode:hover Text,
 .onode:hover Text,
 .ionode:hover Text,
@@ -61,7 +59,12 @@
 .accordion .titled-pane:focused > .title,
 .accordion .titled-pane:expanded > .title,
 .accordion .titled-pane:expanded:focused > .title {
-    -fx-effect: dropshadow(gaussian, -fx-focus-color, 12,0 , 0,0);
+    -fx-effect: dropshadow(gaussian, rgba(100,150,255, 1), 1em, 0.2 , 0, 0);
+}
+.playlist-table-cell-playing-icon Text,
+.playlist-table-cell-playing-icon:hover,
+.playlist-table-cell-playing-icon:selected Text {
+    -fx-effect: dropshadow(gaussian, rgba(100,150,255, 1), 0.5em, 0.2 , 0, 0);
 }
 
 /* Cooler scroll-bar */

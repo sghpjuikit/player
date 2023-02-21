@@ -67,8 +67,8 @@ fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>):
 
          isFocusTraversable = false
          isAnimated.value = false
-         select(true)
          styleclass("playlist-table-cell-playing-icon")
+         selectHard(true)
          onClickDo(null, 1) { _, e ->
             if (e==null) return@onClickDo
             // play/pause on LMB

@@ -76,8 +76,6 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.textColon
 import sp.it.pl.main.toUi
-import sp.it.pl.plugin.impl.SpeechRecognition
-import sp.it.pl.plugin.impl.SpeechRecognition.SpeakHandler
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.form.Validated
 import sp.it.pl.ui.objects.icon.Icon
@@ -119,7 +117,6 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.math.clip
 import sp.it.util.math.min
-import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
@@ -491,7 +488,7 @@ class Hue(widget: Widget): SimpleController(widget) {
          infoPane.lay -= devicePane
       }
 
-      hueBridge.groups() ui { groups ->
+      hueBridge.bulbsAndGroups() ui { (bulbs, groups) ->
          groupsPane.children setTo groups.map { group ->
             hueBulbGroupCells.getOrPut(group.id) {
                HueIcon(IconFA.LIGHTBULB_ALT, 40.0, group).run {

@@ -142,7 +142,7 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
             p.removeChild(i)
             p.addChild(i, widgetNew)
             p.properties -= loadNotification
-            widgetNew.restoreAuxiliaryState()
+            widgetNew.onLoad.attach1 { widgetNew.restoreAuxiliaryState() }
          } else {
             val parent = widgetOld.graphics!!.parent
             val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics!!)

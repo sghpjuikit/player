@@ -35,6 +35,7 @@ import sp.it.util.conf.cvro
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
 import org.jetbrains.annotations.Blocking
+import sp.it.util.dev.Experimental
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
 import sp.it.util.file.div
@@ -45,6 +46,7 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.ui.findParent
@@ -208,6 +210,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    /** Invoked in [close], after [graphics] and [controller] are disposed. */
    val onClose = Disposer()
    private var isClosed = false
+   @Experimental("Temporary") val onLoad = Handler0()
 
    constructor(id: UUID, factory: WidgetFactory<*>, isDeserialized: Boolean): this(factory, isDeserialized, WidgetDb(id)) {
       customName.value = factory.name
@@ -226,6 +229,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    override val name: String
       get() = customName.value
 
+
    /** Initializes (if not yet) and returns non-null [controller] and [graphics]. */
    @Idempotent
    override fun load(): Node {
@@ -235,6 +239,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
             val c = LoadErrorController(this)
             graphics = c.uiRoot()
             controller = c
+            onLoad()
          } else {
             try {
                graphics = controller!!.uiRoot()

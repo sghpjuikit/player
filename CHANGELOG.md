@@ -63,11 +63,11 @@ All notable changes to this project will be documented in this file. Format base
 
 This update brings lots of UX improvements all-around.
 
-### Speech recognition
-The application now comes with a speech recognition plugin.
+### Speech recognition & speech synthesizer
+The application now comes with speech recognition and speech synthesizer plugins.
 The AI runs fully on local device and does not connect to any network.
-The plugin can be enabled in `Plugin Management` settings.
-It provides only basic settings and commands can only be registered programmatically for now.
+The plugins can be enabled in `Plugin Management` settings.
+The plugins provide only basic settings and speech recognition commands can only be registered programmatically for now.
 However, the recognition accuracy is good and resource usage is low.
 In time, this is expected to become more integrated into the application.
 For now, the goal is to enable user to register custom commands through UI.

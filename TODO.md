@@ -1,26 +1,24 @@
-## Currently considered
-- thumb scaling
-- - REACTIVE WEATHER UI
-- calendar icon
-- popup out of screen position fix
-- plugin management easier enabling
-- LibraryView not refreshing on song library add sometimes
-- Make all window types including standalone widgets consistently styled [prototype using inverse mask]
-- Experiment with StartScreen that keeps content loaded between hide/show
-- Document all used libraries, how they are used, why, where not to use them, etc.
-- Implement **Playback Knobs** widget skinnable size
-- `Placeholder` should distinguish file `MOVE` and file `COPY` in description?
-- Fix `ObsListConfig.setDefaultValue` not removing disabled items
-- Fix `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
-- Fix`Configuration.propertiesRaw` are not synced with configs, should be?
+## Potential future work
 - Improve **Tagger** widget
   - tagging non audio file with audio extension causes exception and corrupted application state
   - editable song check list not refreshing content properly
   - implement chapters tag
   - tag writing should fail when tag reading fails?
   - make writing to tag handle errors properly (& report read-only files)
-
-## Potential future work
+- Make all window types including standalone widgets consistently styled [prototype using inverse mask]
+- Fix `ObsListConfig.setDefaultValue` not removing disabled items
+- Fix `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
+- Fix`Configuration.propertiesRaw` are not synced with configs, should be?
+- Fix Thumbnail image scaling for directories
+- Fix LibraryView not refreshing on song library add sometimes
+- Implement **Playback Knobs** widget skinnable size
+- Implement `Placeholder` to distinguish file drag `MOVE` and file `COPY` in description
+- Implement Weather widget to have reactive layout
+- Implement icons and widget metadata for all Node widgets
+- Implement more convenient plugin on/off toggle in Plugin Management
+- Implement Song Group table Playing icon column
+- Document all used libraries, how they are used, why, where not to use them, etc.
+- Experiment with StartScreen that keeps content loaded between hide/show
 - Implement **kotlinc**/**vlc**/**mpeg** setup to be restartable
 - Implement `app.stateful` on/off config
 - Drag & drop playlist file support in audio

@@ -66,11 +66,11 @@ fun AppSearch.initApp() = APP.apply {
          icon = IconFA.ARROW_RIGHT,
       ) {
          val v = term.trim()
-         val radixFromS = v.substringBefore("to", "dec").dropWhile { it.isDigit() }.trim().lowercase()
+         val radixFromS = v.dropWhile { it.isDigit() }.trim().substringBefore(" ").trim().lowercase().ifEmpty { "dec" }
          val radixFrom = radixes[radixFromS] ?: 10
-         val radixToS = v.substringAfter(" ").trim().lowercase()
+         val radixToS = it
          val radixTo = radixes[radixToS] ?: 10
-         val nFrom = v.takeWhile { it.isDigit() }
+         val nFrom = v.takeWhile { it.isDigit() }.ifEmpty { "0" }
          val nTo = nFrom.toBigInteger(radixFrom).toString(radixTo)
          showFloating("Convert $it") {
             hBox(5.emScaled, Pos.CENTER) {

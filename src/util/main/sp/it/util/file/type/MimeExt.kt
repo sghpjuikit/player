@@ -13,10 +13,16 @@ data class MimeExt(val name: String) {
       const val txt = "txt"
       const val url = "url"
 
-      private val enumerateUnsealed by lazy { MimeType.enumerateUnsealed().flatMap { it.extensions.asSequence().distinct().map { MimeExt(it) } } }
+      private val enumerateUnsealed by lazy { enumerateUnsealed { true }.toList() }
       override fun toS(o: MimeExt): String = o.name
       override fun ofS(s: String) = Try.ok(MimeExt(s))
       override fun enumerateUnsealed(): Collection<MimeExt> = enumerateUnsealed
+               fun enumerateUnsealed(predicate: (MimeType) -> Boolean): Sequence<MimeExt> =
+                  MimeType.enumerateUnsealed().asSequence()
+                     .filter(predicate)
+                     .flatMap { it.extensions.asSequence() }
+                     .distinct()
+                     .map { MimeExt(it) }
    }
 
 }

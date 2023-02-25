@@ -218,7 +218,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Add to new playlist",
          "Add songs to new playlist widget.",
          IconMD.PLAYLIST_PLUS,
-         constriction = { it.isAudio() },
+         constriction = { it.isAudioOrVideo() },
       ) { fs -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addFiles(fs) } },
       action(
          "Open playlist",
@@ -247,7 +247,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Add to existing playlist",
          "Add songs to existing playlist widget if possible or to a new one if not.",
          IconMD.PLAYLIST_PLUS,
-         constriction = { it.isAudio() },
+         constriction = { it.isAudioOrVideo() },
       ) { f -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(f) } },
       action(
          "Apply skin",

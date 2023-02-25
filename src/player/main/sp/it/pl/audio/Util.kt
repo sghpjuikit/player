@@ -89,7 +89,7 @@ class PlaylistDB: Serializable {
 class PlaylistItemDB: Serializable {
    var artist: String
    var title: String
-   var length: Double
+   var length: Double?
    var uri: String
 
    constructor(i: PlaylistSong) {

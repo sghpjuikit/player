@@ -6,6 +6,7 @@ import sp.it.pl.plugin.impl.Notifier
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import org.jetbrains.annotations.Blocking
+import sp.it.pl.main.isAudio
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.Try
@@ -44,7 +45,7 @@ fun Collection<Song>.write(setter: (MetadataWriter) -> Unit, action: (List<Metad
 fun Song.write(setter: (MetadataWriter) -> Unit, action: (Try<Boolean, Exception>) -> Unit) {
    if (APP.audio.readOnly) return
 
-   if (isFileBased()) {
+   if (isFileBased() && getFile()!!.isAudio()) {
       runIO {
          val w = MetadataWriter()
          w.reset(this)
@@ -78,7 +79,7 @@ fun Collection<Song>.writeNoRefresh(setter: (MetadataWriter) -> Unit) {
 
    val w = MetadataWriter()
    forEach {
-      if (it.isFileBased()) {
+      if (it.isFileBased() && it.getFile()!!.isAudio()) {
          w.reset(it)
          setter(w)
          w.write()
@@ -91,8 +92,10 @@ fun Collection<Song>.writeNoRefresh(setter: (MetadataWriter) -> Unit) {
 fun Song.writeRating(rating: Double?) {
    if (APP.audio.readOnly) return
 
-   write({ it.setRatingPercent(rating ?: -1.0) }) {
-      if (it.isOk)
-         APP.plugins.use<Notifier> { it.showSongRatingChangedNotification(rating) }
+   if (isFileBased() && getFile()!!.isAudio()) {
+      write({ it.setRatingPercent(rating ?: -1.0) }) {
+         if (it.isOk)
+            APP.plugins.use<Notifier> { it.showSongRatingChangedNotification(rating) }
+      }
    }
 }

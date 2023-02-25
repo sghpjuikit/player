@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. Format base
 - Update dependencies
 - Implement **Speech Recognition** plugin
 - Implement **Speech Synthesizer** plugin
+- Implement audio playback for video files
 - Implement Node base widget support for widget metadata [WidgetCompanion]
 - Implement icon config editor with icon picker
 - Implement .url file support
@@ -60,6 +61,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `ToggleButtonGroup` styling
 - Fix playback status change notification ui created multiple times
 - Fix popup outside screen position fix not working sometimes
+- Fix songs with no title showing extension as title substitute
+- Fix not updated or corrupted songs showing length of 00:00 instead of null
 
 This update brings lots of UX improvements all-around.
 

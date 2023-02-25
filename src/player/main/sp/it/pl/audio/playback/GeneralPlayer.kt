@@ -67,7 +67,7 @@ class GeneralPlayer(state: PlayerState) {
                   player.createPlayback(
                      song,
                      state.playback,
-                     {
+                     onOK = {
                         player.play()
                         state.playback.realTimeImpl.syncRealTimeOnPlay()
                         // throw song change event
@@ -76,13 +76,11 @@ class GeneralPlayer(state: PlayerState) {
                         // fire other events (may rely on the above)
                         APP.audio.onPlaybackStart()
                         if (APP.audio.postActivating1st || !APP.audio.postActivating)
-                        // bug fix, not updated playlist songs can get here, but should not!
-                           if (song.timeMs>0)
-                              APP.audio.onPlaybackAt.forEach { t -> t.restart(song.time) }
+                        song.time?.takeIf { it.toMillis()>0.0 }.ifNotNull { time -> APP.audio.onPlaybackAt.forEach { it.restart(time) } } // TODO: this should work for corrupted/ not updated or 00:00 songs
                         APP.audio.postActivating = false
                         APP.audio.postActivating1st = false
                      },
-                     { unableToPlayAny ->
+                     onFail = { unableToPlayAny ->
                         logger.info { "Player=$p can not play song=$song" }
                         if (unableToPlayAny) {
                            stop()

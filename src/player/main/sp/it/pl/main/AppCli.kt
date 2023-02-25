@@ -143,7 +143,7 @@ class Cli: CliktCommand(
                      if (!APP.isInitialized.isOk && !APP.isStateful)
                         exitProcess(0)
                   }
-                  files.all { it.isAudio() } -> {
+                  files.all { it.isAudio() || it.isVideo() } -> {
                      APP.widgetManager.widgets.use<PlaylistFeature>(NEW) {
                         it.playlist.addFiles(files)
                         it.playlist.playTransformedFirst()

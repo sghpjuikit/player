@@ -21,8 +21,12 @@ import sp.it.util.type.type
 import sp.it.util.units.toHMSMs
 import java.net.URI
 import sp.it.pl.audio.tagging.AudioFileFormat
+import sp.it.pl.main.isAudio
+import sp.it.pl.main.isVideo
 import sp.it.pl.main.toUi
 import sp.it.util.dev.failIf
+import sp.it.util.dev.failIfNotFxThread
+import sp.it.util.functional.net
 
 /**
  * Song in playlist.
@@ -33,7 +37,7 @@ import sp.it.util.dev.failIf
  * * title
  * * length duration
  *
- * Cannot be changed, only updated. May be created updated, or ebe updated at a later time.
+ * Cannot be changed, only [update]. May be created updated, or be updated at a later time.
  */
 class PlaylistSong: Song {
 
@@ -46,8 +50,12 @@ class PlaylistSong: Song {
    val nameP: SimpleStringProperty
    val name: String get() = nameP.get()
 
-   val timeP: SimpleObjectProperty<Duration>
-   val time: Duration get() = timeP.get()
+   /** The time property. Contains null if song wasn't [update] yet */
+   val timeP: SimpleObjectProperty<Duration?>
+   /** The time or null if song wasn't [update] yet */
+   val time: Duration? get() = timeP.get()
+   /** The time in milliseconds or null if song wasn't update yet */
+   val timeMs: Double? get() = timeP.get()?.toMillis()
 
    /**
     * Returns true if the item was marked updated. Once item is updated it will stay in that state. Updated item
@@ -74,30 +82,27 @@ class PlaylistSong: Song {
    constructor(_uri: URI) {
       uriP = _uri
       nameP = SimpleStringProperty(getInitialName())
-      timeP = SimpleObjectProperty(Duration(0.0))
+      timeP = SimpleObjectProperty(null)
       isUpdated = false
    }
 
    /** New updated item. */
-   constructor(new_uri: URI, _artist: String?, _title: String?, _length: Double) {
+   constructor(new_uri: URI, _artist: String?, _title: String?, _length: Double?) {
       uriP = new_uri
       nameP = SimpleStringProperty()
-      timeP = SimpleObjectProperty(Duration(_length))
+      timeP = SimpleObjectProperty(_length?.net { Duration(it) })
       setATN(_artist, _title)
       isUpdated = true
    }
 
-   /** @return the artist portion of the name. Empty string if item wasn't updated yet */
+   /** @return the artist portion of the name. Empty string if song wasn't [update] yet */
    fun getArtist() = artist ?: ""
 
-   /** @return the title portion of the name. Empty string if item wasn't updated yet */
+   /** @return the title portion of the name. Empty string if song wasn't [update] yet */
    fun getTitle() = title ?: ""
 
-   /** @return the time in milliseconds or 0 if item wasn't updated yet */
-   val timeMs: Double get() = timeP.get().toMillis()
-
    /**
-    * Updates this item by reading the tag of the source file.
+    * Updates this song by reading the tag of the source file.
     * Involves I/O, so don't use on main thread. Safe to call from bgr thread.
     *
     * Calling this method on updated playlist item has no effect. E.g.:
@@ -113,7 +118,7 @@ class PlaylistSong: Song {
       if (isUpdated || isCorrupt()) return
       isUpdated = true
 
-      // if library contains the item, use it & avoid I/O, improves performance 100-fold when song is in library
+      // if library contains the song, use it & avoid I/O, improves performance 100-fold when song is in library
       val m = APP.db.songsById[id]
       if (m!=null) {
          runFX {
@@ -124,17 +129,25 @@ class PlaylistSong: Song {
 
       if (isFileBased()) {
          failIfFxThread()
-         getFile()!!.readAudioFile().orNull()?.let { f ->
-            val t = f.tag ?: null
-            val h = f.audioHeader
+         val f = getFile()!!
+         if (f.isAudio()) {
+            f.readAudioFile().orNull()?.let { af ->
+               val t = af.tag ?: null
+               val h = af.audioHeader
 
-            val length = (1000*h.trackLength).toDouble()
-            val artist = t?.getFirst(FieldKey.ARTIST)
-            val title = t?.getFirst(FieldKey.TITLE)
+               val length = (1000*h.trackLength).toDouble()
+               val artist = t?.getFirst(FieldKey.ARTIST)
+               val title = t?.getFirst(FieldKey.TITLE)
 
+               runFX {
+                  setATN(artist, title)
+                  timeP.set(Duration(length))
+               }
+            }
+         } else if (f.isVideo()) {
             runFX {
-               setATN(artist, title)
-               timeP.set(Duration(length))
+               setATN(null, null)
+               timeP.set(null)
             }
          }
       } else {
@@ -143,7 +156,7 @@ class PlaylistSong: Song {
             setATN("", "")
             timeP.value = media.duration
          } catch (e: IllegalArgumentException) {
-            isCorruptCached = true   // mark as corrupted on error
+            isCorruptCached = true
          } catch (e: NullPointerException) {
             isCorruptCached = true
          } catch (e: UnsupportedOperationException) {
@@ -152,18 +165,27 @@ class PlaylistSong: Song {
       }
    }
 
-   /** Updates this playlist item to data from specified metadata */
+   /** Updates this song to data from specified metadata */
    fun update(m: Metadata) {
       failIf(uriP!=m.uri) { "Update of $uriP failed, because Metadata uri is ${m.uri}" }
-      setATN(m.getArtist(), m.getTitle())
-      timeP.set(m.getLength())
-      isUpdated = true
+      val f = getFile()
+      if (f==null || f.isAudio()) {
+         setATN(m.getArtist(), m.getTitle())
+         timeP.set(m.getLength())
+         isUpdated = true
+      }
+   }
+
+   /** Updates this song time to specified data if the time is still null */
+   fun updateTime(time: Duration) {
+      failIfNotFxThread()
+      if (timeP.value==null) timeP.value = time
    }
 
    private fun setATN(artist: String?, title: String?) {
       this.artist = artist
-      this.title = title.takeUnless { it.isNullOrBlank() } ?: uri.path.substringAfterLast(".")
-      this.nameP.set("${artist.orEmpty()} - ${title.orEmpty()}")
+      this.title = title.takeUnless { it.isNullOrBlank() } ?: uri.path.substringAfterLast("/").substringBeforeLast(".")
+      this.nameP.set(listOfNotNull(this.artist, this.title).joinToString(" - "))
    }
 
    /** @return true if this item is corrupted */
@@ -180,7 +202,7 @@ class PlaylistSong: Song {
 
    override fun hashCode() = identityHashCode()
 
-   override fun toString() = "$name\n$uri\n${time.toHMSMs()}"
+   override fun toString() = listOfNotNull(name, uri, time?.toHMSMs()).joinToString("\n")
 
    /** @return deep copy of this item */
    fun copy() = PlaylistSong(uri, artist, title, timeMs).also {
@@ -199,7 +221,7 @@ class PlaylistSong: Song {
       object NAME: Field<String>("Name", "'Song artist' - 'Song title'", type(), { it.name }, { o, or -> if (o=="" || o==null) or else o.toUi() })
       object TITLE: Field<String?>("Title", "Song title", type(), { it.title }, { o, or -> if (o=="" || o==null) or else o.toUi() })
       object ARTIST: Field<String?>("Artist", "Song artist", type(), { it.artist }, { o, or -> if (o=="" || o==null) or else o.toUi() })
-      object LENGTH: Field<Duration>("Time", "Song length", type(), { it.time }, { o, or -> o?.toHMSMs(false) ?: or })
+      object LENGTH: Field<Duration?>("Time", "Song length", type(), { it.time }, { o, or -> o?.toHMSMs(false) ?: or })
       object PATH: Field<String>("Path", "Song file path", type(), { it.getPathAsString() }, { o, or -> o?.toUi() ?: or })
       object FORMAT: Field<AudioFileFormat>("Format", "Song file type", type(), { it.getFormat() }, { o, or -> o?.toUi() ?: or })
 

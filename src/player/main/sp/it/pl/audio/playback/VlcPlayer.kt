@@ -179,7 +179,9 @@ class VlcPlayer: GeneralPlayer.Play {
 
       override fun lengthChanged(mediaPlayer: MediaPlayer, newLength: Long) {
          runFX {
-            state.duration.value = newLength.millis
+            val t = newLength.millis
+            state.duration.value = t
+            PlaylistManager.use { it.playing?.updateTime(t) }
          }
       }
 

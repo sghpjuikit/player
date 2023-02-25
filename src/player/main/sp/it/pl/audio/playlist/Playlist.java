@@ -108,7 +108,7 @@ public class Playlist extends ObservableListWrapper<PlaylistSong> {
 	public Duration computeDuration() {
 		double sum = stream()
 				.map(PlaylistSong::getTime)
-				.filter(d -> !d.isIndefinite() && !d.isUnknown())
+				.filter(d -> d!=null && !d.isIndefinite() && !d.isUnknown())
 				.mapToDouble(Duration::toMillis)
 				.sum();
 		return millis(sum);

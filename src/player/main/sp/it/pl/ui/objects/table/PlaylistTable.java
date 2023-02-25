@@ -36,6 +36,7 @@ import sp.it.util.reactive.Disposer;
 import sp.it.util.units.NofX;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.Comparator.nullsLast;
+import static java.util.Objects.requireNonNullElse;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -167,7 +168,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 			getColumn(INDEX.INSTANCE).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth(c)));
 			getColumn(LENGTH.INSTANCE).ifPresent(c -> {
-				var maxLength = getItems().stream().mapToDouble(PlaylistSong::getTimeMs).max().orElse(6000);
+				var maxLength = getItems().stream().mapToDouble(it -> requireNonNullElse(it.getTimeMs(), 0.0)).max().orElse(6000);
 				var maxLengthText = LENGTH.INSTANCE.toS(new Duration(maxLength), "");
 				var font = getFontOrNull(c);
 				var width = font == null ? 100.0 : computeTextWidth(font, maxLengthText) + 7 + CELL_PADDING_WIDTH;

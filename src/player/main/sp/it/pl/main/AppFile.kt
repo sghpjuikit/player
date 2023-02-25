@@ -35,6 +35,7 @@ import sp.it.util.file.getFilesR
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeGroup
+import sp.it.util.file.type.MimeGroup.Companion.audio
 import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
@@ -54,10 +55,24 @@ import sp.it.util.ui.image.toBuffered
 
 private val logger = KotlinLogging.logger { }
 
-fun File.isVideo() = mimeType().group==video
+val videoExtensions: Set<String> = MimeExt.enumerateUnsealed { it.group==video }.map { it.name }.toSet()
+
+fun File.isVideo() = extension.lowercase() in videoExtensions
+
+fun Path.isVideo() = extension.lowercase() in videoExtensions
+
+fun String.isVideo() = substringAfterLast(".").lowercase() in videoExtensions
+
+fun File.isAudioOrVideo() = isAudio() || isVideo()
+
+fun Path.isAudioOrVideo() = isAudio() || isVideo()
+
+fun String.isAudioOrVideo() = isAudio() || isVideo()
+
+fun findAudioOrVideo(files: Collection<File>, depth: Int = Int.MAX_VALUE): List<File> = files.flatMap { it.getFilesR(depth, FILE) { p, _ -> p.isAudioOrVideo()} }
 
 /** Lowercase audio file extensions supported by this application. */
-val audioExtensions = setOf(
+val audioExtensions: Set<String> = setOf(
    "mp3",
    "ogg",
    "flac",
@@ -71,7 +86,7 @@ val audioExtensions = setOf(
    "mp1",
    "mp2",
    "aac"
-)
+) + MimeExt.enumerateUnsealed { it.group==audio }.map { it.name }
 
 /** See [audioExtensionsJaudiotagger]. */
 fun File.isAudio() = extension.lowercase() in audioExtensions

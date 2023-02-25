@@ -219,7 +219,7 @@ class Metadata: Song, Serializable {
       id = song.uri.toString()
       if (song is PlaylistSong) {
          artist = song.getArtist().takeIf { it.isNotBlank() }
-         lengthInMs = song.time.toMillis()
+         lengthInMs = song.time?.toMillis() ?: 0.0
          title = song.getTitle().takeIf { it.isNotBlank() }
       }
    }

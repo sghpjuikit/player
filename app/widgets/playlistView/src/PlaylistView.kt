@@ -122,7 +122,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       table.search.setColumn(Field.NAME)
       table.selectionModel.selectionMode = MULTIPLE
       table.items_info.textFactory = { all, list ->
-         DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumOf { it.timeMs }.millis.toHMSMs()
+         DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumOf { it.timeMs ?: 0.0 }.millis.toHMSMs()
       }
 
       table.defaultColumnInfo   // trigger menu initialization

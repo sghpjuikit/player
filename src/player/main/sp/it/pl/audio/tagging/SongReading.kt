@@ -9,9 +9,13 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.main.APP
 import org.jetbrains.annotations.Blocking
+import sp.it.pl.main.isAudio
+import sp.it.pl.main.isVideo
 import sp.it.util.dev.failIfFxThread
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
 
 private val logger = KotlinLogging.logger { }
@@ -28,17 +32,21 @@ fun Song.read(): Metadata {
 
    return when {
       isCorrupt() -> Metadata.EMPTY
-      isFileBased() -> getFile()!!.readAudioFile().orNull()?.net { Metadata(it) } ?: Metadata.EMPTY
+      isFileBased() -> {
+         val f = getFile()!!
+         when {
+            f.isAudio() -> f.readAudioFile().orNull()?.net { Metadata(it) } ?: Metadata.EMPTY
+            f.isVideo() -> toMeta()
+            else -> Metadata.EMPTY
+         }
+      }
       else ->
          // TODO: implement properly & watch out for new Media() throwing Exception, see JavaFxPlayer.java
-         try {
+         runTry {
             val m = Media(uri.toString())
             PlaylistSong(uri, "", "", m.duration.toMillis()).toMeta()
-         } catch (e: IllegalArgumentException) {
-            logger.error(e) { "Error creating metadata for non file based song: $this" }
-            toMeta()
-         } catch (e: UnsupportedOperationException) {
-            logger.error(e) { "Error creating metadata for non file based song: $this" }
+         }.getOrSupply {
+            logger.error(it) { "Error creating metadata for non file based song: $this" }
             toMeta()
          }
    }

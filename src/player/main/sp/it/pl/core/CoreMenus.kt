@@ -65,6 +65,7 @@ import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.imageWriteExtensionFilter
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
+import sp.it.pl.main.isVideo
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toMetadata
@@ -195,6 +196,30 @@ object CoreMenus: Core {
          }
          add<File> {
             if (value.isAudio()) {
+               menu("Playback") {
+                  item("Play") {
+                     APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { p ->
+                        p.playlist.addAndPlay(it.toURI())
+                     }
+                  }
+                  item("Play (new playlist)") {
+                     APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { p ->
+                        p.playlist.addAndPlay(it.toURI())
+                     }
+                  }
+                  item("Enqueue") {
+                     APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { p ->
+                        p.playlist.addFile(it)
+                     }
+                  }
+                  item("Enqueue (new playlist)") {
+                     APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { p ->
+                        p.playlist.addFile(it)
+                     }
+                  }
+               }
+            }
+            if (value.isVideo()) {
                menu("Playback") {
                   item("Play") {
                      APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { p ->

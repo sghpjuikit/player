@@ -106,7 +106,7 @@ class ErrorPane: OverlayPane<Any>() {
                lay += supplyIf(display.value!=Display.WINDOW) {
                   Icon(IconFA.SQUARE, -1.0, "Always on top\n\nForbid hiding this window behind other application windows").apply {
                      onClickDo {
-                        stage?.let {
+                        stage.value?.let {
                            it.isAlwaysOnTop = !it.isAlwaysOnTop
                            icon(it.isAlwaysOnTop, IconFA.SQUARE, IconFA.SQUARE_ALT)
                         }

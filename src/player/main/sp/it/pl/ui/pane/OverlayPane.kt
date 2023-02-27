@@ -37,6 +37,7 @@ import sp.it.util.access.readOnly
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.access.visible
+import sp.it.util.access.vn
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01
 import sp.it.util.async.coroutine.IO
@@ -83,6 +84,8 @@ import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.toP
 import sp.it.util.units.millis
+import sp.it.util.reactive.into
+import sp.it.util.reactive.syncWhile
 
 /**
  * Pane laying 'above' standard content.
@@ -114,6 +117,9 @@ abstract class OverlayPane<in T>: StackPane() {
    val isShowingWithFocus = isShowingWithFocusImpl.readOnly()
    /** True when losing focus should hide this pane. Default true. */
    val isAutohide = v(true)
+
+   protected val stage = vn<Stage>(null)
+
    private val bgr = stackPane {
       onEventUp(MOUSE_CLICKED) {
          opacity = Math.random()
@@ -171,6 +177,14 @@ abstract class OverlayPane<in T>: StackPane() {
             it.consume()
          }
       }
+      stage.into(Stage::sceneProperty).syncWhile {
+         it?.onEventDown(KEY_PRESSED, ESCAPE, false) {
+            if (isShown() && !APP.ui.isLayoutMode) {
+               hide()
+               it.consume()
+            }
+         }
+      }
 
       resizeB = resizeIcon().apply {
          cursor = Cursor.SE_RESIZE
@@ -202,7 +216,6 @@ abstract class OverlayPane<in T>: StackPane() {
    private val blur = BoxBlur(15.0, 15.0, 3)
    private var opacityNode: Node? = null
    private var blurNode: Node? = null
-   protected var stage: Stage? = null
 
    /** Show this pane with given value. */
    abstract fun show(data: T)
@@ -319,7 +332,7 @@ abstract class OverlayPane<in T>: StackPane() {
                styleClass += "overlay-window"
             }
 
-            op.stage = createFMNTStage(screen, false).apply {
+            op.stage.value = createFMNTStage(screen, false).apply {
                scene = Scene(root)
                initOverlayWindow(this@OverlayPane)
                scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
@@ -342,16 +355,16 @@ abstract class OverlayPane<in T>: StackPane() {
             op.blurNode!!.effect = op.blur
 
             op.animation.applyAt0()
-            op.stage!!.onEventDown1(WINDOW_SHOWN) {
+            op.stage.value!!.onEventDown1(WINDOW_SHOWN) {
                op.onShowing()
                op.animation.show {
                   isShowingImpl.value = true
                   op.onShowed()
-                  op.stage!!.focused sync { op.isShowingWithFocusImpl.value = it } on op.isShowing.fires(false)
+                  op.stage.value!!.focused sync { op.isShowingWithFocusImpl.value = it } on op.isShowing.fires(false)
                }
             }
-            op.stage!!.show()
-            op.stage!!.requestFocus()
+            op.stage.value!!.show()
+            op.stage.value!!.requestFocus()
          }
       }
    }
@@ -361,7 +374,7 @@ abstract class OverlayPane<in T>: StackPane() {
       val y = if (!op.animation.dir) it else mapTo01(it, 0.5, 1.0)
       if (this!=Display.WINDOW && (op.displayBgr.value==ScreenBgrGetter.SCREEN_BGR || op.displayBgr.value==ScreenBgrGetter.NONE)) {
          op.opacity = 1.0
-         op.stage?.opacity = x
+         op.stage.value?.opacity = x
       } else {
          op.opacity = x
       }
@@ -384,10 +397,10 @@ abstract class OverlayPane<in T>: StackPane() {
          op.isVisible = false
       } else {
          op.removeFromParent()
-         op.stage?.close()
-         op.stage?.scene?.root?.asIf<Pane>()?.children?.clear()
-         op.stage?.scene = null
-         op.stage = null
+         op.stage.value?.close()
+         op.stage.value?.scene?.root?.asIf<Pane>()?.children?.clear()
+         op.stage.value?.scene = null
+         op.stage.value = null
       }
    }
 

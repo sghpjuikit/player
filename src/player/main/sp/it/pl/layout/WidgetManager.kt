@@ -981,8 +981,8 @@ sealed interface ComponentLoader: (Component) -> Any {
 
             init {
                onShowing += {
-                  stage!!.installWindowInteraction()::unsubscribe.let(onHidden::attach1)
-                  stage!!.properties[Window.keyWindowLayout] = layout
+                  stage.value!!.installWindowInteraction()::unsubscribe.let(onHidden::attach1)
+                  stage.value!!.properties[Window.keyWindowLayout] = layout
                   layout.focus()
                }
                onHidden += {

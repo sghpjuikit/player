@@ -74,7 +74,6 @@ import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.traverseParents
 import sp.it.util.file.writeTextTry
-import sp.it.util.functional.Util.set
 import sp.it.util.functional.asIf
 import sp.it.util.math.abs
 import sp.it.util.reactive.Handler0
@@ -364,7 +363,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    fun findSkins(): Set<SkinCss> {
       if (!Util.isValidatedDirectory(skinDir)) {
          logger.error("Skin lookup failed." + skinDir.path + " could not be accessed.")
-         return set()
+         return setOf()
       }
 
       return skinDir.children()

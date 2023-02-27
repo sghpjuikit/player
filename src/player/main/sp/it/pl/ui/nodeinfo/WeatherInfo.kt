@@ -25,6 +25,7 @@ import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.WindDir
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.ref.LazyR
 import sp.it.util.access.v
@@ -202,24 +203,25 @@ class WeatherInfo: HBox(15.0) {
 
    private var forecastHourlyPopupContent: WeatherInfoForecastHourly? = null
    private var forecastDailyPopupContent: WeatherInfoForecastDaily? = null
-   private val forecastHourlyPopup = LazyR {
+   private var forecastContent = LazyR {
       forecastHourlyPopupContent = WeatherInfoForecastHourly(units.value, computeForecastH())
       forecastDailyPopupContent = WeatherInfoForecastDaily(units.value, computeForecastD())
-      PopWindow().apply {
-         title.value = "Weather forecast"
-         content.value = vBox {
-            styleClass += "weather-info-forecast"
-            prefWidth = 800.emScaled
+      vBox {
+         styleClass += "weather-info-forecast"
+         prefWidth = 800.emScaled
 
-            lay += label("Hourly forecast")
-            lay += forecastHourlyPopupContent!!
-            lay += label("Daily forecast")
-            lay += forecastDailyPopupContent!!
-         }
+         lay += label("Hourly forecast")
+         lay += forecastHourlyPopupContent!!
+         lay += label("Daily forecast")
+         lay += forecastDailyPopupContent!!
       }
    }
+   private fun computeForecastPopup(): PopWindow = popWindow {
+      title.value = "Weather forecast"
+      content.value = forecastContent.get()
+   }
 
-   fun computeForecastH() =
+   private fun computeForecastH() =
       data.value?.hourly.orEmpty().map {
          WeatherInfoForecastHourly.Cell.Data(
             it.dt.toInstant().atZone(data.value?.timezone),
@@ -230,12 +232,12 @@ class WeatherInfo: HBox(15.0) {
          )
       }
 
-   fun computeForecastD() = data.value?.daily.orEmpty()
+   private fun computeForecastD() = data.value?.daily.orEmpty()
 
    private fun openForecast() {
-      val wasShowing = forecastHourlyPopup.orNull?.isShowing==true
-      if (wasShowing) forecastHourlyPopup.orNull?.hide()
-      else forecastHourlyPopup.get().show(DOWN_CENTER(caretIcon))
+      val wasShowing = forecastHourlyPopupContent?.scene?.window?.isShowing==true
+      if (wasShowing) forecastHourlyPopupContent?.scene?.window?.requestFocus()
+      else computeForecastPopup().show(DOWN_CENTER(caretIcon))
    }
 
    private fun openWindy() {
@@ -244,7 +246,7 @@ class WeatherInfo: HBox(15.0) {
    }
 
    private fun openForecastMeteor() {
-      PopWindow().apply {
+      popWindow {
          title.value = "Meteor shower forecast"
          content.value = WeatherInfoForecastMeteors()
       }.show(DOWN_CENTER(caretIcon))

@@ -109,8 +109,8 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
-import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.syncTrue
+import sp.it.util.reactive.syncWhile
 import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.centre
@@ -171,9 +171,9 @@ fun Window.installStartLayoutPlaceholder() {
 
 }
 
-fun Stage.installWindowInteraction() = sceneProperty().syncNonNullWhile { it.installWindowInteraction() }
+fun Stage.installWindowInteraction() = sceneProperty().syncWhile { it?.installWindowInteraction() }
 
-fun Parent.installWindowInteraction() = sceneProperty().syncNonNullWhile { it.installWindowInteraction() }
+fun Parent.installWindowInteraction() = sceneProperty().syncWhile { it?.installWindowInteraction() }
 
 fun Scene.installWindowInteraction() = Subscription(
    // change volume on scroll

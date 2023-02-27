@@ -102,7 +102,7 @@ import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncNonNullWhile
+import sp.it.util.reactive.syncWhile
 import sp.it.util.reactive.zip
 import sp.it.util.type.type
 import sp.it.util.ui.pseudoClassChanged
@@ -184,7 +184,7 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
       interact(doLayout = true, noMouse = false, noPick = false)
       tScaleX attach { requestLayout() } on disposer
       tTranslate zip tScaleX attach { (t, s) -> translateX = t.toDouble()*s.toDouble() } on disposer
-      parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
+      parentProperty().syncWhile { it?.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
 
       paneLinks.interact(doLayout = false, noMouse = false, noPick = false)
       paneNodes.interact(doLayout = false, noMouse = false, noPick = false)

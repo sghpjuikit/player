@@ -61,6 +61,7 @@ import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.dock.DockWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.objects.window.stage.Window.BgrEffect
 import sp.it.pl.ui.objects.window.stage.Window.Transparency
 import sp.it.pl.ui.objects.window.stage.Windows10WindowBlur.ACCENT_DISABLED
@@ -645,7 +646,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
     * The popup title shows the name of the configurable, using [toUi].
     * As such, providing custom name is possible by implementing [sp.it.pl.core.NameUi].
     */
-   fun <T> showSettings(c: Configurable<T>, atNode: Node) = PopWindow().apply {
+   fun <T> showSettings(c: Configurable<T>, atNode: Node) = popWindow {
       title.value = "${c.toUi()} Settings"
       content.value = form(c).apply {
          prefSize = 600.emScaled x 600.emScaled

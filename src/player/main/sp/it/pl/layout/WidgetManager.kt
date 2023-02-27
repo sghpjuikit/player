@@ -55,6 +55,7 @@ import sp.it.pl.main.showFloating
 import sp.it.pl.main.thenWithAppProgress
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.asLayout
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
@@ -1024,7 +1025,7 @@ sealed interface ComponentLoader: (Component) -> Any {
    object POPUP: ComponentLoader {
       override operator fun invoke(c: Component): PopWindow {
          val l = Layout.openStandalone(anchorPane())
-         val p = PopWindow().apply {
+         val p = popWindow {
             content.value = l.root
             title.value = c.name
             properties[Window.keyWindowLayout] = l

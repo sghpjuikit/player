@@ -61,6 +61,7 @@ import sp.it.pl.ui.objects.window.NodeShow.RIGHT_CENTER
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.ui.objects.window.Shower
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.pane.ConfigPane
 import sp.it.util.Na
@@ -169,7 +170,7 @@ import sp.it.util.units.uri
  * Tip: Associate help popups with buttons marked with question mark or similar icon.
  */
 @JvmOverloads
-fun helpPopup(textContent: String, textTitle: String = "Help"): PopWindow = PopWindow().apply {
+fun helpPopup(textContent: String, textTitle: String = "Help"): PopWindow = popWindow {
    styleClass += "help-pop-window"
    content.value = SpitText(textContent).apply {
       styleClass += "help-pop-window-text"
@@ -578,7 +579,7 @@ fun errorIcon(error: Any?) = Icon().apply {
    isMouseTransparent = true
 }
 
-fun <N: Node> showFloating(title: String, shower: Shower = WINDOW_ACTIVE(CENTER), content: (PopWindow) -> N): PopWindow = PopWindow().apply {
+fun <N: Node> showFloating(title: String, shower: Shower = WINDOW_ACTIVE(CENTER), content: (PopWindow) -> N): PopWindow = popWindow {
    this.title.value = title
    this.content.value = content(this)
 
@@ -586,7 +587,7 @@ fun <N: Node> showFloating(title: String, shower: Shower = WINDOW_ACTIVE(CENTER)
 }
 
 fun showConfirmation(text: String, shower: Shower = WINDOW_ACTIVE(CENTER), action: () -> Unit) {
-   PopWindow().apply {
+   popWindow {
       content.value = vBox(0, CENTER) {
          lay += SpitText(text).apply {
             boundsType = TextBoundsType.LOGICAL_VERTICAL_CENTER

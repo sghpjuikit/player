@@ -31,6 +31,7 @@ import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.ALL
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
@@ -271,7 +272,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    @IsAction(name = APP_SEARCH, info = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
    fun showSearchPosScreen() {
       APP.windowManager.windowsFx.find { it.scene?.root?.properties?.get(APP_SEARCH) == APP_SEARCH }.ifNotNull { it.asPopWindow()?.focus() }.ifNull {
-         PopWindow().apply {
+         popWindow {
             content.value = APP.search.buildUi { hide() }
             title.value = "Search for an action or option"
             isAutohide.value = true

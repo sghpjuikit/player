@@ -19,6 +19,7 @@ import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.util.access.Values.previous
 import sp.it.util.action.IsAction
 import sp.it.util.async.runIO
@@ -79,7 +80,7 @@ class ScreenRotator: PluginBase() {
 
    @IsAction(name = "Rotate screen", info = "Show 'Rotate Screen' dialog", global = true, keys = "ALT+Semicolon")
    fun showRotateScreenDialog() {
-      PopWindow().apply {
+      popWindow {
          userResizable.value = false
          userMovable.value = false
          headerVisible.value = false

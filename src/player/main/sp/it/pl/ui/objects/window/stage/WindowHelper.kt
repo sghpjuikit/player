@@ -18,6 +18,7 @@ import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.onIsShowing1st
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
@@ -138,7 +139,7 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
       }
    }
 
-   PopWindow().apply {
+   popWindow {
       w.settingsWindow = this
       onClose += { w.settingsWindow = null }
 

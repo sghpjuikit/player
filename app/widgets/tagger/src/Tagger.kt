@@ -180,6 +180,7 @@ import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.complexfield.StringTagTextField
 import sp.it.pl.ui.objects.complexfield.TagTextField
 import sp.it.pl.ui.objects.image.ArtworkCover
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.util.access.focused
 import sp.it.util.dev.failCase
 import sp.it.util.functional.orNull
@@ -586,7 +587,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
    fun write() {
       val error = validators.find { it.isInValid() }
       if (error!=null) {
-         PopWindow().apply {
+         popWindow {
             content.value = Text(error.text)
             show(WINDOW_ACTIVE(CENTER))
          }
@@ -858,7 +859,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          addEventHandler(DRAG_DROPPED, dragDroppedHandler)
       }
 
-      PopWindow().apply {
+      popWindow {
          content.value = list
          title.value = "Active Items"
          show(LEFT_CENTER(infoL))

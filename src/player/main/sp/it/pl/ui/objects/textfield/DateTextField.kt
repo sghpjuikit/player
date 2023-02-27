@@ -7,6 +7,7 @@ import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.ui.objects.picker.DatePickerContent
 import sp.it.pl.ui.objects.window.NodeShow
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
@@ -48,7 +49,7 @@ class DateTextField(initialValue: LocalDate? = null, locale: Locale = Locale.get
          editable syncFrom this@DateTextField.editableProperty() on d
       }
 
-      val p = popup ?: PopWindow().apply {
+      val p = popup ?: popWindow {
          styleClass += "date-text-field-popup"
          popup = this
          userMovable.value = false

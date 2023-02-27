@@ -27,6 +27,7 @@ import sp.it.pl.main.AppTask.State.SCHEDULED
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.RIGHT_UP
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Loop
@@ -262,7 +263,7 @@ object AppProgress {
             }
          }
       }
-      return PopWindow().apply {
+      return popWindow {
          content.value = layout
          title.value = "Tasks"
          isEscapeHide.value = true

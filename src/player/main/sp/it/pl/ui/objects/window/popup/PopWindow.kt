@@ -437,6 +437,8 @@ open class PopWindow {
 
    companion object {
 
+      fun popWindow(block: PopWindow.() -> Unit): PopWindow = PopWindow().apply(block)
+
       fun WindowFx.initPopWindow(popup: PopWindow): Unit = properties.put("popWindow", popup).toUnit()
 
       fun WindowFx.asPopWindow(): PopWindow? = properties["popWindow"].asIf()

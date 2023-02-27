@@ -137,6 +137,8 @@ infix fun <T, O> ObservableValue<T>.flatMap(mapper: (T) -> ObservableValue<O>): 
    override fun getValue() = if (s.isSubscribed) mv else computeValue()
 }
 
+infix fun <T, O> ObservableValue<T>.into(mapper: (T & Any) -> ObservableValue<O>?): ObservableValue<O?> = this.flatMap { mapper(it!!) }
+
 /**
  * Maps this and the specified [ObservableValue] into one that contains [Pair] of values from both.
  * When the returned observable is observed, the mapping is eager, so it happens on every change of this adn that observable.
@@ -197,22 +199,22 @@ infix fun <O> ObservableValue<O>.attachWhile(block: (O) -> Subscription): Subscr
 }
 
 /** Sets a disposable block to be fired on every non-null value change. The block is disposed on the next change (null or not). */
-infix fun <O: Any> ObservableValue<O?>.attachNonNullWhile(block: (O) -> Subscription) = attachWhile { it ->
+infix fun <O: Any> ObservableValue<O?>.attachNonNullWhile(block: (O) -> Subscription) = attachWhile {
    it?.net(block).orEmpty()
 }
 
 /** Sets a disposable block to be fired immediately and on every value change. The block is disposed on the next change. */
-infix fun <O> ObservableValue<O>.syncWhile(block: (O) -> Subscription): Subscription {
+infix fun <O> ObservableValue<O>.syncWhile(block: (O) -> Subscription?): Subscription {
    val inner = Disposer()
    val outer = sync {
       inner()
-      inner += block(it)
+      inner += block(it).orEmpty()
    }
    return outer + inner
 }
 
 /** Sets a disposable block to be fired immediately and on every non-null value change. The block is disposed on the next change (null or not). */
-infix fun <O: Any> ObservableValue<O?>.syncNonNullWhile(block: (O) -> Subscription) = syncWhile { it ->
+infix fun <O: Any> ObservableValue<O?>.syncNonNullWhile(block: (O) -> Subscription) = syncWhile {
    it?.net(block).orEmpty()
 }
 
@@ -500,16 +502,6 @@ fun Observable.onChangeAndNow(block: () -> Unit): Subscription {
    return onChange(block)
 }
 
-/** Sets a disposable block to be on every change. The block is disposed on the next change. */
-infix fun Observable.attachWhile(block: () -> Subscription): Subscription {
-   val inner = Disposer()
-   val outer = onChange {
-      inner()
-      inner += block()
-   }
-   return outer + inner
-}
-
 /** Sets a disposable block to be on every change to `true`. The block is disposed on the next change. */
 infix fun ObservableValue<Boolean?>.attachWhileTrue(block: () -> Subscription): Subscription = attachWhile { if (value==true) block() else Subscription() }
 
@@ -518,16 +510,6 @@ infix fun ObservableValue<Boolean?>.attachWhileFalse(block: () -> Subscription):
 
 /** Sets a disposable block to be on every change to `null`. The block is disposed on the next change. */
 infix fun <T> ObservableValue<T?>.attachWhileNull(block: () -> Subscription): Subscription = attachWhile { if (value==null) block() else Subscription() }
-
-/** Sets a disposable block to be fired immediately and on every change. The block is disposed on the next change. */
-infix fun Observable.syncWhile(block: () -> Subscription): Subscription {
-   val inner = Disposer()
-   val outer = onChangeAndNow {
-      inner()
-      inner += block()
-   }
-   return outer + inner
-}
 
 /** Sets a disposable block to be fired immediately if `true` and on every change to `true`. The block is disposed on the next change. */
 infix fun ObservableValue<Boolean?>.syncWhileTrue(block: () -> Subscription): Subscription = syncWhile { if (value==true) block() else Subscription() }

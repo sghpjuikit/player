@@ -31,9 +31,9 @@ fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, mes
 val String.sysProp: String?
    get() = System.getProperty(this)?.takeIf { it.isNotBlank() }
 
-private fun String.capital() = capitalize()
+   private fun String.capital() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 
-private fun String.decapital() = decapitalize()
+   private fun String.decapital() = replaceFirstChar { it.lowercase() }
 
 abstract class LinkJDK : DefaultTask {
    /** Location of the link to the JDK. */
@@ -152,7 +152,7 @@ open class GenerateKtFileHierarchy: DefaultTask() {
                val path = if (isRoot) paths.peek() else (paths + sequenceOf("\"$name\"")).joinToString(""" + separator + """)
                val def = """
                   |/** ${defTypeName.capital()} child [$defName]. */
-                  |val ${defName.toLowerCase()} = $defName
+                  |val ${defName.lowercase()} = $defName
                   |
                   |/**
                   | * Compile-time object representing $defTypeName `${paths.joinToString("/")}`, usable in annotations.

@@ -82,7 +82,6 @@ import sp.it.util.ui.scene
 import sp.it.util.ui.screenXy
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.size
-import sp.it.util.ui.stage
 import sp.it.util.ui.x
 import sp.it.util.ui.xy
 import sp.it.util.units.millis
@@ -90,9 +89,24 @@ import sp.it.util.units.millis
 open class PopWindow {
 
    private var window: WindowFx? = null
+   private var stageOwner: WindowFx? = null
    private val stage by lazy {
-      stage(TRANSPARENT) {
-         initOwner(APP.windowManager.createStageOwnerNoShow().apply { properties["throwaway"] = true; show() })
+      val ownerNoShow = stageOwner==null
+      val owner = stageOwner ?: APP.windowManager.createStageOwnerNoShow().apply { show() }
+      object: Stage() {
+         override fun hide() {
+            //  Due to JavaFX bugs it is impossible to hide the owner after this is hidden, so we override hide()
+            //  so the owner is hidden first. It automatically trues to hide this, after which we call super.hide()
+            if (ownerNoShow && owner.isShowing) {
+               owner.hide()
+            } else {
+               super.hide()
+            }
+         }
+      }.apply {
+         initStyle(TRANSPARENT)
+
+         initOwner(owner)
          initPopWindow(this@PopWindow)
          titleProperty() syncFrom this@PopWindow.title
          resizableProperty() syncFrom userResizable
@@ -297,6 +311,7 @@ open class PopWindow {
       tillHidden()
       runFX(100.millis) {
          if (focusOnShow.value) {
+            stageOwner = windowOwner
             stage.apply {
                window = this
                window?.opacity = 0.0
@@ -316,7 +331,7 @@ open class PopWindow {
                      val a1 = windowOwner.asIf<Stage>()?.alwaysOnTopProperty() ?: vAlways(false)
                      val a2 = windowOwner.focusedProperty()
                      val a3 = focusedProperty()
-                     a1.syncWhile { it ->
+                     a1.syncWhile {
                         if (it) {
                            stage.isAlwaysOnTop = it
                            Subscription()
@@ -352,8 +367,9 @@ open class PopWindow {
                scene.root = root
                sizeToScene()
                xy = shower(stage).net {
-                  val s = Screen.getScreensForRectangle(it.areaBy(1 x 1)).first()
-                  it max s.bounds.min min (s.bounds.max - size)
+                  val s = Screen.getScreensForRectangle(it.areaBy(1 x 1)).firstOrNull()
+                  if (s==null) it
+                  else it max s.bounds.min min (s.bounds.max - size)
                }
 
                onIsShowing1st { initAutohide() } on tillHidden
@@ -411,7 +427,6 @@ open class PopWindow {
       if (!isShowing) return
       tillHiding()
       window?.hide()
-      window?.asIf<Stage>()?.owner?.takeIf { it.properties["throwaway"] == true }?.hide()
       window = null
       tillHidden()
    }

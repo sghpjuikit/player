@@ -555,7 +555,6 @@ class WidgetManager {
                "-d", compileDir.relativeToApp(),
                "-jdk-home", APP.location.child("java").relativeToApp(),
                "-api-version", "1.8",
-               "-language-version", "1.8",
                "-jvm-target", "19",
                "-progressive",
                "-language-version", "2.0",

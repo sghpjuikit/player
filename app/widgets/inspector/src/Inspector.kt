@@ -45,7 +45,6 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.propagateESCAPE
-import sp.it.util.reactive.syncNonNullIntoWhile
 import sp.it.util.ui.expandToRootAndSelect
 import sp.it.util.ui.isAnyChildOf
 import sp.it.util.ui.lay
@@ -60,6 +59,8 @@ import javafx.stage.Window as WindowFX
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.IconMD
+import sp.it.util.reactive.into
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.ui.flowPane
 import sp.it.util.ui.label
 import sp.it.util.ui.traverseParents
@@ -217,7 +218,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
       }
 
       private fun observeWindowRoots(subscriber: (Parent) -> Subscription) = WindowFX.getWindows().onItemSyncWhile {
-         it.sceneProperty().syncNonNullIntoWhile(Scene::rootProperty, subscriber)
+         it.sceneProperty().into(Scene::rootProperty).syncNonNullWhile(subscriber)
       }
 
    }

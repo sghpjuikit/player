@@ -37,9 +37,10 @@ import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.file.div
 import sp.it.util.http.downloadFile
+import sp.it.util.reactive.into
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemSyncWhile
-import sp.it.util.reactive.syncNonNullIntoWhile
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.ui.drag.DataFormat
 import sp.it.util.ui.drag.contains
 import sp.it.util.ui.drag.get
@@ -52,7 +53,7 @@ private val dirTmp = File(System.getProperty("java.io.tmpdir"))
 private var dragData: Any? = null
 private var dragDataId = AtomicLong(0).apply {
    Window.getWindows().onItemSyncWhile {
-      it.sceneProperty().syncNonNullIntoWhile(Scene::rootProperty) {
+      it.sceneProperty().into(Scene::rootProperty).syncNonNullWhile {
          it.onEventUp(DRAG_DROPPED) {
             runLater(onlyIfMatches(this) { dragData = null })
          }

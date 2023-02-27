@@ -102,8 +102,9 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.runTry
+import sp.it.util.reactive.into
 import sp.it.util.reactive.sync1IfNonNull
-import sp.it.util.reactive.syncNonNullIntoWhile
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.system.browse
 import sp.it.util.system.edit
 import sp.it.util.system.open
@@ -557,7 +558,7 @@ object CoreMenus: Core {
    private fun MenuBuilder<*, *>.itemsFor(value: Any?) = items { menuItemBuilders[value] }
 
    private inline fun GlyphIcons.toCmUi(block: (Icon).() -> Unit = {}) = Icon(this).apply(block).apply {
-      parentProperty().syncNonNullIntoWhile(Parent::sceneProperty) {
+      parentProperty().into(Parent::sceneProperty).syncNonNullWhile {
          it.windowProperty().sync1IfNonNull {
             focusOwner.value = parent.parent
          }

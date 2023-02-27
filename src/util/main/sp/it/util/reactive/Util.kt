@@ -354,9 +354,6 @@ fun <O, R> ObservableValue<O>.syncIntoWhile(extractor: (O) -> ObservableValue<R>
    return outer + inner + superInner
 }
 
-/** Sets block to be resubscribed immediately and on every non-null change of the extracted observable of the value until value changes. */
-fun <O: Any?, R: Any> ObservableValue<O>.syncNonNullIntoWhile(extractor: (O) -> ObservableValue<R?>, block: (R) -> Subscription) = syncIntoWhile(extractor) { it?.net(block).orEmpty() }
-
 /** [sync1If], that does not run immediately (even if the value passes the condition). */
 @OptIn(ExperimentalContracts::class)
 inline fun <T> ObservableValue<T>.attach1If(crossinline condition: (T) -> Boolean, crossinline block: (T) -> Unit): Subscription {

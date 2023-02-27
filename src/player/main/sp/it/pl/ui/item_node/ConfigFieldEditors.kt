@@ -1215,7 +1215,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       editor.asIf<TextArea>()?.isWrapText = true
       editor.asIf<TextArea>()?.prefRowCount = editor.text.lengthInLines.clip(1, 10)
       obv?.attach { refreshValue() }.orEmpty() on disposer
-      obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() }.orEmpty() }.orEmpty() on disposer
+      obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() } }.orEmpty() on disposer
       editor.focusedProperty() attachFalse  { refreshValue() } on disposer
       editor.onEventDown(KEY_RELEASED, ESCAPE) { refreshValue() }
 

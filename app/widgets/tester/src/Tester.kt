@@ -167,6 +167,8 @@ import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
+import sp.it.util.reactive.into
+import sp.it.util.reactive.flatMap
 
 @Suppress("RemoveExplicitTypeArguments", "RemoveRedundantBackticks", "RemoveExplicitTypeArguments", "RedundantLambdaArrow")
 @ExperimentalController("For development")
@@ -678,19 +680,35 @@ class Tester(widget: Widget): SimpleController(widget) {
          val c by cv(3.0).between(1, 10)
          val consumer1 = v(0.0)
          val consumer2 = v(0.0)
+         val consumer3 = v(0.0)
+         val consumer4 = v(0.0)
       }
 
-      c.consumer1 syncFrom c.d.flatMap {
+      c.consumer1 syncFrom (c.d flatMap {
+         when (it) {
+            true -> c.a
+            false -> (c.b zip c.c).map { (td, sd) -> sd + td }
+         }
+      })
+
+      c.consumer2 syncFrom (c.d into {
+         when (it) {
+            true -> c.a
+            false -> c.b zip c.c map { (td, sd) -> sd + td }
+         }
+      })
+
+      c.consumer3 syncFrom c.d.flatMap {
          when (it) {
             true -> c.a
             false -> c.b zip c.c map { (td, sd) -> sd + td }
          }
       }
 
-      c.d syncWhile { s ->
-         when (s) {
-            true -> c.consumer2 syncFrom c.a
-            false -> c.b syncWhile { td -> c.c sync { sd -> c.consumer2.value = sd + td } }
+      c.d syncWhile {
+         when (it) {
+            true -> c.consumer4 syncFrom c.a
+            false -> c.b syncWhile { td -> c.c sync { sd -> c.consumer4.value = sd + td } }
          }
       }
 
@@ -699,11 +717,17 @@ class Tester(widget: Widget): SimpleController(widget) {
             lay += label("Observable chains.")
             lay += label("The below values `if (d) a else (b + c)` should be the same.")
             lay += label()
-            lay += label("Map/flatMap based. Tests map(), flatMap(), zip().")
+            lay += label("`flatMap` (JavaFX) based. Tests `map()` (JavaFX), `flatMap()` (JavaFX), `zip()`.")
             lay += label { textProperty() syncFrom c.consumer1.map { "    Value: $it" } }
             lay += label()
-            lay += label("Subscription based. Tests subscription nesting.")
+            lay += label("`flatMap` based. Tests `map()`, `flatMap()`, `zip()`.")
             lay += label { textProperty() syncFrom c.consumer2.map { "    Value: $it" } }
+            lay += label()
+            lay += label("`into` based. Tests `map()`, `flatMap()`, `zip()`.")
+            lay += label { textProperty() syncFrom c.consumer3.map { "    Value: $it" } }
+            lay += label()
+            lay += label("`Subscription` based. Tests `Subscription` nesting.")
+            lay += label { textProperty() syncFrom c.consumer4.map { "    Value: $it" } }
             lay += label()
             lay += form(c).apply { editorUi.value = MINI }
          }

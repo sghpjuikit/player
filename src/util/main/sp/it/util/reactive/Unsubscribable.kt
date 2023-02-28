@@ -13,13 +13,21 @@ fun interface Unsubscribable {
 
 /**
  * Sets this [Unsubscribable] to be [Unsubscribable.unsubscribe]d according to the specified [Unsubscriber].
+ * Does nothing if null.
  * Equivalent to: `this.apply(disposer)`.
  * Basically the `disposer.register(disposable)`.
  * @return this
  */
-infix fun <T: Unsubscribable> T.on(disposer: Unsubscriber): T = apply(disposer)
+infix fun <T: Unsubscribable?> T.on(disposer: Unsubscriber): T = if (this==null) this else apply(disposer)
 
-infix fun <T: Unsubscribable> T.on(disposer: Handler0): T = apply { disposer += ::unsubscribe }
+/**
+ * Sets this [Unsubscribable] to be [Unsubscribable.unsubscribe]d according to the specified [Unsubscriber].
+ * Does nothing if null.
+ * Equivalent to: `this.apply { disposer += ::unsubscribe }`.
+ * Basically the `disposer.register(disposable)`.
+ * @return this
+ */
+infix fun <T: Unsubscribable?> T.on(disposer: Handler0): T = if (this==null) this else apply { disposer += ::unsubscribe }
 
 /** Converts [Fut.cancel] to [Unsubscribable] and calls [on] */
 infix fun <T: Any?> Fut<T>.on(disposer: Unsubscriber): Fut<T> = apply { Unsubscribable { cancel() } on disposer }

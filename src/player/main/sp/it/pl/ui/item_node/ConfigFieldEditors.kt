@@ -239,7 +239,7 @@ open class BoolCE(c: Config<Boolean?>): ConfigEditor<Boolean?>(c) {
       }
       editor.selected.value = c.value
       editor.selected attach { apply() } on disposer
-      v?.attach { editor.selected.value = it }.orEmpty() on disposer
+      v?.attach { editor.selected.value = it } on disposer
 
       // readonly
       isEditable syncTo editor.editable on disposer
@@ -297,7 +297,7 @@ class ComplexCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    init {
       editor.updateValue(c.value)
       editor.onValueChange attach { valueChanging.suppressing { apply() } } on disposer
-      v?.attach { valueChanging.suppressed { editor.updateValue(it) } }.orEmpty() on disposer
+      v?.attach { valueChanging.suppressed { editor.updateValue(it) } } on disposer
 
       // readonly
       isEditable syncTo editor.isEditable on disposer
@@ -344,7 +344,7 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
       // value
       slider.value = config.value.toDouble()
       slider.valueProperty() attach { if (!slider.isValueChanging) apply() } on disposer
-      v?.attach { slider.value = it.toDouble() }.orEmpty() on disposer
+      v?.attach { slider.value = it.toDouble() } on disposer
 
       // increment/decrement
       val scrollHandler = GeneralCE.onNumberScrolledHandler(this)
@@ -383,7 +383,7 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
 
    init {
       editor.styleClass += STYLECLASS_COMBOBOX_CONFIG_EDITOR
-      v?.attach { editor.value = c.value }.orEmpty() on disposer
+      v?.attach { editor.value = c.value } on disposer
       if (enumeration is Observable) {
          val list = observableArrayList<T>()
          val listSorted = if (isSortable) list.sorted(by(uiConverter)) else list
@@ -465,7 +465,7 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
 
       // value
       editor.onValueChange attach { apply() } on disposer
-      v?.attach { editor.value = it }.orEmpty() on disposer
+      v?.attach { editor.value = it } on disposer
 
       // readonly
       isEditable syncTo editor.editable on disposer
@@ -487,7 +487,7 @@ class ValueToggleButtonGroupCE<T>(c: Config<T>, val values: List<T>, customizer:
    init {
       editor.styleClass += "toggle-group-config-editor"
       editor.value attach { apply() } on disposer
-      v?.attach { editor.value.value = it }.orEmpty() on disposer
+      v?.attach { editor.value.value = it } on disposer
 
       // readonly
       isEditable syncTo editor.isEditable on disposer
@@ -515,7 +515,7 @@ open class ValueTextFieldBasedCE<T>(c: Config<T>, editorBuilder: (T) -> ValueTex
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.onValueChange attach { apply() } on disposer
-      v?.attach { editor.value = it }.orEmpty() on disposer
+      v?.attach { editor.value = it } on disposer
 
       editor.textProperty() sync { showWarnButton(getValid()) } on disposer
 
@@ -551,7 +551,7 @@ class ColorCE(c: Config<Color?>): ConfigEditor<Color?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.onValueChange attach { apply() } on disposer
-      v?.attach { editor.value = it }.orEmpty() on disposer
+      v?.attach { editor.value = it } on disposer
 
       // readonly
       isEditable syncTo editor.editable on disposer
@@ -573,7 +573,7 @@ class LocalTimeCE(c: Config<LocalTime?>): ConfigEditor<LocalTime?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.onValueChange attach { apply() } on disposer
-      v?.attach { editor.value = it }.orEmpty() on disposer
+      v?.attach { editor.value = it } on disposer
 
       // readonly
       isEditable syncTo editor.editable on disposer
@@ -595,7 +595,7 @@ class LocalDateCE(c: Config<LocalDate?>): ConfigEditor<LocalDate?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.onValueChange attach { apply() } on disposer
-      v?.attach { editor.value = it }.orEmpty() on disposer
+      v?.attach { editor.value = it } on disposer
 
       // readonly
       isEditable syncTo editor.editable on disposer
@@ -617,7 +617,7 @@ class LocalDateTimeCE(c: Config<LocalDateTime?>): ConfigEditor<LocalDateTime?>(c
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.onValueChange attach { apply() } on disposer
-      v?.attach { editor.value = it }.orEmpty() on disposer
+      v?.attach { editor.value = it } on disposer
 
       // readonly
       isEditable syncTo editor.editable on disposer
@@ -641,7 +641,7 @@ class EffectCE(c: Config<Effect?>, effectType: KClass<out Effect>): ConfigEditor
       editor.value.value = config.value
       editor.value attach { apply() } on disposer
       editor.editors.ui syncFrom APP.ui.formLayout on disposer
-      v?.attach { editor.value.value = it }.orEmpty() on disposer
+      v?.attach { editor.value.value = it } on disposer
 
       // readonly
       isEditable syncTo editor.editable on disposer
@@ -1126,7 +1126,7 @@ class ConfigurableCE(c: Config<Configurable<*>?>): ConfigEditor<Configurable<*>?
       editor.onChangeOrConstraint = onChangeOrConstraint
       editor.ui syncFrom APP.ui.formLayout on disposer
       editor.configure(c.value)
-      v?.attach { editor.configure(it) }.orEmpty() on disposer
+      v?.attach { editor.configure(it) } on disposer
 
       // readonly
       isEditable syncTo editor.editable on disposer
@@ -1214,8 +1214,8 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       editor.text = converterRaw(config.value)
       editor.asIf<TextArea>()?.isWrapText = true
       editor.asIf<TextArea>()?.prefRowCount = editor.text.lengthInLines.clip(1, 10)
-      obv?.attach { refreshValue() }.orEmpty() on disposer
-      obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() } }.orEmpty() on disposer
+      obv?.attach { refreshValue() } on disposer
+      obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() } } on disposer
       editor.focusedProperty() attachFalse  { refreshValue() } on disposer
       editor.onEventDown(KEY_RELEASED, ESCAPE) { refreshValue() }
 

@@ -375,11 +375,11 @@ public class ActionPane extends OverlayPane<Object> {
 		var dataAsS = (String) null;
 		if (data instanceof String dataS && dataS.length()>40)
 			dataAsS = dataS;
-		if (data instanceof Throwable t)
+		else if (data instanceof Throwable t)
 			dataAsS = DebugKt.getStacktraceAsString(t);
-		if (data instanceof JsValue json)
+		else if (data instanceof JsValue json)
 			dataAsS = toPrettyS(json, "  ", "\n");
-		if (data instanceof Jwt || (data!=null && getKotlinClass(data.getClass()).isData()))
+		else if (data instanceof Jwt || (data!=null && getKotlinClass(data.getClass()).isData()))
 			dataAsS = APP.getConverter().ui.toS(data);
 
 		if (dataAsS!=null) {

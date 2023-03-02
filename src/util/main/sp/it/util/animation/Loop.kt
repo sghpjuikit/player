@@ -28,6 +28,12 @@ open class Loop {
       this.action = LongConsumer { action() }
    }
 
+   /** @return whether this loop is running */
+   fun isRunning() = active
+
+   /** Starts or stops this loop depending on [isRunning] */
+   fun toggle() = if (active) stop() else start()
+
    /** Starts this loop if it is not running. Once started, the action will be called in every frame. */
    fun start() {
       if (!active) {

@@ -3,8 +3,12 @@ package voronoi
 import java.util.Random
 import java.util.stream.IntStream
 import javafx.event.Event
+import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
+import javafx.scene.input.KeyCode.F5
+import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
@@ -17,6 +21,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlin.properties.Delegates.observable
 import kotlin.streams.asSequence
 import mu.KLogging
 import org.locationtech.jts.geom.Coordinate
@@ -32,18 +37,22 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.pane.ShortcutPane.Entry
+import sp.it.util.Util.clip
 import sp.it.util.Util.pyth
-import sp.it.util.access.V
+import sp.it.util.access.toggle
+import sp.it.util.access.v
 import sp.it.util.animation.Loop
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.functional.runTry
 import sp.it.util.math.clip
 import sp.it.util.math.min
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
-import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
+import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.zip
 import sp.it.util.text.*
 import sp.it.util.ui.canvas
 import sp.it.util.ui.lay
@@ -63,14 +72,20 @@ class Voronoi(widget: Widget): SimpleController(widget) {
    val pointCount by cv(200).def(name = "Points", info = "Number of generated points") sync { canvas.pointCount = it }
    val displayed by cv(CIRCLES).def(name = "Pattern", info = "Displayed structure") sync { canvas.displayedToBe = it }
    val highlighting by cv(BY_DISTANCE_VALUE).def(name = "Highlighting", info = "Type of highlighting algorithm") sync { canvas.highlighting = it }
+   val animate by cv(true).def(name = "Animate", info = "Animate view (if view supports it)")
+   val pauseOnFocus by cv(true).def(name = "Animation pause on no focus", info = "Pause animating when window loses focus")
 
    init {
       root.prefSize = 850.emScaled x 600.emScaled
       root.lay += canvas.color
       root.lay += canvas.canvas
 
-      root.focusedProperty() sync { canvas.pause(!it) } on onClose
-      root.onEventDown(MOUSE_CLICKED, PRIMARY) { canvas.pause(false) }
+      canvas.animate syncFrom animate
+      canvas.hasFocus syncFrom (root.focusedProperty() zip pauseOnFocus).map { (a,b) -> a  || !b }
+      root.isFocusTraversable = true
+      root.onEventDown(MOUSE_CLICKED, PRIMARY) { if (it.isStillSincePress) animate.toggle() }
+      root.onEventDown(KEY_RELEASED, SPACE) { animate.toggle() }
+      root.onEventDown(KEY_RELEASED, F5) { canvas.needsRefresh=true; canvas.loopDirty() }
       root.onEventDown(Event.ANY) { if (it !is KeyEvent) it.consume() }
 
       root.sync1IfInScene { canvas.loop.start() } on onClose
@@ -88,23 +103,44 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       var mousePos: P? = null      // null if outside
       var loopId: Long = 0
       private val inputOutputMap = HashMap<Coordinate, Cell>() // input -> polygons
-      val running = V(true)
       private var displayedCurrent: CellGenerator? = null
       private var displayedPointCount: Int? = null
-      var pointCount: Int = 40
-      var displayedToBe: CellGenerator? = null
+      var pointCount: Int  by observable(40) { _,_,_ -> loopDirty() }
+      var displayedToBe: CellGenerator? by observable(null) { _,_,_ -> loopDirty() }
       var highlighting = BY_DISTANCE_ORDER
+      val animate = v(true)
+      val hasFocus = v(false)
+      var needsRefresh = false
 
       init {
-         canvas.onEventDown(MOUSE_PRESSED, PRIMARY) { draggedCell = selectedCell }
-         canvas.onEventDown(MOUSE_RELEASED, PRIMARY) { draggedCell = null }
+         animate zip hasFocus attach { (a, b) -> animate(a && b) }
+
+         canvas.onEventDown(MOUSE_PRESSED, PRIMARY) {
+            draggedCell = selectedCell
+            drawDirty()
+         }
+         canvas.onEventDown(MOUSE_RELEASED, PRIMARY) {
+            draggedCell = null
+            drawDirty()
+         }
          canvas.onEventDown(MOUSE_DRAGGED, PRIMARY) {
             mousePos = P(it.x, it.y)
             draggedCell?.x = it.x
             draggedCell?.y = it.y
+            drawDirty()
          }
-         canvas.onEventDown(MOUSE_MOVED) { mousePos = P(it.x, it.y) }
-         canvas.onEventDown(MOUSE_EXITED) { mousePos = null }
+         canvas.onEventDown(MOUSE_MOVED) {
+            mousePos = P(it.x, it.y)
+            drawDirty()
+         }
+         canvas.onEventDown(MOUSE_EXITED) {
+            mousePos = null
+            drawDirty()
+         }
+      }
+
+      fun loopDirty() {
+         if (!loop.isRunning()) loop()
       }
 
       fun loop() {
@@ -113,28 +149,33 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          if (w<=0 || h<=0) return
 
          loopId++
-         val seedMove = CellMoveSeed(w, h, w min h)
+         val seedMove = CellMoveSeed(w, h, w min h, canvas)
          val seedGen = CellGeneratorSeed(w, h, pointCount)
 
-         if (displayedCurrent!=displayedToBe || displayedPointCount!=pointCount) {
+         if (displayedCurrent!=displayedToBe || displayedPointCount!=pointCount || needsRefresh) {
+            needsRefresh = false
             displayedCurrent = displayedToBe
             displayedPointCount = pointCount
             displayedCurrent?.let {
                cells = it.generator(seedGen).toList()
             }
          }
-         selectedCell = mousePos?.let { p -> cells.minByOrNull { it.distance(p) } }
          cells.forEach { it.moving?.invoke(seedMove) }
 
          draw()
       }
 
-      fun pause(v: Boolean) {
-         if (running.value==v) return
-         if (v) loop.stop() else loop.start()
+      fun animate(v: Boolean) {
+         if (loop.isRunning()==v) return
+         if (v) loop.start() else loop.stop()
+      }
+
+      fun drawDirty() {
+         if (!loop.isRunning()) draw()
       }
 
       fun draw() {
+         selectedCell = mousePos?.let { p -> cells.minByOrNull { it.distance(p) } }
          inputOutputMap.clear()
          val c = color.fill
          val w = canvas.width
@@ -229,7 +270,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
    }
 
    data class CellGeneratorSeed(val width: Double, val height: Double, val count: Int)
-   data class CellMoveSeed(val w: Double, val h: Double, val wh: Double)
+   data class CellMoveSeed(val w: Double, val h: Double, val wh: Double, val canvas: Canvas)
 
    enum class Highlighting {
       NONE,
@@ -240,6 +281,16 @@ class Voronoi(widget: Widget): SimpleController(widget) {
    enum class CellGenerator(val generator: (CellGeneratorSeed) -> Sequence<Cell>) {
       RANDOM({
          generateSequence { Cell.random(it.width, it.height, 0.5) }.take(it.count)
+            .onEach {
+               var dx = rand0N(.4)-.2
+               var dy = rand0N(.4)-.2
+               it.moving = {
+                  if (it.x !in 0.0..canvas.width) dx = -dx
+                  if (it.y !in 0.0..canvas.height) dy = -dy
+                  it.x += dx
+                  it.y += dy
+               }
+            }
       }),
       CIRCLES({
          val cells = ArrayList<Cell>()
@@ -451,6 +502,9 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       override val summaryActions = listOf(
          Entry("Interact", "Highlight", "Move cursor"),
          Entry("Interact", "Move cell", "${PRIMARY.nameUi} Drag"),
+         Entry("View", "Refresh", keys(F5)),
+         Entry("View", "Toggle animation", keys(SPACE)),
+         Entry("View", "Toggle animation", PRIMARY.nameUi),
       )
       override val tags = setOf(VISUALISATION)
 

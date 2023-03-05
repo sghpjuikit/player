@@ -1,7 +1,6 @@
 package voronoi
 
 import java.util.Random
-import java.util.stream.IntStream
 import javafx.event.Event
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
@@ -22,7 +21,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.properties.Delegates.observable
-import kotlin.streams.asSequence
 import mu.KLogging
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Envelope
@@ -37,7 +35,6 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.util.Util.clip
 import sp.it.util.Util.pyth
 import sp.it.util.access.toggle
 import sp.it.util.access.v
@@ -233,29 +230,27 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          }.ifError {
             logger.warn(it) { "Computation of Voronoi diagram failed" }
          }.ifOk { g ->
-            IntStream.range(0, g.numGeometries).asSequence()
-               .map { g.getGeometryN(it) }
-               .forEach { polygon ->
-
-                  val cell = inputOutputMap[polygon.userData as Coordinate]!!
-                  val cs = polygon.coordinates
-                  val xs = DoubleArray(cs.size)
-                  val ys = DoubleArray(cs.size)
-                  for (j in cs.indices) {
-                     xs[j] = cs[j].x
-                     ys[j] = cs[j].y
-                  }
-
-                  val isSelected = selectedCell?.let { cell.x==it.x && cell.y==it.y } ?: false
-                  val isDragged = draggedCell==null
-                  if (isSelected) {
-                     gc.globalAlpha = if (isDragged) 0.1 else 0.15
-                     gc.fillPolygon(xs, ys, polygon.numPoints)
-                  }
-
-                  gc.globalAlpha = distances[cell] ?: opacityMin
-                  strokePolygon(gc, polygon)
+            (0 until g.numGeometries).forEach { i ->
+               val polygon = g.getGeometryN(i)
+               val cell = inputOutputMap[polygon.userData as Coordinate]!!
+               val cs = polygon.coordinates
+               val xs = DoubleArray(cs.size)
+               val ys = DoubleArray(cs.size)
+               for (j in cs.indices) {
+                  xs[j] = cs[j].x
+                  ys[j] = cs[j].y
                }
+
+               val isSelected = selectedCell?.let { cell.x==it.x && cell.y==it.y } ?: false
+               val isDragged = draggedCell==null
+               if (isSelected) {
+                  gc.globalAlpha = if (isDragged) 0.1 else 0.15
+                  gc.fillPolygon(xs, ys, polygon.numPoints)
+               }
+
+               gc.globalAlpha = distances[cell] ?: opacityMin
+               strokePolygon(gc, polygon)
+            }
          }
          gc.restore()
 

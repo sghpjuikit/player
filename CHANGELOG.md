@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **IconViewer** widget icon group showing icons used for widgets
 - Implement **CommandBar** context menu
 - Implement **CommandBar** reorder icons by drag&drop
+- Implement **Voronoi** widget animation settings
 - Implement **Hue** widget run command icon
 - Implement exclusive fullscreen detection
     - use to avoid displaying **StartScreen** overlays and dock windows when exclusive fullscreen mode application is running
@@ -63,6 +64,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix popup outside screen position fix not working sometimes
 - Fix songs with no title showing extension as title substitute
 - Fix not updated or corrupted songs showing length of 00:00 instead of null
+- Fix `PopWindow` not respecting window owner sometimes
+- Fix `OverlayPane` not reacting closing on ESCAPE sometimes
 
 This update brings lots of UX improvements all-around.
 

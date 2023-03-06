@@ -80,7 +80,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       canvas.animate syncFrom animate
       canvas.hasFocus syncFrom (root.focusedProperty() zip pauseOnFocus).map { (a,b) -> a  || !b }
       root.isFocusTraversable = true
-      root.onEventDown(MOUSE_CLICKED, PRIMARY) { if (it.isStillSincePress) animate.toggle() }
+      root.onEventDown(MOUSE_CLICKED, PRIMARY) { if (it.isStillSincePress && root.isFocused) animate.toggle() }
       root.onEventDown(KEY_RELEASED, SPACE) { animate.toggle() }
       root.onEventDown(KEY_RELEASED, F5) { canvas.needsRefresh=true; canvas.loopDirty() }
       root.onEventDown(Event.ANY) { if (it !is KeyEvent) it.consume() }

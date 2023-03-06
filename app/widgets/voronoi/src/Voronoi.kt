@@ -254,6 +254,11 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          }
          gc.restore()
 
+         gc.save()
+         gc.globalAlpha = 0.25
+         gc.strokeRect(0.0, 0.0, w, h)
+         gc.restore()
+
          // draw cell seeds
          gc.save()
          val r = 2.0
@@ -432,41 +437,6 @@ class Voronoi(widget: Widget): SimpleController(widget) {
    open class P(var x: Double, var y: Double) {
       fun distance(p: P): Double = distance(p.x, p.y)
       fun distance(x: Double, y: Double): Double = sqrt((x - this.x)*(x - this.x) + (y - this.y)*(y - this.y))
-   }
-
-   class Line(var x1: Double, var y1: Double, var x2: Double, var y2: Double) {
-
-      override fun equals(other: Any?): Boolean {
-         if (this===other) return true
-         if (other !is Line) return false
-         return (dc(other.x1, x1)==0 && dc(other.x2, x2)==0 && dc(other.y1, y1)==0 && dc(other.y2, y2)==0) ||
-            (dc(other.x1, x2)==0 && dc(other.x2, x1)==0 && dc(other.y1, y2)==0 && dc(other.y2, y1)==0)
-      }
-
-      override fun hashCode(): Int {
-         var result: Int
-         var temp: Long
-         if (x1<x2) {
-            temp = java.lang.Double.doubleToLongBits(x1)
-            result = (temp xor temp.ushr(32)).toInt()
-            temp = java.lang.Double.doubleToLongBits(y1)
-            result = 31*result + (temp xor temp.ushr(32)).toInt()
-            temp = java.lang.Double.doubleToLongBits(x2)
-            result = 31*result + (temp xor temp.ushr(32)).toInt()
-            temp = java.lang.Double.doubleToLongBits(y2)
-            result = 31*result + (temp xor temp.ushr(32)).toInt()
-         } else {
-            temp = java.lang.Double.doubleToLongBits(x2)
-            result = (temp xor temp.ushr(32)).toInt()
-            temp = java.lang.Double.doubleToLongBits(y2)
-            result = 31*result + (temp xor temp.ushr(32)).toInt()
-            temp = java.lang.Double.doubleToLongBits(x1)
-            result = 31*result + (temp xor temp.ushr(32)).toInt()
-            temp = java.lang.Double.doubleToLongBits(y1)
-            result = 31*result + (temp xor temp.ushr(32)).toInt()
-         }
-         return result
-      }
    }
 
    open class Cell(x: Double, y: Double): P(x, y) {

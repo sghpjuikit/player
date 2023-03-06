@@ -157,7 +157,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                cells = it.generator(seedGen).toList()
             }
          }
-         cells.forEach { it.moving?.invoke(seedMove) }
+         cells.forEach { if (it!==draggedCell) it.moving?.invoke(seedMove) }
 
          draw()
       }

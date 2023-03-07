@@ -1,6 +1,10 @@
 // Gradle settings file for multi-project build. Executed during the initialization phase.
 // Defines all projects and build script classpath.
 
+plugins {
+   id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0" // https://github.com/gradle/foojay-toolchains
+}
+
 rootProject.apply {
    name = "player"
    projectDir = file(".")

@@ -22,6 +22,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind.AT_MOST_ONCE
 import kotlin.contracts.contract
 import sp.it.util.access.OrV
+import sp.it.util.access.vx
 import sp.it.util.async.runLater
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.dev.Experimental
@@ -138,6 +139,8 @@ infix fun <T, O> ObservableValue<T>.flatMap(mapper: (T) -> ObservableValue<O>): 
 }
 
 infix fun <T, O> ObservableValue<T>.into(mapper: (T & Any) -> ObservableValue<O>?): ObservableValue<O?> = this.flatMap { mapper(it!!) }
+
+fun <T> ObservableValue<T>.intoLater(): ObservableValue<T> = vx(value).apply { this@intoLater.attach { runLater { value = it } } }
 
 /**
  * Maps this and the specified [ObservableValue] into one that contains [Pair] of values from both.

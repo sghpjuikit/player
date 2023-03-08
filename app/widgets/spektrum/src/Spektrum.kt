@@ -213,8 +213,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
          val barsRaw = fft.frequencyBars
          val barsAvg = barsRaw.sumOf { it.height }/barsRaw.count()
          val bars = when (spektrum.barData) {
-            BarData.CONSTANT -> barsRaw.map { it.copy(height = 50.0) }
-            BarData.CONSTANT_SINE -> barsRaw.mapIndexed { i, b -> b.copy(height = 25.0 * sin(2*PI*i.toDouble()/barsRaw.size).abs) }
+            BarData.CONSTANT -> barsRaw.map { it.copy(height = 0.5) }
+            BarData.CONSTANT_SINE -> barsRaw.mapIndexed { i, b -> b.copy(height = 0.5 * sin(2*PI*i.toDouble()/barsRaw.size).abs) }
             BarData.VOLUME -> barsRaw.map { it.copy(height = barsAvg) }
             BarData.VOLUME_SINE -> barsRaw.mapIndexed { i, b -> b.copy(height = barsAvg * sin(2*PI*i.toDouble()/barsRaw.size).abs) }
             BarData.VOLUME_HISTORY -> {

@@ -97,7 +97,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
 
    private class RenderNode(onClose: Disposer) {
       val loop: Loop = Loop({ _ -> loop() })
-      val canvas = canvas({})
+      val canvas = canvas({ drawDirty() })
       val gc = canvas.graphicsContext2D!!
       val color = Rectangle().apply { isVisible = false; style = "-fx-fill: -skin-def-font-color-hover;" }
       var cells: List<Cell> = listOf()

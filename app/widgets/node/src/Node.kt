@@ -8,9 +8,11 @@ import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Skin
+import javafx.scene.input.ContextMenuEvent.CONTEXT_MENU_REQUESTED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.stage.Window
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
@@ -131,48 +133,13 @@ class Node(widget: Widget): SimpleController(widget) {
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
 
+      root.onEventDown(MOUSE_RELEASED, SECONDARY) { it.consume() }
+      root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (it.isStillSincePress) buildContextmenu().show(root, it) }
+      root.onEventDown(CONTEXT_MENU_REQUESTED) { it.consume() }
+      root.onEventDown(CONTEXT_MENU_REQUESTED) { buildContextmenu().show(root, it) }
       root.onEventDown(MOUSE_CLICKED, PRIMARY) {
          if (nodeInstance.value.node==null)
             APP.windowManager.showSettings(widget, root)
-      }
-      root.onEventDown(MOUSE_CLICKED, SECONDARY) {
-         if (it.isStillSincePress)
-            ContextMenu().dsl {
-               menu("Inputs") {
-                  val node = nodeInstance.value.node
-                  val propertiesWithInputs = io.i.getInputs().asSequence().map { it.name }.toSet()
-                  val properties = nodeInstance.value.properties
-                  val propertiesByClass =  node.javaFXSuperClasses().associateWith { listOf<NodeInput>() } + properties.groupBy { it.declaringClass }
-                  val i = AtomicInteger(-1)
-                  propertiesByClass.forEach { (declaringClass, properties) ->
-                     val namePrefix = if (i.incrementAndGet()==0) "" else "".padStart(i.get(), ' ') + "⌎ "
-                     menu(namePrefix + declaringClass.toUi()) {
-                        properties.forEach { p ->
-                           item {
-                              SelectionMenuItem(p.name + ": " + p.type.toUi(), p.name in propertiesWithInputs).apply {
-                                 selected attachFalse {
-                                    io.i.getInputs().find { it.name==p.name }.ifNotNull {
-                                       io.i.remove(it)
-                                       storeInputs()
-                                    }
-                                 }
-                                 selected attachTrue {
-                                    io.i.create(p.name, p.type, p.value.value) {
-                                       p.value.value = it
-                                       storeInputs()
-                                    }
-                                    storeInputs()
-                                 }
-                              }
-                           }
-                        }
-                     }
-                  }
-               }
-               items {
-                  CoreMenus.menuItemBuilders[this@Node.widget]
-               }
-            }.show(root, it)
       }
 
       nodeInstance sync { node ->
@@ -183,6 +150,43 @@ class Node(widget: Widget): SimpleController(widget) {
          root.children setTo listOfNotNull(node.node)
       }
    }
+
+  fun buildContextmenu() = ContextMenu().dsl {
+     menu("Inputs") {
+        val node = nodeInstance.value.node
+        val propertiesWithInputs = io.i.getInputs().asSequence().map { it.name }.toSet()
+        val properties = nodeInstance.value.properties
+        val propertiesByClass =  node.javaFXSuperClasses().associateWith { listOf<NodeInput>() } + properties.groupBy { it.declaringClass }
+        val i = AtomicInteger(-1)
+        propertiesByClass.forEach { (declaringClass, properties) ->
+           val namePrefix = if (i.incrementAndGet()==0) "" else "".padStart(i.get(), ' ') + "⌎ "
+           menu(namePrefix + declaringClass.toUi()) {
+              properties.forEach { p ->
+                 item {
+                    SelectionMenuItem(p.name + ": " + p.type.toUi(), p.name in propertiesWithInputs).apply {
+                       selected attachFalse {
+                          io.i.getInputs().find { it.name==p.name }.ifNotNull {
+                             io.i.remove(it)
+                             storeInputs()
+                          }
+                       }
+                       selected attachTrue {
+                          io.i.create(p.name, p.type, p.value.value) {
+                             p.value.value = it
+                             storeInputs()
+                          }
+                          storeInputs()
+                       }
+                    }
+                 }
+              }
+           }
+        }
+     }
+     items {
+        CoreMenus.menuItemBuilders[this@Node.widget]
+     }
+  }
 
    fun storeInputs() {
       widget.properties["node-widget-inputs"] = io.i.getInputs().joinToString("-") {

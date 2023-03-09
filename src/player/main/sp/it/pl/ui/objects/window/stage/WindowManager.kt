@@ -3,6 +3,8 @@ package sp.it.pl.ui.objects.window.stage
 import javafx.stage.Window as WindowFx
 import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
 import sp.it.pl.main.AppSettings.ui.window as confWindow
+import com.sun.jna.platform.win32.GDI32
+import com.sun.jna.platform.win32.User32
 import java.io.File
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
@@ -74,8 +76,8 @@ import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.VT
-import sp.it.util.async.future.Fut
 import sp.it.util.async.coroutine.launch
+import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runLater
 import sp.it.util.async.runVT
@@ -569,10 +571,20 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       mw.onClose += { mw.stage.asLayout()?.child?.close() }
 
       // auto-hiding
+      val mwh by lazy { mw.stage.lookupHwnd()!! }
       val showAnim = anim(400.millis) {
+         val x = if (showSide==Side.RIGHT) screen.bounds.maxX-mw.W.value*it
+                 else screen.bounds.minX-mw.W.value*(1-it)
+
          mw.stage.opacity = mw.opacity.value min 0.1 + 0.9*sqrt(sqrt(it))
-         if (showSide==Side.RIGHT) mw.setX(screen.bounds.maxX-mw.W.value*it, false)
-         if (showSide==Side.LEFT) mw.setX(screen.bounds.minX-mw.W.value*(1-it), false)
+         mw.setX(x, false)
+
+         // clip window to screen (helps with 3 monitor setup)
+         if (Os.WINDOWS.isCurrent) {
+            val clip = GDI32.INSTANCE.CreateRectRgn(if (showSide==Side.RIGHT) 0 else (mw.W.value*(1-it)).toInt(), 0, (mw.W.value).toInt(), mw.height.toInt())
+            User32.INSTANCE.SetWindowRgn(mwh, clip, false)
+         }
+
       }
       val shower = {
          VT_IMAGE_THROTTLE.lockFor(150.millis)

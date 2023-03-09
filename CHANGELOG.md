@@ -62,10 +62,13 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `ToggleButtonGroup` styling
 - Fix playback status change notification ui created multiple times
 - Fix popup outside screen position fix not working sometimes
+- Fix dock window not restoring position correctly when screens change
+- Fix custom widgets' context menu not working properly in dock window
 - Fix songs with no title showing extension as title substitute
 - Fix not updated or corrupted songs showing length of 00:00 instead of null
 - Fix `PopWindow` not respecting window owner sometimes
 - Fix `OverlayPane` not reacting closing on ESCAPE sometimes
+- Fix `GpuNvidiaInfo` empty values and GPU name for non-Nvidia cards
 
 This update brings lots of UX improvements all-around.
 

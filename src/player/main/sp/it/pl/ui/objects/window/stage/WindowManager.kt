@@ -194,9 +194,9 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       .def(name = "Allow empty window", info = "Automatically closes non-main window if it becomes empty.")
 
    val dockHoverDelay by cv(700.millis).def(confDock.showDelay)
-  // val dockHideInactive by cv(true).def(confDock.hideOnIdle)
-  // val dockHideInactiveDelay by cv(1500.millis).def(confDock.hideOnIdleDelay).readOnlyUnless(dockHideInactive)
+
    val dockShow by cv(false).def(confDock.enable) sync { showDockImpl(it) }
+
    val dockHeight by cv(40.0)
 
    /** @return main window or null if no main window (only possible when no window is open) */
@@ -360,11 +360,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                setSize(Screen.getPrimary().bounds.width, dockHeight.value, false)
                dockHeight attachTo H
                H attach { dockHeight.value = it.toDouble() }
-
-               APP.mouse.screens.onChangeAndNow {
-                  val s = Screen.getPrimary()
-                  setXYSize(s.bounds.minX, s.bounds.minY, s.bounds.width, height, false)
-               } on onClose
             }
          }
          val content = borderPane {
@@ -421,7 +416,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                showValue = it
                mw.isShowing = it!=0.0
                mw.window.stage.opacity = mw.window.opacity.value min 0.1 + 0.9*sqrt(sqrt(it))
-               mw.window.setY(-(mw.window.H.value-2.0)*(1.0-it), false)
+               mw.window.setY(computeY(), false)
             }
             private val shower = {
                showAnim.intpl { sqrt(sqrt(it)) }
@@ -436,21 +431,21 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                   content.isMouseTransparent = true
                }
             }
-//            val isHover = v(false).apply {
-//               dockHideInactive syncWhileTrue { APP.mouse.observeMousePosition { value = mw.window.root.containsScreen(APP.mouse.mousePosition) } } on mw.window.onClose
-//            }
 
+            fun computeY() = -(mw.window.H.value-2.0)*(1.0-showValue)
+            fun showing() = showValue
             fun hide() = if (showValue==1.0) hider() else Unit
             fun show() = if (showValue==0.0 && windowsFx.none { it.isOverlayWindow() } && osHasWindowExclusiveFullScreen()!=TRUE) shower() else Unit
             fun showWithDelay() = if (showValue==0.0) runFX(dockHoverDelay.value) { if (mw.window.stage.scene.root.isHover) show() }.toUnit() else Unit
             fun showInitially() = showAnim.applyAt(0.0).toUnit()
+
+            init {
+               APP.mouse.screens.onChangeAndNow {
+                  val s = Screen.getPrimary()
+                  mw.window.setXYSize(s.bounds.minX, computeY(), s.bounds.width, mw.window.height, false)
+               } on mw.window.onClose
+            }
          }
-//         mwShower.isHover attachFalse {
-//            if (mwAutohide.value && dockHideInactive.value)
-//               runFX(dockHideInactiveDelay.value) {
-//                  if (mwIsHover.value) hider()
-//               }
-//         }
          mw.window.stage.installHideOnFocusLost(mwAutohide) { mwShower.hide() }
          mw.window.stage.scene.root.onEventDown(DRAG_ENTERED) { mwShower.show() }
          mw.window.stage.scene.root.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }

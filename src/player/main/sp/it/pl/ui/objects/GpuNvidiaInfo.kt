@@ -63,6 +63,7 @@ import sp.it.util.units.FileSize.Companion.Gi
 class GpuNvidiaInfo: StackPane() {
    private val sysInfo = SystemInfo()
    private val sysInfoCpu = sysInfo.hardware.processor
+   private val sysInfoGpu = sysInfo.hardware.graphicsCards
 
    private val cpuLabel = label("CPU")
    private val cpuLoad = Num01Ui("Load", "cpu-load", "%")
@@ -122,8 +123,8 @@ class GpuNvidiaInfo: StackPane() {
             ).thenRecoverNull().await()
          }.collectOn(FX) {
             val valuesRaw = it?.net { it.trim().splitTrimmed(",") } ?: tabulate0(12) { "n/a" }.toList()
-            fun valueOnly(i: Int) = it?.net { valuesRaw[i].trim().takeWhile { it.isDigit() } } ?: "0"
-            fun valueOutOf(i: Int) = it?.net { valueOnly(i) + "/" + valuesRaw[i + 1].trim() } ?: "0/0"
+            fun valueOnly(i: Int) = valuesRaw[i].trim().takeWhile { it.isDigit() }
+            fun valueOutOf(i: Int) = it?.net { valueOnly(i) + "/" + valuesRaw[i + 1].trim() } ?: "n/a"
             fun value01(i: Int) = it?.net { (valueOnly(i).toDouble()/valueOnly(i + 1).toDouble()).clip(0.0, 1.0) } ?: 0.0
 
             text.text = buildString {
@@ -137,10 +138,10 @@ class GpuNvidiaInfo: StackPane() {
                appendLine(" Graphics: ${valueOutOf(4)}")
                appendLine("Draw: ${valueOutOf(10)}")
             }
-            gpuLabel.text = "GPU: ${valuesRaw[9].trim()} (${valuesRaw[8].trim()})"
-            gpuLoad update Num01(valueOnly(12).toDouble(), 100)
-            gpuMem update Num01(valueOnly(6).toDouble(), valueOnly(7).toDouble())
-            gpuPow update Num01(valueOnly(10).toDouble(), valueOnly(11).toDouble())
+            gpuLabel.text = it?.net { "GPU: ${valuesRaw[9].trim()} (${valuesRaw[8].trim()})" } ?: sysInfoGpu.joinToString(", ") { it.name }
+            gpuLoad update it?.net { Num01(valueOnly(12).toDouble(), 100) }
+            gpuMem update it?.net { Num01(valueOnly(6).toDouble(), valueOnly(7).toDouble()) }
+            gpuPow update it?.net { Num01(valueOnly(10).toDouble(), valueOnly(11).toDouble()) }
             progressClockMem.value.value = value01(0)
             progressClockSm.value.value = value01(2)
             progressClockGr.value.value = value01(4)
@@ -149,7 +150,7 @@ class GpuNvidiaInfo: StackPane() {
                appendLine("Sm clock: ${valueOutOf(2)}")
                appendLine("Graphics clock: ${valueOutOf(4)}")
             }
-            labelClockPer.text = "" + ((progressClockGr.value.value + progressClockSm.value.value + progressClockMem.value.value) * 100 / 3.0).roundToInt() + "%"
+            labelClockPer.text = it?.net { "" + ((progressClockGr.value.value + progressClockSm.value.value + progressClockMem.value.value) * 100 / 3.0).roundToInt() + "%" } ?: "n/a"
          }
       }
       Subscription(s1.toSubscription(), s2.toSubscription())
@@ -242,10 +243,10 @@ class GpuNvidiaInfo: StackPane() {
          lay += labelPer
       }
 
-      infix fun update(value: Num01) {
-         progress.value.value = (value.cur.toDouble()/value.tot.toDouble()).clip(0.0, 1.0)
-         labelPer.text = "" + (progress.value.value).times(100).roundToInt() + "%"
-         labelInfo.text = "$name: ${value.cur.toUiShort()}/${value.tot.toUiShort()}$unit"
+      infix fun update(value: Num01?) {
+         progress.value.value = value?.net {  (it.cur.toDouble()/it.tot.toDouble()).clip(0.0, 1.0) } ?: 0.0
+         labelPer.text = value?.net {  "" + (progress.value.value).times(100).roundToInt() + "%" } ?: "n/a"
+         labelInfo.text = value?.net {  "$name: ${value.cur.toUiShort()}/${value.tot.toUiShort()}$unit" } ?: "$name: n/a"
       }
    }
 

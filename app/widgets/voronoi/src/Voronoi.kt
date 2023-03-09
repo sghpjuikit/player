@@ -172,7 +172,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       }
 
       fun animate(v: Boolean) {
-         if (loop.isRunning()==v) return
+         if (!v && !loop.isRunning()) loopDirty()
          if (v) loop.start() else loop.stop()
       }
 

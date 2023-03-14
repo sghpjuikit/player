@@ -576,7 +576,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
          // clip window to screen (helps with 3 monitor setup)
          if (Os.WINDOWS.isCurrent) {
-            val clip = GDI32.INSTANCE.CreateRectRgn(if (showSide==Side.RIGHT) 0 else (mw.W.value*(1-it)).toInt(), 0, (mw.W.value).toInt(), mw.height.toInt())
+            val clip = if (it==1.0) null else GDI32.INSTANCE.CreateRectRgn(if (showSide==Side.RIGHT) 0 else (mw.W.value*(1-it)).toInt(), 0, (mw.W.value).toInt(), mw.height.toInt())
             User32.INSTANCE.SetWindowRgn(mwh, clip, false)
          }
 

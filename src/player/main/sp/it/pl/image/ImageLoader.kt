@@ -264,17 +264,16 @@ private fun extractThumb(videoFilename: String, thumbFilename: String, at: Durat
 
 private val ffmpeg by lazy {
    val os = Os.current
+   val ffmpegVersion = "ffmpeg-20190826-0821bc4-win64-static"
    val ffmpegDir = APP.location/"ffmpeg"
+   val ffmpegBin = ffmpegDir/"ffmpeg-5.1.2-essentials_build"
    val ffmpegZip = ffmpegDir/"ffmpeg.zip"
    val ffmpegBinary = when (os) {
-      Os.WINDOWS -> ffmpegDir/"bin"/"ffmpeg.exe"
-      Os.OSX -> ffmpegDir/"bin"/"ffmpeg"
+      Os.WINDOWS -> ffmpegBin/"bin"/"ffmpeg.exe"
       else -> fail { "Video cover extraction using ffmpeg is not supported on $os" }
    }
-   val ffmpegVersion = "ffmpeg-20190826-0821bc4-win64-static"
    val ffmpegLink = when (os) {
-      Os.WINDOWS -> URI("https://ffmpeg.zeranoe.com/builds/win64/static/$ffmpegVersion.zip")
-      Os.OSX -> URI("https://ffmpeg.zeranoe.com/builds/macos64/static/$ffmpegVersion.zip")
+      Os.WINDOWS -> URI("https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-5.1.2-essentials_build.zip")
       else -> fail { "Video cover extraction using ffmpeg is not supported on $os" }
    }
    runSuspendingFx {

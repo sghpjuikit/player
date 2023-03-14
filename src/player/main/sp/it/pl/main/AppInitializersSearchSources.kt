@@ -120,6 +120,7 @@ fun AppSearch.initApp() = APP.apply {
             val context = ActContext(null, null, null, null)
             when {
                type.raw.isObject && !type.isNullable -> invokeFutAndProcess(context, type.raw.objectInstance.asIs())
+               type.raw==App::class && !type.isNullable -> invokeFutAndProcess(context, APP.asIs())
                type.raw == Unit::class -> invokeFutAndProcess(context, Unit.asIs())
                type == typeNothingNullable() -> invokeFutAndProcess(context, null.asIs())
                else -> {

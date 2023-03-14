@@ -2278,7 +2278,7 @@ TextFlow > * {
 .container-bi-ui {}
 
 .container-bi-ui > .split-pane {
-    -fx-skin: "sp.it.pl.ui.objects.SpitSplitPaneContainerBiSkin" // introduces layout-mode animation
+    -fx-skin: "sp.it.pl.ui.objects.SpitSplitPaneContainerBiSkin"
 }
 
 
@@ -3247,7 +3247,7 @@ TextFlow > * {
 .form-config-pane:extensive .form-config-pane-config-name {
     -fx-padding: 1em 0 0 0;
 }
-.form-config-pane:normal .form-config-pane-config-name:single {
+.form-config-pane:normal .form-config-pane-config-name:single {}
 .form-config-pane:normal .form-config-pane-config-description:single {
     -fx-padding: 0;
 }

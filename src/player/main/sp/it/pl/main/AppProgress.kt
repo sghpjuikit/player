@@ -66,6 +66,7 @@ import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.minPrefMaxWidth
+import sp.it.util.ui.rectangle
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
@@ -233,7 +234,7 @@ object AppProgress {
                            }
                         }
                      }
-                     lay(BOTTOM_LEFT) += Rectangle().apply {
+                     lay(BOTTOM_LEFT) += rectangle {
                         height = 2.emScaled
                         progress attach { width = this@stackPane.width*(it.toDouble() max 0.0) } on disposer
                         progress attach { isVisible = 0<=it && it<1.0 } on disposer

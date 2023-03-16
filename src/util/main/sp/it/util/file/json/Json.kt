@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
+import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
@@ -257,6 +258,7 @@ class Json: JsonAst() {
                is UShort -> JsNumber(value.toInt()).withAmbiguity()
                is UInt -> JsNumber(value.toLong()).withAmbiguity()
                is ULong -> JsNumber(value.toString().toBigInteger()).withAmbiguity()
+               is Char -> JsString(value.toString())
                is String -> JsString(value)
                is Enum<*> -> JsString(value.name).withAmbiguity()
                is Array<*> -> JsArray(value.map { toJsonValue(kType<Any>(), it) })
@@ -407,8 +409,25 @@ class Json: JsonAst() {
                   }
                }
                is JsString -> {
-                  if (typeJ.isEnumClass) getEnumValue(typeJ, value.value)
-                  else value.value
+                  when {
+                     typeJ.isEnumClass -> getEnumValue(typeJ, value.value)
+                     typeK==Char::class -> if (value.value.length==1) value.value[0] else fail { "${value.value} is not $typeTarget" }
+                     typeK==Float::class -> when (value.value) {
+                        "NaN" -> Float.NaN
+                        "Infinity" -> Float.POSITIVE_INFINITY
+                        "+Infinity" -> Float.POSITIVE_INFINITY
+                        "-Infinity" -> Float.NEGATIVE_INFINITY
+                        else -> fail { "${value.value} is not $typeTarget" }
+                     }
+                     typeK==Double::class -> when (value.value) {
+                        "NaN" -> Double.NaN
+                        "Infinity" -> Double.POSITIVE_INFINITY
+                        "+Infinity" -> Double.POSITIVE_INFINITY
+                        "-Infinity" -> Double.NEGATIVE_INFINITY
+                        else -> fail { "${value.value} is not $typeTarget" }
+                     }
+                     else -> value.value
+                  }
                }
                is JsArray -> {
                   val typeKS = typeTarget.toString()
@@ -469,20 +488,21 @@ class Json: JsonAst() {
                   val converterValue = converters.byType.getElementOfSuper(instanceType).asIf<JsConverter<Any?>>()
                   when {
                      converterValue!=null -> converterValue.fromJson(value.value["value"]!!)
-                     instanceType==String::class -> value.value["value"]?.asJsStringValue()
-                     instanceType==Byte::class -> value.value["value"]?.asJsNumberValue()?.toByte()
-                     instanceType==UByte::class -> value.value["value"]?.asJsNumberValue()?.toShort()?.toUByte()
-                     instanceType==Short::class -> value.value["value"]?.asJsNumberValue()?.toShort()
-                     instanceType==UShort::class -> value.value["value"]?.asJsNumberValue()?.toInt()?.toUShort()
-                     instanceType==Int::class -> value.value["value"]?.asJsNumberValue()?.toInt()
-                     instanceType==UInt::class -> value.value["value"]?.asJsNumberValue()?.toLong()?.toUInt()
-                     instanceType==Long::class -> value.value["value"]?.asJsNumberValue()?.toLong()
-                     instanceType==ULong::class -> value.value["value"]?.asJsNumberValue()?.toLong()?.toULong()
-                     instanceType==Float::class -> value.value["value"]?.asJsNumberValue()?.toFloat()
-                     instanceType==Double::class -> value.value["value"]?.asJsNumberValue()?.toDouble()
-                     instanceType==BigInteger::class -> value.value["value"]?.asJsNumberValue()?.toLong()?.toBigInteger()
-                     instanceType==BigDecimal::class -> value.value["value"]?.asJsNumberValue()?.toDouble()?.toBigDecimal()
-                     instanceType==Number::class -> value.value["value"]?.asJsNumberValue()
+                     instanceType==String::class ||
+                     instanceType==Char::class ||
+                     instanceType==Byte::class ||
+                     instanceType==UByte::class ||
+                     instanceType==Short::class ||
+                     instanceType==UShort::class ||
+                     instanceType==Int::class ||
+                     instanceType==UInt::class ||
+                     instanceType==Long::class ||
+                     instanceType==ULong::class ||
+                     instanceType==Float::class ||
+                     instanceType==Double::class ||
+                     instanceType==BigInteger::class ||
+                     instanceType==BigDecimal::class ||
+                     instanceType==Number::class -> value.value["value"]?.let { fromJsonValueImpl(instanceType.createType(nullable = true), it) }
                      instanceType.isObject -> instanceType.objectInstance
                      instanceType.isEnum -> value.value["value"]?.asJsStringValue()?.let { getEnumValue(instanceType.javaObjectType, it) }
                      instanceType==Any::class -> {
@@ -580,7 +600,11 @@ fun JsValue.toCompactS(): String {
       is JsTrue -> "true"
       is JsFalse -> "false"
       is JsString -> value.js()
-      is JsNumber -> value.toString()
+      is JsNumber -> when (value) {
+         Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN -> value.toString().js()
+         Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN -> value.toString().js()
+         else -> value.toString()
+      }
       is JsArray ->
          if (value.isEmpty()) "[]"
          else "[" + value.joinToString(",") { it.toCompactS() } + "]"
@@ -601,7 +625,11 @@ private fun JsValue.toPrettyS(indent: String, newline: String, indentRaw: String
       is JsTrue -> "true".a()
       is JsFalse -> "false".a()
       is JsString -> value.js().a()
-      is JsNumber -> value.toString().a()
+      is JsNumber -> when (value) {
+         Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN -> value.toString().js().a()
+         Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN -> value.toString().js().a()
+         else -> value.toString().a()
+      }
       is JsArray ->
          if (value.isEmpty()) "[]".a()
          else value.joinTo(builder, ",$nl", "[$nl$indentRaw", "$nl$indentRaw]") { indent1.a(); it.toPrettyS(indent, nl, indent1, builder); "" }

@@ -35,17 +35,25 @@ class JsonTest: FreeSpec({
 
    "Equals" {
       // @formatter:off
-                            JsNull shouldBe JsNull
-                            JsTrue shouldBe JsTrue
-                           JsFalse shouldBe JsFalse
-                  JsString("text") shouldBe JsString("text")
-               JsNumber(123456789) shouldBe JsNumber(123456789)
-                         JsArray() shouldBe JsArray()
-              JsArray(JsNumber(1)) shouldBe JsArray(JsNumber(1))
-                     JsNumber(1.0) shouldBe JsNumber(1.0)
-       JsNumber(BigDecimal("1.0")) shouldBe JsNumber(BigDecimal("1.0"))
-                        JsObject() shouldBe JsObject()
-      JsObject("a" to JsNumber(1)) shouldBe JsObject("a" to JsNumber(1))
+                                  JsNull shouldBe JsNull
+                                  JsTrue shouldBe JsTrue
+                                 JsFalse shouldBe JsFalse
+                        JsString("text") shouldBe JsString("text")
+                     JsNumber(123456789) shouldBe JsNumber(123456789)
+       JsNumber(Float.POSITIVE_INFINITY) shouldBe JsNumber(Float.POSITIVE_INFINITY)
+       JsNumber(Float.NEGATIVE_INFINITY) shouldBe JsNumber(Float.NEGATIVE_INFINITY)
+                     JsNumber(Float.NaN) shouldBe JsNumber(Float.NaN)
+              JsNumber(Double.MIN_VALUE) shouldBe JsNumber(Double.MIN_VALUE)
+              JsNumber(Double.MAX_VALUE) shouldBe JsNumber(Double.MAX_VALUE)
+      JsNumber(Double.POSITIVE_INFINITY) shouldBe JsNumber(Double.POSITIVE_INFINITY)
+      JsNumber(Double.NEGATIVE_INFINITY) shouldBe JsNumber(Double.NEGATIVE_INFINITY)
+                    JsNumber(Double.NaN) shouldBe JsNumber(Double.NaN)
+                               JsArray() shouldBe JsArray()
+                    JsArray(JsNumber(1)) shouldBe JsArray(JsNumber(1))
+                           JsNumber(1.0) shouldBe JsNumber(1.0)
+             JsNumber(BigDecimal("1.0")) shouldBe JsNumber(BigDecimal("1.0"))
+                              JsObject() shouldBe JsObject()
+            JsObject("a" to JsNumber(1)) shouldBe JsObject("a" to JsNumber(1))
       // @formatter:on
    }
    "Read (raw)" - {
@@ -67,11 +75,48 @@ class JsonTest: FreeSpec({
       "simple json" {
          j.fromJson<String>("\"\"") shouldBe Ok("")
          j.fromJson<UByte>("55") shouldBe Ok(55L.toUByte())
+         j.fromJson<Byte>("55") shouldBe Ok(55.toByte())
          j.fromJson<Int>("55") shouldBe Ok(55)
+         j.fromJson<Float>(""""NaN"""") shouldBe Ok(Float.NaN)
+         j.fromJson<Float>(""""Infinity"""") shouldBe Ok(Float.POSITIVE_INFINITY)
+         j.fromJson<Float>(""""-Infinity"""") shouldBe Ok(Float.NEGATIVE_INFINITY)
          j.fromJson<Double>("55") shouldBe Ok(55.0)
+         j.fromJson<Double>(""""NaN"""") shouldBe Ok(Double.NaN)
+         j.fromJson<Double>(""""Infinity"""") shouldBe Ok(Double.POSITIVE_INFINITY)
+         j.fromJson<Double>(""""-Infinity"""") shouldBe Ok(Double.NEGATIVE_INFINITY)
+         j.fromJson<String>("""""""") shouldBe Ok("")
+         j.fromJson<String>("""" """") shouldBe Ok(" ")
+         j.fromJson<String>(""""null"""") shouldBe Ok("null")
          j.fromJson<Any?>("null") shouldBe Ok(null)
+         j.fromJson<String?>(""""null"""") shouldBe Ok("null")
+         j.fromJson<String?>("null") shouldBe Ok(null)
          j.ast("1 2") should { it.isError  }
          j.ast("1 2 3 4") should { it.isError  }
+      }
+   }
+   "Write" - {
+      "simple" {
+         j.write(true) shouldBe "true"
+         j.write(false) shouldBe "false"
+         j.write(12) shouldBe "12"
+         j.write(12.toShort()) shouldBe "12"
+         j.write(12.toByte()) shouldBe "12"
+         j.write(Int.MAX_VALUE) shouldBe "2147483647"
+         j.write(Int.MIN_VALUE) shouldBe "-2147483648"
+         j.write(12L) shouldBe "12"
+         j.write(4000000000000L) shouldBe "4000000000000"
+         j.write(9223372036854775807L) shouldBe "9223372036854775807"
+         j.write(12.5f) shouldBe "12.5"
+         j.write(Float.POSITIVE_INFINITY) shouldBe "\"Infinity\""
+         j.write(Float.NEGATIVE_INFINITY) shouldBe "\"-Infinity\""
+         j.write(Float.NaN) shouldBe "\"NaN\""
+         j.write(12.5) shouldBe "12.5"
+         j.write(Double.POSITIVE_INFINITY) shouldBe "\"Infinity\""
+         j.write(Double.NEGATIVE_INFINITY) shouldBe "\"-Infinity\""
+         j.write(Double.NaN) shouldBe "\"NaN\""
+         j.write('o') shouldBe "\"o\""
+         j.write("omg") shouldBe "\"omg\""
+         j.write<Any>(null) shouldBe "null"
       }
    }
    "Read" - {
@@ -93,7 +138,7 @@ class JsonTest: FreeSpec({
             j.fromJsonValue<UInt?>(json) shouldBe Ok(null)
             j.fromJsonValue<List<*>>(json) shouldBeTry Error("null is not kotlin.collections.List<*>")
             j.fromJsonValue<List<*>?>(json) shouldBe Ok(null)
-            j.fromJsonValue<Data>(json) shouldBeTry Error("null is not sp.it.util.file.json.`JsonTest\$1\$3\$1\$1\$Data`")
+            j.fromJsonValue<Data>(json) shouldBeTry Error("null is not sp.it.util.file.json.`JsonTest\$1\$4\$1\$1\$Data`")
             j.fromJsonValue<Data?>(json) shouldBe Ok(null)
          }
       }
@@ -142,12 +187,12 @@ class JsonTest: FreeSpec({
             j.fromJsonValue<Array<*>>(json) shouldBeTry Ok(arrayOf<Any?>(null, null))
             j.fromJsonValue<Array<Any>>(json) shouldBeTry Error("null is not kotlin.Any")
             j.fromJsonValue<Array<Any?>>(json) shouldBeTry Ok(arrayOf<Any?>(null, null))
-            j.fromJsonValue<Array<Data>>(json) shouldBeTry Error("null is not sp.it.util.file.json.`JsonTest\$1\$3\$3\$1\$Data`")
+            j.fromJsonValue<Array<Data>>(json) shouldBeTry Error("null is not sp.it.util.file.json.`JsonTest\$1\$4\$3\$1\$Data`")
             j.fromJsonValue<Array<Data?>>(json) shouldBeTry Ok(arrayOf<Data?>(null, null))
             j.fromJsonValue<List<*>>(json) shouldBeTry Ok(listOf(null, null))
             j.fromJsonValue<List<Any>>(json) shouldBeTry Error("null is not kotlin.Any")
             j.fromJsonValue<List<Any?>>(json) shouldBeTry Ok(listOf(null, null))
-            j.fromJsonValue<List<Data>>(json) shouldBeTry Error("null is not sp.it.util.file.json.`JsonTest\$1\$3\$3\$1\$Data`")
+            j.fromJsonValue<List<Data>>(json) shouldBeTry Error("null is not sp.it.util.file.json.`JsonTest\$1\$4\$3\$1\$Data`")
             j.fromJsonValue<List<Data?>>(json) shouldBeTry Ok(listOf(null, null))
             j.fromJsonValue<ByteArray>(json) shouldBeTry Error("null is not kotlin.Byte")
             j.fromJsonValue<CharArray>(json) shouldBeTry Error("null is not kotlin.Char")
@@ -238,8 +283,14 @@ class JsonTest: FreeSpec({
             argIns(ULong.MAX_VALUE),
             argIns(Float.MIN_VALUE),
             argIns(Float.MAX_VALUE),
+            argIns(Float.POSITIVE_INFINITY),
+            argIns(Float.NEGATIVE_INFINITY),
+            argIns(Float.NaN),
             argIns(Double.MIN_VALUE),
             argIns(Double.MAX_VALUE),
+            argIns(Double.POSITIVE_INFINITY),
+            argIns(Double.NEGATIVE_INFINITY),
+            argIns(Double.NaN),
             argIns(BigInteger.ONE),
             argIns(BigDecimal("1.0")),
          ) { type, valueIn ->
@@ -278,7 +329,7 @@ class JsonTest: FreeSpec({
 
             val valueOut8 = j.toJsonValue(type, valueIn).toCompactS().net { j.fromJson(type<Any>(), it) }.orThrow
             valueIn.toString().toDouble() shouldBe valueOut8.toString().toDouble()
-            valueOut8 shouldBeInstance Number::class
+            if (valueOut8 !in setOf("NaN", "Infinity", "+Infinity", "-Infinity")) valueOut8 shouldBeInstance Number::class
          }
       }
    }
@@ -391,3 +442,5 @@ private infix  fun                  Any?.shouldBeInstance(type: KType) = type.ra
 
 private inline fun <reified T: Any> arg()          = row(kType<T>())
 private inline fun <reified T: Any> argIns(arg: T) = row(type<T>(), arg)
+
+private inline fun <reified T: Any> Json.write(o: T?) = toJsonValue(o).toCompactS()

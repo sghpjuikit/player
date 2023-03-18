@@ -299,7 +299,7 @@ fun textColon(name: String, data: Any?): Node = when (data) {
             onEventDown(MOUSE_CLICKED, PRIMARY) {
                data.value().onDone(FX) {
                   this@stackPane.lay.clear()
-                  this@stackPane.lay += textColon(name, it.toTryRaw())
+                  this@stackPane.lay(CENTER_LEFT) += textColon(name, it.toTryRaw())
                }
             }
          }

@@ -91,9 +91,9 @@ allprojects {
          // compatibility table https://kotlinlang.org/docs/releases.html#release-details
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.4")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.6.4")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.6.4")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.0-Beta")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.0-Beta")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.7.0-Beta")
          implementation("org.jetbrains", "annotations", "24.0.1")
       }
 
@@ -117,9 +117,9 @@ allprojects {
       }
 
       "Logging" group {
-         implementation("org.slf4j", "slf4j-api", "2.0.6")
-         implementation("org.slf4j", "jul-to-slf4j", "2.0.6")
-         implementation("ch.qos.logback", "logback-classic", "1.4.5")
+         implementation("org.slf4j", "slf4j-api", "2.0.7")
+         implementation("org.slf4j", "jul-to-slf4j", "2.0.7")
+         implementation("ch.qos.logback", "logback-classic", "1.4.6")
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
@@ -145,7 +145,7 @@ allprojects {
          implementation("com.github.f4b6a3", "uuid-creator", "5.2.0")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.2")
-         implementation("com.github.oshi", "oshi-core", "6.4.0")
+         implementation("com.github.oshi", "oshi-core", "6.4.1")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }

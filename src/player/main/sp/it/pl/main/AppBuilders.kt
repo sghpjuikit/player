@@ -522,7 +522,7 @@ fun fileIcon(file: File, type: FileType): GlyphIcons = when (type) {
             MimeGroup.audio -> IconFA.FILE_AUDIO_ALT
             MimeGroup.image -> IconFA.FILE_IMAGE_ALT
             MimeGroup.video -> IconFA.FILE_VIDEO_ALT
-            else -> IconUN(0x1f4c4)
+            else -> IconFA.FILE
          }
       }
    }

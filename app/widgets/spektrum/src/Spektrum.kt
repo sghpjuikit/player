@@ -235,8 +235,11 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       fun DrawingData.updateBars() {
          val w = spektrum.root.width
          val h = spektrum.root.height
+         val w2 = w/2
          val wh = w min h
+         val wh2 = wh/2
          val barWg = w/barCount.toDouble()
+         val barWg2 = barWg/2
          val barW = barWg-settings.barGap.value.toDouble() max 1.0
          val pulseEffect = if (settings.effectPulse) avg/15.0 else 0.0
 
@@ -251,8 +254,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
             BarShape.CENTER -> {
                bars.forEachIndexed { i, bar ->
                   val f = fade(i)
-                  barPositionsLow += P(i*barWg, h/2 - f*bar.height*wh/2)
-                  barPositionsHig += P(i*barWg, h/2 + f*bar.height*wh/2)
+                  barPositionsLow += P(barWg2+i*barWg, h/2 - f*bar.height*wh2)
+                  barPositionsHig += P(barWg2+i*barWg, h/2 + f*bar.height*wh2)
                }
             }
             BarShape.BOTTOM -> {
@@ -278,8 +281,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                   val min = base - (if (settings.barAlignment==BarShape.CIRCLE_OUT) 0.0 else barH/8.0)
                   val barCos = cos(2*PI*i/barCount - PI/2)
                   val barSin = sin(2*PI*i/barCount - PI/2)
-                  barPositionsLow += P(w/2 + min*barCos, h/2 + min*barSin)
-                  barPositionsHig += P(w/2 + max*barCos, h/2 + max*barSin)
+                  barPositionsLow += P(w2 + min*barCos, h/2 + min*barSin)
+                  barPositionsHig += P(w2 + max*barCos, h/2 + max*barSin)
 
                   // fade effect, can we generalize this?
                   // gc.lineWidth = barW

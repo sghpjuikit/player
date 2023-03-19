@@ -25,6 +25,7 @@ import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Mixer
 import javax.sound.sampled.TargetDataLine
+import kotlin.concurrent.withLock
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.exp
@@ -430,23 +431,18 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       private val barsHeightCalculator = BarsHeightCalculator(settings)
 
       fun frame(frequencies: DoubleArray?, normalizedAmplitudes: DoubleArray?) {
-         try {
-            lock.lock()
+         lock.withLock {
             this.frequencies = frequencies
             this.amplitudes = normalizedAmplitudes
-         } finally {
-            lock.unlock()
          }
       }
 
-      // return empty array
       val frequencyBars: List<FrequencyBar>
          get() {
-            val returnFrequencies: DoubleArray?
+            var returnFrequencies: DoubleArray?
             var returnAmplitudes: DoubleArray?
 
-            try {
-               lock.lock()
+            lock.withLock {
                if (frequencies==null) {
                   returnFrequencies = frequenciesOld
                   returnAmplitudes = amplitudesOld
@@ -458,14 +454,12 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                   frequencies = null
                   amplitudes = null
                }
-            } finally {
-               lock.unlock()
             }
 
             return if (returnAmplitudes!=null) {
-               returnAmplitudes = fftTimeFilter.filter(returnAmplitudes)
-               returnAmplitudes = fftSpaceFilter.filter(returnAmplitudes)
-               returnAmplitudes = barsHeightCalculator.processAmplitudes(returnAmplitudes)
+               returnAmplitudes = fftTimeFilter.filter(returnAmplitudes!!)
+               returnAmplitudes = fftSpaceFilter.filter(returnAmplitudes!!)
+               returnAmplitudes = barsHeightCalculator.processAmplitudes(returnAmplitudes!!)
                createFrequencyBars(returnFrequencies!!, returnAmplitudes!!)
             } else {
                ArrayList()

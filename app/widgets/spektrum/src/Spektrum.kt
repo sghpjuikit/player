@@ -642,12 +642,12 @@ class FFTAudioProcessor(val audioFormat: AudioFormat, val onProcess: FrequencyBa
       val weightWindow = settings.weight.calculateAmplitudeWight
 
       val frequencyAmplitudes = DoubleArray(frequencies.size) {
-         val frequency = frequencies[it]
+         val frequency = floor(frequencies[it])
          val frequencyMin = floor(computeLowLimit(frequency, octave))
          val frequencyMax = floor(computeHighLimit(frequency, octave))
          val step = 2.0.pow(1.0/octave)
          val frequencyRange = generateSequence(frequencyMin) { it+step }.takeWhile { it<frequencyMax }
-         var amplitude = frequencyRange.sumOf { runTry { interpolateFunction.value(it)*doublesAmplitudesFactor }.getOr(1.0).pow(2) } // sum up range's individual "normalized window corrected" energies
+         var amplitude = frequencyRange.sumOf { runTry { interpolateFunction.value(it)*doublesAmplitudesFactor }.getOr(0.0).pow(2) } // sum up range's individual "normalized window corrected" energies
          amplitude = if (maxLevel.value=="RMS") sqrt(amplitude/2) else sqrt(amplitude) // calculate the RMS of the amplitude
          amplitude = 20*log10(amplitude) // convert to logarithmic scale
          amplitude += weightWindow(frequency) // use weight to adjust the spectrum

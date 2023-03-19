@@ -634,7 +634,7 @@ class FFTAudioProcessor(val audioFormat: AudioFormat, val onProcess: FrequencyBa
 
       val bins = DoubleArray(transformBuffer.size/2) { fft.binToHz(it, audioFormat.sampleRate) }
       val doublesAmplitudesFactor = 1.0/amplitudes.size*windowCorrectionFactor   // /amplitudes.size normalizes (n/2), *windowCorrectionFactor applies window correction
-      val doublesAmplitudes = DoubleArray(amplitudes.size) { amplitudes[it].toDouble()*doublesAmplitudesFactor }
+      val doublesAmplitudes = DoubleArray(amplitudes.size) { amplitudes[it].toDouble() }
 
       val frequencies = computeOctaveFrequencies(settings.frequencyCenter, settings.octave.toDouble(), settings.frequencyStart, settings.frequencyEnd)
       val interpolateFunction = interpolator.interpolate(bins, doublesAmplitudes)
@@ -645,10 +645,11 @@ class FFTAudioProcessor(val audioFormat: AudioFormat, val onProcess: FrequencyBa
 
       val frequencyAmplitudes = DoubleArray(frequencies.size) {
          val frequency = frequencies[it]
-         val frequencyMin = floor(computeLowLimit(frequency, octave)).toInt()
-         val frequencyMax = floor(computeHighLimit(frequency, octave)).toInt()
-         val frequencyRange = frequencyMin..frequencyMax
-         var amplitude = frequencyRange.sumOf { runTry { interpolateFunction.value(it.toDouble()) }.getOr(0.0).pow(2) } // sum up range's individual "normalized window corrected" energies
+         val frequencyMin = floor(computeLowLimit(frequency, octave))
+         val frequencyMax = floor(computeHighLimit(frequency, octave))
+         val step = 2.0.pow(1.0/octave)
+         val frequencyRange = generateSequence(frequencyMin) { it+step }.takeWhile { it<frequencyMax }
+         var amplitude = frequencyRange.sumOf { runTry { interpolateFunction.value(it)*doublesAmplitudesFactor }.getOr(1.0).pow(2) } // sum up range's individual "normalized window corrected" energies
          amplitude = if (maxLevel.value=="RMS") sqrt(amplitude/2) else sqrt(amplitude) // calculate the RMS of the amplitude
          amplitude = 20*log10(amplitude) // convert to logarithmic scale
          amplitude += weightWindow(frequency) // use weight to adjust the spectrum

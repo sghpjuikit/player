@@ -117,8 +117,6 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       .def(name = "Frequency range end", info = "")
    var octave by c(6).between(1, 24)
       .def(name = "Frequency octave (1/n)", info = "")
-   var resolutionHighQuality by c(false)
-      .def(name = "Frequency precise resolution", info = "")
 
    val millisToZero by cv(400).between(0, 1000)
       .def(name = "Animation decay (ms to zero)", info = "")

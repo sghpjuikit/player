@@ -277,8 +277,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
             BarShape.CIRCLE_IN, BarShape.CIRCLE_MIDDLE, BarShape.CIRCLE_OUT -> {
                bars.forEachIndexed { i, bar ->
                   val f = fade(i)
-                  val barH = f*bar.height*wh/2.0
-                  val base = wh/5.0 + pulseEffect
+                  val barH = f*bar.height*wh2
+                  val base = wh/5.0 + pulseEffect*wh2
                   val max = base + (if (settings.barAlignment==BarShape.CIRCLE_IN) 0.0 else barH/4.0)
                   val min = base - (if (settings.barAlignment==BarShape.CIRCLE_OUT) 0.0 else barH/8.0)
                   val barCos = cos(2*PI*i/barCount - PI/2)

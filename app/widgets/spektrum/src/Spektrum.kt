@@ -5,7 +5,6 @@ package spektrum
 import be.tarsos.dsp.AudioDispatcher
 import be.tarsos.dsp.AudioEvent
 import be.tarsos.dsp.AudioProcessor
-import be.tarsos.dsp.MultichannelToMono
 import be.tarsos.dsp.io.jvm.JVMAudioInputStream
 import be.tarsos.dsp.util.fft.FFT
 import be.tarsos.dsp.util.fft.HannWindow
@@ -496,14 +495,14 @@ class TarsosAudioEngine(val settings: Spektrum, val fft: FrequencyBarsProcessor)
       runTry {
          obtainMixer().ifNotNull { mixer ->
             mixerRef = mixer
-            val audioFormat = AudioFormat(settings.sampleRate.value.toFloat(), settings.sampleSizeInBits.value, settings.audioFormatChannels, settings.audioFormatSigned, settings.audioFormatBigEndian)
+            val audioFormat = AudioFormat(settings.sampleRate.value.toFloat(), settings.sampleSizeInBits.value, 2, settings.audioFormatSigned, settings.audioFormatBigEndian)
+            val audioFormatMono = AudioFormat(settings.sampleRate.value.toFloat(), settings.sampleSizeInBits.value, 1, settings.audioFormatSigned, settings.audioFormatBigEndian)
             val uiFrameFrameSize = (1.seconds.toSeconds()/FPS*audioFormat.sampleRate).roundToInt()*audioFormat.frameSize//*audioFormat.channels
             val bufferSize = 2*uiFrameFrameSize // roughly 50ms
             val bufferOverlap = 1*uiFrameFrameSize // the remaining
             val line = obtainLine(mixer, audioFormat, bufferSize)
-            val audioStream = JVMAudioInputStream(AudioInputStream(line))
+            val audioStream = JVMAudioInputStream(AudioInputStream(line).net { AudioInputStream(it, audioFormatMono, it.frameLength) })
             dispatcher = AudioDispatcher(audioStream, bufferSize, bufferOverlap).apply {
-               addAudioProcessor(MultichannelToMono(audioFormat.channels, true))
                addAudioProcessor(FFTAudioProcessor(audioFormat, fft, settings))
             }
             audioThread = audioThreadFactory.start(dispatcher)

@@ -578,9 +578,10 @@ object OctaveGenerator {
    private val cache = ConcurrentHashMap<OctaveSettings, DoubleArray>()
 
    fun computeOctaveFrequencies(centerFrequency: Int, band: Double, lowerLimit: Int, upperLimit: Int): DoubleArray {
-      val fStart = centerFrequency.clip(1, 23998).toDouble()
-      val fEnd = upperLimit.clip(centerFrequency+2, 24000).toDouble()
-      val fCenter = lowerLimit.toDouble().clip(fStart+1.0, fEnd-1.0)
+      val fC = centerFrequency.clip(2, 23998)
+      val fStart = lowerLimit.clip(1, fC-1).toDouble()
+      val fEnd = upperLimit.clip(fC+1, 24000).toDouble()
+      val fCenter = fC.toDouble().clip(fStart+1.0, fEnd-1.0)
       val octaveSettings = OctaveSettings(fCenter, band, fStart, fEnd)
       return cache.computeIfAbsent(octaveSettings) {
          TreeSet<Double>().apply {

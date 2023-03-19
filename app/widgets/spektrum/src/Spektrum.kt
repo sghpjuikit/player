@@ -266,15 +266,15 @@ class Spektrum(widget: Widget): SimpleController(widget) {
             BarShape.BOTTOM -> {
                bars.forEachIndexed { i, bar ->
                   val f = fade(i)
-                  barPositionsLow += P(i*barWg, h)
-                  barPositionsHig += P(i*barWg, h - f*bar.height*wh)
+                  barPositionsLow += P(barWg2+i*barWg, h)
+                  barPositionsHig += P(barWg2+i*barWg, h - f*bar.height*wh)
                }
             }
             BarShape.TOP -> {
                bars.forEachIndexed { i, bar ->
                   val f = fade(i)
-                  barPositionsLow += P(i*barWg, 0.0)
-                  barPositionsHig += P(i*barWg, f*bar.height*wh)
+                  barPositionsLow += P(barWg2+i*barWg, 0.0)
+                  barPositionsHig += P(barWg2+i*barWg, f*bar.height*wh)
                }
             }
             BarShape.CIRCLE_IN, BarShape.CIRCLE_MIDDLE, BarShape.CIRCLE_OUT -> {

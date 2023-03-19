@@ -28,6 +28,7 @@ import javax.sound.sampled.TargetDataLine
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.exp
+import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -58,6 +59,7 @@ import sp.it.util.conf.readOnly
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.ThreadSafe
+import sp.it.util.functional.getOr
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
@@ -72,8 +74,9 @@ import sp.it.util.ui.lay
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
-import spektrum.OctaveGenerator.getHighLimit
-import spektrum.OctaveGenerator.getLowLimit
+import spektrum.OctaveGenerator.computeHighLimit
+import spektrum.OctaveGenerator.computeLowLimit
+import spektrum.OctaveGenerator.computeOctaveFrequencies
 import spektrum.Spektrum.FrequencyBarsProcessor
 import spektrum.WeightWindow.dBZ
 
@@ -416,20 +419,20 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       private val lock = ReentrantLock(true)
 
       // all the instances have the same input from the audio dispatcher
-      private var hzBins: DoubleArray? = null
+      private var frequencies: DoubleArray? = null
       private var amplitudes: DoubleArray? = null
 
-      private var hzBinsOld: DoubleArray? = null
+      private var frequenciesOld: DoubleArray? = null
       private var amplitudesOld: DoubleArray? = null
 
       private val fftTimeFilter = FFTTimeFilter(settings)
       private val fftSpaceFilter = FFTSpaceFilter(settings)
       private val barsHeightCalculator = BarsHeightCalculator(settings)
 
-      fun frame(hzBins: DoubleArray?, normalizedAmplitudes: DoubleArray?) {
+      fun frame(frequencies: DoubleArray?, normalizedAmplitudes: DoubleArray?) {
          try {
             lock.lock()
-            this.hzBins = hzBins
+            this.frequencies = frequencies
             this.amplitudes = normalizedAmplitudes
          } finally {
             lock.unlock()
@@ -439,20 +442,20 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       // return empty array
       val frequencyBars: List<FrequencyBar>
          get() {
-            val returnBins: DoubleArray?
+            val returnFrequencies: DoubleArray?
             var returnAmplitudes: DoubleArray?
 
             try {
                lock.lock()
-               if (hzBins==null) {
-                  returnBins = hzBinsOld
+               if (frequencies==null) {
+                  returnFrequencies = frequenciesOld
                   returnAmplitudes = amplitudesOld
                } else {
-                  returnBins = hzBins
+                  returnFrequencies = frequencies
                   returnAmplitudes = amplitudes
-                  hzBinsOld = hzBins
+                  frequenciesOld = frequencies
                   amplitudesOld = amplitudes
-                  hzBins = null
+                  frequencies = null
                   amplitudes = null
                }
             } finally {
@@ -463,7 +466,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                returnAmplitudes = fftTimeFilter.filter(returnAmplitudes)
                returnAmplitudes = fftSpaceFilter.filter(returnAmplitudes)
                returnAmplitudes = barsHeightCalculator.processAmplitudes(returnAmplitudes)
-               createFrequencyBars(returnBins!!, returnAmplitudes!!)
+               createFrequencyBars(returnFrequencies!!, returnAmplitudes!!)
             } else {
                ArrayList()
             }
@@ -577,9 +580,9 @@ class TarsosAudioEngine(val settings: Spektrum, val fft: FrequencyBarsProcessor)
 }
 
 object OctaveGenerator {
-   private val cache = ConcurrentHashMap<OctaveSettings, List<Double>>()
+   private val cache = ConcurrentHashMap<OctaveSettings, DoubleArray>()
 
-   fun getOctaveFrequencies(centerFrequency: Int, band: Double, lowerLimit: Int, upperLimit: Int): List<Double> {
+   fun computeOctaveFrequencies(centerFrequency: Int, band: Double, lowerLimit: Int, upperLimit: Int): DoubleArray {
       val fStart = centerFrequency.clip(1, 23998).toDouble()
       val fEnd = upperLimit.clip(centerFrequency+2, 24000).toDouble()
       val fCenter = lowerLimit.toDouble().clip(fStart+1.0, fEnd-1.0)
@@ -588,13 +591,13 @@ object OctaveGenerator {
          TreeSet<Double>().apply {
             addLow(this, fCenter, band, fStart)
             addHigh(this, fCenter, band, fEnd)
-         }.toList()
+         }.toList().toDoubleArray()
       }
    }
 
-   fun getLowLimit(center: Double, band: Double): Double = center/2.0.pow(1.0/(2*band))
+   fun computeLowLimit(center: Double, band: Double): Double = center/2.0.pow(1.0/(2*band))
 
-   fun getHighLimit(center: Double, band: Double): Double = center*2.0.pow(1.0/(2*band))
+   fun computeHighLimit(center: Double, band: Double): Double = center*2.0.pow(1.0/(2*band))
 
    private fun addLow(octave: MutableSet<Double>, center: Double, band: Double, lowerLimit: Double) {
       if (center<lowerLimit) {
@@ -617,7 +620,6 @@ object OctaveGenerator {
    private data class OctaveSettings(val centerFrequency: Double, val band: Double, val lowerLimit: Double, val upperLimit: Double)
 }
 
-@Suppress("UseWithIndex")
 class FFTAudioProcessor(val audioFormat: AudioFormat, val onProcess: FrequencyBarsProcessor, val settings: Spektrum): AudioProcessor {
    private val interpolator: UnivariateInterpolator = SplineInterpolator()
    private val windowFunction: WindowFunction = HannWindow()
@@ -639,42 +641,26 @@ class FFTAudioProcessor(val audioFormat: AudioFormat, val onProcess: FrequencyBa
       val doublesAmplitudesFactor = 1.0/amplitudes.size*windowCorrectionFactor   // /amplitudes.size normalizes (n/2), *windowCorrectionFactor applies window correction
       val doublesAmplitudes = DoubleArray(amplitudes.size) { amplitudes[it].toDouble()*doublesAmplitudesFactor }
 
-      val octaveFrequencies = OctaveGenerator.getOctaveFrequencies(settings.frequencyCenter, settings.octave.toDouble(), settings.frequencyStart, settings.frequencyEnd)
-      val frequencyBins = DoubleArray(octaveFrequencies.size)
-      val frequencyAmplitudes = DoubleArray(octaveFrequencies.size)
-
+      val frequencies = computeOctaveFrequencies(settings.frequencyCenter, settings.octave.toDouble(), settings.frequencyStart, settings.frequencyEnd)
       val interpolateFunction = interpolator.interpolate(bins, doublesAmplitudes)
 
       val octave = settings.octave.toDouble()
       val maxLevel = settings.maxLevel
       val weightWindow = settings.weight.calculateAmplitudeWight
-      var m = 0 // m is the position in the frequency vectors
-      for (i in octaveFrequencies.indices) {
-         // get frequency bin
-         frequencyBins[m] = octaveFrequencies[i]
 
-         val highLimit = getHighLimit(octaveFrequencies[i], octave)
-         val lowLimit = getLowLimit(octaveFrequencies[i], octave)
-         val step = 1.0
-         var k = lowLimit
-
-         // group amplitude together in frequency bin
-         while (k<highLimit) {
-            val amplitude = try { interpolateFunction.value(k) } catch (t: Throwable) { 1.0 }
-            frequencyAmplitudes[m] = frequencyAmplitudes[m] + amplitude.pow(2) // sum up the "normalized window corrected" energy
-            k += step
-         }
-
-         frequencyAmplitudes[m] = sqrt(frequencyAmplitudes[m]) // square root the energy
-         frequencyAmplitudes[m] = if (maxLevel.equals("RMS")) sqrt(frequencyAmplitudes[m].pow(2)/2) else frequencyAmplitudes[m] // calculate the RMS of the amplitude
-         frequencyAmplitudes[m] = 20*log10(frequencyAmplitudes[m]) // convert to logarithmic scale
-
-         frequencyAmplitudes[m] = frequencyAmplitudes[m] + weightWindow(frequencyBins[m]) // use weight to adjust the spectrum
-
-         m++
+      val frequencyAmplitudes = DoubleArray(frequencies.size) {
+         val frequency = frequencies[it]
+         val frequencyMin = floor(computeLowLimit(frequency, octave)).toInt()
+         val frequencyMax = floor(computeHighLimit(frequency, octave)).toInt()
+         val frequencyRange = frequencyMin..frequencyMax
+         var amplitude = frequencyRange.sumOf { runTry { interpolateFunction.value(it.toDouble()) }.getOr(0.0).pow(2) } // sum up range's individual "normalized window corrected" energies
+         amplitude = if (maxLevel.value=="RMS") sqrt(amplitude/2) else sqrt(amplitude) // calculate the RMS of the amplitude
+         amplitude = 20*log10(amplitude) // convert to logarithmic scale
+         amplitude += weightWindow(frequency) // use weight to adjust the spectrum
+         amplitude
       }
 
-      onProcess.frame(frequencyBins, frequencyAmplitudes)
+      onProcess.frame(frequencies, frequencyAmplitudes)
       return true
    }
 

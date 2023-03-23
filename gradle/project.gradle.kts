@@ -7,10 +7,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.8.20-RC"
+   kotlin("jvm") version "1.8.20-RC2"
    application
    id("com.github.ben-manes.versions") version "0.46.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
-   id("com.jaredsburrows.license") version "0.9.0"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
+   id("com.jaredsburrows.license") version "0.9.2"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
 }
 
 // ----- util block; defined first to help IDE with syntax checking for erroneous code

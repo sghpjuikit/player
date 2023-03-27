@@ -43,11 +43,13 @@
 }
 
 .menu-item > .icon,
-.menu-item > .label {
-    -fx-text-fill: -skin-white-dark;
+.menu-item > LabeledText {
+    -fx-fill: black;
+    -fx-text-fill: black;
 }
+.menu-item > * > LabeledText,
 .menu-item > * > .icon Text,
 .menu-item:focused > .label {
-    -fx-fill: -skin-white-dark;
-    -fx-text-fill: -skin-white-dark;
+    -fx-fill: black;
+    -fx-text-fill: black;
 }

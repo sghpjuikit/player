@@ -278,13 +278,27 @@ abstract class OverlayPane<in T>: StackPane() {
       fun computeScreen(): Screen
    }
 
-   enum class Display(name: String): ScreenGetter, NameUi {
-      WINDOW("Active window"),
-      SCREEN_OF_WINDOW("Screen of active window"),
-      SCREEN_OF_MOUSE("Screen containing mouse"),
-      SCREEN_PRIMARY("Primary screen");
+   enum class Display(name: String, info: String): ScreenGetter, NameUi {
+      WINDOW(
+         "Active window",
+         "Display overlay within the active window. If no window is available, falls back to 'Screen containing mouse'. " +
+         "Not recommended as overlay content is usually designed for large area unfitting of application window."
+      ),
+      SCREEN_OF_WINDOW(
+         "Screen of active window",
+         "Display overlay on the screen containing the active window."
+      ),
+      SCREEN_OF_MOUSE(
+         "Screen containing mouse",
+         "Display overlay on the screen containing the active window. Most user friendly."
+      ),
+      SCREEN_PRIMARY(
+         "Primary screen",
+         "Display overlay on the main screen."
+      );
 
       override val nameUi = name
+               val infoUi = info
       override fun isWindowBased() = this != WINDOW
       override fun computeScreen(): Screen = when (this) {
          WINDOW -> fail()
@@ -426,10 +440,25 @@ abstract class OverlayPane<in T>: StackPane() {
    }
 }
 
-enum class ScreenBgrGetter(val stageStyle: StageStyle, val needsBlur: Boolean) {
-   NONE(StageStyle.TRANSPARENT, false),
-   SCREEN_SHOT(StageStyle.UNDECORATED, true),
-   SCREEN_BGR(StageStyle.UNDECORATED, true);
+enum class ScreenBgrGetter(val stageStyle: StageStyle, val needsBlur: Boolean, val nameUi: String, val infoUi: String) {
+   NONE(
+      StageStyle.TRANSPARENT, false,
+      "Content behind",
+      "Use user preferred application window effect (transparency, opacity, blur). " +
+      "Can display dynamic content behind window (such as video). " +
+      "Requires transparent window which reduces performance, significantly so if blue is blur is also enabled."
+   ),
+   SCREEN_SHOT(
+      StageStyle.UNDECORATED, true,
+      "Content behind (static)",
+      "Displays static background of the screen content at the time the overlay was shown. " +
+      "Essentially `Content behind` without support of dynamic background content, but much better performance"
+   ),
+   SCREEN_BGR(
+      StageStyle.UNDECORATED, true,
+      "Wallpaper",
+      "Displays desktop wallpaper as background. Performs the best and arguably the least distracting."
+   );
 
    suspend fun computeImage(screen: Screen): Image? =
       when (this) {

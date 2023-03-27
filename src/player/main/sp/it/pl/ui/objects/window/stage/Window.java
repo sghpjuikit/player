@@ -186,9 +186,9 @@ public class Window extends WindowBase {
 	public final @NotNull V<Boolean> isInteractiveOnLeftAlt = new V<>(!Os.UNIX.isCurrent());
 	/** Whether {@link #backImage} translates and scales with content to provide a depth effect. A non-uniform bgr needs to be set for the effect to be visible. Default false. */
 	public final @NotNull V<@NotNull Boolean> transformBgrWithContent = new V<>(false);
-	/** Whether window content has transparent decoration. Default false. */
+	/** Whether window content has transparent decoration. Default off. */
 	public final @NotNull OrV<@NotNull Transparency> transparency = new OrV<>(APP.windowManager.getWindowTransparency(), new Inherit<>());
-	/** Whether window content has transparent decoration. Default false. */
+	/** Whether window content has transparent decoration. Default off. */
 	public final @NotNull OrV<@NotNull BgrEffect> effect = new OrV<>(APP.windowManager.getWindowEffect(), new Inherit<>());
 	/** Window opacity, backed by {@link javafx.stage.Stage#opacityProperty()}. Default 1.0. */
 	public final @NotNull OrV<@NotNull Double> opacity = new OrV<>(APP.windowManager.getWindowOpacity(), new Inherit<>());
@@ -900,6 +900,48 @@ public class Window extends WindowBase {
 		e.consume();
 	}
 
-	public enum Transparency { OFF, ON, ON_CLICK_THROUGH }
-	public enum BgrEffect { OFF, BLUR, ACRYLIC }
+	public enum Transparency {
+		OFF(
+			"None",
+			"No forced window decoration transparency"
+		),
+		ON(
+			"Transparent",
+			"Forces transparent window decoration. Mouse behavior remains normal."
+		),
+		ON_CLICK_THROUGH(
+			"Transparent (click-through)",
+			"Forces transparent window decoration. Mouse clicks through transparent content."
+		);
+
+		Transparency(String nameUi, String infoUi) {
+			this.nameUi = nameUi;
+			this.infoUi = infoUi;
+		}
+
+		public final String nameUi;
+		public final String infoUi;
+	}
+	public enum BgrEffect {
+		OFF(
+			"None",
+			"No background effect"
+		),
+		BLUR(
+			"Blur",
+			"Blur background effect. Only supported on Windows OS. Reduces performance."
+		),
+		ACRYLIC(
+			"Acrylic blur",
+			"Strong blur background effect. Only supported on Windows OS. Reduces performance."
+		);
+
+		BgrEffect(String nameUi, String infoUi) {
+			this.nameUi = nameUi;
+			this.infoUi = infoUi;
+		}
+
+		public final String nameUi;
+		public final String infoUi;
+	}
 }

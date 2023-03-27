@@ -245,14 +245,17 @@ public class Window extends WindowBase {
 		// window move hint cursor
 		root.addEventHandler(KEY_PRESSED, e -> {
 			if (e.getCode() == ALT && isInteractiveOnLeftAlt.getValue())
-				root.setCursor(Cursor.MOVE);
+				root.setCursor(Cursor.HAND);
 		});
 		root.addEventFilter(KEY_RELEASED, e -> {
 			if (e.getCode() == ALT)
 				root.setCursor(Cursor.DEFAULT);
 		});
 		root.addEventFilter(MOUSE_MOVED, e ->
-				root.setCursor(e.isAltDown() ? Cursor.MOVE : Cursor.DEFAULT)
+				root.setCursor(e.isAltDown() && isInteractiveOnLeftAlt.getValue() ? Cursor.HAND : Cursor.DEFAULT)
+		);
+		root.addEventFilter(MOUSE_RELEASED, e ->
+				root.setCursor(e.isAltDown() && isInteractiveOnLeftAlt.getValue() ? Cursor.HAND : Cursor.DEFAULT)
 		);
 
 		// app dragging

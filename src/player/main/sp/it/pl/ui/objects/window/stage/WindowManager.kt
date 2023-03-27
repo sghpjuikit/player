@@ -314,7 +314,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       if (style == TRANSPARENT) w.s.scene.fill = Color.TRANSPARENT
       w.isHeaderVisible.value = windowHeaderless.value
-      w.isInteractiveOnLeftAlt.value = windowInteractiveOnLeftAlt.value
+      w.isInteractiveOnLeftAlt syncFrom windowInteractiveOnLeftAlt on w.onClose
       w.stage.title = APP.name
       w.stage.icons setToOne windowIcon
       w.transformBgrWithContent syncFrom windowStyleBgrWithContentTransformation on w.onClose

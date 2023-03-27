@@ -48,6 +48,7 @@ All notable changes to this project will be documented in this file. Format base
 - Improve OverlayPane & StartScreen show animation to avoid blur edge artifacts
 - Improve OverlayPane & StartScreen show animation to support standard custom window effects 
 - Improve OverlayPane & StartScreen show animation UI documentation
+- Improve window move/resize mouse interaction
 - Fix popup showing up in taskbar/switcher sometimes
 - Fix `Action.invoke` with default arguments
 - Fix exceptions when popup with focus is shown [remove calling focus unnecessarily]

@@ -116,6 +116,7 @@ class SpeechRecognition: PluginBase() {
 
    override fun stop() {
       stopSpeechRecognition()
+      onClose()
    }
 
    @Suppress("OPT_IN_USAGE")

@@ -108,6 +108,14 @@
     -fx-effect: null;
 }
 
+/* Menu item hover */
+.menu-item:focused > * > LabeledText,
+.menu-item:focused > * > .icon Text,
+.menu-item:focused > .label {
+    -fx-fill: red;
+    -fx-text-fill: red;
+}
+
 /* Add focus glow effect */
 .icon:hover Text,
 .inode:hover Text,

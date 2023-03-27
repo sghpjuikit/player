@@ -1,11 +1,11 @@
 ## Potential future work
+- Handle unicode in application properties correctly
 - Improve **Tagger** widget
   - tagging non audio file with audio extension causes exception and corrupted application state
   - editable song check list not refreshing content properly
   - implement chapters tag
   - tag writing should fail when tag reading fails?
   - make writing to tag handle errors properly (& report read-only files)
-- Make all window types including standalone widgets consistently styled [prototype using inverse mask]
 - Fix `ObsListConfig.setDefaultValue` not removing disabled items
 - Fix `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
 - Fix`Configuration.propertiesRaw` are not synced with configs, should be?

@@ -28,7 +28,7 @@ import javafx.scene.text.TextAlignment;
 import kotlin.Unit;
 import kotlin.reflect.KClass;
 import sp.it.pl.main.AppBuildersKt;
-import sp.it.pl.main.AppSettings.ui.view.actionViewer;
+import sp.it.pl.main.AppSettings.ui.overlay.actionViewer;
 import sp.it.pl.ui.objects.icon.CheckIcon;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.table.FilteredTable;

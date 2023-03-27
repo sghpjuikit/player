@@ -21,6 +21,9 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import javafx.stage.Stage
+import javafx.geometry.Insets
+import javafx.scene.paint.Color.TRANSPARENT
+import javafx.stage.StageStyle
 import javafx.stage.Window
 import javafx.stage.WindowEvent.WINDOW_SHOWN
 import kotlin.math.abs
@@ -64,8 +67,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.syncTo
-import sp.it.util.system.getWallpaperFile
-import sp.it.util.ui.Util.createFMNTStage
+import sp.it.util.ui.Util.stageFMNT
 import sp.it.util.ui.Util.layStack
 import sp.it.util.ui.Util.setAnchors
 import sp.it.util.ui.applyViewPort
@@ -74,8 +76,6 @@ import sp.it.util.ui.getScreen
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.hasFocus
 import sp.it.util.ui.image.FitFrom
-import sp.it.util.ui.image.ImageSize
-import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.makeScreenShot
 import sp.it.util.ui.pane
 import sp.it.util.ui.removeFromParent
@@ -86,6 +86,10 @@ import sp.it.util.ui.toP
 import sp.it.util.units.millis
 import sp.it.util.reactive.into
 import sp.it.util.reactive.syncWhile
+import sp.it.util.system.getWallpaperFile
+import sp.it.util.ui.bgr
+import sp.it.util.ui.image.ImageSize
+import sp.it.util.ui.image.imgImplLoadFX
 
 /**
  * Pane laying 'above' standard content.
@@ -213,7 +217,8 @@ abstract class OverlayPane<in T>: StackPane() {
 
    private lateinit var displayUsedForShow: ScreenGetter // prevents inconsistency in start() and stop(), see use
    private val animation = OpAnim { animDo(it) }
-   private val blur = BoxBlur(15.0, 15.0, 3)
+   private val blurMax = 15
+   private val blur = BoxBlur(blurMax.toDouble(), blurMax.toDouble(), 3)
    private var opacityNode: Node? = null
    private var blurNode: Node? = null
 
@@ -318,22 +323,26 @@ abstract class OverlayPane<in T>: StackPane() {
                Display.SCREEN_OF_MOUSE.animStart(op)
             }
       } else {
-         val screen = computeScreen()
-         op.displayBgr.get().getImgAndDo(screen) { image ->
+         runSuspendingFx {
+            val screen = computeScreen()
+            val image = op.displayBgr.value.computeImage(screen)?.adjustForBlur(blurMax)
             val bgr = pane {
                styleClass += "bgr-image"   // replicate app window bgr for style & consistency
             }
             val contentImg = ImageView(image).apply {
-               fitWidth = screen.bounds.width
-               fitHeight = screen.bounds.height
+               fitWidth = screen.bounds.width+2*blurMax
+               fitHeight = screen.bounds.height+2*blurMax
+               padding = Insets(-blurMax.toDouble())
                applyViewPort(image, FitFrom.OUTSIDE)
             }
             val root = stackPane(stackPane(bgr, contentImg)) {
                styleClass += "overlay-window"
+               background = bgr(TRANSPARENT)
             }
 
-            op.stage.value = createFMNTStage(screen, false).apply {
+            op.stage.value = stageFMNT(screen, op.displayBgr.value.stageStyle, false).apply {
                scene = Scene(root)
+               scene.fill = TRANSPARENT
                initOverlayWindow(this@OverlayPane)
                scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
                   if (it.isMetaDown) {
@@ -377,11 +386,12 @@ abstract class OverlayPane<in T>: StackPane() {
          op.stage.value?.opacity = x
       } else {
          op.opacity = x
+         op.stage.value?.opacity = 1.0
       }
       op.opacityNode?.opacity = 1 - x*0.5
       op.content?.opacity = y*y
-      val b = 15.0*it*it
-      if (b==0.0 || b==15.0 || abs(op.blur.height - b) > 3.0) {
+      val b = if (op.displayBgr.value.needsBlur) blurMax*it*it else 0.0
+      if (b==0.0 || b==blurMax.toDouble() || abs(op.blur.height - b) > 3.0) {
          op.blur.height = b
          op.blur.width = b
       }
@@ -416,22 +426,19 @@ abstract class OverlayPane<in T>: StackPane() {
    }
 }
 
-enum class ScreenBgrGetter {
-   NONE, SCREEN_SHOT, SCREEN_BGR;
+enum class ScreenBgrGetter(val stageStyle: StageStyle, val needsBlur: Boolean) {
+   NONE(StageStyle.TRANSPARENT, false),
+   SCREEN_SHOT(StageStyle.UNDECORATED, true),
+   SCREEN_BGR(StageStyle.UNDECORATED, true);
 
-   fun getImgAndDo(screen: Screen, block: (Image?) -> Unit) {
+   suspend fun computeImage(screen: Screen): Image? =
       when (this) {
-         NONE -> block(null)
-         SCREEN_SHOT -> block(screen.makeScreenShot())
-         SCREEN_BGR -> runSuspendingFx {
-            block(
-               null
+         NONE -> null
+         SCREEN_SHOT -> screen.makeScreenShot()
+         SCREEN_BGR -> null
                ?: APP.plugins.get<WallpaperChanger>()?.wallpaperImage?.value
                ?: IO { screen.getWallpaperFile()?.let { imgImplLoadFX(it, ImageSize(-1.0, -1.0), true) } }
-            )
-         }
       }
-   }
 }
 
 private class PolarResize {

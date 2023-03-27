@@ -19,13 +19,13 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.jetbrains.annotations.Nullable;
 import sp.it.util.JavaLegacy;
 import sp.it.util.access.V;
 import sp.it.util.reactive.Subscription;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
 import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.functional.UtilKt.consumer;
@@ -379,10 +379,6 @@ public interface Util {
 /* ---------- WINDOW ------------------------------------------------------------------------------------------------ */
 
 	// TODO: fix scaling screwing up initial window position
-	static Stage createFMNTStage(Screen screen) {
-		return createFMNTStage(screen, true);
-	}
-
 	/**
 	 * Create fullscreen modal no taskbar stage on given screen. The stage will have its owner,
 	 * style and modality initialized and be prepared to be shown.
@@ -397,7 +393,7 @@ public interface Util {
 	 * doable using owner stage with UTILITY style).
 	 * </ul>
 	 */
-	static Stage createFMNTStage(Screen screen, boolean show) {
+	static Stage stageFMNT(Screen screen, StageStyle style, boolean show) {
 		Stage owner = new Stage(UTILITY);  // UTILITY owner is the only way to get a 'top level' window with no taskbar.
 		owner.setOpacity(0);
 		owner.setWidth(10);
@@ -407,7 +403,7 @@ public interface Util {
 		owner.setX(screen.getBounds().getMinX() + 1);    // owner and child should be on the same screen
 		owner.setY(screen.getBounds().getMinY() + 1);
 
-		Stage s = new Stage(UNDECORATED) {
+		Stage s = new Stage(style) {
 			@Override
 			public void hide() {
 				//  Due to JavaFX bugs it is impossible to hide the owner after this is hidden, so we override hide()

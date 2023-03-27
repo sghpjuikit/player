@@ -1,6 +1,6 @@
 package sp.it.pl.ui.pane
 
-import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts as hideUnassignedShortcuts1
+import sp.it.pl.main.AppSettings.ui.overlay.shortcutViewer.hideUnassignedShortcuts as hideUnassignedShortcuts1
 import javafx.geometry.HPos
 import javafx.geometry.Insets
 import javafx.geometry.Pos.BOTTOM_LEFT

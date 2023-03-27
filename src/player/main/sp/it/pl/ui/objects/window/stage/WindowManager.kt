@@ -69,7 +69,9 @@ import sp.it.pl.ui.objects.window.stage.Window.Transparency
 import sp.it.pl.ui.objects.window.stage.Windows10WindowBlur.ACCENT_DISABLED
 import sp.it.pl.ui.objects.window.stage.Windows10WindowBlur.ACCENT_ENABLE_ACRYLICBLURBEHIND
 import sp.it.pl.ui.objects.window.stage.Windows10WindowBlur.ACCENT_ENABLE_BLURBEHIND
+import sp.it.pl.ui.pane.OverlayPane.Companion.asOverlayWindow
 import sp.it.pl.ui.pane.OverlayPane.Companion.isOverlayWindow
+import sp.it.pl.ui.pane.ScreenBgrGetter
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
@@ -109,6 +111,7 @@ import sp.it.util.math.intersectsWith
 import sp.it.util.math.isBelow
 import sp.it.util.math.max
 import sp.it.util.math.min
+import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.asDisposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachTo
@@ -247,6 +250,9 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       if (Os.WINDOWS.isCurrent)
          WindowFx.getWindows().onItemSyncWhile { w ->
+               if (w.isOverlayWindow() && w.asOverlayWindow()!!.displayBgr.value!=ScreenBgrGetter.NONE)
+                  return@onItemSyncWhile Subscription { }
+
                val s1 = (w.asAppWindow()?.transparency ?: windowTransparency) zip (w.asAppWindow()?.effect ?: windowEffect) sync { (transparency, effect) ->
                   runLater {
                      w.takeIf { it.isShowing }?.reflectHwnd().ifNotNull {

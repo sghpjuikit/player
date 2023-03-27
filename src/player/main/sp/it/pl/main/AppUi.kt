@@ -28,10 +28,10 @@ import sp.it.pl.layout.ContainerSwitch
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.main.AppSettings.ui.skin
-import sp.it.pl.main.AppSettings.ui.view.actionViewer.closeWhenActionEnds
-import sp.it.pl.main.AppSettings.ui.view.overlayArea
-import sp.it.pl.main.AppSettings.ui.view.overlayBackground
-import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts
+import sp.it.pl.main.AppSettings.ui.overlay.actionViewer.closeWhenActionEnds
+import sp.it.pl.main.AppSettings.ui.overlay.overlayArea
+import sp.it.pl.main.AppSettings.ui.overlay.overlayBackground
+import sp.it.pl.main.AppSettings.ui.overlay.shortcutViewer.hideUnassignedShortcuts
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.picker.FontPickerContent
 import sp.it.pl.ui.objects.rating.Rating
@@ -54,7 +54,6 @@ import sp.it.util.collections.readOnly
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.GlobalSubConfigDelegator
-import sp.it.util.conf.appendInfo
 import sp.it.util.conf.between
 import sp.it.util.conf.butElement
 import sp.it.util.conf.c
@@ -62,8 +61,10 @@ import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
+import sp.it.util.conf.readOnlyIf
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiConverter
+import sp.it.util.conf.uiInfoConverter
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesIn
 import sp.it.util.file.FileMonitor
@@ -155,9 +156,12 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    }
 
    /** [overlayArea] */
-   val viewDisplay by cv(Display.SCREEN_OF_MOUSE) def overlayArea
+   val viewDisplay by cv(Display.SCREEN_OF_MOUSE)
+      .uiConverter { it.nameUi }.uiInfoConverter { it.infoUi } def overlayArea
    /** [overlayBackground] */
-   val viewDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR) def overlayBackground.appendInfo("\nIgnored when `${overlayArea.name}` is `${Display.WINDOW.nameUi}`")
+   val viewDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR)
+      .uiConverter { it.nameUi }.uiInfoConverter { it.infoUi }
+      .readOnlyIf(viewDisplay.map { it==Display.WINDOW }) def overlayBackground
    /** [closeWhenActionEnds] */
    val viewCloseOnDone by cv(true) def closeWhenActionEnds
    /** [hideUnassignedShortcuts] */

@@ -24,6 +24,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Region
 import javafx.stage.Screen
 import javafx.stage.Stage
+import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import javax.tools.ToolProvider
 import kotlin.math.ceil
@@ -134,7 +135,7 @@ import sp.it.util.system.waitForResult
 import sp.it.util.text.capital
 import sp.it.util.text.decapital
 import sp.it.util.type.isSubclassOf
-import sp.it.util.ui.Util
+import sp.it.util.ui.Util.stageFMNT
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.minPrefMaxWidth
@@ -948,7 +949,7 @@ sealed interface ComponentLoader: (Component) -> Any {
    object WINDOW_FULLSCREEN {
       operator fun invoke(screen: Screen): (Component) -> Stage = { c ->
          val root = anchorPane()
-         val window = Util.createFMNTStage(screen, false).apply {
+         val window = stageFMNT(screen, UNDECORATED, false).apply {
             scene = Scene(root)
             onEventUp(WINDOW_HIDING) { c.rootParent?.close() }
          }

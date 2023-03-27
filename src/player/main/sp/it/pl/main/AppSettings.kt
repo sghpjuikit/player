@@ -1050,9 +1050,9 @@ This adds/removes registry key HKEY_CLASSES_ROOT\*\shell\SpitPlayer. This may re
             override val editable = EditMode.USER
          }
       }
-      object `view` {
+      object `overlay` {
          /** Name of the group. */
-         const val name = "View"
+         const val name = "Overlay"
 
          /** Covered area. Screen overlay provides more space than window, but it can disrupt work flow. */
          object `overlayArea`: ConfigDefinition {
@@ -1061,7 +1061,7 @@ This adds/removes registry key HKEY_CLASSES_ROOT\*\shell\SpitPlayer. This may re
             /** Compile-time constant equivalent to [info]. */
             const val cinfo: String = """Covered area. Screen overlay provides more space than window, but it can disrupt work flow."""
             /** Compile-time constant equivalent to [group]. */
-            const val cgroup: String = """Ui.View"""
+            const val cgroup: String = """Ui.Overlay"""
             /** Name of the config. */
             override val name = cname
             /** Group of the config. */
@@ -1078,7 +1078,7 @@ This adds/removes registry key HKEY_CLASSES_ROOT\*\shell\SpitPlayer. This may re
             /** Compile-time constant equivalent to [info]. */
             const val cinfo: String = """Background image source"""
             /** Compile-time constant equivalent to [group]. */
-            const val cgroup: String = """Ui.View"""
+            const val cgroup: String = """Ui.Overlay"""
             /** Name of the config. */
             override val name = cname
             /** Group of the config. */
@@ -1099,7 +1099,7 @@ This adds/removes registry key HKEY_CLASSES_ROOT\*\shell\SpitPlayer. This may re
                /** Compile-time constant equivalent to [info]. */
                const val cinfo: String = """Closes the chooser when action finishes running."""
                /** Compile-time constant equivalent to [group]. */
-               const val cgroup: String = """Ui.View.Action Viewer"""
+               const val cgroup: String = """Ui.Overlay.Action Viewer"""
                /** Name of the config. */
                override val name = cname
                /** Group of the config. */
@@ -1121,7 +1121,7 @@ This adds/removes registry key HKEY_CLASSES_ROOT\*\shell\SpitPlayer. This may re
                /** Compile-time constant equivalent to [info]. */
                const val cinfo: String = """Displays only shortcuts that have keys assigned"""
                /** Compile-time constant equivalent to [group]. */
-               const val cgroup: String = """Ui.View.Shortcut Viewer"""
+               const val cgroup: String = """Ui.Overlay.Shortcut Viewer"""
                /** Name of the config. */
                override val name = cname
                /** Group of the config. */

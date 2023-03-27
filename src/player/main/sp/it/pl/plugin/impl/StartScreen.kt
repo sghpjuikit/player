@@ -33,10 +33,13 @@ import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.bool.TRUE
 import sp.it.util.file.div
 import sp.it.util.functional.ifNotNull
+import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.syncBiFrom
 import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.areaBy
@@ -49,6 +52,7 @@ class StartScreen: PluginBase() {
    private var corners = screenCorners()
    private var mouseIn = false
    private var mouseXy = Point2D(0.0, 0.0)
+   private val onClose = Disposer()
 
    private val overlaySleepHandler = Subscribed {
       APP.actionStream.onEventObject(Events.AppEvent.SystemSleepEvent.Start) { overlay.hide() }
@@ -87,6 +91,7 @@ class StartScreen: PluginBase() {
             shower.stop()
             overlaySleepHandler.unsubscribe()
             overlayUserHandler.unsubscribe()
+            onClose()
          }
       )
    }
@@ -113,6 +118,7 @@ class StartScreen: PluginBase() {
 
          init {
             display.value = SCREEN_OF_MOUSE
+            displayBgr syncBiFrom APP.ui.viewDisplayBgr on onClose
             content = stackPane {
                isFocusTraversable = true
                onShowed += { requestFocus() }

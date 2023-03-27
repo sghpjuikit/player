@@ -222,7 +222,7 @@ val appSetting = Setting.root {
             info = "Initial value of forms' editors' layout."
          }
       }
-      "View" {
+      "Overlay" {
          config("Overlay area") {
             info = "Covered area. Screen overlay provides more space than window, but it can disrupt work flow."
          }

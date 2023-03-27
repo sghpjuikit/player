@@ -44,6 +44,10 @@ All notable changes to this project will be documented in this file. Format base
 - Improve **ObjectInfo** widget UI [display attributes with specialized components based on type]
 - Improve **FileInfo** widget layout
 - Improve widget compilation speed [use K2 compiler]
+- Improve OverlayPane & StartScreen show animation to respect user settings
+- Improve OverlayPane & StartScreen show animation to avoid blur edge artifacts
+- Improve OverlayPane & StartScreen show animation to support standard custom window effects 
+- Improve OverlayPane & StartScreen show animation UI documentation
 - Fix popup showing up in taskbar/switcher sometimes
 - Fix `Action.invoke` with default arguments
 - Fix exceptions when popup with focus is shown [remove calling focus unnecessarily]
@@ -53,6 +57,9 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Spektrum** widget state corruption after out of range exceptions during interpolation
 - Fix **Spektrum** widget audio dispatcher buffer size calculation
 - Fix **Spektrum** widget ignoring right channel
+- Fix **Spektrum** widget bar position in certain case
+- Fix **Spektrum** widget frequencies calculation
+- Fix **Spektrum** widget stereo-to-mono corrupting FFT result
 - Fix **Hue** widget bulb color selector layout broken sometimes
 - Fix **Hue** widget `All` bulb group not showing bulb status
 - Fix **Comet** widget issues of various kind
@@ -60,15 +67,18 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Tray** plugin threading issues
 - Fix `Thumbnail` not updating viewport when layout changes
 - Fix `ToggleButtonGroup` styling
+- Fix `PopWindow` not respecting window owner sometimes
+- Fix `OverlayPane` not reacting closing on ESCAPE sometimes
+- Fix `GpuNvidiaInfo` empty values and GPU name for non-Nvidia cards
 - Fix playback status change notification ui created multiple times
 - Fix popup outside screen position fix not working sometimes
 - Fix dock window not restoring position correctly when screens change
 - Fix custom widgets' context menu not working properly in dock window
 - Fix songs with no title showing extension as title substitute
 - Fix not updated or corrupted songs showing length of 00:00 instead of null
-- Fix `PopWindow` not respecting window owner sometimes
-- Fix `OverlayPane` not reacting closing on ESCAPE sometimes
-- Fix `GpuNvidiaInfo` empty values and GPU name for non-Nvidia cards
+- Fix ffmpeg download not working due to dead link
+- Fix invoking certain `Action`s through `AppSearch`
+- Fix styling of Path types
 
 This update brings lots of UX improvements all-around.
 

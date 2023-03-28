@@ -12,7 +12,6 @@ import javafx.scene.input.ContextMenuEvent.CONTEXT_MENU_REQUESTED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.stage.Window
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
@@ -133,14 +132,9 @@ class Node(widget: Widget): SimpleController(widget) {
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
 
-      root.onEventDown(MOUSE_RELEASED, SECONDARY) { it.consume() }
-      root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (it.isStillSincePress) buildContextmenu().show(root, it) }
-      root.onEventDown(CONTEXT_MENU_REQUESTED) { it.consume() }
-      root.onEventDown(CONTEXT_MENU_REQUESTED) { buildContextmenu().show(root, it) }
-      root.onEventDown(MOUSE_CLICKED, PRIMARY) {
-         if (nodeInstance.value.node==null)
-            APP.windowManager.showSettings(widget, root)
-      }
+      root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (it.isPrimaryButtonDown && it.isStillSincePress) { buildContextMenu().show(root, it); it.consume() } }
+      root.onEventDown(CONTEXT_MENU_REQUESTED) { if (it.isKeyboardTrigger) { buildContextMenu().show(root, it); it.consume() } }
+      root.onEventDown(MOUSE_CLICKED, PRIMARY) {if (nodeInstance.value.node==null) APP.windowManager.showSettings(widget, root) }
 
       nodeInstance sync { node ->
          io.i.removeAll()
@@ -151,7 +145,7 @@ class Node(widget: Widget): SimpleController(widget) {
       }
    }
 
-  fun buildContextmenu() = ContextMenu().dsl {
+  fun buildContextMenu() = ContextMenu().dsl {
      menu("Inputs") {
         val node = nodeInstance.value.node
         val propertiesWithInputs = io.i.getInputs().asSequence().map { it.name }.toSet()

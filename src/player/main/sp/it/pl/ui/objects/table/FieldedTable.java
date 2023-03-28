@@ -5,8 +5,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -263,7 +261,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 				columnB.setOnMousePressed(e -> columnMenu.show(columnB, BOTTOM, 0, 0));
 				f.setAccessible(false);
 			} catch (Exception ex) {
-				Logger.getLogger(FieldedTable.class.getName()).log(Level.SEVERE, null, ex);
+				org.slf4j.LoggerFactory.getLogger(FieldedTable.class).error("Error initializing table menu", ex);
 			}
 
 		}

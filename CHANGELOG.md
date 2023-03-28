@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `PlaylistTable` playing column icon open controls action
 - Implement `WidgetUi` widget load delay
 - Implement `WidgetUi` disposing & animation stopping on widget close
+- Implement universal widget context menu trigger
 - Improve `Placeholder` layout to be reactive
 - Improve UI performance [JavaFX css improvements]
 - Improve UX [adjust widget controls activation area size]
@@ -99,6 +100,7 @@ This widget is useful for developers and now becomes much more powerful. Enjoy.
 The widget fixed crashes in certain states. It now averages left and right channel (previously only left channel was visualized).
 The color gradient settings is now simpler and fades into itself for circular layout.
 The buffer settings has been simplified and set up to minimize visualization delay.
+Various improvements regarding band computation and visualization have been made.
 
 ### CommandBar improvements
 This widget is a good fit fot start screen or various docks.
@@ -129,6 +131,11 @@ This brings the two closer and allows Node widgets to provide metadata, such as 
 ### Icon widget and pickers
 The **IconViewer** widget has been reimplemented as ordinary Node `IconPickerContent` and is provided now as Node-based widget.
 `IconPickerContent` is used for `IconTextField` which is used for `IconCE` - config editor for icons, which provides much better UX that the autocomplete.
+
+### Widget context menu trigger
+Now all widgets employ context menu.
+The mouse trigger has been changed from `RMB` to `LMB Press + RMB` to avoid interfering with other functionalities.
+The menu supports system specific keyboard activation (`SHIFT + F10` on Windows).
 
 ## [7.6.0] 2022 11 27
 

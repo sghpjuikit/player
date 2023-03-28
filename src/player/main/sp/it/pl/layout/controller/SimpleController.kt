@@ -1,6 +1,8 @@
 package sp.it.pl.layout.controller
 
-import javafx.scene.layout.StackPane
+import javafx.scene.input.ContextMenuEvent.CONTEXT_MENU_REQUESTED
+import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import kotlin.reflect.full.findAnnotation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
@@ -8,6 +10,7 @@ import kotlinx.coroutines.cancel
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.controller.io.Input
 import sp.it.pl.layout.controller.io.Output
+import sp.it.pl.main.contextMenuFor
 import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource
@@ -16,6 +19,10 @@ import sp.it.util.conf.toConfigurableByReflect
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onEventUp
+import sp.it.util.ui.show
+import sp.it.util.ui.stackPane
 
 /**
  * Base controller implementation that provides
@@ -26,7 +33,12 @@ import sp.it.util.reactive.Subscription
 open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator {
 
    /** The ui root that attaches this widget to the scene graph */
-   @JvmField val root = StackPane()
+   @JvmField val root = stackPane {
+      if (widget.fieldsRaw["node"] == null) {
+         onEventUp(MOUSE_CLICKED, SECONDARY, false) { if (it.isPrimaryButtonDown && it.isStillSincePress) { contextMenuFor(widget).show(this, it); it.consume() } }
+         onEventDown(CONTEXT_MENU_REQUESTED) { if (it.isKeyboardTrigger) { contextMenuFor(widget).show(this, it); it.consume() } }
+      }
+   }
    /** The coroutine scope partaking in the life-cycle of this widget. Cancelled on [close]. [MainScope]. Use to launch coroutines. */
    @JvmField val scope: CoroutineScope = MainScope()
    /** The disposer partaking in the life-cycle of this widget. Called on [close]. Use to dispose resources. */

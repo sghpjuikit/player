@@ -29,7 +29,6 @@ import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
-import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.ALL
@@ -83,6 +82,7 @@ import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
+import sp.it.util.system.Os
 import sp.it.util.system.browse
 import sp.it.util.system.runCommand
 import sp.it.util.text.keys
@@ -169,7 +169,9 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          Entry("Ui", "Show focused widget help", F2.nameUi),
          Entry("Ui", "Show focused widget help", ActionManager.keyShortcutsComponent.nameUi),
          Entry("Ui", "Show focused widget actions", ActionManager.keyActionsComponent.nameUi),
-         Entry("Ui", "Layout mode", ActionManager.keyManageLayout.nameUi),
+         Entry("Ui > Layout", "Layout mode", ActionManager.keyManageLayout.nameUi),
+         Entry("Ui > Layout", "Widget context menu", keys("${PRIMARY.nameUi} Press + ${SECONDARY.nameUi}")),
+         Entry("Ui > Layout", "Widget context menu", keys(SHIFT, F10)).takeIf { Os.WINDOWS.isCurrent },
          Entry("Ui > Controls > Button/Icon", "Run action", PRIMARY.nameUi),
          Entry("Ui > Controls > Button/Icon", "Run action", ENTER.nameUi),
          Entry("Ui > Controls > Button/Icon", "Run action", SPACE.nameUi),

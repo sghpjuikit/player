@@ -273,7 +273,9 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                      }
                   }
                }
-            val s2 = w.onEventUp1(WINDOW_HIDING) { w.reflectHwnd()?.applyBlur(ACCENT_DISABLED) }
+            val s2 = w.onEventUp1(WINDOW_HIDING) {
+               w.reflectHwnd()?.applyBlur(ACCENT_DISABLED)
+            }
             s1 + s2
          }
 
@@ -458,8 +460,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.window.stage.scene.root.onEventDown(DRAG_ENTERED) { mwShower.show() }
          mw.window.stage.scene.root.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }
          mw.window.stage.scene.root.onEventDown(KEY_RELEASED, SPACE) { mwShower.show() }
-         mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
-         mw.window.stage.scene.root.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
+         mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!it.isPrimaryButtonDown && !APP.ui.isLayoutMode) mwShower.hide() }
+         mw.window.stage.scene.root.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!it.isPrimaryButtonDown && !APP.ui.isLayoutMode) mwShower.hide() }
          mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, PRIMARY) { mwShower.show() }
          mw.window.stage.scene.root.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay() }
          mw.window.stage.scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
@@ -587,7 +589,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             val clip = if (it==1.0) null else GDI32.INSTANCE.CreateRectRgn(if (showSide==Side.RIGHT) 0 else (mw.W.value*(1-it)).toInt(), 0, (mw.W.value).toInt(), mw.height.toInt())
             User32.INSTANCE.SetWindowRgn(mwh, clip, false)
          }
-
       }
       val shower = {
          VT_IMAGE_THROTTLE.lockFor(150.millis)
@@ -613,7 +614,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       runFX(300.millis) {
          mw.stage.installHideOnFocusLost(mwAutohide, hider)
          mw.stage.scene.root.onEventDown(KEY_PRESSED, ESCAPE) { hider() }
-         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) hider() }
+         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!it.isPrimaryButtonDown && !APP.ui.isLayoutMode) hider() }
          mw.stage.scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
             if (it.isMetaDown) {
                mwAutohide.toggle()

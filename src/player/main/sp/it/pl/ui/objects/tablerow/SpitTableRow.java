@@ -11,6 +11,7 @@ import javafx.scene.input.MouseEvent;
 import sp.it.util.reactive.Subscription;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 
 /**
  * {@link TableRow} with additional methods.
@@ -29,14 +30,14 @@ public class SpitTableRow<T> extends TableRow<T> {
 	public SpitTableRow() {
 		super();
 
-		setOnMouseClicked(e -> {
+		addEventHandler(MOUSE_CLICKED, e -> {
 			if (!isEmpty()) {
 				MouseButton b = e.getButton();
 				int clicks = e.getClickCount();
-				if (b==PRIMARY && clicks==1 && onL1Click!=null) onL1Click.accept(this, e);
-				if (b==PRIMARY && clicks==2 && onL2Click!=null) onL2Click.accept(this, e);
-				if (b==SECONDARY && clicks==1 && onR1Click!=null) onR1Click.accept(this, e);
-				if (b==SECONDARY && clicks==2 && onR2Click!=null) onR2Click.accept(this, e);
+				if (b==PRIMARY && clicks==1 && !e.isSecondaryButtonDown() && e.isStillSincePress() && onL1Click!=null) { onL1Click.accept(this, e); e.consume(); };
+				if (b==PRIMARY && clicks==2 && !e.isSecondaryButtonDown() && e.isStillSincePress() && onL2Click!=null) { onL2Click.accept(this, e); e.consume(); };
+				if (b==SECONDARY && clicks==1 && !e.isPrimaryButtonDown() && e.isStillSincePress() && onR1Click!=null) { onR1Click.accept(this, e); e.consume(); };
+				if (b==SECONDARY && clicks==2 && !e.isPrimaryButtonDown() && e.isStillSincePress() && onR2Click!=null) { onR2Click.accept(this, e); e.consume(); };
 			}
 		});
 	}

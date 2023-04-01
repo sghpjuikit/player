@@ -1,29 +1,43 @@
 {
-  "forbidUse": false,
+  "_type": "widget",
   "factoryId": "LibraryView",
-  "preferred": false,
-  "settings": {
+  "fields": {
+    "customname": "Albums",
     "fieldfilter": "Album",
-    "tablezeropad": "false",
-    "tableorigindex": "false",
-    "tableshowheader": "true",
+    "focused": true,
+    "forbiduse": false,
+    "padding": null,
+    "preferred": false,
     "sellast": "null",
-    "tableshowfooter": "true",
-    "tableorient": "INHERIT"
-  },
-  "nameUi": "Albums",
-  "id": "1b59148b-d3dc-41c9-b8ea-584901c53dcd",
-  "loading": "AUTOMATIC",
-  "locked": false,
-  "properties": {
-    "ioTo display": {
-      "value": "Song library,396d2407-7040-401e-8f85-56bc71288818",
-      "_type": "string"
+    "tableorient": {
+      "override": false,
+      "value": "INHERIT"
     },
-    "columns": {
-      "value": "#,0,true,47.71484375;Year,2,true,111.0;Length,5,true,70.0;W rating,16,false,70.0;Size,6,true,115.0;Album,1,true,373.28515625;Items,3,true,65.0;Avg rating,4,true,98.0;Albums,16,false,70.0+Album,DESCENDING",
-      "_type": "string"
+    "tableorigindex": {
+      "override": false,
+      "value": false
+    },
+    "tableshowfooter": {
+      "override": false,
+      "value": true
+    },
+    "tableshowheader": {
+      "override": false,
+      "value": true
+    },
+    "tablezeropad": {
+      "override": false,
+      "value": false
     }
   },
-  "_type": "widget"
+  "id": "52b76aa2-7abb-4f39-801d-6780767ff4f6",
+  "loading": "AUTOMATIC",
+  "locked": false,
+  "nameUi": "Albums",
+  "properties": {
+    "columns": "#,0,true,72.1845703125;Value,1,true,337.8154296875;Year,2,true,111.0;Items,3,true,65.0;Avg rating,4,true,98.0;Length,5,true,70.0;Size,6,true,115.0;W rating,9,false,105.0;Albums,9,false,105.0+",
+    "factory": "<app-dir>\\templates\\Albums.fxwl",
+    "ioTo display": "Song library,396d2407-7040-401e-8f85-56bc71288818"
+  },
+  "settings": {}
 }

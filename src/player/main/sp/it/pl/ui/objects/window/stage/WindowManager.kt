@@ -692,12 +692,12 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    suspend fun instantiateComponent(launcher: File): Component? = FX {
       val id = VT {
          if (!launcher.exists()) null
-         else runTry { launcher.useLines { it.take(2).toList().net { if (it.size==1) it[0] else "" } } }.orNull()
+         else runTry { launcher.useLines { it.take(2).toList().net { if (it.size==1 && !it[0].trimStart().startsWith("{")) it[0] else "" } } }.orNull()
       }
 
       when (id) {
          null -> null
-         "" -> APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.deduplicateIds()?.toDomain()
+         "" -> APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.deduplicateIds()?.toDomain()?.apply { fileDeserializing = launcher }
          else -> instantiateComponent(id)
       }
    }

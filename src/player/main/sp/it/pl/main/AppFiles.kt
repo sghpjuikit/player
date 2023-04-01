@@ -481,18 +481,18 @@ object `AppLocation`: Dir(File("").absolutePath) {
          const val fileDescription: String = """Directory for widget user data."""
       
       }
-      /** File child [`Application_properties`]. */
-      val `application_properties` = `Application_properties`
+      /** File child [`Application_json`]. */
+      val `application_json` = `Application_json`
       
       /**
        * Compile-time object representing file `File("").absolutePath/"user"`, usable in annotations.
        * 
        * File for application configuration.
        */
-      object `Application_properties`: Fil(File("").absolutePath + separator + "user" + separator + "application.properties") {
+      object `Application_json`: Fil(File("").absolutePath + separator + "user" + separator + "application.json") {
       
-         /** Same as [getName]. Compile-time constant. `application.properties`.*/
-         const val fileName: String = """application.properties"""
+         /** Same as [getName]. Compile-time constant. `application.json`.*/
+         const val fileName: String = """application.json"""
          /** Description of this file. Compile-time constant. Same as documentation for this object. */
          const val fileDescription: String = """File for application configuration."""
       

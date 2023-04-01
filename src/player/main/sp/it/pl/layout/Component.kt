@@ -44,13 +44,17 @@ sealed class Component(state: ComponentDb) {
          lockedUnder.init(value)
       }
 
+   var fileDeserializing: File?
+      get() = APP.converter.general.ofS<File?>(properties["factory"].toString()).orNull()
+      set(value) = run { properties["factory"] = value?.toS() }
+
    var factoryDeserializing: DeserializingFactory?
       get() {
          return APP.converter.general.ofS<File?>(properties["factory"].toString()).orNull()
             ?.let { f -> APP.widgetManager.factories.getComponentFactories().filterIsInstance<DeserializingFactory>().find { it.launcher==f } }
       }
       set(value) {
-         properties["factory"] = value?.launcher.toS()
+         properties["factory"] = value?.launcher?.toS()
       }
 
    init {

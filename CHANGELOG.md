@@ -3,10 +3,12 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Update Kotlin to 1.8.20
 - Update vlcj to 3.0.18
 - Update dependencies
 - Implement **Speech Recognition** plugin
 - Implement **Speech Synthesizer** plugin
+- Implement application properties as json
 - Implement audio playback for video files
 - Implement Node base widget support for widget metadata [WidgetCompanion]
 - Implement icon config editor with icon picker
@@ -28,6 +30,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `WidgetUi` widget load delay
 - Implement `WidgetUi` disposing & animation stopping on widget close
 - Implement universal widget context menu trigger
+- Implement `sealed` class json converting support
+- Implement `JsValue` class json converting support
 - Improve `Placeholder` layout to be reactive
 - Improve UI performance [JavaFX css improvements]
 - Improve UX [adjust widget controls activation area size]
@@ -81,6 +85,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix ffmpeg download not working due to dead link
 - Fix invoking certain `Action`s through `AppSearch`
 - Fix styling of Path types
+- Fix json pretty print in some cases
 
 This update brings lots of UX improvements all-around.
 
@@ -92,6 +97,13 @@ The plugins provide only basic settings and speech recognition commands can only
 However, the recognition accuracy is good and resource usage is low.
 In time, this is expected to become more integrated into the application.
 For now, the goal is to enable user to register custom commands through UI.
+
+### Json properties
+Application properties and various serialization throughout application has been changed from custom `.properties` format
+to `.json`. This improves handling of deeply nested values, collections and unicode, all of which were iffy at best.
+Also, nested json values no longer need to be escaped as text, which improves `Node` based widget settings.
+In current application version, the application supports both formats, but the old will become unsupported in the next version.
+To migrate, application must be run at this version at least once.
 
 ### GitProject improvements
 This widget is useful for developers and now becomes much more powerful. Enjoy.

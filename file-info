@@ -76,7 +76,7 @@ app {
     widgets {
     }
     # File for application configuration.
-    application.properties
+    application.json
   }
   # Optional directory containing Vlc player installation.
   vlc {

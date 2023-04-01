@@ -16,6 +16,8 @@ import org.jetbrains.annotations.NotNull;
 import sp.it.util.conf.Config;
 import sp.it.util.conf.Constraint;
 import sp.it.util.conf.EditMode;
+import sp.it.util.file.json.JsString;
+import sp.it.util.file.json.JsValue;
 import sp.it.util.file.properties.PropVal;
 import sp.it.util.file.properties.PropVal.PropVal1;
 import sp.it.util.functional.TryKt;
@@ -316,6 +318,24 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 
 	@NotNull
 	@Override
+	public JsValue getValueAsJson() {
+		return new JsString(ActionDb.Companion.toS(new ActionDb(global, getKeys())));
+	}
+
+	@Override
+	public void setValueAsJson(@NotNull JsValue property) {
+		runTry(() -> {
+			var s = property.asJsStringValue();
+			var a = s==null ? null : getOr(ActionDb.Companion.ofS(s).ifErrorUse(it -> logger(Action.class).warn("Unable to set config=" + name + " value from text='" + s + "' because: " + it)), null);
+			if (a!=null) set(a.isGlobal(), a.getKeys());
+			return a;
+		}).ifErrorUse(e ->
+			logger(Action.class).warn("Unable to set config=" + name + " value from json=" + property)
+		);
+	}
+
+	@NotNull
+	@Override
 	public PropVal getValueAsProperty() {
 		return new PropVal1(new ActionDb(global, getKeys()).toString());
 	}
@@ -323,7 +343,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	@Override
 	public void setValueAsProperty(@NotNull PropVal property) {
 		var s = property.getVal1();
-		var a = s==null ? null : getOr(ActionDb.Companion.ofS(s).ifErrorUse(it -> Config.Companion.getLogger().warn("Unable to set config=" + name + " value from text='" + s + "' because: " + it)), null);
+		var a = s==null ? null : getOr(ActionDb.Companion.ofS(s).ifErrorUse(it -> logger(Action.class).warn("Unable to set config=" + name + " value from text='" + s + "' because: " + it)), null);
 		if (a!=null) set(a.isGlobal(), a.getKeys());
 	}
 
@@ -407,7 +427,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	public record Data(boolean isGlobal, String keys) {
 
 		public KeyCombination getKeysAsKeyCombination() {
-			return keys.isEmpty() ? NO_MATCH : (KeyCombination) TryKt.getOr(runTry(runnable(() -> KeyCodeCombination.valueOf(keys))), NO_MATCH);
+			return keys.isEmpty() ? NO_MATCH : (KeyCombination) TryKt.getOr(TryKt.runTry(runnable(() -> KeyCodeCombination.valueOf(keys))), NO_MATCH);
 		}
 
 		@Override

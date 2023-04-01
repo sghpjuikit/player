@@ -75,6 +75,7 @@ import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
+import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.butElement
@@ -102,6 +103,8 @@ import sp.it.util.file.hasExtension
 import sp.it.util.file.isAnyChildOf
 import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.isParentOf
+import sp.it.util.file.json.JsObject
+import sp.it.util.file.json.JsValue
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.readProperties
 import sp.it.util.file.setExecutableOrThrow
@@ -724,11 +727,15 @@ class WidgetManager {
    inner class Factories {
 
       /** Default configs for [Widget.storeDefaultConfigs]. */
-      val defaultConfigs = ConcurrentHashMap<File, Map<String, PropVal>>().apply {
+      val defaultConfigs = ConcurrentHashMap<File, Pair<Map<String, PropVal>, Map<String, JsValue>>>().apply {
          APP.location.user.widgets.children(FileFilter { it.isDirectory }).forEach { userLocation ->
-            val configFile = userLocation / "default.properties"
+            val configFileLegacy = userLocation / "default.properties"
+            if (configFileLegacy.exists())
+               this[userLocation] = configFileLegacy.readProperties().ifErrorDefault().orNull().orEmpty() to mapOf<String, JsValue>()
+
+            val configFile = userLocation / "default.json"
             if (configFile.exists())
-               this[userLocation] = configFile.readProperties().ifErrorDefault().orNull().orEmpty()
+               this[userLocation] = mapOf<String, PropVal>() to Config.Companion.json.fromJson<JsObject>(configFile).orNull()?.value.orEmpty()
          }
       }
 

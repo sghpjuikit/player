@@ -66,6 +66,7 @@ import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.conf.Command
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.WidgetFactory
+import sp.it.pl.layout.WidgetNodeInstance
 import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
@@ -276,13 +277,10 @@ object CoreConverter: Core {
                   }
                type.isObject ->
                   { _ -> Try.ok(type.objectInstance) }
-               type.isSealed ->
-                  { s ->
-                     type.sealedSubObjects
-                        .find { it::class.simpleName==s }
-                        ?.let { Try.ok(it) }
-                        ?: Try.error("Not a valid value: \"$s\"")
-                  }
+               type.isSealed -> {
+                  val sso = type.sealedSubObjects
+                  { s -> sso.find { it::class.simpleName==s }?.let { Try.ok(it) } ?: Try.error("Not a valid value: \"$s\"") }
+               }
                type.isDataClass ->
                   { s ->
                      val isJsonObject = s.startsWith("{") && s.endsWith("}")
@@ -434,6 +432,7 @@ object CoreConverter: Core {
       addP<Command.CommandActionId>(Command.CommandActionId)
       addP<Command.CommandComponentId>(Command.CommandComponentId)
       addT<SkinCss>({ it.file.absolutePath }, { Try.ok(SkinCss(File(it))) })
+      addP<WidgetNodeInstance>(WidgetNodeInstance)
    }
 
    private inline fun <reified T: Any> ConverterDefault.addP(converter: ConverterString<T>) = addParser(T::class, converter)

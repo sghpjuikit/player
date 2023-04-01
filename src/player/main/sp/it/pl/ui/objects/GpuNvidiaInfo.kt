@@ -33,7 +33,7 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.file.FileType.FILE
-import sp.it.util.file.properties.PropVal
+import sp.it.util.file.json.JsString
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.math.clip
@@ -80,7 +80,7 @@ class GpuNvidiaInfo: StackPane() {
    private val labelClock = label()
    private val labelClockPer = label()
 
-   private val nvidiaSmi = vn(APP.configuration.rawGet(dataKey)?.val1?.let { APP.converter.general.ofS<File?>(it).orNull() })
+   private val nvidiaSmi = vn(APP.configuration.rawGet(dataKey)?.asJsStringValue()?.let { APP.converter.general.ofS<File?>(it).orNull() })
    private val gpuLoad = Num01Ui("Load", "gpu-load", "%")
    private val gpuPow = Num01Ui("Draw", "gpu-pow", " W")
    private val gpuMem = Num01Ui("Memory", "gpu-mem", " MiB")
@@ -219,7 +219,7 @@ class GpuNvidiaInfo: StackPane() {
             )
       }.configure("Set up nvidia-smi.exe") {
          nvidiaSmi.value = it.nvidiaSmi.value
-         APP.configuration.rawAdd(dataKey, PropVal.PropVal1(it.nvidiaSmi.value.toS()))
+         APP.configuration.rawAdd(dataKey, JsString(it.nvidiaSmi.value.toS()))
          // IO.launch { refresh() }
          Unit
       }

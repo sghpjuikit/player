@@ -1,90 +1,114 @@
 {
+  "_type": "bi-container",
   "absoluteSize": 1,
   "children": {
     "1": {
+      "_type": "widget",
       "factoryId": "FavLocations",
-      "forbidUse": false,
-      "nameUi": "Favourite Locations",
-      "preferred": false,
-      "settings": {
+      "fields": {
+        "customname": "Favourite Locations",
+        "focused": false,
+        "forbiduse": false,
+        "locations": [],
+        "padding": null,
+        "preferred": false,
         "refresh": "false,",
-        "locations": []
+        "selectedpersisted": null
       },
-      "id": "e0fbf548-b0bd-42e2-99e7-542bbabab010",
+      "id": "e1d56d93-c878-46e0-a355-94da69d997d7",
       "loading": "AUTOMATIC",
       "locked": false,
+      "nameUi": "Favourite Locations",
       "properties": {},
-      "_type": "widget"
+      "settings": {}
     },
     "2": {
+      "_type": "bi-container",
       "absoluteSize": 2,
       "children": {
         "1": {
+          "_type": "widget",
           "factoryId": "DirViewer",
-          "forbidUse": false,
-          "nameUi": "Dir Viewer",
-          "preferred": false,
-          "settings": {
-            "fileflatter": "TOP_LVL",
-            "coverloadingusecomposeddircover": "true",
-            "sort": "ASCENDING",
-            "sortfile": "DIR_FIRST",
-            "cellsizeratio": "R_1x1",
-            "filter": "File - all",
-            "coverfitfrom": "OUTSIDE",
-            "lastvisited": "<NULL>",
-            "coveron": "false",
-            "files": [],
-            "sortby": "Name",
-            "navigationvisible": "true",
+          "fields": {
             "cellsize": "SMALL",
-            "coveruseparentcoverifnone": "true"
+            "cellsizeratio": "R_1x1",
+            "celltype": "NORMAL",
+            "covercache": false,
+            "covercacheid": "e9dc41b8-3d86-415f-9fde-f94fc5e4a48d",
+            "coverfitfrom": "OUTSIDE",
+            "coverloadingusecomposeddircover": true,
+            "coveron": false,
+            "coveruseparentcoverifnone": true,
+            "customname": "Dir Viewer",
+            "files": [],
+            "filesjoiner": "TOP_LVL",
+            "filter": "File - all",
+            "focused": true,
+            "forbiduse": false,
+            "gridcellalignment": {
+              "override": false,
+              "value": "sp.it.pl.ui.objects.grid.GridView$CellGap$CENTER"
+            },
+            "gridshowfooter": {
+              "override": false,
+              "value": true
+            },
+            "lastvisited": "C:\\Users\\Uranium\\Documents\\GitHub\\player\\app",
+            "location_(refresh)": "false,",
+            "navigationvisible": true,
+            "padding": null,
+            "preferred": false,
+            "sort": "ASCENDING",
+            "sortby": "Name",
+            "sortfile": "DIR_FIRST"
           },
-          "id": "1ecab779-3646-4426-bc5b-9d7d44e66af8",
+          "id": "60f72cf1-03fe-4ba8-a93b-97f326f8a922",
           "loading": "AUTOMATIC",
           "locked": false,
+          "nameUi": "Dir Viewer",
           "properties": {
-            "ioRoot directory": {
-              "value": "Selected,e0fbf548-b0bd-42e2-99e7-542bbabab010",
-              "_type": "string"
-            }
+            "ioRoot directory": "Selected,e1d56d93-c878-46e0-a355-94da69d997d7"
           },
-          "_type": "widget"
+          "settings": {}
         },
         "2": {
+          "_type": "widget",
           "factoryId": "ObjectInfo",
-          "forbidUse": false,
-          "nameUi": "Object Info",
-          "preferred": false,
-          "settings": {},
-          "id": "7cb4fc94-0a49-4b83-98b2-23599f980113",
+          "fields": {
+            "customname": "Object Info",
+            "focused": false,
+            "forbiduse": false,
+            "padding": null,
+            "preferred": false
+          },
+          "id": "f2fd4bd1-cd35-43c1-8afe-b517b3474eb3",
           "loading": "AUTOMATIC",
           "locked": false,
+          "nameUi": "Object Info",
           "properties": {
-            "ioTo display": {
-              "value": "Selected,1ecab779-3646-4426-bc5b-9d7d44e66af8",
-              "_type": "string"
-            }
+            "ioTo display": "Selected,60f72cf1-03fe-4ba8-a93b-97f326f8a922"
           },
-          "_type": "widget"
+          "settings": {}
         }
       },
-      "collapsed": 1,
-      "orientation": "VERTICAL",
-      "position": 0.8339517625231911,
-      "id": "1a34267d-31c7-4de2-ab8c-8ff0875ae676",
+      "collapsed": 0,
+      "id": "13a6843d-67d3-482b-9c70-c819b3f8728f",
+      "joined": false,
       "loading": "AUTOMATIC",
       "locked": false,
-      "properties": {},
-      "_type": "bi-container"
+      "orientation": "VERTICAL",
+      "position": 0.0,
+      "properties": {}
     }
   },
   "collapsed": -1,
-  "orientation": "HORIZONTAL",
-  "position": 0.1860737273259216,
-  "id": "6d31a8c4-8add-417f-8be5-bfa2b7a1ee89",
+  "id": "6379d680-8d8b-4e44-8679-d3bf0ad26717",
+  "joined": false,
   "loading": "AUTOMATIC",
   "locked": false,
-  "properties": {},
-  "_type": "bi-container"
+  "orientation": "HORIZONTAL",
+  "position": 0.1860737273259216,
+  "properties": {
+    "factory": "<app-dir>\\templates\\File Explorer.fxwl"
+  }
 }

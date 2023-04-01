@@ -1,29 +1,43 @@
 {
-  "forbidUse": false,
+  "_type": "widget",
   "factoryId": "Library",
-  "preferred": false,
-  "settings": {
-    "lastadddirlocation": "C:\\Users\\Uranium\\Documents\\GitHub\\player\\app\\user",
-    "lastaddfileslocation": "C:\\Users\\Uranium\\Documents\\GitHub\\player\\app\\user",
-    "tablezeropad": "false",
-    "tableorigindex": "false",
-    "tableshowheader": "true",
-    "tableshowfooter": "true",
-    "tableorient": "INHERIT"
-  },
-  "nameUi": "Recently Added Songs",
-  "id": "21dab3b5-a97d-4500-a7fd-1b72469ab245",
-  "loading": "AUTOMATIC",
-  "locked": false,
-  "properties": {
-    "ioTo display": {
-      "value": "Song library,396d2407-7040-401e-8f85-56bc71288818",
-      "_type": "string"
+  "fields": {
+    "customname": "Recently Added Songs",
+    "focused": false,
+    "forbiduse": false,
+    "lastadddirlocation": "<app-dir>\\user",
+    "lastaddfileslocation": "<app-dir>\\user",
+    "padding": null,
+    "preferred": false,
+    "tableorient": {
+      "override": false,
+      "value": "INHERIT"
     },
-    "columns": {
-      "value": "Artist,4,true,266.0;First played,18,false,60.0;Category,18,false,60.0;Playcount,18,false,60.0;Discs info,7,true,117.0;Rating,18,false,60.0;Album,3,true,286.0;Filesize,18,false,60.0;Discs total,18,false,60.0;Channels,18,false,60.0;Format,18,false,60.0;Disc,18,false,60.0;Encoder,18,false,60.0;Added to library,1,true,209.0;Lyrics,18,false,60.0;Album artist,18,false,60.0;Rating raw,18,false,60.0;Tags,18,false,60.0;Path,18,false,160.0;Comment,18,false,60.0;Composer,18,false,60.0;#,0,true,57.41796875;Tracks total,18,false,60.0;Sample rate,18,false,60.0;Color,18,false,60.0;Title,2,true,358.0;Filename,18,false,60.0;Encoding,18,false,60.0;Publisher,18,false,60.0;Bitrate,18,false,60.0;Custom4,18,false,60.0;Custom3,18,false,60.0;Custom2,18,false,60.0;Custom1,18,false,60.0;Mood,18,false,60.0;Year,18,false,60.0;Length,5,true,92.0;Custom5,18,false,60.0;Last played,18,false,60.0;Track info,6,true,116.0;Genre,18,false,60.0;Track,18,false,60.0+Added to library,DESCENDING",
-      "_type": "string"
+    "tableorigindex": {
+      "override": false,
+      "value": false
+    },
+    "tableshowfooter": {
+      "override": false,
+      "value": true
+    },
+    "tableshowheader": {
+      "override": false,
+      "value": true
+    },
+    "tablezeropad": {
+      "override": false,
+      "value": false
     }
   },
-  "_type": "widget"
+  "id": "8e7a343e-b3a6-47a8-9061-8700e601a3ac",
+  "loading": "AUTOMATIC",
+  "locked": false,
+  "nameUi": "Recently Added Songs",
+  "properties": {
+    "columns": "#,0,true,83.021484375;Added to library,1,true,209.0;Title,2,true,358.0;Album,3,true,286.0;Artist,4,true,266.0;Length,5,true,92.0;Track info,6,true,116.0;Discs info,7,true,117.0;First played,10,false,90.0;File.Name,10,false,150.0;Playcount,10,false,90.0;File.Size,10,false,150.0;Filesize,10,false,90.0;Disc,10,false,90.0;File.Time Accessed,10,false,150.0;Encoder,10,false,90.0;Lyrics,10,false,90.0;File.Time Modified,10,false,150.0;Album artist,10,false,225.0;Musicbrainz release_id,10,false,90.0;Tags,10,false,90.0;Color,10,false,90.0;File.Mime Group,10,false,150.0;Musicbrainz artist_id,10,false,90.0;File.Mime Type,10,false,150.0;Filename,10,false,225.0;Encoding,10,false,90.0;Custom4,10,false,90.0;Custom3,10,false,90.0;Custom2,10,false,90.0;Custom1,10,false,90.0;Mood,10,false,90.0;Custom5,10,false,90.0;File.Filename,10,false,150.0;Musicbrainz track_id,10,false,90.0;File.Time Created (smart),10,false,150.0;Category,10,false,225.0;Rating,10,false,90.0;Rating (raw),10,false,90.0;File.Time Created,10,false,150.0;File.Is hidden,10,false,150.0;Discs total,10,false,90.0;Channels,10,false,90.0;Musicbrainz release_artist_id,10,false,90.0;Rating max (raw),10,false,90.0;File.Type,10,false,150.0;Format,10,false,90.0;Musicbrainz disc_id,10,false,90.0;Path,10,false,450.0;Comment,10,false,450.0;Composer,10,false,225.0;Tracks total,10,false,90.0;Sample rate,10,false,90.0;Publisher,10,false,225.0;Bitrate,10,false,90.0;File.Path,10,false,150.0;Year,10,false,90.0;Last played,10,false,90.0;Genre,10,false,90.0;File.Extension,10,false,150.0;Track,10,false,90.0+Added to library,DESCENDING",
+    "factory": "<app-dir>\\templates\\Recently Added Songs.fxwl",
+    "ioTo display": "Song library,396d2407-7040-401e-8f85-56bc71288818"
+  },
+  "settings": {}
 }

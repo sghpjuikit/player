@@ -101,9 +101,9 @@ import sp.it.util.file.FileType.FILE
 import sp.it.util.file.children
 import sp.it.util.file.creationTime
 import sp.it.util.file.div
+import sp.it.util.file.json.JsObject
+import sp.it.util.file.json.JsValue
 import sp.it.util.file.parentDirOrRoot
-import sp.it.util.file.properties.PropVal
-import sp.it.util.file.properties.readProperties
 import sp.it.util.file.readTextTry
 import sp.it.util.file.toFast
 import sp.it.util.functional.asIf
@@ -365,14 +365,14 @@ class GameView(widget: Widget): SimpleController(widget) {
       }
 
       /** Properties. */
-      val settings: Map<String, PropVal> by lazy { (location/"game.properties").readProperties().orNull().orEmpty() }
+      val settings: Map<String, JsValue> = APP.serializerJson.fromJson<JsObject>(location/"game.json").orNull()?.value.orEmpty()
 
       fun exeFile(block: (File?) -> Unit) = runVT {
          null
             ?: (location/"play.lnk").takeIf { it.exists() }
             ?: (location/"play.bat").takeIf { it.exists() }
-            ?: settings["pathAbs"]?.val1?.let { File(it) }?.takeIf { it.exists() }
-            ?: settings["path"]?.val1?.let { location/it }?.takeIf { it.exists() }
+            ?: settings["pathAbs"]?.asJsStringValue()?.let { File(it) }?.takeIf { it.exists() }
+            ?: settings["path"]?.asJsStringValue()?.let { location/it }?.takeIf { it.exists() }
       }.onDone(FX) {
          block(it.toTry().orNull())
       }
@@ -382,7 +382,7 @@ class GameView(widget: Widget): SimpleController(widget) {
             if (exe==null) {
                AppEventLog.push("No launcher is set up.")
             } else {
-               val arguments = settings["arguments"]?.valN.orEmpty().filter { it.isNotBlank() }.toTypedArray()
+               val arguments =  settings["arguments"]?.asJsArrayValue().orEmpty().map { it.asJsStringValue().orEmpty() }.filter { it.isNotBlank() }.toTypedArray()
                exe.runAsProgram(*arguments).onErrorNotify {
                   AppError("Unable to launch program $exe", "Reason: ${it.stacktraceAsString}")
                }

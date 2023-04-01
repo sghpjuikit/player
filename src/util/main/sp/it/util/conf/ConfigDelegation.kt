@@ -30,6 +30,7 @@ import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
+import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Unsubscriber
 import sp.it.util.reactive.attach
@@ -230,10 +231,10 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
       val isGlobal = infoExt?.global ?: false
       val isContinuous = infoExt?.repeat ?: false
 
-      val c = ValueConfig(type(), name, name, ActionDb(isGlobal, keys), group, desc, EditMode.USER)
+      val c = ValueConfig(type(), name, name, ActionDb.toS(ActionDb(isGlobal, keys)), group, desc, EditMode.USER)
       ref.configurableValueSource.initialize(c)
 
-      val cv = c.value
+      val cv = ActionDb.ofS(c.value).orNull() ?: ActionDb(isGlobal, keys)
 
       return object: Action(name, Runnable { action() }, desc, group, cv.keys, cv.isGlobal, isContinuous, *constraints.toTypedArray()), RoProperty<ConfigDelegator, Action> {
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = this

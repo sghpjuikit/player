@@ -1,7 +1,6 @@
 package sp.it.pl.main
 
 import sp.it.pl.main.AppSettings.app as conf
-import ch.qos.logback.classic.Level
 import com.sun.jna.platform.win32.Advapi32Util
 import com.sun.tools.attach.VirtualMachine
 import java.io.File
@@ -55,7 +54,6 @@ import sp.it.util.conf.noPersist
 import sp.it.util.conf.noUi
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiNoOrder
-import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
 import sp.it.util.dev.stacktraceAsString
@@ -186,16 +184,17 @@ class App: Application(), GlobalConfigDelegator {
 
    /** Configuration core. */
    val configuration = MainConfiguration.apply {
-      rawAdd(location.user.application_properties)
+      (location.user/"application.properties").renameTo(location.user.application_json)
+      rawAdd(location.user.application_json)
       CoreConfiguration
    }
 
    /** Logging core. */
    val logging = CoreLogging(location.resources/"log_configuration.xml", location.user.log, actionStream)
    /** Logging level for logging to standard output. */
-   val logLevelConsole by cv(Level.INFO).values(logLevels).uiNoOrder() def conf.logging.`level(stdout)` sync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
+   val logLevelConsole by cv(AppLogLevel.INFO).uiNoOrder() def conf.logging.`level(stdout)` sync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it.logback) }
    /** Logging level for logging to file. */
-   val logLevelFile by cv(Level.WARN).values(logLevels).uiNoOrder() def conf.logging.`level(file)` sync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
+   val logLevelFile by cv(AppLogLevel.WARN).uiNoOrder() def conf.logging.`level(file)` sync { logging.changeLogBackLoggerAppenderLevel("FILE", it.logback) }
 
    init {
       logging.init()
@@ -252,12 +251,12 @@ class App: Application(), GlobalConfigDelegator {
    val actionCallGc by cr(conf.runGarbageCollector) { System.gc() }.readOnlyUnless(developerMode)
    /** Action that persists [configuration] to default application properties file. See [conf.settings.saveSettings] */
    val actionSettingsSave by cr(conf.settings.saveSettings) {
-      configuration.save(name, location.user.application_properties)
+      configuration.save(location.user.application_json)
    }
    /** Action that persists [configuration] to user specified file. See [conf.settings.saveSettingsToFile] */
    val actionSettingsSaveTo by cr(conf.settings.saveSettingsToFile) {
-      saveFile("Export settings", location.user.application_properties, "SpitPlayer", null, ExtensionFilter("Properties", "*.properties")).ifOk {
-         configuration.save(name, it)
+      saveFile("Export settings", location.user.application_json, "SpitPlayer", null, ExtensionFilter("Properties", "*.properties")).ifOk {
+         configuration.save(it)
       }
    }
    /** Action that loads [configuration] to default values. See [conf.settings.loadDefaultSettings] */
@@ -266,12 +265,12 @@ class App: Application(), GlobalConfigDelegator {
    }
    /** Action that re-loads [configuration] to values in default application properties file. See [conf.settings.loadSettings] */
    val actionSettingsLoad by cr(conf.settings.loadSettings) {
-      configuration.rawAdd(location.user.application_properties)
+      configuration.rawAdd(location.user.application_json)
       configuration.rawSet()
    }
    /** Action that re-loads [configuration] to values in user specified file. See [conf.settings.loadSettingsFromFile] */
    val actionSettingsLoadFrom by cr(conf.settings.loadSettingsFromFile) {
-      chooseFile("Import settings", FILE, location.user.application_properties, null, ExtensionFilter("Properties", "*.properties")).ifOk {
+      chooseFile("Import settings", FILE, location.user.application_json, null, ExtensionFilter("Properties", "*.properties")).ifOk {
          configuration.rawAdd(it)
          configuration.rawSet()
       }
@@ -404,7 +403,7 @@ class App: Application(), GlobalConfigDelegator {
          if (rank==MASTER && isStateful) audio.state.serialize()
          if (rank==MASTER && isStateful) windowManager.dockWindow?.window?.close()
          if (rank==MASTER && isStateful) windowManager.serialize()
-         if (rank==MASTER) configuration.save(name, location.user.application_properties)
+         if (rank==MASTER) configuration.save(location.user.application_json)
       }
    }
 
@@ -447,10 +446,6 @@ class App: Application(), GlobalConfigDelegator {
       MASTER, SLAVE
    }
 
-   companion object: KLogging() {
-
-      private val logLevels = listOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF)
-
-   }
+   companion object: KLogging()
 
 }

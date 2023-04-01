@@ -42,7 +42,7 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.dev.fail
-import sp.it.util.file.properties.PropVal.PropVal1
+import sp.it.util.file.json.JsString
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
@@ -85,8 +85,8 @@ class WeatherInfo: HBox(15.0) {
    private val http by lazy { HttpClient(CIO).config { expectSuccess = true } }
    private val dataKey = "widgets.weather.data.last"
    private var dataPersistable: String?
-      get() = APP.configuration.rawGet(dataKey)?.val1
-      set(value) = APP.configuration.rawAdd(dataKey, PropVal1(value!!)).toUnit()
+      get() = APP.configuration.rawGet(dataKey)?.asJsStringValue()
+      set(value) = APP.configuration.rawAdd(dataKey, JsString(value!!)).toUnit()
 
    val latitude = vn<Double>(null)
    val longitude = vn<Double>(null)

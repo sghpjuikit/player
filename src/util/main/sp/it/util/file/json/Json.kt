@@ -68,6 +68,7 @@ import sp.it.util.type.isSubclassOf
 import sp.it.util.type.kType
 import sp.it.util.type.kTypeAnyNullable
 import sp.it.util.type.raw
+import sp.it.util.type.sealedSubObjects
 import sp.it.util.type.type
 import sp.it.util.type.typeOrAny
 
@@ -249,84 +250,87 @@ class Json: JsonAst() {
 
             fun JsValue.withAmbiguity(a: Boolean = isAmbiguous) = if (a) JsObject(mapOf("value" to this, typeWitness())) else this
 
-            if (converter!=null) {
-               val isStillAmbiguous = typeAsRaw==Any::class
-               converter.toJson(value).withAmbiguity(isStillAmbiguous)
-            } else when (value) {
-               is Number -> JsNumber(value).withAmbiguity()
-               is UByte -> JsNumber(value.toShort()).withAmbiguity()
-               is UShort -> JsNumber(value.toInt()).withAmbiguity()
-               is UInt -> JsNumber(value.toLong()).withAmbiguity()
-               is ULong -> JsNumber(value.toString().toBigInteger()).withAmbiguity()
-               is Char -> JsString(value.toString())
-               is String -> JsString(value)
-               is Enum<*> -> JsString(value.name).withAmbiguity()
-               is Array<*> -> JsArray(value.map { toJsonValue(kType<Any>(), it) })
-               is ByteArray -> JsArray(value.map { toJsonValue(kType<Byte>(), it) })
-               is CharArray -> JsArray(value.map { toJsonValue(kType<Char>(), it) })
-               is ShortArray -> JsArray(value.map { toJsonValue(kType<Short>(), it) })
-               is IntArray -> JsArray(value.map { toJsonValue(kType<Int>(), it) })
-               is LongArray -> JsArray(value.map { toJsonValue(kType<Long>(), it) })
-               is FloatArray -> JsArray(value.map { toJsonValue(kType<Float>(), it) })
-               is DoubleArray -> JsArray(value.map { toJsonValue(kType<Double>(), it) })
-               is BooleanArray -> JsArray(value.map { toJsonValue(kType<Boolean>(), it) })
-               is Collection<*> -> JsArray(
-                  // TODO: preserve map type
-                  value.map { toJsonValue(if (typeAsRaw.isSubclassOf(Collection::class)) typeAs.argOf(Collection::class, 0).typeOrAny else kType<Any>(), it) }
-               )
-               is Map<*, *> -> JsObject(
-                  // TODO: preserve collection type
-                  value.mapKeys { keyMapConverter.toS(it.key) }.mapValues {
-                     toJsonValue(if (typeAsRaw.isSubclassOf(Map::class)) typeAs.argOf(Map::class, 1).typeOrAny else kType<Any>(), it.value)
-                  }
-               )
-               else -> {
-                  when {
-                     type.isValue -> {
-                        val p = type.declaredMemberProperties.first()
-                        val v = p.getter.call(value)
-                        toJsonValue(p.returnType, v).withAmbiguity()
-                     }
+            when {
+               converter!=null -> converter.toJson(value).withAmbiguity(typeAsRaw==Any::class)
+               typeAsRaw.isSealed && isObject -> JsString(type.jvmName)
+               else -> when (value) {
+                  is Number -> JsNumber(value).withAmbiguity()
+                  is UByte -> JsNumber(value.toShort()).withAmbiguity()
+                  is UShort -> JsNumber(value.toInt()).withAmbiguity()
+                  is UInt -> JsNumber(value.toLong()).withAmbiguity()
+                  is ULong -> JsNumber(value.toString().toBigInteger()).withAmbiguity()
+                  is Char -> JsString(value.toString())
+                  is String -> JsString(value)
+                  is Enum<*> -> JsString(value.name).withAmbiguity()
+                  is Array<*> -> JsArray(value.map { toJsonValue(kType<Any>(), it) })
+                  is ByteArray -> JsArray(value.map { toJsonValue(kType<Byte>(), it) })
+                  is CharArray -> JsArray(value.map { toJsonValue(kType<Char>(), it) })
+                  is ShortArray -> JsArray(value.map { toJsonValue(kType<Short>(), it) })
+                  is IntArray -> JsArray(value.map { toJsonValue(kType<Int>(), it) })
+                  is LongArray -> JsArray(value.map { toJsonValue(kType<Long>(), it) })
+                  is FloatArray -> JsArray(value.map { toJsonValue(kType<Float>(), it) })
+                  is DoubleArray -> JsArray(value.map { toJsonValue(kType<Double>(), it) })
+                  is BooleanArray -> JsArray(value.map { toJsonValue(kType<Boolean>(), it) })
+                  is Collection<*> -> JsArray(
+                     // TODO: preserve map type
+                     value.map { toJsonValue(if (typeAsRaw.isSubclassOf(Collection::class)) typeAs.argOf(Collection::class, 0).typeOrAny else kType<Any>(), it) }
+                  )
 
-                     type.isData -> {
-                        val typeParams = type.typeParameters.withIndex().associate { (i, p) -> i to p.name }
-                        val typeArgs = typeAs.arguments.withIndex().associate { (i, a) -> typeParams[i] to a.typeOrAny }
-                        val values = type.dataComponentProperties()
-                           .associate {
-                              it.isAccessible = true
-                              val rtRaw = it.returnType
-                              val rt = rtRaw.classifier.asIf<KTypeParameter>()?.let { typeArgs[it.name] } ?: rtRaw
-                              it.name to toJsonValue(rt, it.getter.call(value))
-                           }
-                           .let {
-                              when {
-                                 isObject -> mapOf(typeWitness())
-                                 isAmbiguous -> (it + typeWitness())
-                                 else -> it
-                              }
-                           }
-                        JsObject(values)
+                  is Map<*, *> -> JsObject(
+                     // TODO: preserve collection type
+                     value.mapKeys { keyMapConverter.toS(it.key) }.mapValues {
+                        toJsonValue(if (typeAsRaw.isSubclassOf(Map::class)) typeAs.argOf(Map::class, 1).typeOrAny else kType<Any>(), it.value)
                      }
+                  )
 
-                     else -> {
-                        val typeParams = type.typeParameters.withIndex().associate { (i, p) -> i to p.name }
-                        val typeArgs = typeAs.arguments.withIndex().associate { (i, a) -> typeParams[i] to a.typeOrAny }
-                        val values = type.memberProperties.asSequence()
-                           .filter { it.javaField!=null }
-                           .associate {
-                              it.isAccessible = true
-                              val rtRaw = it.returnType
-                              val rt = rtRaw.classifier.asIf<KTypeParameter>()?.let { typeArgs[it.name] } ?: rtRaw
-                              it.name to toJsonValue(rt, it.getter.call(value))
-                           }
-                           .let {
-                              when {
-                                 isObject -> mapOf(typeWitness())
-                                 isAmbiguous -> (it + typeWitness())
-                                 else -> it
+                  else -> {
+                     when {
+                        type.isValue -> {
+                           val p = type.declaredMemberProperties.first()
+                           val v = p.getter.call(value)
+                           toJsonValue(p.returnType, v).withAmbiguity()
+                        }
+
+                        type.isData -> {
+                           val typeParams = type.typeParameters.withIndex().associate { (i, p) -> i to p.name }
+                           val typeArgs = typeAs.arguments.withIndex().associate { (i, a) -> typeParams[i] to a.typeOrAny }
+                           val values = type.dataComponentProperties()
+                              .associate {
+                                 it.isAccessible = true
+                                 val rtRaw = it.returnType
+                                 val rt = rtRaw.classifier.asIf<KTypeParameter>()?.let { typeArgs[it.name] } ?: rtRaw
+                                 it.name to toJsonValue(rt, it.getter.call(value))
                               }
-                           }
-                        JsObject(values)
+                              .let {
+                                 when {
+                                    isObject -> mapOf(typeWitness())
+                                    isAmbiguous -> (it + typeWitness())
+                                    else -> it
+                                 }
+                              }
+                           JsObject(values)
+                        }
+
+                        else -> {
+                           val typeParams = type.typeParameters.withIndex().associate { (i, p) -> i to p.name }
+                           val typeArgs = typeAs.arguments.withIndex().associate { (i, a) -> typeParams[i] to a.typeOrAny }
+                           val values = type.memberProperties.asSequence()
+                              .filter { it.javaField!=null }
+                              .associate {
+                                 it.isAccessible = true
+                                 val rtRaw = it.returnType
+                                 val rt = rtRaw.classifier.asIf<KTypeParameter>()?.let { typeArgs[it.name] } ?: rtRaw
+                                 it.name to toJsonValue(rt, it.getter.call(value))
+                              }
+                              .let {
+                                 when {
+                                    isObject -> mapOf(typeWitness())
+                                    isAmbiguous -> (it + typeWitness())
+                                    else -> it
+                                 }
+                              }
+                           JsObject(values)
+                        }
                      }
                   }
                }
@@ -365,7 +369,8 @@ class Json: JsonAst() {
       val converter = converters.byType.getElementOfSuper(typeK).asIf<JsConverter<Any?>>()
       return when {
          converter!=null -> converter.fromJson(value)
-         value::class==typeK -> value
+         typeK==JsValue::class -> value
+         typeK==value::class -> value
          typeK.isValue && value !is JsNull && value !is JsObject && typeK!=UByte::class && typeK!=UShort::class && typeK!=UInt::class && typeK!=ULong::class -> {
             val c = typeK.primaryConstructor ?: fail { "Value type=$typeK has no constructor" }
             val v = fromJsonValueImpl(c.parameters[0].type, value)
@@ -405,7 +410,7 @@ class Json: JsonAst() {
                         is BigDecimal -> value.value
                         else -> BigDecimal(value.value.toString())
                      }
-                     else -> fail { "Unsupported number type=$typeK" }
+                     else -> fail { "Unsupported number type=$typeK ${value.toPrettyS()}" }
                   }
                }
                is JsString -> {
@@ -425,6 +430,9 @@ class Json: JsonAst() {
                         "+Infinity" -> Double.POSITIVE_INFINITY
                         "-Infinity" -> Double.NEGATIVE_INFINITY
                         else -> fail { "${value.value} is not $typeTarget" }
+                     }
+                     typeK.isSealed -> {
+                        typeK.sealedSubObjects.find { it::class.jvmName==value.value } ?: fail { "${value.value} is not $typeTarget" }
                      }
                      else -> value.value
                   }
@@ -632,10 +640,10 @@ private fun JsValue.toPrettyS(indent: String, newline: String, indentRaw: String
       }
       is JsArray ->
          if (value.isEmpty()) "[]".a()
-         else value.joinTo(builder, ",$nl", "[$nl$indentRaw", "$nl$indentRaw]") { indent1.a(); it.toPrettyS(indent, nl, indent1, builder); "" }
+         else value.joinTo(builder, ",$nl", "[$nl", "$nl$indentRaw]") { indent1.a(); it.toPrettyS(indent, nl, indent1, builder); "" }
       is JsObject ->
          if (value.isEmpty()) "{}".a()
-         else value.entries.sortedBy { it.key }.joinTo(builder, ",$nl", "{$nl", "$nl$indent}") { indent1.a(); it.key.js().a(); ": ".a(); it.value.toPrettyS(indent, nl, indent1, builder); "" }
+         else value.entries.sortedBy { it.key }.joinTo(builder, ",$nl", "{$nl", "$nl$indentRaw}") { indent1.a(); it.key.js().a(); ": ".a(); it.value.toPrettyS(indent, nl, indent1, builder); "" }
    }
    return builder.toString()
 }

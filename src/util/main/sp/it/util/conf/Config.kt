@@ -18,6 +18,9 @@ import sp.it.util.conf.Constraint.ValueSealedSetIfNotIn.Strategy.USE_AND_ADD
 import sp.it.util.conf.Constraint.ValueSealedSetIfNotIn.Strategy.USE_DEFAULT
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
+import sp.it.util.file.json.JsNull
+import sp.it.util.file.json.JsValue
+import sp.it.util.file.json.Json
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.Option
@@ -27,6 +30,8 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.parsing.Parsers
 import sp.it.util.type.VType
 import sp.it.util.type.argOf
@@ -122,6 +127,18 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
       value = defaultValue
    }
 
+   open var valueAsJson: JsValue
+      get() {
+         return runTry { json.toJsonValue(type, value) }
+            .ifError { logger.warn(it) { "Unable to convert config=$name value to json=$value" } }
+            .orNull() ?: JsNull
+      }
+      set(property) {
+         json.fromJsonValue(type, property)
+               .ifOk { value = it }
+               .ifError { logger.warn(it) { "Unable to set config=$name value from json=$property" } }
+      }
+
    open var valueAsProperty: PropVal
       get() {
          return PropVal1(Parsers.DEFAULT.toS(value))
@@ -181,6 +198,8 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
    override fun getConfigs() = listOf(this)
 
    companion object: KLogging() {
+
+      val json = Json()
 
       /** Helper method. Expert API. */
       @Suppress("MoveVariableDeclarationIntoWhen")

@@ -48,12 +48,13 @@ import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.fieldvalue.IconField
 import org.jetbrains.annotations.Blocking
+import sp.it.pl.layout.WidgetNodeInstance
+import sp.it.util.conf.Config
 import sp.it.util.dev.fail
 import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsConverter
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsValue
-import sp.it.util.file.json.Json
 import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.PropVal.PropVal1
@@ -77,7 +78,7 @@ import sp.it.util.units.NofX
 class CoreSerializerJson: Core {
 
    val encoding = UTF_8
-   val json = Json()
+   val json = Config.json
 
    override fun init() {
       json.typeAliases {
@@ -112,6 +113,7 @@ class CoreSerializerJson: Core {
                else -> fail { "Unexpected value=$value, which is not ${JsString::class} or ${JsArray::class}" }
             }
          }
+         WidgetNodeInstance::class convert WidgetNodeInstance
 
          @Suppress("RemoveRedundantQualifierName")
          val classes = setOf(

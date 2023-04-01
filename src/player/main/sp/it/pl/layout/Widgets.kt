@@ -30,9 +30,9 @@ import sp.it.util.ui.toP
 import sp.it.util.ui.xy
 
 var Widget.forceLoading: Boolean
-   get() = "forceLoading" in properties
+   get() = properties["forceLoading"]==true
    set(value) {
-      if (value) properties["forceLoading"] = Any()
+      if (value) properties["forceLoading"] = true
       else properties -= "forceLoading"
    }
 

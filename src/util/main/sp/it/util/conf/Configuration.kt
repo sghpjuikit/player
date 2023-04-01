@@ -3,27 +3,38 @@ package sp.it.util.conf
 import java.io.File
 import java.lang.invoke.MethodHandles
 import java.util.concurrent.ConcurrentHashMap
+import mu.KLogging
 import sp.it.util.access.toggle
 import sp.it.util.action.Action
 import sp.it.util.action.ActionRegistrar
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.observableList
 import sp.it.util.collections.readOnly
+import sp.it.util.file.json.JsObject
+import sp.it.util.file.json.JsValue
+import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.properties.PropVal
-import sp.it.util.file.properties.Property
 import sp.it.util.file.properties.readProperties
-import sp.it.util.file.properties.writeProperties
+import sp.it.util.file.writeSafely
+import sp.it.util.file.writeTextTry
 import sp.it.util.functional.compose
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
+import sp.it.util.type.atomic
 import sp.it.util.type.isSubclassOf
 
 /** Persistable [Configurable]. */
-open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${it.name}" }): Configurable<Any?> {
-
+open class Configuration(nameMapper: ((Config<*>) -> String) = nameMapperDefault): Configurable<Any?> {
+companion object: KLogging() {
+   val nameMapperDefault: ((Config<*>) -> String) = { "${it.group}.${it.name}" }
+   val namePostMapperDefault: (String) -> String = { s -> s.replace(' ', '_').lowercase() }
+   val configToRawKeyMapperDefault = nameMapperDefault compose namePostMapperDefault
+}
    private val methodLookup = MethodHandles.lookup()
    private val namePostMapper: (String) -> String = { s -> s.replace(' ', '_').lowercase() }
    private val configToRawKeyMapper = nameMapper compose namePostMapper
-   private val properties = ConcurrentHashMap<String, PropVal>()
+   private var propertiesLegacy: Map<String, PropVal>? by atomic(null)
+   private var properties = ConcurrentHashMap<String, JsValue>()
    private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
    private val configsObservableImpl = observableList<Config<*>>()
    val configsObservable = configsObservableImpl.readOnly()
@@ -39,11 +50,11 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     *
     * @return modifiable thread safe map of key-value property pairs
     */
-   fun rawGetAll(): Map<String, PropVal> = properties
+   fun rawGetAll(): Map<String, JsValue> = properties
 
-   fun rawGet(key: String): PropVal? = properties[key]
+   fun rawGet(key: String): JsValue? = properties[key]
 
-   fun rawGet(config: Config<*>): PropVal? = properties[configToRawKeyMapper(config)]
+   fun rawGet(config: Config<*>): JsValue? = properties[configToRawKeyMapper(config)]
 
    fun rawContains(config: String): Boolean = properties.containsKey(config)
 
@@ -51,13 +62,26 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
    fun rawAdd(configurable: Configurable<*>): Unit = configurable.getConfigs().forEach(::rawAdd)
 
-   fun rawAdd(config: Config<*>): Unit = run { properties[configToRawKeyMapper(config)] = config.valueAsProperty }
+   fun rawAdd(config: Config<*>) {
+      if (config.isPersistable())
+         properties[configToRawKeyMapper(config)] = config.valueAsJson
+   }
 
-   fun rawAdd(name: String, value: PropVal) = properties.put(name, value)
+   fun rawAdd(name: String, value: JsValue) = properties.put(name, value)
 
-   fun rawAdd(props: Map<String, PropVal>): Unit = properties.putAll(props)
+   fun rawAdd(props: Map<String, JsValue>): Unit = properties.putAll(props)
 
-   fun rawAdd(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, value) -> rawAdd(name, value) }
+   fun rawAdd(file: File) {
+      runTry {
+         val isLegacyFormat = file.useLines { it.firstOrNull()?.startsWith("#")==true }
+         if (isLegacyFormat)
+            propertiesLegacy = ConcurrentHashMap<String, PropVal>().also { ps ->
+               file.readProperties().orNull().orEmpty().forEach { (name, value) -> ps[name] = value }
+            }
+         else
+            Config.json.fromJson<JsObject>(file).orNull()?.value.orEmpty().forEach { (name, value) -> rawAdd(name, value) }
+      }
+   }
 
    fun rawRemProperty(key: String) = properties.remove(key)
 
@@ -119,17 +143,20 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
    fun toDefault(): Unit = getConfigs().forEach { it.setValueToDefault() }
 
    /**
-    * Saves configuration to the file. The file is created if it does not exist,
-    * otherwise it is completely overwritten.
+    * Saves configuration to the file. The file is created if it does not exist, otherwise it is completely overwritten.
     * Loops through configs and stores them all into file.
     */
-   fun save(title: String, file: File): Map<String, PropVal> {
+   fun save(file: File): Map<String, JsValue> {
       val cfg = configs.filter { it.isPersistable() }
-      val propsRaw = properties.mapValues { Property(it.key, it.value, "") }
-      val propsCfg = cfg.associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueAsProperty, c.info.ifBlank { c.nameUi }) } }
-      val props = propsCfg.mapValues { it.value.value }
+      val propsRaw = properties
+      val propsCfg = cfg.associate { configToRawKeyMapper(it) to it.valueAsJson }
+      val props = propsRaw + propsCfg
 
-      file.writeProperties(title, (propsRaw + propsCfg).values)
+      file.writeSafely {
+         it.writeTextTry(JsObject(props).toPrettyS())
+      }.ifError {
+         logger.error(it) { "Couldn't serialize Configuration to file=$file" }
+      }
 
       return props
    }
@@ -143,11 +170,18 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     * If config of given name does not exist it will be ignored as well.
     */
    fun rawSet() {
-      properties.forEach { (key, value) ->
-         val c = configs[namePostMapper(key)]
-         if (c?.isPersistable()==true)
-            c.valueAsProperty = value
-      }
+      if (propertiesLegacy!=null)
+         propertiesLegacy?.forEach { (key, value) ->
+            val c = configs[namePostMapper(key)]
+            if (c?.isPersistable()==true)
+               c.valueAsProperty = value
+         }
+      else
+         properties.forEach { (key, value) ->
+            val c = configs[namePostMapper(key)]
+            if (c?.isPersistable()==true)
+               c.valueAsJson = value
+         }
    }
 
    fun <C> rawSet(c: Configurable<C>): Unit = c.getConfigs().forEach(::rawSet)
@@ -157,8 +191,13 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
    fun rawSet(c: Config<*>) {
       if (c.isPersistable()) {
          val key = configToRawKeyMapper(c)
-         if (properties.containsKey(key))
-            c.valueAsProperty = properties[key]!!
+         if (propertiesLegacy!=null) {
+            if (propertiesLegacy!!.containsKey(key))
+               c.valueAsProperty = propertiesLegacy!![key]!!
+         } else {
+            if (properties.containsKey(key))
+               c.valueAsJson = properties[key]!!
+         }
       }
    }
 

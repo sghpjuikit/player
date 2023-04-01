@@ -26,6 +26,10 @@ import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.Constraint.ValueUnsealedSet
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
+import sp.it.util.file.json.JsArray
+import sp.it.util.file.json.JsNull
+import sp.it.util.file.json.JsObject
+import sp.it.util.file.json.JsValue
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.file.properties.PropVal.PropValN
@@ -221,6 +225,28 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
       return this
    }
 
+   override var valueAsJson: JsValue
+      get() {
+         return runTry {
+               JsObject(
+                  "override" to json.toJsonValue(property.override.value),
+                  "value" to json.toJsonValue(valueType, property.real.value)
+               )
+            }
+            .ifError { logger.warn(it) { "Unable to convert config=$name value to json=$value" } }
+            .orNull() ?: JsNull
+      }
+      set(jsValue) {
+         runTry {
+            val js = jsValue.asJsObject()
+            if (js.value.size!=2) fail { "Must have 2 values" }
+            property.override.value = json.fromJsonValue<Boolean>(js.value.getValue("override")).orThrow
+            property.real.value = json.fromJsonValue(valueType, js.value.getValue("value")).orThrow
+         }.ifError {
+            logger.warn(it) { "Unable to set config=$name value from json=$property" }
+         }
+      }
+
    override var valueAsProperty: PropVal
       get() = PropValN(
          listOf(
@@ -253,6 +279,40 @@ open class ListConfig<T>(
 ) {
 
    val toConfigurable: (T?) -> Configurable<*>
+
+   override var valueAsJson: JsValue
+      get() {
+         return runTry {
+               JsArray(
+                  value.map {
+                     if (a.isSimpleItemType) a.itemToConfigurable(it).getConfigs().first().valueAsJson
+                     else JsObject(a.itemToConfigurable(it).getConfigs().associate { Configuration.configToRawKeyMapperDefault(it) to it.valueAsJson } )
+                  }
+               )
+            }
+            .ifError { logger.warn(it) { "Unable to convert config=$name value to json=$value" } }
+            .orNull() ?: JsNull
+      }
+      set(property) {
+         runTry {
+               val isFixedSizeAndHasConfigurableItems = isFixedSizeAndHasConfigurableItems
+               property.asJsArray().value.asSequence()
+                  .mapIndexed { i, s ->
+                     val item = if (isFixedSizeAndHasConfigurableItems) a.list[i] else a.itemFactory?.invoke()
+                     val configs = a.itemToConfigurable(item).getConfigs()
+                     if (a.isSimpleItemType) {
+                        configs.first().apply { valueAsJson = s }.value as T
+                     } else {
+                        val values = s.asJsObject().value
+                        configs.forEach { it.valueAsJson = values[Configuration.configToRawKeyMapperDefault(it)]!! }
+                        item
+                     }
+                  }
+                  .filter(if (a.itemType.isNullable) { _ -> true } else { it -> it!=null })
+            }
+            .ifOk { a.list setTo it }
+            .ifError { logger.warn(it) { "Unable to set config=$name value from json=$property" } }
+      }
 
    // TODO: support multi-value
    override var valueAsProperty: PropVal
@@ -337,6 +397,20 @@ class CheckListConfig<T, S: Boolean?>(
    override fun setValueToDefault() = value.selections setTo value.selectionsInitial
    companion object: KLogging()
 
+   override var valueAsJson: JsValue
+      get() = JsArray(
+         value.selections.map { json.toJsonValue(defaultValue.checkType, it) }
+      )
+      set(jsValue) {
+         runTry {
+               val ss = jsValue.asJsArray().value
+               if (ss.size !=value.all.size) fail { "Number of selections does not match" }
+               if (ss.size !=value.selections.size) fail { "Number of selections does not match" }
+               ss.map { json.fromJsonValue(value.checkType, it).orThrow }
+            }
+            .ifOk { value.selections setTo it }
+            .ifError { logger.warn(it) { "Unable to set config=$name value from json=$jsValue" } }
+      }
    override var valueAsProperty: PropVal
       get() = PropValN(
          value.selections.map { Parsers.DEFAULT.toS(it) }

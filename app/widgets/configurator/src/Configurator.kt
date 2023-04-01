@@ -32,7 +32,6 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.c
 import sp.it.util.conf.noUi
 import sp.it.util.conf.toListConfigurable
-import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.net
 import sp.it.util.functional.recurse
 import sp.it.util.functional.toUnit
@@ -68,6 +67,7 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.conf.Configuration
 import sp.it.util.conf.Constraint
+import sp.it.util.file.json.JsString
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.syncBiFrom
@@ -250,13 +250,13 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    private fun storeAppSettingsSelection(selection: String?) {
       if (configSelectionIgnore) return
       selectedGroupPath = selection ?: ""
-      if (showsAppSettings && selection!=null) appConfigurable.rawAdd(configSelectionName, PropVal1(selection))
+      if (showsAppSettings && selection!=null) appConfigurable.rawAdd(configSelectionName, JsString(selection))
    }
 
    private fun storeAppSettingsSelection(item: TreeItem<Name>?) = storeAppSettingsSelection(item?.value?.pathUp)
 
    private fun restoreAppSettingsSelection(): TreeItem<Name>? {
-      val selection = if (showsAppSettings) appConfigurable.rawGetAll()[configSelectionName]?.val1 else selectedGroupPath
+      val selection = if (showsAppSettings) appConfigurable.rawGet(configSelectionName)?.asJsStringValue() else selectedGroupPath
       return groups.root.recurse { it.children }.find { it.value.pathUp==selection }
    }
 

@@ -13,7 +13,7 @@ import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.pane.ShortcutPane
-import sp.it.util.file.properties.PropVal.PropVal1
+import sp.it.util.file.json.JsString
 import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.text.camelToDotCase
@@ -115,6 +115,7 @@ interface WidgetCompanion: WidgetInfo {
 
 }
 
+// TODO: implement conversions
 /**
  * Global widget state (shared across all widget instances) get/set/persisted from/to application properties.
  * The key is 'widget.${widgetCompanion.id.camelToDotCase()}.${property.name.camelToDotCase()}'.
@@ -124,6 +125,6 @@ interface WidgetCompanion: WidgetInfo {
 @Suppress("UNCHECKED_CAST", "FINAL_UPPER_BOUND")
 fun <T: String> appProperty(initialValue: T) = object: ReadWriteProperty<WidgetCompanion, T> {
    private fun key(c: WidgetCompanion, p: KProperty<*>) = "widget.${c.id.camelToDotCase()}.${p.name.camelToDotCase()}"
-   override fun getValue(thisRef: WidgetCompanion, property: KProperty<*>) = APP.configuration.rawGet(key(thisRef, property))?.val1?.net { it as T } ?: initialValue
-   override fun setValue(thisRef: WidgetCompanion, property: KProperty<*>, value: T) = APP.configuration.rawAdd(key(thisRef, property), PropVal1(value)).toUnit()
+   override fun getValue(thisRef: WidgetCompanion, property: KProperty<*>) = APP.configuration.rawGet(key(thisRef, property))?.asJsStringValue()?.net { it as T } ?: initialValue
+   override fun setValue(thisRef: WidgetCompanion, property: KProperty<*>, value: T) = APP.configuration.rawAdd(key(thisRef, property), JsString(value as String)).toUnit()
 }

@@ -400,27 +400,31 @@ class JsonTest: FreeSpec({
          }
       }
    }
-   "toCompactS" {
-      val json = JsArray(JsNull, JsString(""), JsNumber(1), JsArray(), JsObject(), JsObject("a" to JsTrue, "b" to JsFalse))
-      val jsonS = """[null,"",1,[],{},{"a":true,"b":false}]"""
-      json.toCompactS() shouldBe jsonS
-   }
-   "toPrettyS" {
-      val json = JsArray(JsNull, JsString(""), JsNumber(1), JsArray(), JsObject(), JsObject("a" to JsTrue, "b" to JsFalse))
-      val jsonS = """
-         [
-           null,
-           "",
-           1,
-           [],
-           {},
-           {
-             "a": true,
-             "b": false
-           }
-         ]
-      """.trimIndent()
-      json.toPrettyS() shouldBe jsonS
+   "toS" - {
+      val json = JsArray(JsNull, JsString(""), JsNumber(1), JsArray(), JsObject(), JsArray(JsNumber(1), JsNumber(2)), JsObject("a" to JsTrue, "b" to JsFalse))
+
+      "toCompactS" {
+         json.toCompactS() shouldBe """[null,"",1,[],{},[1,2],{"a":true,"b":false}]"""
+      }
+      "toPrettyS" {
+         json.toPrettyS() shouldBe """
+            [
+              null,
+              "",
+              1,
+              [],
+              {},
+              [
+                1,
+                2
+              ],
+              {
+                "a": true,
+                "b": false
+              }
+            ]
+         """.trimIndent()
+      }
    }
 })
 

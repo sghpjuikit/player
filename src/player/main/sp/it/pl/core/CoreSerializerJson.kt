@@ -50,15 +50,10 @@ import sp.it.util.access.fieldvalue.IconField
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.layout.WidgetNodeInstance
 import sp.it.util.conf.Config
-import sp.it.util.dev.fail
-import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsConverter
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.toPrettyS
-import sp.it.util.file.properties.PropVal
-import sp.it.util.file.properties.PropVal.PropVal1
-import sp.it.util.file.properties.PropVal.PropValN
 import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeGroup
 import sp.it.util.file.type.MimeType
@@ -94,25 +89,10 @@ class CoreSerializerJson: Core {
                   "window" alias WindowDb::class
        "component-loading" alias Widget.LoadType::class
              "orientation" alias javafx.geometry.Orientation::class
-                "prop-val" alias PropVal::class
-              "1-prop-val" alias PropVal1::class
-              "n-prop-val" alias PropValN::class
          // @formatter:on
       }
 
       json.converters {
-         PropVal::class convert object: JsConverter<PropVal> {
-            override fun toJson(value: PropVal): JsValue = when (value) {
-               is PropVal1 -> JsString(value.value)
-               is PropValN -> JsArray(value.value.map { JsString(it) })
-            }
-
-            override fun fromJson(value: JsValue) = when (value) {
-               is JsString -> PropVal1(value.value)
-               is JsArray -> PropValN(value.value.mapNotNull { it.asJsStringValue() })
-               else -> fail { "Unexpected value=$value, which is not ${JsString::class} or ${JsArray::class}" }
-            }
-         }
          WidgetNodeInstance::class convert WidgetNodeInstance
 
          @Suppress("RemoveRedundantQualifierName")

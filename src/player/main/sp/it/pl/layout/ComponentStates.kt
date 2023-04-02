@@ -9,7 +9,6 @@ import sp.it.pl.main.ifErrorNotify
 import sp.it.util.async.runVT
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.json.JsValue
-import sp.it.util.file.properties.PropVal
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.orNull
 import sp.it.util.text.splitNoEmpty
@@ -80,7 +79,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is UniContainerDb -> UniContainerDb(id.dd(), loading, locked, child?.dd(), properties)
       is BiContainerDb -> BiContainerDb(id.dd(), orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd() }, properties)
       is FreeFormContainerDb -> FreeFormContainerDb(id.dd(), loading, locked, showHeaders, children.mapValues { it.value?.dd() }, properties)
-      is WidgetDb -> WidgetDb(id.dd(), factoryId, nameUi, loading, locked, properties, settings, fields)
+      is WidgetDb -> WidgetDb(id.dd(), factoryId, nameUi, loading, locked, properties, fields)
    }
 
    fun ComponentDb.dd2(): ComponentDb = when (this) {
@@ -90,7 +89,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is UniContainerDb -> UniContainerDb(id, loading, locked, child?.dd2(), properties)
       is BiContainerDb -> BiContainerDb(id, orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd2() }, properties)
       is FreeFormContainerDb -> FreeFormContainerDb(id, loading, locked, showHeaders, children.mapValues { it.value?.dd2() }, properties)
-      is WidgetDb -> WidgetDb(id, factoryId, nameUi, loading, locked, properties.dd(), settings, fields)
+      is WidgetDb -> WidgetDb(id, factoryId, nameUi, loading, locked, properties.dd(), fields)
    }
 
    return this.dd().dd2()
@@ -174,7 +173,6 @@ class WidgetDb(
    loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,
    locked: Boolean = false,
    properties: Map<String, Any?> = mapOf(),
-   val settings: Map<String, PropVal?> = mapOf(),
    val fields: Map<String, JsValue?> = mapOf()
 ): ComponentDb(id, loading, locked, properties) {
    override fun toDomain() = Widget(this)

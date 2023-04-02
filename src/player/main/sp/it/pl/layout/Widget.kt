@@ -41,7 +41,6 @@ import sp.it.util.dev.failIf
 import sp.it.util.file.div
 import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsValue
-import sp.it.util.file.properties.PropVal
 import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
@@ -118,7 +117,6 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
 
    init {
       properties += state.properties
-      fieldsRawLegacy += state.settings
       fieldsRaw += state.fields
    }
 
@@ -136,9 +134,9 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
          override fun initialize(config: Config<*>) {
             if (config.isPersistable()) {
                val key = configToRawKeyMapper(config)
-               val source = fieldsRawLegacy
+               val source = fieldsRaw
                if (source.containsKey(key))
-                  config.valueAsProperty = source[key]!!
+                  config.valueAsJson = source[key] ?: JsNull
             }
          }
       }
@@ -169,7 +167,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       get() = factory.location
 
    override val userLocation: File
-      get() = (fieldsRawLegacy["node"]?.val1 ?: fieldsRaw["node"]?.asJsStringValue())?.let { APP.location.user.widgets/it } ?: factory.userLocation
+      get() = fieldsRaw["node"]?.asJsStringValue()?.let { APP.location.user.widgets/it } ?: factory.userLocation
 
    /** [location] as a [Config]. */
    private val locationConfig: File by c(location).def(
@@ -348,12 +346,8 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
 
    override fun getConfigs(): Collection<Config<Any?>> = configs.values.toList() + controller?.getConfigs().orEmpty()
 
-   @Deprecated("To be removed")
-   val fieldsRawLegacy: MutableMap<String, PropVal?>
-      get() = properties.computeIfAbsent("configs") { HashMap<String, PropVal?>() }.asIs()
-
    val fieldsRaw: MutableMap<String, JsValue?>
-      get() = properties.computeIfAbsent("fields") { HashMap<String, PropVal?>() }.asIs()
+      get() = properties.computeIfAbsent("fields") { HashMap<String, JsValue?>() }.asIs()
 
    private val logName: String
       get() = "Widget(name=${customName.value}, factory=${factory.id})"
@@ -379,7 +373,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
          storeConfigs()
       }
 
-      return WidgetDb(id, factory.id, customName.value, loadType.value, locked.value, properties - "configs" - "fields" - "factory", mapOf(), fieldsRaw)
+      return WidgetDb(id, factory.id, customName.value, loadType.value, locked.value, properties - "fields" - "factory", fieldsRaw)
    }
 
    private fun storeConfigs() {
@@ -400,20 +394,16 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    }
 
    private fun restoreConfigs() {
-      val configsRawLegacy = fieldsRawLegacy
       val configsRaw = fieldsRaw
-      if (configsRaw.isNotEmpty() || configsRawLegacy.isNotEmpty()) {
+      if (configsRaw.isNotEmpty()) {
          getConfigs().forEach { c ->
             if (c.isPersistable()) {
                val key = configToRawKeyMapper(c)
                if (key in configsRaw)
                   c.valueAsJson = configsRaw[key] ?: JsNull
-               else if (key in configsRawLegacy)
-                  c.valueAsProperty = configsRawLegacy[key]!!
             }
          }
          configsRaw.clear() // restoration can only ever happen once
-         configsRawLegacy.clear() // restoration can only ever happen once
       }
    }
 
@@ -421,22 +411,20 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    fun storeDefaultConfigs() {
       failIf(!isLoaded) { "Must be loaded to export default configs" }
 
-      val configFile = userLocation / "default.properties"
+      val configFile = userLocation / "default.json"
       val configs = getConfigs().filter { it.isPersistable() && !Objects.deepEquals(it.value, it.defaultValue) }
       val configuration = Configuration(configToRawKeyMapper).apply { collect(configs) }
       val props = configuration.save(configFile)
-      APP.widgetManager.factories.defaultConfigs[userLocation] = mapOf<String, PropVal>() to props
+      APP.widgetManager.factories.defaultConfigs[userLocation] = props
    }
 
    private fun restoreDefaultConfigs() {
-      val values = APP.widgetManager.factories.defaultConfigs[userLocation]
-          values?.first?.forEach(fieldsRawLegacy::putIfAbsent)
-          values?.second?.forEach(fieldsRaw::putIfAbsent)
+      APP.widgetManager.factories.defaultConfigs[userLocation]?.forEach(fieldsRaw::putIfAbsent)
    }
 
    @Blocking
    fun clearDefaultConfigs() {
-      val configFile = userLocation / "default.properties"
+      val configFile = userLocation / "default.json"
       configFile.delete()
    }
 

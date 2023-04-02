@@ -18,7 +18,6 @@ import sp.it.util.Locatable
 import sp.it.util.file.div
 import sp.it.util.file.json.JsString
 import sp.it.util.file.nameOrRoot
-import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
@@ -139,7 +138,7 @@ class NodeFactory<T: Node>(val id: UUID, val type: KClass<out T>, override val n
    override suspend fun create() = APP.widgetManager.factories.getFactory("Node").orNone().create().withType()
    override fun toString() = "${javaClass.simpleName} $name $type"
 
-   private fun Widget.withType() = apply { fieldsRawLegacy["node"] = PropVal1(type.jvmName); fieldsRaw["node"] = JsString(type.jvmName) }
+   private fun Widget.withType() = apply { fieldsRaw["node"] = JsString(type.jvmName) }
 }
 
 class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/factoryId.decapital()) {

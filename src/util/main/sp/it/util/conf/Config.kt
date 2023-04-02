@@ -21,8 +21,6 @@ import sp.it.util.dev.fail
 import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.Json
-import sp.it.util.file.properties.PropVal
-import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.Option
 import sp.it.util.functional.Option.None
 import sp.it.util.functional.Try
@@ -137,18 +135,6 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
          json.fromJsonValue(type, property)
                .ifOk { value = it }
                .ifError { logger.warn(it) { "Unable to set config=$name value from json=$property" } }
-      }
-
-   open var valueAsProperty: PropVal
-      get() {
-         return PropVal1(Parsers.DEFAULT.toS(value))
-      }
-      set(property) {
-         val s = property.val1
-         if (s!=null)
-            convertValueFromString(this, s)
-               .ifOk { value = it }
-               .ifError { logger.warn { "Unable to set config=$name value from text=$s because=$it" } }
       }
 
    protected var valueEnumerator2nd: MutableList<T>? = null

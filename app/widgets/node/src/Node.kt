@@ -39,7 +39,6 @@ import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.div
 import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsString
-import sp.it.util.file.properties.PropVal
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
@@ -83,7 +82,6 @@ class Node(widget: Widget): SimpleController(widget) {
                val type = Class.forName(c).kotlin
                val typeBuilder = APP.instances.recommendedNodeClassesAsWidgets.find { b -> b.type == type }
                val instance = typeBuilder?.constructor?.invoke() ?: type.takeIf(Node::class::isSuperclassOf)?.createInstance() as Node?
-               widget.fieldsRawLegacy["node"] = PropVal.PropVal1(type.jvmName)
                widget.fieldsRaw["node"] = JsString(type.jvmName)
 
                val nInstance = WidgetNodeInstance(instance)

@@ -5,8 +5,11 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.text.Charsets.UTF_8
 import mu.KLogging
+import sp.it.util.conf.Config
 import sp.it.util.conf.toConfigurableFx
-import sp.it.util.file.properties.PropVal.PropValN
+import sp.it.util.dev.fail
+import sp.it.util.file.json.JsArray
+import sp.it.util.file.json.toCompactS
 import sp.it.util.functional.Try
 import sp.it.util.type.isSuperclassOf
 
@@ -29,9 +32,9 @@ class ConverterFX: Converter() {
                   if (value64.count { it==delimiter2 }==1) {
                      val (cName64, cValues64) = value64.split2(delimiter2)
                      val field = c.getConfig(cName64.fromBase64())
-                     field?.valueAsProperty = PropValN(cValues64.split(delimiter3).map { it.fromBase64() })
+                     field?.valueAsJson = Config.json.fromJson<JsArray>(cValues64.fromBase64()).orThrow
                   } else {
-                     Try.error("$delimiter2 must appear exactly once per value, but value=$value64")
+                     fail { "$delimiter2 must appear exactly once per value, but value=$value64" }
                   }
                }
                Try.ok(v)
@@ -53,7 +56,7 @@ class ConverterFX: Converter() {
       else -> {
          val v = o as Any
          val values = v.toConfigurableFx().getConfigs().joinToString(delimiter1) {
-            it.name.toBase64() + delimiter2 + it.valueAsProperty.valN.joinToString(delimiter3) { it.toBase64() }
+            it.name.toBase64() + delimiter2 + it.valueAsJson.toCompactS().toBase64()
          }
          v::class.java.name.toBase64() + delimiter1 + values
       }
@@ -63,7 +66,6 @@ class ConverterFX: Converter() {
    companion object: KLogging() {
       private const val delimiter1 = "-"
       private const val delimiter2 = ':'
-      private const val delimiter3 = "|"
       private fun String.toBase64() = Base64.getEncoder().encodeToString(toByteArray(UTF_8))
       private fun String.fromBase64() = String(Base64.getDecoder().decode(this), UTF_8)
       private fun String.split2(delimiter: Char) = substringBefore(delimiter) to substringAfter(delimiter)

@@ -18,8 +18,6 @@ import sp.it.util.conf.Constraint;
 import sp.it.util.conf.EditMode;
 import sp.it.util.file.json.JsString;
 import sp.it.util.file.json.JsValue;
-import sp.it.util.file.properties.PropVal;
-import sp.it.util.file.properties.PropVal.PropVal1;
 import sp.it.util.functional.TryKt;
 import sp.it.util.type.VType;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
@@ -332,19 +330,6 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		}).ifErrorUse(e ->
 			logger(Action.class).warn("Unable to set config=" + name + " value from json=" + property)
 		);
-	}
-
-	@NotNull
-	@Override
-	public PropVal getValueAsProperty() {
-		return new PropVal1(new ActionDb(global, getKeys()).toString());
-	}
-
-	@Override
-	public void setValueAsProperty(@NotNull PropVal property) {
-		var s = property.getVal1();
-		var a = s==null ? null : getOr(ActionDb.Companion.ofS(s).ifErrorUse(it -> logger(Action.class).warn("Unable to set config=" + name + " value from text='" + s + "' because: " + it)), null);
-		if (a!=null) set(a.isGlobal(), a.getKeys());
 	}
 
 	@Override

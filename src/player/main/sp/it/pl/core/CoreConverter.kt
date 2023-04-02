@@ -66,7 +66,6 @@ import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.conf.Command
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.WidgetFactory
-import sp.it.pl.layout.WidgetNodeInstance
 import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
@@ -432,7 +431,6 @@ object CoreConverter: Core {
       addP<Command.CommandActionId>(Command.CommandActionId)
       addP<Command.CommandComponentId>(Command.CommandComponentId)
       addT<SkinCss>({ it.file.absolutePath }, { Try.ok(SkinCss(File(it))) })
-      addP<WidgetNodeInstance>(WidgetNodeInstance)
    }
 
    private inline fun <reified T: Any> ConverterDefault.addP(converter: ConverterString<T>) = addParser(T::class, converter)

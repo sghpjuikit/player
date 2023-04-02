@@ -30,9 +30,6 @@ import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsValue
-import sp.it.util.file.properties.PropVal
-import sp.it.util.file.properties.PropVal.PropVal1
-import sp.it.util.file.properties.PropVal.PropValN
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.compose
@@ -40,7 +37,6 @@ import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
-import sp.it.util.parsing.Parsers
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.type.VType
 import sp.it.util.type.raw
@@ -246,28 +242,6 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
             logger.warn(it) { "Unable to set config=$name value from json=$property" }
          }
       }
-
-   override var valueAsProperty: PropVal
-      get() = PropValN(
-         listOf(
-            Parsers.DEFAULT.toS(property.override.value),
-            Parsers.DEFAULT.toS(property.real.value)
-         )
-      )
-      set(v) {
-         val s = v.valN
-         if (s.size==2) {
-            Parsers.DEFAULT.ofS<Boolean>(s[0])
-               .ifOk { property.override.value = it }
-               .ifError { logger.warn { "Unable to set config=$name override value (Boolean.class) from text='${s[0]}' because: $it" } }
-            Parsers.DEFAULT.ofS(valueType, s[1])
-               .ifOk { property.real.value = it }
-               .ifError { logger.warn { "Unable to set config=$name real value ($valueType) from text='${s[0]}' because: $it" } }
-         } else {
-            logger.warn { "Unable to set config=$name value from property='$s', must have 2 values" }
-         }
-      }
-
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -312,31 +286,6 @@ open class ListConfig<T>(
             }
             .ifOk { a.list setTo it }
             .ifError { logger.warn(it) { "Unable to set config=$name value from json=$property" } }
-      }
-
-   // TODO: support multi-value
-   override var valueAsProperty: PropVal
-      get() = PropValN(
-         value.map {
-            a.itemToConfigurable(it).getConfigs().joinToString(";") {
-               it.valueAsProperty.val1 ?: fail { "Config $name supports only single-value within multi value" }
-            }
-         }
-      )
-      set(property) {
-         val isFixedSizeAndHasConfigurableItems = isFixedSizeAndHasConfigurableItems
-         a.list setTo property.valN.asSequence()
-            .mapIndexed { i, s ->
-               val item = if (isFixedSizeAndHasConfigurableItems) a.list[i] else a.itemFactory?.invoke()
-               val configs = a.itemToConfigurable(item).getConfigs().toList().materialize()
-               val values = s.split(";")
-               if (configs.size==values.size)
-                  (configs zip values).forEach { (c, v) -> c.valueAsProperty = PropVal1(v) }
-
-               if (a.isSimpleItemType) (configs[0].value as T)
-               else item
-            }
-            .filter(if (a.itemType.isNullable) { _ -> true } else { it -> it!=null })
       }
 
    private val isFixedSizeAndHasConfigurableItems: Boolean = a.itemFactory===FailFactory
@@ -410,21 +359,6 @@ class CheckListConfig<T, S: Boolean?>(
             }
             .ifOk { value.selections setTo it }
             .ifError { logger.warn(it) { "Unable to set config=$name value from json=$jsValue" } }
-      }
-   override var valueAsProperty: PropVal
-      get() = PropValN(
-         value.selections.map { Parsers.DEFAULT.toS(it) }
-      )
-      set(v) {
-         if (value.all.size==v.size()) {
-            value.selections setTo v.valN.mapIndexed { i, text ->
-               Parsers.DEFAULT.ofS(value.checkType, text)
-                  .ifError { logger.warn { "Unable to set config=$name element=$i from=$text because=$it" } }
-                  .orNull() ?: value.selections[i]
-            }
-         } else {
-            logger.warn { "Unable to set config=$name from=$v: element count mismatch" }
-         }
       }
 }
 

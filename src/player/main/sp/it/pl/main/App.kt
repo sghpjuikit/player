@@ -144,7 +144,6 @@ class App: Application(), GlobalConfigDelegator {
    var isInitialized: Try<Unit, Throwable> = Try.error(Exception("Initialization has not run yet"))
       private set
 
-
    /** Called just after this application is started (successfully) and fully initialized. Runs at most once, on fx thread. */
    val onStarted = Disposer()
    /** Called just before this application is stopped when it is fully still running. Runs at most once, on fx thread. */

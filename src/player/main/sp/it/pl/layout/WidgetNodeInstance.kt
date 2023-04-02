@@ -9,18 +9,14 @@ import javafx.scene.control.Skin
 import javafx.stage.Window
 import kotlin.reflect.KClass
 import mu.KLogging
-import sp.it.pl.main.APP
 import sp.it.util.conf.ConfigDef
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.PropertyConfig
 import sp.it.util.file.json.JsConverter
 import sp.it.util.file.json.JsObject
-import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsValue
-import sp.it.util.file.json.toCompactS
 import sp.it.util.functional.asIs
-import sp.it.util.parsing.ConverterString
 import sp.it.util.type.VType
 import sp.it.util.type.forEachJavaFXProperty
 import sp.it.util.type.isSubclassOf
@@ -29,23 +25,23 @@ import sp.it.util.type.raw
 
 data class WidgetNodeInstance(val node: Node?, val properties: List<NodeInput>, val configurable: Configurable<Any?>, val configurableJson: JsObject?): Configurable<Any?> by configurable {
 
-   companion object: KLogging(), ConverterString<WidgetNodeInstance>, JsConverter<WidgetNodeInstance> {
+   companion object: KLogging(), JsConverter<WidgetNodeInstance> {
+
       operator fun invoke(node: Node?): WidgetNodeInstance {
-         val properties: List<NodeInput> = node.javaFxProperties().toList()
-         val configurable = ListConfigurable.homogeneous(
-            properties.map { PropertyConfig(it.type, it.name, ConfigDef(it.name, "", "instance"), setOf(), it.value.asIs(), it.value.value, "instance") }
-         )
+         val properties = node.javaFxProperties().toList()
+         val configs = properties.map { PropertyConfig(it.type, it.name, ConfigDef(it.name, "", "instance"), setOf(), it.value.asIs(), it.value.value, "instance") }
+         val configurable = ListConfigurable.homogeneous(configs)
          return WidgetNodeInstance(node, properties, configurable, null)
       }
-      override fun ofS(s: String) = APP.serializerJson.json.fromJson<JsObject>(s).mapError { it.message ?: "" }.map { WidgetNodeInstance(null, listOf(), ListConfigurable.homogeneous(), it) }
-      override fun toS(o: WidgetNodeInstance) = toJson(o).toCompactS()
+
       override fun fromJson(value: JsValue) =
-         if (value is JsString) ofS(value.value).orThrow
-         else WidgetNodeInstance(null, listOf(), ListConfigurable.homogeneous(), value.asJsObject())
-      override fun toJson(value: WidgetNodeInstance) = JsObject(value.configurable.getConfigs().associate { it.name to it.valueAsJson })
+         WidgetNodeInstance(null, listOf(), ListConfigurable.homogeneous(), value.asJsObject())
+
+      override fun toJson(value: WidgetNodeInstance) =
+         JsObject(value.configurable.getConfigs().associate { it.name to it.valueAsJson })
 
       @Suppress("SimplifyBooleanWithConstants")
-      fun Node?.javaFxProperties(): Sequence<NodeInput> = when(this) {
+      private fun Node?.javaFxProperties(): Sequence<NodeInput> = when(this) {
          null -> sequenceOf()
          else -> forEachJavaFXProperty(this)
             .filter {

@@ -35,7 +35,7 @@ open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator
 
    /** The ui root that attaches this widget to the scene graph */
    @JvmField val root = stackPane {
-      if (widget.fieldsRawLegacy["node"] == null && widget.fieldsRaw["node"] == null) {
+      if (widget.fieldsRaw["node"] == null) {
          onEventUp(MOUSE_CLICKED, SECONDARY, false) { if (it.isPrimaryButtonDown && it.isStillSincePress) { contextMenuFor(widget).show(this, it); it.consume() } }
          onEventDown(CONTEXT_MENU_REQUESTED) { if (it.isKeyboardTrigger) { contextMenuFor(widget).show(this, it); it.consume() } }
       }
@@ -60,12 +60,9 @@ open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator
          override fun initialize(config: Config<*>) {
             if (config.isPersistable()) {
                val key = Widget.configToRawKeyMapper(config)
-               val sourceLegacy = widget.fieldsRawLegacy
                val source = widget.fieldsRaw
                if (source.containsKey(key))
                   config.valueAsJson = source[key] ?: JsNull
-               else if (sourceLegacy.containsKey(key))
-                  config.valueAsProperty = sourceLegacy[key]!!
             }
          }
       }

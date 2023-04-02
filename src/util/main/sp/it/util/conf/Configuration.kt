@@ -13,27 +13,25 @@ import sp.it.util.collections.readOnly
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.toPrettyS
-import sp.it.util.file.properties.PropVal
-import sp.it.util.file.properties.readProperties
 import sp.it.util.file.writeSafely
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.compose
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
-import sp.it.util.type.atomic
 import sp.it.util.type.isSubclassOf
 
 /** Persistable [Configurable]. */
 open class Configuration(nameMapper: ((Config<*>) -> String) = nameMapperDefault): Configurable<Any?> {
-companion object: KLogging() {
-   val nameMapperDefault: ((Config<*>) -> String) = { "${it.group}.${it.name}" }
-   val namePostMapperDefault: (String) -> String = { s -> s.replace(' ', '_').lowercase() }
-   val configToRawKeyMapperDefault = nameMapperDefault compose namePostMapperDefault
-}
+
+   companion object: KLogging() {
+      val nameMapperDefault: ((Config<*>) -> String) = { "${it.group}.${it.name}" }
+      val namePostMapperDefault: (String) -> String = { s -> s.replace(' ', '_').lowercase() }
+      val configToRawKeyMapperDefault = nameMapperDefault compose namePostMapperDefault
+   }
+
    private val methodLookup = MethodHandles.lookup()
    private val namePostMapper: (String) -> String = { s -> s.replace(' ', '_').lowercase() }
    private val configToRawKeyMapper = nameMapper compose namePostMapper
-   private var propertiesLegacy: Map<String, PropVal>? by atomic(null)
    private var properties = ConcurrentHashMap<String, JsValue>()
    private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
    private val configsObservableImpl = observableList<Config<*>>()
@@ -73,21 +71,13 @@ companion object: KLogging() {
 
    fun rawAdd(file: File) {
       runTry {
-         val isLegacyFormat = file.useLines { it.firstOrNull()?.startsWith("#")==true }
-         if (isLegacyFormat)
-            propertiesLegacy = ConcurrentHashMap<String, PropVal>().also { ps ->
-               file.readProperties().orNull().orEmpty().forEach { (name, value) -> ps[name] = value }
-            }
-         else
-            Config.json.fromJson<JsObject>(file).orNull()?.value.orEmpty().forEach { (name, value) -> rawAdd(name, value) }
+         Config.json.fromJson<JsObject>(file).orNull()?.value.orEmpty().forEach { (name, value) -> rawAdd(name, value) }
       }
    }
 
    fun rawRemProperty(key: String) = properties.remove(key)
 
    fun rawRemProperties(properties: Map<String, *>) = properties.forEach { (name, _) -> rawRemProperty(name) }
-
-   fun rawRem(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, _) -> rawRemProperty(name) }
 
    fun <C> collect(c: Configurable<C>): Unit = collect(c.getConfigs())
 
@@ -170,18 +160,11 @@ companion object: KLogging() {
     * If config of given name does not exist it will be ignored as well.
     */
    fun rawSet() {
-      if (propertiesLegacy!=null)
-         propertiesLegacy?.forEach { (key, value) ->
-            val c = configs[namePostMapper(key)]
-            if (c?.isPersistable()==true)
-               c.valueAsProperty = value
-         }
-      else
-         properties.forEach { (key, value) ->
-            val c = configs[namePostMapper(key)]
-            if (c?.isPersistable()==true)
-               c.valueAsJson = value
-         }
+      properties.forEach { (key, value) ->
+         val c = configs[namePostMapper(key)]
+         if (c?.isPersistable()==true)
+            c.valueAsJson = value
+      }
    }
 
    fun <C> rawSet(c: Configurable<C>): Unit = c.getConfigs().forEach(::rawSet)
@@ -191,13 +174,8 @@ companion object: KLogging() {
    fun rawSet(c: Config<*>) {
       if (c.isPersistable()) {
          val key = configToRawKeyMapper(c)
-         if (propertiesLegacy!=null) {
-            if (propertiesLegacy!!.containsKey(key))
-               c.valueAsProperty = propertiesLegacy!![key]!!
-         } else {
-            if (properties.containsKey(key))
-               c.valueAsJson = properties[key]!!
-         }
+         if (properties.containsKey(key))
+            c.valueAsJson = properties[key]!!
       }
    }
 

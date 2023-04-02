@@ -1,5 +1,4 @@
 ## Potential future work
-- Handle unicode in application properties correctly
 - Improve **Tagger** widget
   - tagging non audio file with audio extension causes exception and corrupted application state
   - editable song check list not refreshing content properly

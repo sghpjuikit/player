@@ -54,6 +54,7 @@ import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.min
+import sp.it.util.conf.noPersist
 import sp.it.util.conf.noUi
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiInfoConverter
@@ -88,17 +89,17 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    val inputDevice by cv("Primary Sound Capture").attach { audioEngine.restartOnNewThread() } // support refresh on audio device add/remove, see https://stackoverflow.com/questions/29667565/jna-detect-audio-device-arrival-remove
       .valuesUnsealed { AudioSystem.getMixerInfo().filter { it.description.contains("Capture") }.map { it.name } }
       .def(name = "Audio input device", info = "")
-   val audioFormatChannels by c(2)
-      .def(name = "Audio format channels", info = "Information regarding the format the audio is read for FFT", editable = NONE).readOnly()
-   val audioFormatSigned by c(true)
-      .def(name = "Audio format signed", info = "Information regarding the format the audio is read for FFT", editable = NONE).readOnly()
-   val audioFormatBigEndian by c(false)
-      .def(name = "Audio format big endian", info = "Information regarding the format the audio is read for FFT", editable = NONE).readOnly()
-   val sampleSizeInBits by cv(16).readOnly().attach { audioEngine.restartOnNewThread() }
+   val audioFormatChannels by c(2).readOnly().noPersist()
+      .def(name = "Audio format channels", info = "Information regarding the format the audio is read for FFT", editable = NONE)
+   val audioFormatSigned by c(true).readOnly().noPersist()
+      .def(name = "Audio format signed", info = "Information regarding the format the audio is read for FFT", editable = NONE)
+   val audioFormatBigEndian by c(false).readOnly().noPersist()
+      .def(name = "Audio format big endian", info = "Information regarding the format the audio is read for FFT", editable = NONE)
+   val sampleSizeInBits by cv(16).readOnly().noPersist().attach { audioEngine.restartOnNewThread() }
       .def(name = "Audio sample in bits", info = "Information regarding the format the audio is read for FFT", editable = NONE)
    val sampleRate by cv(48000).values(listOf(44100, 48000)).attach { audioEngine.restartOnNewThread() }
       .def(name = "Audio sample rate", info = "Information regarding the format the audio is read for FFT")
-   val bufferSize by cv(50).between(25, 5000).readOnly().attach { audioEngine.restartOnNewThread() }
+   val bufferSize by cv(50).between(25, 5000).readOnly().noPersist().attach { audioEngine.restartOnNewThread() }
       .def(name = "Audio buffer size (ms)", info = "Audio buffer for the FFT. Buffer is necessary and bigger size improves accuracy, but introduces delay")
    val maxLevel by cv("RMS").values(listOf("RMS", "Peak"))
       .def(name = "Signal max level", info = "How amplitude of the bar representing frequency range is computed. Peak takes maximum value, RMS (root mean square) average")

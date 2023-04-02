@@ -110,7 +110,7 @@ class App: Application(), GlobalConfigDelegator {
    /** Name of this application. */
    val name = "Spit Player"
    /** Version of this application. */
-   val version = KotlinVersion(7, 6, 0)
+   val version = KotlinVersion(7, 7, 0)
    /** Application code encoding. Useful for compilation during runtime. */
    val encoding = UTF_8
    /** Absolute file of location of this app. Working directory of the project. `new File("").getAbsoluteFile()`. */

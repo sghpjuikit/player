@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+## [7.7.0] 2023 04 01
+
 - Update Kotlin to 1.8.20
 - Update vlcj to 3.0.18
 - Update dependencies
@@ -85,6 +87,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix ffmpeg download not working due to dead link
 - Fix invoking certain `Action`s through `AppSearch`
 - Fix styling of Path types
+- Fix unable to save loaded widgets sometimes
 - Fix json pretty print in some cases
 
 This update brings lots of UX improvements all-around.

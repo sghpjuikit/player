@@ -42,7 +42,7 @@ import sp.it.util.conf.noPersist
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
 import sp.it.util.dev.stacktraceAsString
-import sp.it.util.file.deleteOrThrow
+import sp.it.util.file.del
 import sp.it.util.file.div
 import sp.it.util.file.unzip
 import sp.it.util.reactive.Disposer
@@ -65,7 +65,7 @@ class SpeechRecognition: PluginBase() {
                if (!modelDir.exists()) {
                   downloadFile(modelLink, modelZip, task)
                   modelZip.unzip(modelDir)
-                  modelZip.deleteOrThrow()
+                  modelZip.del()
                }
             }
          }

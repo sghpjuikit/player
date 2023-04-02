@@ -95,7 +95,7 @@ import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.child
 import sp.it.util.file.children
-import sp.it.util.file.deleteOrThrow
+import sp.it.util.file.del
 import sp.it.util.file.deleteRecursivelyOrThrow
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
@@ -193,7 +193,7 @@ class WidgetManager {
                   downloadFile(kotlincLink, kotlincZip, task)
                   kotlincZip.unzip(kotlincDir) { it.substringAfter("kotlinc/") }
                   kotlincBinary.setExecutableOrThrow(true)
-                  kotlincZip.deleteOrThrow()
+                  kotlincZip.del()
                   kotlincVersionFile.writeText(kotlincLink.toString())
                }
 

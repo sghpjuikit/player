@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
+import sp.it.util.file.del
 import sp.it.util.file.div
 import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsValue
@@ -425,7 +426,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    @Blocking
    fun clearDefaultConfigs() {
       val configFile = userLocation / "default.json"
-      configFile.delete()
+      configFile.del()
    }
 
    // called when widget is loaded/closed (or rather, when inputs or outputs are created/removed)

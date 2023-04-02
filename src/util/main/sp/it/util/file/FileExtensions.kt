@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Blocking
 import sp.it.util.file.FileType.*
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
 
 /** @return sequence of this and all parents in bottom to top order */
@@ -36,8 +37,13 @@ fun File.getFilesR(maxDepth: Int = Int.MAX_VALUE, fileType: FileType?, vararg op
    return runTry { Files.find(toPath(), maxDepth, p, *options).use { it.map(m).toList() } }.orNull().orEmpty()
 }
 
+/** If [File.exists] calls [File.deleteOrThrow] or does nothing */
 @Blocking @Throws(IOException::class)
-fun File.deleteOrThrow(): Boolean = delete().also { if (!it) throw IOException("Failed to delete file=$this") }
+fun File.del(): Unit = if (exists()) deleteOrThrow() else Unit
+
+/** [File.delete] and throw if returned false. Warning - it throws when file did not exist in the first place */
+@Blocking @Throws(IOException::class)
+fun File.deleteOrThrow(): Unit = delete().also { if (!it) throw IOException("Failed to delete file=$this") }.toUnit()
 
 @Blocking @Throws(IOException::class)
 fun File.deleteRecursivelyOrThrow(): Boolean = deleteRecursively().also { if (!it) throw IOException("Failed to delete file=$this") }

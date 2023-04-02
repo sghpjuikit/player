@@ -237,7 +237,7 @@ fun File.writeSafely(block: (File) -> Try<*, Throwable>): Try<Nothing?, Throwabl
 
    return run {
       run {
-         runTry { block(fW) }.getOrSupply { Try.error(it) }
+         runTry { parentDirOrRoot.mkdirs(); block(fW) }.getOrSupply { Try.error(it) }
       }.mapError {
          Exception("Safe writing of `$f` failed. Data was not saved to temporary file=`$fW` as ${it.message}", it)
       }.ifError {

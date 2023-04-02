@@ -39,7 +39,7 @@ import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.stacktraceAsString
-import sp.it.util.file.deleteOrThrow
+import sp.it.util.file.del
 import sp.it.util.file.deleteRecursivelyOrThrow
 import sp.it.util.file.div
 import sp.it.util.file.nameOrRoot
@@ -284,7 +284,7 @@ private val ffmpeg by lazy {
                downloadFile(ffmpegLink, ffmpegZip, task)
                ffmpegZip.unzip(ffmpegDir) { it.substringAfter("$ffmpegVersion/") }
                ffmpegBinary.setExecutableOrThrow(true)
-               ffmpegZip.deleteOrThrow()
+               ffmpegZip.del()
             }
 
             failIf(!ffmpegBinary.exists()) { "Ffmpeg executable=$ffmpegBinary does not exist" }

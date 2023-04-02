@@ -57,7 +57,7 @@ abstract class LinkJDK : DefaultTask {
    @TaskAction
    fun linkJdk() {
       val jdkLocation: File = launcher.get().executablePath.asFile.parentFile!!.parentFile!!
-      linkLocation.delete() // delete invalid symbolic link
+      if (linkLocation.exists()) linkLocation.delete() // delete invalid symbolic link
       logger.info("Creating link at $linkLocation to $jdkLocation...")
       try {
          Files.createSymbolicLink(linkLocation.toPath(), jdkLocation.toPath())

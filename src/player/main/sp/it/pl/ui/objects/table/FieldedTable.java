@@ -47,6 +47,7 @@ import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.buildFieldedCell;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.exportToCsv;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.exportToMD;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.showColumnInfo;
+import static sp.it.util.access.PropertiesConstantKt.vAlways;
 import static sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
@@ -101,7 +102,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	/** Default factory for building column from field. See {@link #setColumnFactory(sp.it.util.functional.Functors.F1)} */
 	public final F1<? super ObjectField<? super T, ?>, ? extends TableColumn<T, ?>> columnFactoryDefault = f -> tableColumn("", consumer(it -> {
 		it.setText(f instanceof MetaField ? "" : f.name());
-		it.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV<>(f.getOf(cf.getValue())));
+		it.setCellValueFactory(cf -> cf.getValue()== null ? null : vAlways(f.getOf(cf.getValue())));
 		it.setCellFactory(col -> buildFieldedCell(f));
 	}));
 	/** Factory for building column from field. See {@link #setColumnFactory(sp.it.util.functional.Functors.F1)} */

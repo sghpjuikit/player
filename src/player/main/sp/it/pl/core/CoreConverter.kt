@@ -140,10 +140,10 @@ import sp.it.util.units.NofX
 import sp.it.util.units.durationOfHMSMs
 import sp.it.util.units.formatToSmallestUnit
 import sp.it.util.units.uri
+import kotlin.NumberFormatException as NFE
+import kotlin.IllegalArgumentException as IAE
+import kotlin.IndexOutOfBoundsException as OBE
 
-private typealias NFE = NumberFormatException
-private typealias IAE = IllegalArgumentException
-private typealias OBE = IndexOutOfBoundsException
 private typealias FromS<T> = (String) -> Try<T, String>
 
 object CoreConverter: Core {

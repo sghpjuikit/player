@@ -71,6 +71,7 @@ import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.fieldvalue.ObjectFieldOfDataClass
 import sp.it.util.access.toggle
 import sp.it.util.access.toggleNext
+import sp.it.util.access.vAlways
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.animPar
@@ -484,7 +485,7 @@ fun <T: Any> tableViewForClass(type: KClass<T>, block: FilteredTable<T>.() -> Un
       tableColumn<T, Any?> {
          text = f.cName()
          styleClass += if (f.type.isSubtypeOf<String>()) "column-header-align-left" else "column-header-align-right"
-         setCellValueFactory { cf -> if (cf.value==null) null else ImprovedTable.PojoV(f.getOf(cf.value)) }
+         setCellValueFactory { cf -> if (cf.value==null) null else vAlways(f.getOf(cf.value)) }
          setCellFactory { f.buildFieldedCell() }
          userData = f
          isResizable = true

@@ -55,7 +55,6 @@ import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSe
 import sp.it.pl.ui.objects.rating.RatingCellFactory
 import sp.it.pl.ui.objects.table.FieldedTable.UNCONSTRAINED_RESIZE_POLICY_FIELDED
 import sp.it.pl.ui.objects.table.FilteredTable
-import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.tablerow.SpitTableRow
 import sp.it.pl.ui.pane.ShortcutPane.Entry
@@ -63,6 +62,7 @@ import sp.it.util.Sort.DESCENDING
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.ObjectField
+import sp.it.util.access.vAlways
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.runNew
 import sp.it.util.async.runVT
@@ -175,7 +175,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                   AVG_RATING, W_RATING -> "column-header-align-right"
                   else -> if (f.getMFType(mf).isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"
                }
-               cellValueFactory = Callback { it.value?.let { PojoV(f.getOf(it)) } }
+               cellValueFactory = Callback { it.value?.let { vAlways(f.getOf(it)) } }
                cellFactory = when (f) {
                   AVG_RATING -> RatingCellFactory.asIs()
                   W_RATING ->

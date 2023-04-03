@@ -20,7 +20,6 @@ import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
 import sp.it.util.access.fieldvalue.MetaField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.fieldvalue.ObjectFieldBase
@@ -45,7 +44,7 @@ fun PlaylistTable.buildColumn(f: ObjectField<PlaylistSong, Any?>): TableColumn<P
       cellValueFactory = when (f) {
          NAME -> Callback { it.value!!.nameP.asIs() }
          LENGTH -> Callback { it.value!!.timeP.asIs() }
-         else -> Callback { if (it.value==null) null else PojoV(f.getOf(it.value)) }
+         else -> Callback { if (it.value==null) null else vAlways(f.getOf(it.value)) }
       }
       cellFactory = Callback { f.buildFieldedCell<PlaylistSong, Any?>() }
    }

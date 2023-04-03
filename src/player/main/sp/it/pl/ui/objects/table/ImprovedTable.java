@@ -305,19 +305,4 @@ public class ImprovedTable<T> extends TableView<T> {
 			getColumnResizePolicy().call(new ResizeFeatures<>(this, columnIndex, 0d));
 	}
 
-	/** Minimalistic value wrapper for POJO table view cell value factories. */
-	public record PojoV<T>(T v) implements ObservableValue<T> {
-
-		@Override public void addListener(ChangeListener<? super T> listener) {}
-
-		@Override public void removeListener(ChangeListener<? super T> listener) {}
-
-		@Override public T getValue() { return v; }
-
-		@Override public void addListener(InvalidationListener listener) {}
-
-		@Override public void removeListener(InvalidationListener listener) {}
-
-	}
-
 }

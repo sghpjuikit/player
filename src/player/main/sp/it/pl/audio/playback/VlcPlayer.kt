@@ -33,7 +33,7 @@ import sp.it.util.async.runFX
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.dev.fail
 import sp.it.util.dev.stacktraceAsString
-import sp.it.util.file.deleteOrThrow
+import sp.it.util.file.del
 import sp.it.util.file.deleteRecursivelyOrThrow
 import sp.it.util.file.div
 import sp.it.util.file.unzip

@@ -234,7 +234,6 @@ object CoreConverter: Core {
          }
       }
    }
-   private val fx = ConverterFX()
 
    override fun init() {
       general.init()
@@ -383,7 +382,7 @@ object CoreConverter: Core {
       addP<LinearGradient>(ConverterLinearGradient)
       addP<ImagePattern>(ConverterImagePattern)
       addP<Paint>(ConverterPaint)
-      addP<Effect>(fx.toConverterOf<Effect?>().asIs())
+      addP<Effect>(ConverterFX.toConverterOf<Effect?>().asIs())
       addP<Font>(ConverterFont)
       addParserToS(Node::class) { it::class.jvmName }
       addParserToS(Skin::class) { it::class.jvmName }

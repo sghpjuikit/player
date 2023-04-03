@@ -4,7 +4,7 @@ import java.util.Base64
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.text.Charsets.UTF_8
-import mu.KLogging
+import mu.KotlinLogging
 import sp.it.util.conf.Config
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.dev.fail
@@ -14,7 +14,13 @@ import sp.it.util.functional.Try
 import sp.it.util.type.isSuperclassOf
 
 /** Converter for javaFX bean convention.  */
-class ConverterFX: Converter() {
+object ConverterFX: Converter() {
+   private const val delimiter1 = "-"
+   private const val delimiter2 = ':'
+   private fun String.toBase64() = Base64.getEncoder().encodeToString(toByteArray(UTF_8))
+   private fun String.fromBase64() = String(Base64.getDecoder().decode(this), UTF_8)
+   private fun String.split2(delimiter: Char) = substringBefore(delimiter) to substringAfter(delimiter)
+   private val logger = KotlinLogging.logger {}
 
    @Suppress("UNCHECKED_CAST")
    override fun <T: Any> ofS(type: KClass<T>, text: String): Try<T?, String> {
@@ -60,15 +66,6 @@ class ConverterFX: Converter() {
          }
          v::class.java.name.toBase64() + delimiter1 + values
       }
-   }
-
-
-   companion object: KLogging() {
-      private const val delimiter1 = "-"
-      private const val delimiter2 = ':'
-      private fun String.toBase64() = Base64.getEncoder().encodeToString(toByteArray(UTF_8))
-      private fun String.fromBase64() = String(Base64.getDecoder().decode(this), UTF_8)
-      private fun String.split2(delimiter: Char) = substringBefore(delimiter) to substringAfter(delimiter)
    }
 
 }

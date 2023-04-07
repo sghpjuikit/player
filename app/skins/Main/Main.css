@@ -1812,7 +1812,7 @@ TextFlow > * {
 .list-box > .list-box-row {
     -fx-min-height: -skin-row-fixed-size;
     -fx-pref-height: -skin-row-fixed-size;
-    -fx-max-height: 400000; /* row should expand to full width */
+    -fx-max-width: 400000; /* row should expand to full width */
 }
 
 .list-view:no-fixed-cell-size,

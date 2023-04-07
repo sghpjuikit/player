@@ -537,7 +537,7 @@ fun Font.rowHeight(): Double {
    return h.toDouble()
 }
 
-fun listBox(block: VBox.() -> Unit) = vBox(null, CENTER_LEFT) { styleClass += "list-box"; block() }
+fun listBox(block: VBox.() -> Unit) = vBox(null, CENTER_LEFT) { styleClass += "list-box"; isFillWidth = true; block() }
 
 fun listBoxRow(glyph: GlyphIcons, text: String = "", block: LabelWithIcon.() -> Unit) = LabelWithIcon(glyph, text).apply { styleClass += "list-box-row"; block() }
 

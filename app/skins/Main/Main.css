@@ -4176,6 +4176,10 @@ TextFlow > * {
 .markdown-code-anti-padding {
     -fx-translate-x: 100;
 }
+.markdown-codeblock-box-icon-box {
+    -fx-translate-x: 1em;
+    -fx-translate-y: 1em;
+}
 .markdown-codeblock-box-icon-box .icon {
     -glyph-size: 1em;
     -fx-border-color: -mdfx-bq-color-border;

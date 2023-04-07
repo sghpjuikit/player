@@ -4,8 +4,7 @@ import javafx.stage.Window as WindowFX
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileFilter
-import java.lang.ProcessBuilder.Redirect.PIPE
-import java.net.URI
+import java.io.PrintStream
 import java.net.URLClassLoader
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
@@ -13,7 +12,6 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import java.nio.file.WatchEvent.Kind
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
 import javafx.event.ActionEvent
@@ -35,8 +33,8 @@ import kotlin.reflect.cast
 import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import mu.KLogging
+import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import sp.it.pl.core.NameUi
 import sp.it.pl.layout.ComponentLoader.Ctx
 import sp.it.pl.layout.WidgetSource.NONE
@@ -48,13 +46,8 @@ import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppError
-import sp.it.pl.main.AppErrorAction
-import sp.it.pl.main.AppProgress
-import sp.it.pl.main.downloadFile
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.ifErrorNotify
-import sp.it.pl.main.reportFor
-import sp.it.pl.main.showFloating
 import sp.it.pl.main.thenWithAppProgress
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
@@ -68,8 +61,6 @@ import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.access.Values
 import sp.it.util.access.v
 import sp.it.util.async.FX
-import sp.it.util.async.coroutine.VT
-import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.limitParallelism
@@ -91,17 +82,13 @@ import sp.it.util.conf.singleton
 import sp.it.util.conf.uiConverter
 import sp.it.util.conf.uiSingleton
 import sp.it.util.dev.Idempotent
-import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.dev.printIt
-import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.child
 import sp.it.util.file.children
-import sp.it.util.file.del
-import sp.it.util.file.deleteRecursivelyOrThrow
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
 import sp.it.util.file.isAnyChildOf
@@ -109,14 +96,13 @@ import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.isParentOf
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsValue
-import sp.it.util.file.setExecutableOrThrow
 import sp.it.util.file.toURLOrNull
-import sp.it.util.file.unzip
 import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.and
 import sp.it.util.functional.andAlso
 import sp.it.util.functional.asArray
+import sp.it.util.functional.asIs
 import sp.it.util.functional.compose
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifFalse
@@ -135,8 +121,6 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.Os
-import sp.it.util.system.browse
-import sp.it.util.system.waitForResult
 import sp.it.util.text.capital
 import sp.it.util.text.decapital
 import sp.it.util.type.isSubclassOf
@@ -145,10 +129,8 @@ import sp.it.util.ui.anchorPane
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.removeFromParent
-import sp.it.util.ui.scrollText
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stylesheetToggle
-import sp.it.util.ui.text
 
 /** Handles operations with Widgets. */
 class WidgetManager {
@@ -177,72 +159,13 @@ class WidgetManager {
    private var classpathSeparator = Os.current.classpathSeparator
    private var initialized = false
    private val compilerThread = sp.it.util.async.VT.named("widget-compiler").limitParallelism(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt())
-   private val kotlinc by lazy {
-      val kotlinVersion = APP.location.lib.children().map { it.path }.find { "kotlin-stdlib-" in it }?.substringAfter("kotlin-stdlib-")?.substringBefore(".jar") ?: fail { "No lib/kotlin-stdlib found" }
-      val kotlincDir = APP.location.kotlinc
-      val kotlincVersionFile = kotlincDir/"version"
-      val kotlincZipName = "kotlin-compiler-$kotlinVersion.zip"
-      val kotlincBinary = when (Os.current) {
-         Os.WINDOWS -> APP.location.kotlinc/"bin"/"kotlinc.bat"
-         else -> APP.location.kotlinc/"bin"/"kotlinc"
-      }
-      val kotlincZip = kotlincDir/kotlincZipName
-      val kotlincLink = URI("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/$kotlincZipName")
-      runSuspendingFx {
-         AppProgress.start("Obtaining Kotlin compiler").reportFor { task ->
-            withContext(VT) {
-               fun isCorrectVersion() = kotlincVersionFile.exists() && kotlincVersionFile.readText()==kotlincLink.toString()
-
-               if (!isCorrectVersion() || !kotlincBinary.exists()) {
-                  if (kotlincDir.exists()) kotlincDir.deleteRecursivelyOrThrow()
-                  downloadFile(kotlincLink, kotlincZip, task)
-                  kotlincZip.unzip(kotlincDir) { it.substringAfter("kotlinc/") }
-                  kotlincBinary.setExecutableOrThrow(true)
-                  kotlincZip.del()
-                  kotlincVersionFile.writeText(kotlincLink.toString())
-               }
-
-               failIf(!isCorrectVersion()) { "Kotlinc has wrong version" }
-               failIf(!kotlincBinary.exists()) { "Kotlinc executable=$kotlincBinary does not exist" }
-               failIf(!kotlincBinary.canExecute()) { "Kotlinc executable=$kotlincBinary must be executable" }
-               kotlincBinary
-            }
-         }
-      }.onDone {
-         it.toTry().ifErrorNotify {
-            AppError(
-               "Failed to obtain Kotlin compiler",
-               "Kotlin version: $kotlinVersion\nKotlinc link: $kotlincLink\n\n${it.stacktraceAsString}",
-               AppErrorAction("Download manually") {
-                  kotlincLink.browse()
-                  kotlincDir.browse()
-                  showFloating("Setup Kotlin compiler") {
-                     scrollText {
-                        text(
-                           buildString {
-                              appendLine("It is recommended to let the application set up the compiler, you may wish to check the exact error instead.")
-                              appendLine()
-                              appendLine("If you still wish to set up the compiler manually, you need to:")
-                              appendLine(" * Download the compiler from $kotlincLink")
-                              appendLine(" * Extract the contents to $kotlincDir so there exists executable file $kotlincBinary")
-                              appendLine(" * Create file $kotlincVersionFile (no extension) and set its text content to the link, you obtained the compiler from")
-                           }
-                        )
-                     }
-                  }
-               }
-            )
-         }
-      }
-   }
+   private val compilerKt by lazy { K2JVMCompiler() }
 
    fun init() {
       if (initialized) return
 
       if (!(APP.location/"java"/"bin").exists())
          logger.error { "Java development kit is missing. Please install JDK in ${APP.location/"java"}" }
-      if (!(APP.location/"kotlinc"/"bin").exists())
-         logger.error { "Kotlin compiler is missing. Please install kotlinc in ${APP.location/"kotlinc"}" }
 
       // internal factories
       registerFactory(emptyWidgetFactory)
@@ -367,6 +290,10 @@ class WidgetManager {
 
       private fun computeClassPathElements() = getAppJarFile() + (findAppLibFiles() + compileDir + findLibFiles()).map { it.relativeToApp() }
 
+      private fun computeClassPathKt(): String = computeClassPathElementsKt().joinToString(classpathSeparator)
+
+      private fun computeClassPathElementsKt() = getAppJarFileKt() + (findAppLibFiles() + compileDir + findLibFiles())
+
       private fun findLibFiles() = (widgetDir / "lib").children().filterSourceJars()
 
       private fun findAppLibFiles() = APP.location.lib.children().filterSourceJars()
@@ -374,6 +301,16 @@ class WidgetManager {
       private fun getAppJarFile(): Sequence<String> {
          return if (APP.location.spitplayer_jar.exists()) {
             sequenceOf(APP.location.spitplayer_jar.relativeToApp())
+         } else {
+            System.getProperty("java.class.path")
+               .splitToSequence(classpathSeparator)
+               .filter { it.contains("build\\classes") || it.contains("build\\kotlin-classes") }
+         }
+      }
+
+      private fun getAppJarFileKt(): Sequence<String> {
+         return if (APP.location.spitplayer_jar.exists()) {
+            sequenceOf(APP.location.spitplayer_jar.absolutePath)
          } else {
             System.getProperty("java.class.path")
                .splitToSequence(classpathSeparator)
@@ -551,46 +488,41 @@ class WidgetManager {
          }
       }
 
+      //https://github.com/tschuchortdev/kotlin-compile-testing/blob/master/core/src/main/kotlin/com/tschuchort/compiletesting/KotlinCompilation.kt
       /** Compiles specified .kt files into .class files. */
       private fun compileKotlin(kotlinSrcFiles: Sequence<File>): Try<Nothing?, String> {
          return try {
             failIfWrongPackage(kotlinSrcFiles)
-            val kotlincFile = kotlinc.getDone().toTry().getOrSupply { fail(it) { "Kotlin compiler not available" } }
+
             val command = listOf(
-               kotlincFile.relativeToApp(),
-               "-d", compileDir.relativeToApp(),
-               "-jdk-home", APP.location.child("java").relativeToApp(),
+               "-d", compileDir.absolutePath,
+               "-jdk-home", APP.location.child("java").absolutePath,
                "-api-version", "1.8",
                "-jvm-target", "19",
+               "-no-stdlib",
                "-progressive",
                "-language-version", "1.8",
                "-Xno-call-assertions",
                "-Xno-param-assertions",
-               "\"-Xjvm-default=all\"",
-               "\"-Xlambdas=indy\"",
-               "\"-Xstring-concat=indy-with-constants\"",
-               "-cp", '"' + computeClassPath() + '"',
-               kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
+               "-Xjvm-default=all",
+               "-Xlambdas=indy",
+               "-Xstring-concat=indy-with-constants",
+               "-cp", computeClassPathKt(),
+               kotlinSrcFiles.joinToString(" ")
             )
 
             logger.info("Compiling with command=${command.joinToString(" ")} ")
 
-            val process = ProcessBuilder(command)
-               .directory(APP.location)
-               .redirectOutput(PIPE)
-               .redirectError(PIPE)
-               .start()
-
-            val (textStdout, textStdErr) = process.waitForResult(90, TimeUnit.SECONDS) { it.bufferedReader(UTF_8).readText().prettifyCompilerOutput() }
-            val success = process.exitValue()
+            val printStream = object: PrintStream(ByteArrayOutputStream(), true, UTF_8) { fun output() = out.asIs<ByteArrayOutputStream>().toByteArray().toString(UTF_8) }
+            val success = compilerKt.exec(printStream, *command.toTypedArray()).code
+            val textOut = printStream.output()
             val isSuccess = success==0
-
             if (isSuccess) {
-               logger.info { "Compilation succeeded\n$textStdout" }
+               logger.info { "Compilation succeeded\n$textOut" }
                Try.ok()
             } else {
-               logger.error { "Compilation failed\n$textStdout\n$textStdErr" }
-               Try.error(textStdErr)
+               logger.error { "Compilation failed\n$textOut" }
+               Try.error(textOut)
             }
          } catch (e: Exception) {
             logger.error(e) { "Compilation failed" }

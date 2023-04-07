@@ -67,22 +67,6 @@ object `AppLocation`: Dir(File("").absolutePath) {
       const val fileDescription: String = """Directory containing Java Development Kit (JDK)."""
    
    }
-   /** Directory child [`Kotlinc`]. */
-   val `kotlinc` = `Kotlinc`
-   
-   /**
-    * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
-    * Directory containing Kotlin compiler.
-    */
-   object `Kotlinc`: Dir(File("").absolutePath + separator + "kotlinc") {
-   
-      /** Same as [getName]. Compile-time constant. `kotlinc`.*/
-      const val fileName: String = """kotlinc"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Directory containing Kotlin compiler."""
-   
-   }
    /** Directory child [`Lib`]. */
    val `lib` = `Lib`
    

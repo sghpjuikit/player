@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+- Implement correct window owners for content in popups launched through actions
+- Implement `list-box` - a `VBox` emulation of `list-view` and provide consistent styling where used
+
+### Window owners
+When launching certain content, it is expected that the new window will stay on top of the window it was launched from.
+This is called window ownership. Now popups and windows for widgets launched by various means will set and respect the ownership.
+This makes it more pleasant, intuitive and efficient for the user to spawn and use new content.
+
+### Kotlin K2 compiler
+This version will use the new K2 compiler, which improves compilation time 2.5 times.
+
+### Widget kotlin compiling
+Until now the Kotlin compiler has been downloaded from Github.
+Now, the application uses `kotlin-compiler-embeddable` jar packaged with the application.
+This removes the need to obtain the compiler and prevents multitude of possible problems occurring for the user.
+The embedded compiler uses daemon and increases compilation time up to 5 times!
 
 ## [7.7.0] 2023 04 01
 

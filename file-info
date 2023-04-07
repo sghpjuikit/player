@@ -6,9 +6,6 @@ app {
   # Directory containing Java Development Kit (JDK).
   java {
   }
-  # Directory containing Kotlin compiler.
-  kotlinc {
-  }
   # Directory containing application libraries.
   lib {
   }

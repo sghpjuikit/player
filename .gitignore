@@ -4,7 +4,6 @@ app/ffmpeg/
 app/lib
 app/jre
 app/java
-app/kotlinc
 app/speech-recognition-ai-model
 app/SpitPlayer.jar
 app/user

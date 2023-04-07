@@ -18,7 +18,7 @@
 - Implement Song Group table Playing icon column
 - Document all used libraries, how they are used, why, where not to use them, etc.
 - Experiment with StartScreen that keeps content loaded between hide/show
-- Implement **kotlinc**/**vlc**/**mpeg** setup to be restartable
+- Implement **vlc**/**mpeg** setup to be restartable
 - Implement `app.stateful` on/off config
 - Drag & drop playlist file support in audio
 - Migrate `ActionPane`  actions to `AppActions.kt`& integrate with `Action`, adding icon to Action & keys to ActionData 
@@ -118,7 +118,7 @@
 - [-] [KT-14119](https://youtrack.jetbrains.com/issue/KT-14119) Bad API: `String?.toBoolean()`  
   reported, implemented wrongly
 - [-] [KT-52460](https://youtrack.jetbrains.com/issue/KT-52460) Slow Kotlin compilation
-  reported demand for fast native excelsior compiler that has been discontinued -> Excelsior native compiler can no longer be build (no more experimental kotlinc)
+  reported, native excelsior compiler has been discontinued; using kotlin-compiler-embeddable jar improves speed dramatically due to daemon; K2 also improves speed a lot 
 - [ ] [KT-54348](https://youtrack.jetbrains.com/issue/KT-54348) False positive: "Inappropriate blocking method call" with coroutines and Dispatchers.IO.invoke
   reported, open
 - [ ] [OSHII-2016](https://github.com/oshi/oshi/pull/2016/files) Disabled performance counters check failing

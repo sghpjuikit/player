@@ -29,15 +29,15 @@ Right now there are uncertainties regarding bundle size and licencing.
 
 - Is `javac` bundled?  
 No.  
-But it is bundled with `JDK`, so practically yes.
+It is bundled with `JDK` used by the application.
 
 - Is `Kotlin` bundled?  
 Yes.  
 It is just a lib.
 
 - Is `kotlinc` bundled?  
-No.  
-It is automatically setup by the application.
+Yes.  
+It is bundled as `kotlin-compiler-embeddable` jar dependency.
 
 - Are plugins bundled?  
 Yes.  

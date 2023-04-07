@@ -91,6 +91,7 @@ allprojects {
          // compatibility table https://kotlinlang.org/docs/releases.html#release-details
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
+         implementation(kotlin("compiler-embeddable"))
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.0-Beta")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.0-Beta")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.7.0-Beta")

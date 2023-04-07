@@ -16,8 +16,10 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
+import javafx.event.ActionEvent
 import javafx.geometry.Insets
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -36,6 +38,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mu.KLogging
 import sp.it.pl.core.NameUi
+import sp.it.pl.layout.ComponentLoader.Ctx
 import sp.it.pl.layout.WidgetSource.NONE
 import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.layout.WidgetSource.OPEN_LAYOUT
@@ -59,6 +62,7 @@ import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.asLayout
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
+import sp.it.pl.ui.pane.ActContext
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.access.Values
@@ -90,6 +94,7 @@ import sp.it.util.dev.Idempotent
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNotFxThread
+import sp.it.util.dev.printIt
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util.isValidatedDirectory
@@ -673,7 +678,7 @@ class WidgetManager {
                   is WidgetUse.NewAnd -> {
                      val f = preferred.firstOrNull() ?: factories.getFactories().firstOrNull { !it.isIgnored && filter(it) }
                      val w = runBlocking { f?.create() }
-                     w?.let(source.layouter)
+                     w?.let(source::layout)
                      w
                   }
                   else -> null
@@ -923,26 +928,35 @@ enum class ComponentLoaderStrategy(val loader: ComponentLoader) {
 
 /** Strategy for opening a new component in ui. */
 @Suppress("ClassName")
-sealed interface ComponentLoader: (Component) -> Any {
+sealed interface ComponentLoader {
+
+   operator fun invoke(ctx: Ctx): (Component) -> Any = { ctx(it) }
+   operator fun invoke(c: Component): Any = Ctx(null)(c)
+   operator fun Ctx.invoke(c: Component): Any
+
+   data class Ctx(val window: WindowFX?) {
+      constructor(ctx: ActContext): this(ctx.window)
+      constructor(e: ActionEvent): this(ActContext(e).window)
+   }
 
    /** Does not load component and leaves it upon the consumer to load and manage it appropriately. */
    object CUSTOM: ComponentLoader {
-      override operator fun invoke(c: Component) = Unit
+      override operator fun Ctx.invoke(c: Component) = Unit
    }
 
    /** Loads the component in a layout of a new window. */
    object WINDOW: ComponentLoader {
-      override operator fun invoke(c: Component): Window = APP.windowManager.showWindow(c)
+      override operator fun Ctx.invoke(c: Component): Window = APP.windowManager.showWindow(c)
    }
 
    /** Loads the component in a layout of a new window. */
    object DOCK: ComponentLoader {
-      override operator fun invoke(c: Component): Window = APP.windowManager.slideWindow(c)
+      override operator fun Ctx.invoke(c: Component): Window = APP.windowManager.slideWindow(c)
    }
 
    /** Loads the component as a standalone in a simplified layout of a new always on top fullscreen window on active screen. */
    object WINDOW_FULLSCREEN_ACTIVE: ComponentLoader {
-      override operator fun invoke(c: Component): Stage = WINDOW_FULLSCREEN(getScreenForMouse())(c)
+      override operator fun Ctx.invoke(c: Component): Stage = WINDOW_FULLSCREEN(getScreenForMouse())(c)
    }
 
    /** Loads the component as a standalone in a simplified layout of a new always on top fullscreen window on specified screen. */
@@ -975,7 +989,7 @@ sealed interface ComponentLoader: (Component) -> Any {
 
    /** Loads the component as a standalone in a new [OverlayPane]. */
    object OVERLAY: ComponentLoader {
-      override operator fun invoke(c: Component): OverlayPane<Unit> {
+      override operator fun Ctx.invoke(c: Component): OverlayPane<Unit> {
 
          val op = object: OverlayPane<Unit>() {
             lateinit var layout: Layout
@@ -1023,7 +1037,7 @@ sealed interface ComponentLoader: (Component) -> Any {
 
    /** Loads the component as a standalone widget in a simplified layout of a new popup. */
    object POPUP: ComponentLoader {
-      override operator fun invoke(c: Component): PopWindow {
+      override operator fun Ctx.invoke(c: Component): PopWindow {
          val l = Layout.openStandalone(anchorPane())
          val p = popWindow {
             content.value = l.root
@@ -1036,7 +1050,7 @@ sealed interface ComponentLoader: (Component) -> Any {
          l.child = c
          c.focus()
 
-         p.show(WINDOW_ACTIVE(Pos.CENTER).copy(owner = null))
+         p.show(WINDOW_ACTIVE(Pos.CENTER).copy(owner = window.printIt()))
 
          // This helps certain cases, when pref size basically becomes min size
          p.onShown += {
@@ -1048,6 +1062,7 @@ sealed interface ComponentLoader: (Component) -> Any {
 
          return p
       }
+      operator fun invoke(n: Node) = Ctx(n.scene?.window) to this
    }
 }
 
@@ -1064,23 +1079,34 @@ sealed class WidgetUse(val widgetFinder: WidgetSource) {
    object OPEN: WidgetUse(WidgetSource.OPEN)
 
    /** Use newly created widget. */
-   object NEW: NewAnd(NONE, {
+   object NEW: NewAnd(NONE, Ctx(null), {
       val id = if (it is Widget) it.factory.id else it.factoryDeserializing?.name
       val s = id?.let { APP.widgetManager.widgets.componentLastOpenStrategiesMap[id] } ?: ComponentLoaderStrategy.POPUP
-      s.loader(it)
+      s.loader(this)(it)
    })
 
    /** Use open widget as per [WidgetSource.OPEN] or use newly created widget. */
-   object ANY: NewAnd(WidgetSource.OPEN, {
+   object ANY: NewAnd(WidgetSource.OPEN, Ctx(null), {
       val id = if (it is Widget) it.factory.id else it.factoryDeserializing?.name
       val s = id?.let { APP.widgetManager.widgets.componentLastOpenStrategiesMap[id] } ?: ComponentLoaderStrategy.POPUP
-      s.loader(it)
+      s.loader(this)(it)
    })
 
    /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or use newly created widget. */
-   object NO_LAYOUT: NewAnd(WidgetSource.OPEN_STANDALONE, ComponentLoader.POPUP)
+   object NO_LAYOUT: NewAnd(WidgetSource.OPEN_STANDALONE, Ctx(null), { ComponentLoader.POPUP(this)(it) })
 
-   open class NewAnd(widgetFinder: WidgetSource, val layouter: (Component) -> Any): WidgetUse(widgetFinder) {
-      operator fun invoke(layouter: (Component) -> Any) = NewAnd(widgetFinder, layouter)
+   open class NewAnd(widgetFinder: WidgetSource, val ctx: Ctx, private val layouter: Ctx.(Component) -> Any): WidgetUse(widgetFinder) {
+      /** @return copy of this object with different [ctx] */
+      operator fun invoke(ctx: Ctx) = NewAnd(widgetFinder, ctx, { ComponentLoader.POPUP(this)(it) })
+      /** @return copy of this object with different [layouter] */
+      operator fun invoke(layouter: ComponentLoader) = NewAnd(widgetFinder, ctx, { layouter(this)(it) })
+      /** @return copy of this object with different [layouter] */
+      operator fun invoke(layouter: Ctx.(Component) -> Any) = NewAnd(widgetFinder, ctx, layouter)
+      /** @return copy of this object with different [layouter] */
+      operator fun invoke(layouter: (Component) -> Any) = NewAnd(widgetFinder, ctx, { layouter(it) })
+      /** @return copy of this object with different [ctx] and [layouter] */
+      operator fun invoke(ctxAndLayouter: Pair<Ctx, ComponentLoader>) = NewAnd(widgetFinder, ctxAndLayouter.first, { ctxAndLayouter.second(this)(it) })
+
+      fun layout(c: Component): Any = ctx.layouter(c)
    }
 }

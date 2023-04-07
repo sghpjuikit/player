@@ -1,6 +1,7 @@
 package sp.it.pl.main
 
 import com.sun.tools.attach.VirtualMachine
+import sp.it.pl.layout.ComponentLoader.Ctx
 import sp.it.pl.layout.ComponentLoader.WINDOW
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.feature.TextDisplayFeature
@@ -32,15 +33,15 @@ object AppActionsAppHelp {
    }
 
    val openIconBrowser = action<AppHelp>("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.FONTICONS) {
-      launch(FX) { WINDOW(APP.widgetManager.factories.getComponentFactoryByName(ICON_BROWSER.name)!!.create()) }.toUnit()
+      launch(FX) { WINDOW(Ctx(this))(APP.widgetManager.factories.getComponentFactoryByName(ICON_BROWSER.name)!!.create()) }.toUnit()
    }
 
    val openUiInspector = action<AppHelp>("Open UI inspector", "Open widget for inspecting UI elements.", IconFA.EYEDROPPER) {
-      launch(FX) { WINDOW(APP.widgetManager.factories.getFactory(INSPECTOR.id).orNone().create()) }.toUnit()
+      launch(FX) { WINDOW(Ctx(this))(APP.widgetManager.factories.getFactory(INSPECTOR.id).orNone().create()) }.toUnit()
    }
 
    val openUiTester = action<AppHelp>("Open UI Tester", "Browse widget for testing UI functionality", IconFA.EYEDROPPER) {
-      launch(FX) { WINDOW(APP.widgetManager.factories.getFactory(TESTER.id).orNone().create()) }.toUnit()
+      launch(FX) { WINDOW(Ctx(this))(APP.widgetManager.factories.getFactory(TESTER.id).orNone().create()) }.toUnit()
    }
 
    val openSystemProperties = action<AppHelp>("Show system properties", "Display system properties.", IconMD.INFORMATION_OUTLINE) {

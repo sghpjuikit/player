@@ -18,6 +18,7 @@ import sp.it.util.conf.UnsealedEnumerator
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Java.ok
 import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
@@ -70,7 +71,7 @@ sealed class Command: () -> Unit {
 
       /** [sp.it.pl.ui.objects.window.stage.WindowManager.instantiateComponent] the component with the specified id */
       override operator fun invoke() {
-         launch(FX) { APP.windowManager.instantiateComponent(id.id)?.net(loader.loader) }
+         launch(FX) { APP.windowManager.instantiateComponent(id.id).ifNotNull { loader.loader(it) } }
       }
    }
 

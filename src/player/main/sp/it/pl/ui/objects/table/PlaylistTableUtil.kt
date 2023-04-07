@@ -80,7 +80,7 @@ fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>):
                // open playback controls on RMB
                val widgetKey = "playlist-table-playback-control-widget}"
                fun obtainWidget() = APP.widgetManager.widgets.findAll(OPEN).find { widgetKey in it.properties }?.apply { focusWithWindow() }
-               fun buildWidget() = APP.widgetManager.widgets.find("Playback knobs", NEW(POPUP))?.apply { properties[widgetKey] = widgetKey }
+               fun buildWidget() = APP.widgetManager.widgets.find("Playback knobs", NEW(POPUP(this)))?.apply { properties[widgetKey] = widgetKey }
                obtainWidget() ?: buildWidget()
             }
          }

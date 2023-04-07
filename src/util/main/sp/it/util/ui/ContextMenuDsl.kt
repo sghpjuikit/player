@@ -1,5 +1,6 @@
 package sp.it.util.ui
 
+import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
@@ -39,14 +40,17 @@ open class MenuBuilder<M, V>(val owner: M, val value: V) {
 
    /** Create and [add] to items new menu item with specified text and action. */
    @Dsl
-   inline fun item(text: String, graphics: Node? = null, keys: String? = null, crossinline action: @Dsl MenuItem.(V) -> Unit): MenuItem = item { MenuItem(text, graphics).apply {
-      keys.nullIfBlank().ifNotNull { k ->
-         accelerator = NO_MATCH // required so accelerator-text is visible
-         parentPopupProperty().flatMap { it.skinProperty() }.sync1IfNonNull {
-            it.node.lookupAll(".accelerator-text").forEach { if (it.parent?.lookupChildAs<Label>()?.text==text) it.asIs<Label>().text = k }
+   inline fun item(text: String, graphics: Node? = null, keys: String? = null, crossinline action: @Dsl ActionEvent.(V) -> Unit): MenuItem = item {
+      MenuItem(text, graphics).apply {
+         keys.nullIfBlank().ifNotNull { k ->
+            accelerator = NO_MATCH // required so accelerator-text is visible
+            parentPopupProperty().flatMap { it.skinProperty() }.sync1IfNonNull {
+               it.node.lookupAll(".accelerator-text").forEach { if (it.parent?.lookupChildAs<Label>()?.text==text) it.asIs<Label>().text = k }
+            }
          }
+         onAction = EventHandler { it.action(value) }
       }
-      onAction = EventHandler { action(value) } } }
+   }
 
    /** [add] to items the specified item. */
    @Dsl
@@ -54,7 +58,7 @@ open class MenuBuilder<M, V>(val owner: M, val value: V) {
 
    /** Create and [add] to items new menu items with text and action derived from specified source. */
    @Dsl
-   inline fun <A> items(source: Sequence<A>, crossinline text: (A) -> String, crossinline graphics: (A) -> Node? = { null }, crossinline action: (A) -> Unit) = items { source.map { menuItem(text(it), graphics(it)) { _ -> action(it) } }.sortedBy { it.text } }
+   inline fun <A> items(source: Sequence<A>, crossinline text: (A) -> String, crossinline graphics: (A) -> Node? = { null }, crossinline action: ActionEvent.(A) -> Unit) = items { source.map { menuItem(text(it), graphics(it)) { e -> action(e, it) } }.sortedBy { it.text } }
 
    /** Create and [add] to items the specified items. */
    @Dsl

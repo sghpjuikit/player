@@ -119,6 +119,8 @@ import sp.it.util.ui.ContextMenuGenerator
 import sp.it.util.ui.MenuBuilder
 import sp.it.util.ui.drag.set
 import sp.it.util.ui.menuItem
+import sp.it.util.ui.sourceMenuItem
+import sp.it.util.ui.traverseToPopupOwnerWindow
 
 object CoreMenus: Core {
 
@@ -419,7 +421,7 @@ object CoreMenus: Core {
                         "Save image as...",
                         APP.location,
                         it.iFile?.name ?: "new_image",
-                        parentPopup.ownerWindow,
+                        sourceMenuItem()?.traverseToPopupOwnerWindow(),
                         imageWriteExtensionFilter()
                      ).ifOk { f ->
                         writeImage(it.image, f).ifErrorNotify {
@@ -542,7 +544,7 @@ object CoreMenus: Core {
       source = APP.widgetManager.factories.getFactoriesWith<W>(),
       text = { it.name },
       graphics = { it.toFactory()?.icon?.toCmUi() },
-      action = { it.use(NO_LAYOUT) { action(it) } }
+      action = { it.use(NO_LAYOUT(Ctx(this))) { action(it) } }
    )
 
    @Dsl

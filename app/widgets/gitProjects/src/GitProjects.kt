@@ -19,6 +19,8 @@ import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.main.APP
+import sp.it.pl.main.Events.FileEvent
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
@@ -99,6 +101,8 @@ class GitProjects(widget: Widget): SimpleController(widget) {
       }
 
       inputFile.sync { refreshProjects(it) } on onClose
+
+      APP.actionStream.onEvent<FileEvent.Delete> { d -> if (projects.any { it.dir==d.file }) refreshProjects() } on onClose
    }
 
    fun refreshProjects(root: File? = inputFile.value) {

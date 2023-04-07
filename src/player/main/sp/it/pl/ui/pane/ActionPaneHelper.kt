@@ -4,7 +4,6 @@ import de.jensd.fx.glyphs.GlyphIcons
 import javafx.event.ActionEvent
 import javafx.event.Event
 import javafx.scene.Node
-import javafx.scene.control.MenuItem
 import javafx.stage.Window
 import kotlin.reflect.KClass
 import sp.it.pl.main.APP
@@ -30,11 +29,13 @@ import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util.IS
-import sp.it.util.functional.asIf
 import sp.it.util.functional.runTry
 import sp.it.util.type.VType
 import sp.it.util.type.raw
 import sp.it.util.type.type
+import sp.it.util.ui.sourceMenuItem
+import sp.it.util.ui.traverseToPopupOwnerNode
+import sp.it.util.ui.traverseToPopupOwnerWindow
 
 inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class, *actions)
 
@@ -76,9 +77,10 @@ private typealias Act<T> = ActContext.(T) -> Any?
 data class ActContext(val window: Window?, val a: ActionPane?,  val node: Node?, val event: Event?) {
    constructor(window: Window): this(window, null, null, null)
    constructor(node: Node): this(node.scene?.window, null, node, null)
-   constructor(event: ActionEvent): this(event.source.asIf<MenuItem>()?.parentPopup?.ownerWindow, null, event.source.asIf<MenuItem>()?.parentPopup?.ownerNode, event)
+   constructor(event: ActionEvent): this(event.sourceMenuItem()?.traverseToPopupOwnerWindow(), null, event.sourceMenuItem()?.traverseToPopupOwnerNode(), event)
 
    val apOrApp: ActionPane get() = a ?: APP.ui.actionPane.orBuild
+
 }
 
 class ComplexActionData<R, T> {

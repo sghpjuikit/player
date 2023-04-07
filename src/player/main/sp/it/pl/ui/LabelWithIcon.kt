@@ -19,6 +19,5 @@ class LabelWithIcon(glyph: GlyphIcons, text: String = ""): Hyperlink(text) {
 
    fun select(s: Boolean) {
       icon.selectHard(s)
-      style = if (s) "-fx-text-fill: -skin-def-font-color-hover;" else null
    }
 }

@@ -1806,6 +1806,14 @@ TextFlow > * {
 .combo-box-popup > .list-view {
     -fx-fixed-cell-size: -skin-row-fixed-size;
 }
+.list-box  {
+    -fx-spacing: 0em;
+}
+.list-box > .list-box-row {
+    -fx-min-height: -skin-row-fixed-size;
+    -fx-pref-height: -skin-row-fixed-size;
+    -fx-max-height: 400000; /* row should expand to full width */
+}
 
 .list-view:no-fixed-cell-size,
 .table-view:no-fixed-cell-size,
@@ -1849,6 +1857,72 @@ TextFlow > * {
 }
 .text-input:align-justify *.text {
     -fx-text-alignment: justify;
+}
+
+/***************************** HEADINGS ***************************************/
+
+.h1 {
+    -fx-font-size: 3em;
+}
+.h2 {
+    -fx-font-size: 2.5em;
+}
+.h3 {
+    -fx-font-size: 2em;
+}
+.h4 {
+    -fx-font-size: 1.5em;
+}
+.h5 {
+    -fx-font-size: 1em;
+}
+
+/***************************** PADDINGS ***************************************/
+
+.h1p {
+    -fx-padding: 1.5em 0 1.5em 0;
+}
+.h1p-bottom {
+    -fx-padding: 0 0 1.5em 0;
+}
+.h1p-up {
+    -fx-padding: 1.5em 0 0 0;
+}
+.h2p {
+    -fx-padding: 1.25em 0 1.25em 0;
+}
+.h2p-bottom {
+    -fx-padding: 0 0 1.25em 0;
+}
+.h2p-up {
+    -fx-padding: 1.25em 0 0 0;
+}
+.h3p {
+    -fx-padding: 1em 0 1em 0;
+}
+.h3p-bottom {
+    -fx-padding: 0 0 1em 0;
+}
+.h3p-up {
+    -fx-padding: 1em 0 0 0;
+}
+.h4p {
+    -fx-padding: 0.75em 0 0.75em 0;
+}
+.h4p-bottom {
+    -fx-padding: 0 0 0.75em 0;
+}
+.h4p-up {
+    -fx-padding: 0.75em 0 0 0;
+}
+.h5p {
+    -fx-padding: 0.5em 0 0.5em 0;
+}
+.h5p-bottom {
+    -fx-padding: 0 0 0.5em 0;
+}
+.h5p-up {
+    -fx-padding: 0.5em 0 0 0;
 }
 
 /**************************** TOGGLE BUTTON GROUP *****************************/
@@ -3908,72 +3982,6 @@ TextFlow > * {
 .font-selector-dialog {}
 .font-selector-dialog.dialog-pane {}
 
-/***************************** HEADINGS ***************************************/
-
-.h1 {
-    -fx-font-size: 3em;
-}
-.h2 {
-    -fx-font-size: 2.5em;
-}
-.h3 {
-    -fx-font-size: 2em;
-}
-.h4 {
-    -fx-font-size: 1.5em;
-}
-.h5 {
-    -fx-font-size: 1em;
-}
-
-/***************************** PADDINGS ***************************************/
-
-.h1p {
-    -fx-padding: 1.5em 0 1.5em 0;
-}
-.h1p-bottom {
-    -fx-padding: 0 0 1.5em 0;
-}
-.h1p-up {
-    -fx-padding: 1.5em 0 0 0;
-}
-.h2p {
-    -fx-padding: 1.25em 0 1.25em 0;
-}
-.h2p-bottom {
-    -fx-padding: 0 0 1.25em 0;
-}
-.h2p-up {
-    -fx-padding: 1.25em 0 0 0;
-}
-.h3p {
-    -fx-padding: 1em 0 1em 0;
-}
-.h3p-bottom {
-    -fx-padding: 0 0 1em 0;
-}
-.h3p-up {
-    -fx-padding: 1em 0 0 0;
-}
-.h4p {
-    -fx-padding: 0.75em 0 0.75em 0;
-}
-.h4p-bottom {
-    -fx-padding: 0 0 0.75em 0;
-}
-.h4p-up {
-    -fx-padding: 0.75em 0 0 0;
-}
-.h5p {
-    -fx-padding: 0.5em 0 0.5em 0;
-}
-.h5p-bottom {
-    -fx-padding: 0 0 0.5em 0;
-}
-.h5p-up {
-    -fx-padding: 0.5em 0 0 0;
-}
-
 /******************************** FOOTERS ********************************/
 .list-view-footer,
 .table-view-footer,
@@ -4218,3 +4226,15 @@ TextFlow > * {
     -fx-border-insets: 10 10 10 10;
     -fx-padding: 10 10 10 10;
 }
+
+/******************************* LIST BOX ********************************
+ * Emulates .list-view using VBox
+ * inherits: VBox
+ */
+.list-box {}
+/* inherits: .hyperlink */
+.list-box-row {}
+.list-box-row:hover {
+    -fx-text-fill: -skin-def-font-color-hover;
+}
+

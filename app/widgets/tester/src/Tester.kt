@@ -85,9 +85,10 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.Key
 import sp.it.pl.main.Widgets.TESTER_NAME
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.listBox
+import sp.it.pl.main.listBoxRow
 import sp.it.pl.main.reportFor
 import sp.it.pl.main.withAppProgress
-import sp.it.pl.ui.LabelWithIcon
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
@@ -205,8 +206,8 @@ class Tester(widget: Widget): SimpleController(widget) {
                isFitToWidth = true
                vbarPolicy = NEVER
                hbarPolicy = NEVER
-               content = vBox(0.0, CENTER_LEFT) {
-                  lay += groups.map { it.label }
+               content = listBox {
+                  lay += groups.map { it.row }
                }
             }
          }
@@ -713,7 +714,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       }
 
       content.children setToOne fittingScrollPane {
-         content = vBox(0.0, CENTER_LEFT) {
+         content = vBox(12.emScaled, CENTER_LEFT) {
             lay += label("Observable chains.")
             lay += label("The below values `if (d) a else (b + c)` should be the same.")
             lay += label()
@@ -735,11 +736,11 @@ class Tester(widget: Widget): SimpleController(widget) {
    }
 
    inner class Group(glyph: GlyphIcons, val name: String, val block: () -> Unit) {
-      val label = LabelWithIcon(glyph, name).apply {
+      val row = listBoxRow(glyph, name) {
          icon.onClickDo { groupSelected.value = name }
       }
       fun select(s: Boolean) {
-         label.select(s)
+         row.select(s)
          if (s) block()
       }
    }

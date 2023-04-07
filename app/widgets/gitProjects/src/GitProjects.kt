@@ -7,7 +7,6 @@ import java.util.Stack
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos.CENTER
-import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.input.KeyCode.BACK_SPACE
@@ -26,7 +25,8 @@ import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
-import sp.it.pl.ui.LabelWithIcon
+import sp.it.pl.main.listBox
+import sp.it.pl.main.listBoxRow
 import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.async.runVT
@@ -59,7 +59,6 @@ import sp.it.util.ui.scrollPane
 import sp.it.util.ui.separator
 import sp.it.util.ui.show
 import sp.it.util.ui.stackPane
-import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -107,8 +106,8 @@ class GitProjects(widget: Widget): SimpleController(widget) {
          root?.listProjects().orEmpty().map(::Project).toList()
       } ui {
          projects setTo it
-         this.root.lookupId<ScrollPane>("projects").content = vBox(0.0, CENTER_LEFT) {
-            lay += projects.map { it.label }
+         this.root.lookupId<ScrollPane>("projects").content = listBox {
+            lay += projects.map { it.row }
          }
          projects.find { it.name==selection }?.select(true)
       }
@@ -160,8 +159,8 @@ class GitProjects(widget: Widget): SimpleController(widget) {
          readmeFile!=null -> IconOC.MARKDOWN
          else -> IconFA.FOLDER
       }
-      val label = LabelWithIcon(glyph, name).apply {
-         padding = Insets(0.0, 0.0, 0.0, depth*12.emScaled)
+      val row = listBoxRow(glyph, name) {
+         padding = Insets(0.0, 0.0, 0.0, (1+depth)*12.emScaled)
          icon.onClickDo(null, null) { _, e ->
             when (e?.button) {
                null, PRIMARY -> this@Project.select(true)
@@ -172,7 +171,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
       }
 
       fun select(s: Boolean) {
-         label.select(s)
+         row.select(s)
          if (s) projects.find { it!==this && it.name==selection }?.select(false)
          if (s) selection = name
          if (s) visitProject(this)

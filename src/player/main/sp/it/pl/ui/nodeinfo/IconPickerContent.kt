@@ -4,7 +4,6 @@ import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos.CENTER
-import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.input.MouseButton.PRIMARY
@@ -26,10 +25,11 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.ICON_BROWSER_NAME
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.listBox
+import sp.it.pl.main.listBoxRow
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.LabelWithIcon
 import sp.it.pl.ui.objects.grid.GridCell
 import sp.it.pl.ui.objects.grid.GridView
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.KEY_PRESS
@@ -64,7 +64,6 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.separator
 import sp.it.util.ui.stackPane
-import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -136,8 +135,8 @@ class IconPickerContent: StackPane() {
                isFitToWidth = true
                vbarPolicy = NEVER
                hbarPolicy = NEVER
-               content = vBox(0.0, CENTER_LEFT) {
-                  lay += iconGroups.map { it.label }
+               content = listBox {
+                  lay += iconGroups.map { it.row }
                   iconGroups.find { it==selectionGroup.value }?.select(true)
                }
             }
@@ -172,11 +171,11 @@ class IconPickerContent: StackPane() {
    }
 
    abstract inner class IconGroup(val id: String, val nameUi: String, val values: () -> Sequence<GlyphIcons>) {
-      val label = LabelWithIcon(IconMD.IMAGE_FILTER_HDR, nameUi).apply {
+      val row = listBoxRow(IconMD.IMAGE_FILTER_HDR, nameUi) {
          icon.onClickDo { this@IconGroup.select(true) }
       }
       fun select(s: Boolean) {
-         label.select(s)
+         row.select(s)
          if (s) iconGroups.find { it!=this && it==selectionGroup.value }?.select(false)
          if (s) selectionGroup.value = this
          if (s) iconsView.itemsRaw setTo values()

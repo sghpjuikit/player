@@ -34,6 +34,7 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.layout.Priority.NEVER
+import javafx.scene.layout.VBox
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
@@ -46,6 +47,7 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmName
 import kotlin.streams.asSequence
 import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.ui.LabelWithIcon
 import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.form.Form.Companion.form
@@ -534,6 +536,10 @@ fun Font.rowHeight(): Double {
    h = if (h%2==0L) h else h + 1   // even number helps layout symmetry
    return h.toDouble()
 }
+
+fun listBox(block: VBox.() -> Unit) = vBox(null, CENTER_LEFT) { styleClass += "list-box"; block() }
+
+fun listBoxRow(glyph: GlyphIcons, text: String = "", block: LabelWithIcon.() -> Unit) = LabelWithIcon(glyph, text).apply { styleClass += "list-box-row"; block() }
 
 fun searchTextField() = SpitTextField().apply {
    id = "search-text-field"

@@ -661,7 +661,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
                   styleClass += "breadcrumb-separator"
                   onEventDown(MOUSE_CLICKED, PRIMARY) {
                      ContextMenu().dsl {
-                        items(children(values[ii]), converter, { null }, onClick)
+                        items(children(values[ii]), converter, { null }, { onClick(it) })
                      }.apply {
                         show(this@label, Side.BOTTOM, 0.0, 0.0)
                      }

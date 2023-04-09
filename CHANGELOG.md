@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. Format base
 - Improve filter negate icon styling
 - Fix **CommandBar** widget shortcuts ignoring CTRL
 - Fix `Form` layout broken in some cases
+- Fix tree view cell arrow styling broken
 - Fix text broken in some cases
 
 ### Window owners

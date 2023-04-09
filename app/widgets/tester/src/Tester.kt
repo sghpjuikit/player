@@ -26,7 +26,6 @@ import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
-import javafx.scene.control.Separator
 import javafx.scene.control.Slider
 import javafx.scene.effect.Blend
 import javafx.scene.effect.Effect
@@ -170,7 +169,6 @@ import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAt
 import sp.it.util.ui.maxSize
-import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.minSize
 import sp.it.util.ui.onHoverOrDrag
@@ -363,7 +361,6 @@ class Tester(widget: Widget): SimpleController(widget) {
             styleClass += "h2p"
             lay += form(r).apply {
                editorUi.value = MINI
-               minPrefMaxHeight = 6.em.emScaled
             }
          }
          lay += stackPane {

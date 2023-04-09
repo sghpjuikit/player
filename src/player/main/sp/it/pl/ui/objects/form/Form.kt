@@ -14,6 +14,7 @@ import sp.it.pl.ui.pane.ConfigPane
 import sp.it.util.access.readOnly
 import sp.it.util.access.transformValue
 import sp.it.util.access.v
+import sp.it.util.access.vAlways
 import sp.it.util.async.FX
 import sp.it.util.async.future.Fut
 import sp.it.util.conf.Configurable
@@ -24,6 +25,7 @@ import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOr
 import sp.it.util.functional.runTry
+import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.syncFrom
@@ -54,7 +56,7 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
    /** Denotes whether config editors can be edited. Default true. */
    val isEditable = v(true)
    /** Denotes whether there is an action that user can execute. See [ok]. */
-   val isExecutable = v(action!=null).readOnly()
+   val isExecutable = vAlways(action!=null)
    /** Denotes whether there is an action running. See [ok]. */
    val isExecuting = isExecutingCount.map { it>0 }.readOnly()
    /** Denotes whether multiple executions are allowed. If false and [[isExecuting]] is false, onOk button is disabled. */
@@ -70,8 +72,10 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
          hbarPolicy = NEVER
          consumeScrolling()
       }
-      lay += stackPane(okPane) {
-         prefHeight = 24.emScaled
+      lay += supplyIf(isExecutable.value) {
+         stackPane(okPane) {
+//            prefHeight = 24.emScaled
+         }
       }
 
       updateOkButtonVisible()

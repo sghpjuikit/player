@@ -44,6 +44,7 @@ import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.areaBy
 import sp.it.util.ui.lay
+import sp.it.util.ui.pseudoClassToggle
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.x
 import sp.it.util.units.millis
@@ -122,6 +123,7 @@ class StartScreen: PluginBase() {
             content = stackPane {
                isFocusTraversable = true
                onShowed += { requestFocus() }
+               pseudoClassToggle(PSEUDOCLASS_CONTENT_FULL_SIZE, true)
                installClipboardSupport()
                installWindowInteraction()
 

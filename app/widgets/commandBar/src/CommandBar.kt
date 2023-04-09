@@ -7,6 +7,7 @@ import javafx.scene.control.ContextMenu
 import javafx.scene.input.DragEvent.DRAG_DONE
 import javafx.scene.input.DragEvent.DRAG_DROPPED
 import javafx.scene.input.DragEvent.DRAG_OVER
+import javafx.scene.input.KeyCode.CONTROL
 import javafx.scene.input.KeyCode.DOWN
 import javafx.scene.input.KeyCode.UP
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -107,13 +108,15 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
       APP.ui.font attach { updateIconSize() } on onClose
       iconSize attach { updateIconSize() }
 
-      root.onEventDown(KEY_PRESSED, DOWN) { changeIconSize(-1) }
-      root.onEventDown(KEY_PRESSED, UP) { changeIconSize(+1) }
+      root.onEventDown(KEY_PRESSED, CONTROL, DOWN) { changeIconSize(-1) }
+      root.onEventDown(KEY_PRESSED, CONTROL, UP) { changeIconSize(+1) }
       root.onEventDown(SCROLL) {
-         val isInc = it.deltaY>0 || it.deltaX<0
-         val by = if (isInc) +1 else -1
-         changeIconSize(by)
-         it.consume()
+         if (it.isControlDown) {
+            val isInc = it.deltaY>0 || it.deltaX<0
+            val by = if (isInc) +1 else -1
+            changeIconSize(by)
+            it.consume()
+         }
       }
 
       root.onEventDown(MOUSE_CLICKED, SECONDARY) { buildMenu().show(root, it) }

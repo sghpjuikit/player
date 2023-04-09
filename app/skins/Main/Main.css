@@ -49,6 +49,29 @@
     -fx-font-smoothing-type: lcd;
 }
 
+/* ====   TEXT   ============================================================ */
+
+/* The reference for direct class !work when subclassing, hence TextFlow > * to allow TextFlow wrapping Text hack */
+Shape,
+Arc,
+Circle,
+CubicCurve,
+Ellipse,
+// LabeledText,  // causes problems
+Line,
+Path,
+Polygon,
+Polyline,
+QuadCurve,
+Rectangle,
+SVGPath,
+SpitText,
+Text,
+SpitText,
+TextFlow > * {
+    -fx-fill: -skin-def-font-color;
+}
+
 /* ====   BUTTON LIKE THINGS   ============================================== */
 
 .button,
@@ -57,11 +80,10 @@
 .check-box > .box,
 .color-picker.split-button > .color-picker-label {
     -fx-background-color: -skin-color-darker;
-    -fx-border-color:
-        transparent transparent rgba(255, 255, 255, 0.08) transparent,
-        rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
-    -fx-border-width: 1, 1.5;
-    -fx-border-insets: -2, -0.5;
+    -fx-border-color: red;
+    -fx-border-radius: 0.5em;
+    -fx-border-width: 1;
+    -fx-border-insets: -1;
     -fx-text-fill: -skin-def-font-color;
     -fx-padding: 0;
     -fx-alignment: CENTER;
@@ -81,14 +103,7 @@
 .color-picker.split-button > .arrow-button:hover,
 .color-picker.split-button > .color-picker-label:hover,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:hover {
-    -fx-background-color:
-        rgba(255, 255, 255, 0.08),
-        rgba(0, 0, 0, 0.8),
-        #090a0c,
-        linear-gradient(#4f6070 0%, #1f2630 30%, #1f2430 100%),
-        linear-gradient(#242a30, #232830),
-        radial-gradient(center 60% 0%, radius 100%, rgba(135,142,160,0.9),
-        rgba(255,255,255,0));
+    -fx-background-color: -skin-color-darker;
 }
 .button:armed,
 .toggle-button:armed,
@@ -101,14 +116,7 @@
 /*.slider .thumb:pressed,*/
 /*.choice-box:showing,*/
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:pressed {
-    -fx-background-color:
-        rgba(255, 255, 255, 0.08),
-        rgba(0, 0, 0, 0.8),
-        #090a0c,
-        linear-gradient(#4f6070 0%, #1f2630 30%, #1f2430 100%),
-        linear-gradient(#242a30, #232830),
-        radial-gradient(center 60% 0%, radius 100%, rgba(145,150,160,0.9),
-        rgba(255,255,255,0));
+    -fx-background-color: -skin-color-darker;
 }
 .button:focused,
 .toggle-button:focused,
@@ -116,14 +124,7 @@
 .menu-button:focused,
 /*.choice-box:focused,*/
 .color-picker.split-button:focused > .color-picker-label{
-    -fx-background-color:
-        rgba(255, 255, 255, 0.08),
-        rgba(0, 0, 0, 0.8),
-        #090a0c,
-        linear-gradient(#4f6070 0%, #1f2630 30%, #1f2430 100%),
-        linear-gradient(#242a30, #232830),
-        radial-gradient(center 60% 0%, radius 100%, rgba(135,142,160,0.9),
-        rgba(255,255,255,0));
+    -fx-background-color: -skin-color-darker;
 }
 
 /* TODO: generalize to BUTTON-LIKE THINGS */
@@ -292,12 +293,30 @@
     /*-fx-stroke: -fx-text-base-color;*/
 }
 
+/* ====  RadioButton   ======================================================= */
+
+.radio-button {
+    -fx-label-padding: 0.0em 0.0em 0.0em 0.5em;
+    -fx-text-fill: -skin-def-font-color;
+}
+.radio-button > .radio,
+.radio-button:focused > .radio  {
+   -fx-background-color: transparent;
+   -fx-background-radius: 1.0em; /* large value to make sure this remains circular */
+   -fx-padding: 0.333333em; /* 4 -- padding from outside edge to the inner black dot */
+}
+.radio-button > .radio > .dot {
+   -fx-background-color: transparent;
+   -fx-background-radius: 1.0em; /* large value to make sure this remains circular */
+   -fx-padding: 0.133333em; /* 4 -- radius of the inner black dot when selected */
+}
+
 /* ====   MARKS   =========================================================== */
 
 .radio-button:selected > .radio > .dot,
 .check-box:selected > .box > .mark,
 .check-box:indeterminate  > .box > .mark {
-    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
+    -fx-background-color: -skin-def-font-color;
     -fx-background-insets: 1 0 -1 0, 0;
 }
 
@@ -752,30 +771,6 @@
     -fx-background-color:  transparent;
     -fx-background-insets: 0;
     -fx-padding: 0em 0em 0.25em 0em;
-}
-
-/*********************************** Text *************************************/
-
-/* The reference for direct class !work when subclassing, hence TextFlow > * to allow TextFlow wrapping Text hack */
-Shape,
-Arc,
-Circle,
-CubicCurve,
-Ellipse,
-GlyphIcon,
-LabeledText,
-Line,
-Path,
-Polygon,
-Polyline,
-QuadCurve,
-Rectangle,
-SVGPath,
-SpitText,
-Text,
-SpitText,
-TextFlow > * {
-    -fx-fill: -skin-def-font-color;
 }
 
 /********************************* ComboBox ***********************************/
@@ -1927,12 +1922,20 @@ TextFlow > * {
 /**************************** TOGGLE BUTTON GROUP *****************************/
 
 /**
- * Group of ToggleButtons
+ * ToggleGroup of ToggleButtons
  * inherits: HBox
  */
-.toggle-group {
+.toggle-button-group {
     -fx-alignment: CENTER_LEFT;
 }
+.toggle-button-group > toggle-button {}
+
+/**
+ * ToggleGroup of RadioButton
+ * inherits: HBox
+ */
+.toggle-radio-group {}
+.toggle-radio-group > radio-button {}
 
 /*********************************** SLIDER ***********************************/
 
@@ -3195,13 +3198,18 @@ TextFlow > * {
 }
 
 /**
- * inherits: toggle-group
+ * inherits: toggle-button-group
  */
-.toggle-group-config-editor {}
+.toggle-button-group-config-editor {}
+
+/**
+ * inherits: toggle-radio-group
+ */
+.toggle-radio-group-config-editor {}
 
 /*
  * inherits: FlowPane
- * structure: override-config-editor-override-editor inherits toggle-group-config-editor
+ * structure: override-config-editor-override-editor inherits toggle-button-group-config-editor
  *            override-config-editor-value-editor inherits specific editor based on the type
  */
 .override-config-editor  {

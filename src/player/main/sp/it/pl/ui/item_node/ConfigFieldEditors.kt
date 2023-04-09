@@ -31,6 +31,7 @@ import javafx.scene.control.ContextMenu
 import javafx.scene.control.Control
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
+import javafx.scene.control.RadioButton
 import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.control.Slider
 import javafx.scene.control.TextArea
@@ -93,6 +94,7 @@ import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBox
 import sp.it.pl.plugin.PluginManager
+import sp.it.pl.ui.ValueRadioButtonGroup
 import sp.it.pl.ui.ValueToggleButtonGroup
 import sp.it.pl.ui.item_node.ChainValueNode.ListChainValueNode
 import sp.it.pl.ui.labelForWithClick
@@ -488,7 +490,33 @@ class ValueToggleButtonGroupCE<T>(c: Config<T>, val values: List<T>, customizer:
    }
 
    init {
-      editor.styleClass += "toggle-group-config-editor"
+      editor.styleClass += "toggle-button-group-config-editor"
+      editor.value attach { apply() } on disposer
+      v?.attach { editor.value.value = it } on disposer
+
+      // readonly
+      isEditable syncTo editor.isEditable on disposer
+   }
+
+   override fun get() = Try.ok(editor.value.value)
+
+   override fun refreshValue() {
+      if (!isObservable)
+         editor.value.value = config.value
+   }
+}
+
+class ValueRadioButtonGroupCE<T>(c: Config<T>, val values: List<T>, customizer: RadioButton.(T) -> Unit): ConfigEditor<T>(c) {
+   private val v = getObservableValue(c)
+   private var isObservable = v!=null
+   private val uiConverter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: { it.toUi() }
+   override val editor = ValueRadioButtonGroup(config.value, values) {
+      text = uiConverter(it)
+      customizer(it)
+   }
+
+   init {
+      editor.styleClass += "toggle-radio-group-config-editor"
       editor.value attach { apply() } on disposer
       v?.attach { editor.value.value = it } on disposer
 

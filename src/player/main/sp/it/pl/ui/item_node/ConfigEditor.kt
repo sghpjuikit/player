@@ -57,6 +57,10 @@ import sp.it.util.conf.ConfigurationContext
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.Constraint.ObjectNonNull
+import sp.it.util.conf.Constraint.ValueSealedRadio
+import sp.it.util.conf.Constraint.ValueSealedSet
+import sp.it.util.conf.Constraint.ValueSealedToggle
+import sp.it.util.conf.Constraint.ValueUnsealedSet
 import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
 import sp.it.util.functional.Try
@@ -316,7 +320,14 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
    companion object {
 
       private val editorBuilders = KClassMap<(Config<*>) -> ConfigEditor<*>?>().apply {
-         put<Boolean> { BoolCE(it.asIs()) }
+         put<Boolean> {
+            fun values() = listOf(true, false).run { if (it.type.isNullable) this+null else this }
+            when {
+               it.hasConstraint<ValueSealedToggle>() -> ValueToggleButtonGroupCE(it.asIs(), values(), {})
+               it.hasConstraint<ValueSealedRadio>() -> ValueRadioButtonGroupCE(it.asIs(), values(), {})
+               else -> BoolCE(it.asIs())
+            }
+         }
          put<Action> { ShortcutCE(it.asIs()) }
          put<Color> { ColorCE(it.asIs()) }
          put<File> { FileCE(it.asIs()) }
@@ -407,17 +418,15 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
             config.isMinMax() -> SliderCE(config.asIs())
             else -> null
                ?: editorBuilders[config.type.raw]?.invoke(config)
-               ?: if (config.isEnumerable) {
-                          if (config.hasConstraint<Constraint.ValueSealedToggle>())
-                             ValueToggleButtonGroupCE(config.asIs(), config.enumerateValues().toList(), {})
-                          else if (config.hasConstraint<Constraint.ValueSealedRadio>())
-                             ValueToggleButtonGroupCE(config.asIs(), config.enumerateValues().toList(), {}) // TODO: implement
-                     else EnumerableCE(config)
+               ?: if (config.isEnumerable) when {
+                     config.hasConstraint<ValueSealedToggle>() -> ValueToggleButtonGroupCE(config.asIs(), config.enumerateValues().toList(), {})
+                     config.hasConstraint<ValueSealedRadio>() -> ValueRadioButtonGroupCE(config.asIs(), config.enumerateValues().toList(), {})
+                     else -> EnumerableCE(config)
                   }
                   else null
                ?: if (config.isConfigurable()) ConfigurableCE(config.asIs()) else null
                ?: GeneralCE(config).apply {
-                  if (!config.hasConstraint<Constraint.ValueSealedSet<*>>() && !config.hasConstraint<Constraint.ValueUnsealedSet<*>>() && AutoCompletion.of<Any?>(editor)==null) {
+                  if (!config.hasConstraint<ValueSealedSet<*>>() && !config.hasConstraint<ValueUnsealedSet<*>>() && AutoCompletion.of<Any?>(editor)==null) {
                      when (config.type.rawJ) {
                         Class::class.java -> autoComplete(editor) { text -> ConfigurationContext.unsealedEnumeratorClasses.filter { it.contains(text, true) } }
                         KClass::class.java -> autoComplete(editor) { text -> ConfigurationContext.unsealedEnumeratorClasses.filter { it.contains(text, true) } }

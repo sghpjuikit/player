@@ -63,8 +63,6 @@ import sp.it.pl.conf.Command
 import sp.it.pl.conf.Command.DoNothing
 import sp.it.pl.layout.ExperimentalController
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.DEVELOPMENT
-import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
@@ -76,13 +74,15 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Key
+import sp.it.pl.main.WidgetTags.DEVELOPMENT
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.Widgets.TESTER_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.listBox
 import sp.it.pl.main.listBoxRow
 import sp.it.pl.main.reportFor
 import sp.it.pl.main.withAppProgress
-import sp.it.pl.ui.item_node.ConfigEditor
+import sp.it.pl.ui.item_node.ValueToggleButtonGroupCE
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
@@ -130,7 +130,6 @@ import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.FileActor.ANY
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.Constraint.FileActor.FILE
-import sp.it.util.conf.Constraint.ValueSealedSet
 import sp.it.util.conf.Constraint.ValueSealedToggle
 import sp.it.util.conf.PropertyConfig
 import sp.it.util.conf.between
@@ -153,7 +152,10 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.flatMap
+import sp.it.util.reactive.into
 import sp.it.util.reactive.map
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
@@ -170,6 +172,7 @@ import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.minSize
 import sp.it.util.ui.onHoverOrDrag
+import sp.it.util.ui.onHoverOrInDrag
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.separator
@@ -184,9 +187,6 @@ import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
-import sp.it.util.reactive.into
-import sp.it.util.reactive.flatMap
-import sp.it.util.reactive.on
 
 @Suppress("RemoveExplicitTypeArguments", "RemoveRedundantBackticks", "RemoveExplicitTypeArguments")
 @ExperimentalController("For development")
@@ -213,7 +213,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       root.consumeScrolling()
       groupSelected.sync { s -> groups.forEach { it.select(it.name==s) } }
 
-      root.prefSize = 400.emScaled x 400.emScaled
+      root.prefSize = 800.emScaled x 400.emScaled
       root.lay += hBox(20.emScaled, CENTER) {
          lay += stackPane {
             padding = Insets(50.emScaled, 0.0, 50.emScaled, 0.0)
@@ -395,7 +395,13 @@ class Tester(widget: Widget): SimpleController(widget) {
       onContentChange()
       content.children setToOne fittingScrollPane {
          content = vBox {
-            lay += ConfigEditor.create(PropertyConfig(type<String>(), "Type", ConfigDef(), setOf(ValueSealedToggle, ValueSealedSet { setOf("Normal", "Reverted", "Symmetric") }), type, "Normal", "" )).buildNode(true)
+            lay += stackPane {
+               lay += ValueToggleButtonGroupCE(PropertyConfig(type<String>(), "Type", ConfigDef(), setOf(ValueSealedToggle), type, "Normal", "" ), listOf("Normal", "Reverted", "Symmetric"), {}).run {
+                  editor.alignment = CENTER
+                  editor
+               }
+            }
+            lay += label {  }
             lay += interpolators.map { (name, interpolator) ->
                vBox {
                   padding = Insets(5.emScaled)

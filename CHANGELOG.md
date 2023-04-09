@@ -3,12 +3,27 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 - Implement correct window owners for content in popups launched through actions
+- Implement **FunctionViewer** widget derivation
+- Implement **Git projects** widget project directory refresh on delete
+- Implement **Tester** widget interpolators easing settings
+- Implement **Tester** widget more editor tests
+- Implement enumerable editor with toggle button
+- Implement enumerable editor with radio button
 - Implement `list-box` - a `VBox` emulation of `list-view` and provide consistent styling where used
+- Improve **Tester** widget layout & initial size
+- Improve **StartScreen** styling (no border)
+- Improve `Overlay` show animation transitions
+- Fix **CommandBar** widget shortcuts ignoring CTRL
+- Fix text broken in some cases
 
 ### Window owners
 When launching certain content, it is expected that the new window will stay on top of the window it was launched from.
 This is called window ownership. Now popups and windows for widgets launched by various means will set and respect the ownership.
 This makes it more pleasant, intuitive and efficient for the user to spawn and use new content.
+
+### Toggle editors
+Config editors that are `Enumerable` or of `Boolean` type can now optionally use toggle and radio button groups instead.
+This improves UX in some scenarios.
 
 ### Kotlin K2 compiler
 This version will use the new K2 compiler, which improves compilation time 2.5 times.

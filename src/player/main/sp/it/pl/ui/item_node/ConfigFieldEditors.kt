@@ -177,7 +177,6 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSync
-import sp.it.util.reactive.orEmpty
 import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.suppressingAlways
@@ -482,7 +481,11 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
 class ValueToggleButtonGroupCE<T>(c: Config<T>, val values: List<T>, customizer: ToggleButton.(T) -> Unit): ConfigEditor<T>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = ValueToggleButtonGroup(config.value, values, customizer)
+   private val uiConverter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: { it.toUi() }
+   override val editor = ValueToggleButtonGroup(config.value, values) {
+      text = uiConverter(it)
+      customizer(it)
+   }
 
    init {
       editor.styleClass += "toggle-group-config-editor"

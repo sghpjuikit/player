@@ -148,6 +148,12 @@ interface Constraint<in T> {
       override fun enumerateSealed() = enumerator()
    }
 
+   /** Hint for ui to use toggle button. Only affects [ValueSealedSet]. */
+   object ValueSealedToggle: MarkerConstraint()
+
+   /** Hint for ui to use radio button. Only affects [ValueSealedSet]. */
+   object ValueSealedRadio: MarkerConstraint()
+
    /** Strategy for dealing with value outside specified set in [ValueSealedSet]. Default is [Strategy.USE_DEFAULT]. */
    class ValueSealedSetIfNotIn(val strategy: Strategy): MarkerConstraint() {
       enum class Strategy {

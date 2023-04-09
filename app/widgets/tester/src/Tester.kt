@@ -127,10 +127,11 @@ import sp.it.util.collections.setToOne
 import sp.it.util.conf.CheckList
 import sp.it.util.conf.ConfigDef
 import sp.it.util.conf.ConfigurableBase
-import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.FileActor.ANY
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.Constraint.FileActor.FILE
+import sp.it.util.conf.Constraint.ValueSealedSet
+import sp.it.util.conf.Constraint.ValueSealedToggle
 import sp.it.util.conf.PropertyConfig
 import sp.it.util.conf.between
 import sp.it.util.conf.but
@@ -394,7 +395,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       onContentChange()
       content.children setToOne fittingScrollPane {
          content = vBox {
-            lay += ConfigEditor.create(PropertyConfig(type<String>(), "Type", ConfigDef(), setOf(Constraint.ValueSealedSet { setOf("Normal", "Reverted", "Symmetric") }), type, "Normal", "" )).buildNode(true)
+            lay += ConfigEditor.create(PropertyConfig(type<String>(), "Type", ConfigDef(), setOf(ValueSealedToggle, ValueSealedSet { setOf("Normal", "Reverted", "Symmetric") }), type, "Normal", "" )).buildNode(true)
             lay += interpolators.map { (name, interpolator) ->
                vBox {
                   padding = Insets(5.emScaled)

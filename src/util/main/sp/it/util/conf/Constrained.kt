@@ -21,7 +21,9 @@ import sp.it.util.conf.Constraint.StringNonEmpty
 import sp.it.util.conf.Constraint.UiConverter
 import sp.it.util.conf.Constraint.UiInfoConverter
 import sp.it.util.conf.Constraint.UiSingleton
+import sp.it.util.conf.Constraint.ValueSealedRadio
 import sp.it.util.conf.Constraint.ValueSealedSet
+import sp.it.util.conf.Constraint.ValueSealedToggle
 import sp.it.util.conf.Constraint.ValueUnsealedSet
 import sp.it.util.file.FileType
 import sp.it.util.functional.toUnit
@@ -96,9 +98,6 @@ fun <T: Any?, C: ConstrainedDsl<T>> C.readOnlyIf(condition: ObservableValue<Bool
 fun <T: Any?, C: ConstrainedDsl<T>> C.readOnlyUnless(condition: Boolean) = but(ReadOnlyIf(!condition))
 /** Adds [ReadOnlyIf] with negated specified observable value */
 fun <T: Any?, C: ConstrainedDsl<T>> C.readOnlyUnless(condition: ObservableValue<Boolean>) = but(ReadOnlyIf(condition, true))
-// TODO: remove
-///** Hints ui editor to use the specified to-string converter for elements instead of the default one. */
-//fun <T: Any?, S: Boolean?, C: ConfCheckL<T,S>> C.uiConverterElement(converter: (T) -> String) = but(Constraint.UiElementConverter(converter))
 /** Adds [PreserveOrder] */
 fun <T: Any?, C: ConstrainedDsl<T>> C.uiNoOrder() = but(PreserveOrder)
 /** Adds [Constraint.ValueSealedSet] using the specified enumerator */
@@ -115,3 +114,7 @@ fun                <T: Any?, C: ConstrainedDsl<T>> C.valuesUnsealed(enumerator: 
 fun                <T: Any?, C: ConstrainedDsl<T>> C.valuesUnsealed(enumerator: Collection<T>) = valuesUnsealed { enumerator }
 /** Adds [Constraint.ValueUnsealedSet] using the instance map for type specified by the reified generic type argument as enumerator */
 inline fun <reified T: Any?, C: ConstrainedDsl<T>> C.valuesUnsealed(instanceSource: InstanceMap) = valuesUnsealed(instanceSource.getInstances())
+/** Adds [Constraint.ValueSealedToggle] */
+fun                <T: Any?, C: ConstrainedDsl<T>> C.uiToggle() = but(ValueSealedToggle)
+/** Adds [Constraint.ValueSealedRadio] */
+fun                <T: Any?, C: ConstrainedDsl<T>> C.uiRadio() = but(ValueSealedRadio)

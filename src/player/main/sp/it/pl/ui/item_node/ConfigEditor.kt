@@ -407,7 +407,14 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
             config.isMinMax() -> SliderCE(config.asIs())
             else -> null
                ?: editorBuilders[config.type.raw]?.invoke(config)
-               ?: if (config.isEnumerable) EnumerableCE(config) else null
+               ?: if (config.isEnumerable) {
+                          if (config.hasConstraint<Constraint.ValueSealedToggle>())
+                             ValueToggleButtonGroupCE(config.asIs(), config.enumerateValues().toList(), {})
+                          else if (config.hasConstraint<Constraint.ValueSealedRadio>())
+                             ValueToggleButtonGroupCE(config.asIs(), config.enumerateValues().toList(), {}) // TODO: implement
+                     else EnumerableCE(config)
+                  }
+                  else null
                ?: if (config.isConfigurable()) ConfigurableCE(config.asIs()) else null
                ?: GeneralCE(config).apply {
                   if (!config.hasConstraint<Constraint.ValueSealedSet<*>>() && !config.hasConstraint<Constraint.ValueUnsealedSet<*>>() && AutoCompletion.of<Any?>(editor)==null) {

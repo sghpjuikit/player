@@ -36,7 +36,6 @@ import javafx.scene.effect.Effect
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.layout.Priority.ALWAYS
-import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.paint.Color.AQUA
 import javafx.scene.paint.Color.BLACK
@@ -387,19 +386,16 @@ class Tester(widget: Widget): SimpleController(widget) {
                   padding = Insets(5.emScaled)
                   lay += label(name)
                   lay += hBox(15.emScaled, CENTER_RIGHT) {
-                     lay += stackPane {
-                        lay += Slider().apply {
-                           prefWidth = 200.emScaled
-                           min = 0.0
-                           max = 1.0
-                        }
+                     lay(ALWAYS) += Slider().apply {
+                        min = 0.0
+                        max = 1.0
                      }
                      lay += Icon(IconFA.STICKY_NOTE, 25.0)
                      lay += Icon(IconFA.STICKY_NOTE, 25.0)
                      lay += Icon(IconFA.STICKY_NOTE, 25.0)
 
                      anim(1.seconds) {
-                        lookupChildAt<StackPane>(0).lookupChildAt<Slider>(0).value = it
+                        lookupChildAt<Slider>(0).value = it
                         lookupChildAt<Icon>(1).opacity = it
                         lookupChildAt<Icon>(2).rotate = 360*it
                         lookupChildAt<Icon>(3).setScaleXY(it)

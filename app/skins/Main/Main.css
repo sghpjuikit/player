@@ -2026,7 +2026,7 @@ TextFlow > * {
  * inherits: .check-icon
  */
 .check-icon-disabling {
-    opacity: 1;
+    -fx-opacity: 1;
 }
 .check-icon-disabling:selected {
     -fx-opacity: -fx-disabled-opacity;
@@ -2052,10 +2052,12 @@ TextFlow > * {
  * inherits: .check-icon
  */
 .filter-negate-icon {
-   -glyph-name: "FontAwesomeIcon.CIRCLE";
+   -glyph-name: "UnicodeIcon.U+00AC";
+   -fx-opacity: -fx-disabled-opacity;
 }
 .filter-negate-icon:selected {
-   -glyph-name: "FontAwesomeIcon.CIRCLE_ALT";
+   -fx-opacity: 1.0;
+   -glyph-name: "UnicodeIcon.U+00AC";
 }
 
 /**

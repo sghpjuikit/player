@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. Format base
 - Improve **Tester** widget layout & initial size
 - Improve **StartScreen** styling (no border)
 - Improve `Overlay` show animation transitions
+- Improve filter negate icon styling
 - Fix **CommandBar** widget shortcuts ignoring CTRL
 - Fix `Form` layout broken in some cases
 - Fix text broken in some cases

@@ -1828,7 +1828,6 @@ TextFlow > * {
  *
  ******************************************************************************/
 
-
 /************************************ FONTS ***********************************/
 
 .text-style-normal {
@@ -3674,6 +3673,7 @@ TextFlow > * {
 /*
  * Pane for content, does not cover all space, sort of inner box.
  * inherits: .stack-pane
+ * pseudoclasses: full-size - when content is supposed to use entire space
  */
 .overlay-pane-content {
     -fx-background-color: rgba(0,20,30,0.1);
@@ -3686,6 +3686,9 @@ TextFlow > * {
      -fx-border-width: 1; */
     -fx-border-radius: 15;
     -fx-padding: 20;
+}
+.overlay-pane-content:full-size {
+    -fx-border-color: transparent;
 }
 
 /*

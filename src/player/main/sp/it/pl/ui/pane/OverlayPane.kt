@@ -21,13 +21,12 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import javafx.stage.Stage
-import javafx.geometry.Insets
 import javafx.scene.paint.Color.TRANSPARENT
 import javafx.stage.StageStyle
 import javafx.stage.Window
 import javafx.stage.WindowEvent.WINDOW_SHOWN
-import kotlin.math.abs
 import kotlin.math.sign
+import kotlin.math.sqrt
 import kotlinx.coroutines.invoke
 import sp.it.pl.core.NameUi
 import sp.it.pl.main.APP
@@ -55,6 +54,7 @@ import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.math.P
 import sp.it.util.math.clip
+import sp.it.util.math.dist
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach1If
@@ -75,7 +75,6 @@ import sp.it.util.ui.containsMouse
 import sp.it.util.ui.getScreen
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.hasFocus
-import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.makeScreenShot
 import sp.it.util.ui.pane
 import sp.it.util.ui.removeFromParent
@@ -88,6 +87,7 @@ import sp.it.util.reactive.into
 import sp.it.util.reactive.syncWhile
 import sp.it.util.system.getWallpaperFile
 import sp.it.util.ui.bgr
+import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.imgImplLoadFX
 
@@ -218,6 +218,7 @@ abstract class OverlayPane<in T>: StackPane() {
    private lateinit var displayUsedForShow: ScreenGetter // prevents inconsistency in start() and stop(), see use
    private val animation = OpAnim { animDo(it) }
    private val blurMax = 15
+   private val blurStep = 1
    private val blur = BoxBlur(blurMax.toDouble(), blurMax.toDouble(), 3)
    private var opacityNode: Node? = null
    private var blurNode: Node? = null
@@ -344,10 +345,9 @@ abstract class OverlayPane<in T>: StackPane() {
                styleClass += "bgr-image"   // replicate app window bgr for style & consistency
             }
             val contentImg = ImageView(image).apply {
-               fitWidth = screen.bounds.width+2*blurMax
-               fitHeight = screen.bounds.height+2*blurMax
-               padding = Insets(-blurMax.toDouble())
-               applyViewPort(image, FitFrom.OUTSIDE)
+               fitWidth = screen.bounds.width+4*blurMax
+               fitHeight = screen.bounds.height+4*blurMax
+               applyViewPort(image, OUTSIDE)
             }
             val root = stackPane(stackPane(bgr, contentImg)) {
                styleClass += "overlay-window"
@@ -397,15 +397,15 @@ abstract class OverlayPane<in T>: StackPane() {
       val y = if (!op.animation.dir) it else mapTo01(it, 0.5, 1.0)
       if (this!=Display.WINDOW && (op.displayBgr.value==ScreenBgrGetter.SCREEN_BGR || op.displayBgr.value==ScreenBgrGetter.NONE)) {
          op.opacity = 1.0
-         op.stage.value?.opacity = x
+         op.stage.value?.opacity = x*x
       } else {
-         op.opacity = x
+         op.opacity = x*x
          op.stage.value?.opacity = 1.0
       }
       op.opacityNode?.opacity = 1 - x*0.5
       op.content?.opacity = y*y
-      val b = if (op.displayBgr.value.needsBlur) blurMax*it*it else 0.0
-      if (b==0.0 || b==blurMax.toDouble() || abs(op.blur.height - b) > 3.0) {
+      val b = if (op.displayBgr.value.needsBlur) blurMax*sqrt(it) else 0.0
+      if (b==0.0 || b==blurMax.toDouble() || op.blur.height dist b > blurStep) {
          op.blur.height = b
          op.blur.width = b
       }
@@ -430,9 +430,10 @@ abstract class OverlayPane<in T>: StackPane() {
 
    companion object {
       private const val IS_SHOWN = "visible"
-      private const val STYLECLASS = "overlay-pane"
-      private const val STYLECLASS_BGR = "overlay-pane-bgr"
-      private const val STYLECLASS_CONTENT = "overlay-pane-content"
+      const val STYLECLASS = "overlay-pane"
+      const val STYLECLASS_BGR = "overlay-pane-bgr"
+      const val STYLECLASS_CONTENT = "overlay-pane-content"
+      const val PSEUDOCLASS_CONTENT_FULL_SIZE = "full-size"
 
       fun Window.initOverlayWindow(overlay: OverlayPane<*>): Unit = properties.put("overlayWindow", overlay).toUnit()
       fun Window.asOverlayWindow(): OverlayPane<*>? = properties["overlayWindow"].asIf()

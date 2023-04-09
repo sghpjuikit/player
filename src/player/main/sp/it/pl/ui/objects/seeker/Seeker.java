@@ -22,7 +22,7 @@ import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
-import sp.it.util.animation.interpolator.CircularInterpolator;
+import sp.it.util.animation.Anim.Interpolators;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.reactive.Subscription;
@@ -220,7 +220,7 @@ public final class Seeker extends AnchorPane {
 			maR1.setScaleY(scale);
 			maR2.setScaleX(scale);
 			maR2.setScaleY(scale);
-		}).intpl(new CircularInterpolator())
+		}).intpl(Interpolators.geomCircular)
 			.delay(millis(150));
 		onHoverChanged(sa::playFromDir);
 	}

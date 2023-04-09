@@ -2,14 +2,12 @@ package tester
 
 import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
-import java.lang.Math.PI
 import java.lang.Math.random
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import javafx.animation.Interpolator
 import javafx.animation.Interpolator.LINEAR
 import javafx.animation.PathTransition
 import javafx.animation.PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT
@@ -54,10 +52,6 @@ import javafx.scene.shape.Path
 import javafx.scene.shape.Rectangle
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
-import kotlin.math.log2
-import kotlin.math.pow
-import kotlin.math.sin
-import kotlin.math.sqrt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -88,6 +82,7 @@ import sp.it.pl.main.listBox
 import sp.it.pl.main.listBoxRow
 import sp.it.pl.main.reportFor
 import sp.it.pl.main.withAppProgress
+import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
@@ -98,25 +93,45 @@ import sp.it.util.access.vn
 import sp.it.util.access.vx
 import sp.it.util.action.ActionManager
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.animation.interpolator.BackInterpolator
-import sp.it.util.animation.interpolator.CircularInterpolator
-import sp.it.util.animation.interpolator.CubicInterpolator
-import sp.it.util.animation.interpolator.EasingMode.EASE_IN
-import sp.it.util.animation.interpolator.ElasticInterpolator
-import sp.it.util.animation.interpolator.ExponentialInterpolator
-import sp.it.util.animation.interpolator.QuadraticInterpolator
-import sp.it.util.animation.interpolator.QuarticInterpolator
-import sp.it.util.animation.interpolator.QuinticInterpolator
-import sp.it.util.animation.interpolator.SineInterpolator
+import sp.it.util.animation.Anim.Interpolators.Companion.fxDiscrete
+import sp.it.util.animation.Anim.Interpolators.Companion.fxEaseBoth
+import sp.it.util.animation.Anim.Interpolators.Companion.fxEaseIn
+import sp.it.util.animation.Anim.Interpolators.Companion.fxEaseOut
+import sp.it.util.animation.Anim.Interpolators.Companion.fxLinear
+import sp.it.util.animation.Anim.Interpolators.Companion.geomBack
+import sp.it.util.animation.Anim.Interpolators.Companion.geomCircular
+import sp.it.util.animation.Anim.Interpolators.Companion.geomElastic
+import sp.it.util.animation.Anim.Interpolators.Companion.geomExponential
+import sp.it.util.animation.Anim.Interpolators.Companion.geomSine
+import sp.it.util.animation.Anim.Interpolators.Companion.math_exp2_N10
+import sp.it.util.animation.Anim.Interpolators.Companion.math_exp2_N2
+import sp.it.util.animation.Anim.Interpolators.Companion.math_exp2_N20
+import sp.it.util.animation.Anim.Interpolators.Companion.math_exp2_N4
+import sp.it.util.animation.Anim.Interpolators.Companion.math_log2_N10
+import sp.it.util.animation.Anim.Interpolators.Companion.math_log2_N2
+import sp.it.util.animation.Anim.Interpolators.Companion.math_log2_N20
+import sp.it.util.animation.Anim.Interpolators.Companion.math_log2_N4
+import sp.it.util.animation.Anim.Interpolators.Companion.math_x
+import sp.it.util.animation.Anim.Interpolators.Companion.math_xp2
+import sp.it.util.animation.Anim.Interpolators.Companion.math_xp3
+import sp.it.util.animation.Anim.Interpolators.Companion.math_xp4
+import sp.it.util.animation.Anim.Interpolators.Companion.math_xs2
+import sp.it.util.animation.Anim.Interpolators.Companion.math_xs4
+import sp.it.util.animation.Anim.Interpolators.Companion.rev
+import sp.it.util.animation.Anim.Interpolators.Companion.sym
+import sp.it.util.animation.Anim.Interpolators.Companion.toF
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.runIoParallel
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.CheckList
+import sp.it.util.conf.ConfigDef
 import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.FileActor.ANY
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.Constraint.FileActor.FILE
+import sp.it.util.conf.PropertyConfig
 import sp.it.util.conf.between
 import sp.it.util.conf.but
 import sp.it.util.conf.c
@@ -131,6 +146,7 @@ import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiOut
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
+import sp.it.util.dev.failCase
 import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
@@ -169,8 +185,9 @@ import sp.it.util.units.version
 import sp.it.util.units.year
 import sp.it.util.reactive.into
 import sp.it.util.reactive.flatMap
+import sp.it.util.reactive.on
 
-@Suppress("RemoveExplicitTypeArguments", "RemoveRedundantBackticks", "RemoveExplicitTypeArguments", "RedundantLambdaArrow")
+@Suppress("RemoveExplicitTypeArguments", "RemoveRedundantBackticks", "RemoveExplicitTypeArguments")
 @ExperimentalController("For development")
 class Tester(widget: Widget): SimpleController(widget) {
    val content = stackPane()
@@ -347,40 +364,37 @@ class Tester(widget: Widget): SimpleController(widget) {
    }
 
    fun testInterpolators() {
-      fun Interpolator.toF(): (Double) -> Double = { this.interpolate(0.0, 1.0, it) }
+      val type = v("Normal")
       val interpolators = mapOf<String, (Double) -> Double>(
-         "javaFx: LINEAR" to LINEAR.toF(),
-         "javaFx: EASE_BOTH" to Interpolator.EASE_BOTH.toF(),
-         "javaFx: EASE_IN" to Interpolator.EASE_IN.toF(),
-         "javaFx: EASE_OUT" to Interpolator.EASE_OUT.toF(),
-         "spit: sine" to SineInterpolator(EASE_IN).toF(),
-         "spit: cubic" to CubicInterpolator(EASE_IN).toF(),
-         "spit: quintic" to QuinticInterpolator(EASE_IN).toF(),
-         "spit: circular" to CircularInterpolator(EASE_IN).toF(),
-         "spit: quadratic" to QuadraticInterpolator(EASE_IN).toF(),
-         "spit: quartic" to QuarticInterpolator(EASE_IN).toF(),
-         "spit: exponential" to ExponentialInterpolator(EASE_IN).toF(),
-         "spit: back" to BackInterpolator(EASE_IN).toF(),
-         "spit: elastic" to ElasticInterpolator(EASE_IN).toF(),
-         "math: x" to { it -> it },
-         "math: x^2" to { it -> it*it },
-         "math: x^3" to { it -> it*it*it },
-         "math: x^4" to { it -> it*it*it*it },
-         "math: x^-2 (sqrt(x))" to { it -> sqrt(it) },
-         "math: x^-4 (sqrt(sqrt(x)))" to { it -> sqrt(sqrt(it)) },
-         "math: log2 N(20)" to { it -> log2(1.0 + (it*1024*1024))/20.0 },
-         "math: log2 N(10)" to { it -> log2(1.0 + (it*1024))/10.0 },
-         "math: log2 N(4)" to { it -> log2(1.0 + (it*16))/4.0 },
-         "math: log2 N(2)" to { it -> log2(1.0 + (it*4))/2.0 },
-         "math: exp2 N(20)" to { it -> 20.0.pow(10*(it - 1)) },
-         "math: exp2 N(10)" to { it -> 10.0.pow(10*(it - 1)) },
-         "math: exp2 N(4)" to { it -> 4.0.pow(10*(it - 1)) },
-         "math: exp2 N(2)" to { it -> 2.0.pow(10*(it - 1)) },
-         "math: sin" to { it -> sin(PI/2*it) },
+         "javaFx: DISCRETE" to fxDiscrete.toF(),
+         "javaFx: LINEAR" to fxLinear.toF(),
+         "javaFx: EASE_IN" to fxEaseIn.toF(),
+         "javaFx: EASE_OUT" to fxEaseOut.toF(),
+         "javaFx: EASE_BOTH" to fxEaseBoth.toF(),
+         "spit: sine" to geomSine,
+         "spit: circular" to geomCircular,
+         "spit: exponential" to geomExponential,
+         "spit: back" to geomBack(),
+         "spit: elastic" to geomElastic(),
+         "math: x" to math_x,
+         "math: x⁺²" to math_xp2,
+         "math: x⁺³" to math_xp3,
+         "math: x⁺⁴" to math_xp4,
+         "math: x⁻²" to math_xs2,
+         "math: x⁻⁴" to math_xs4,
+         "math: log₂(20)" to math_log2_N20,
+         "math: log₂(10)" to math_log2_N10,
+         "math: log₂(4)" to math_log2_N4,
+         "math: log₂(2)" to math_log2_N2,
+         "math: exp₂(20)" to math_exp2_N20,
+         "math: exp₂(10)" to math_exp2_N10,
+         "math: exp₂(4)" to math_exp2_N4,
+         "math: exp₂(2)" to math_exp2_N2,
       )
       onContentChange()
       content.children setToOne fittingScrollPane {
          content = vBox {
+            lay += ConfigEditor.create(PropertyConfig(type<String>(), "Type", ConfigDef(), setOf(Constraint.ValueSealedSet { setOf("Normal", "Reverted", "Symmetric") }), type, "Normal", "" )).buildNode(true)
             lay += interpolators.map { (name, interpolator) ->
                vBox {
                   padding = Insets(5.emScaled)
@@ -397,15 +411,17 @@ class Tester(widget: Widget): SimpleController(widget) {
                      anim(1.seconds) {
                         lookupChildAt<Slider>(0).value = it
                         lookupChildAt<Icon>(1).opacity = it
-                        lookupChildAt<Icon>(2).rotate = 360*it
-                        lookupChildAt<Icon>(3).setScaleXY(it)
+                        lookupChildAt<Icon>(2).setScaleXY(it)
+                        lookupChildAt<Icon>(3).rotate = 180*it
                      }.apply {
-                        intpl(interpolator)
-                        delay = 1.seconds
-                        cycleCount = INDEFINITE
-                        isAutoReverse = true
-                        onContentChange += ::stop
-                        playOpen()
+                        type sync {
+                           stop()
+                           intpl(when (it) { "Normal" -> interpolator; "Reverted" -> interpolator.rev(); "Symmetric" -> interpolator.sym(); else -> failCase(it) })
+                           cycleCount = INDEFINITE
+                           isAutoReverse = true
+                           onContentChange += ::stop
+                           playOpen()
+                        } on onContentChange
                      }
                   }
                }

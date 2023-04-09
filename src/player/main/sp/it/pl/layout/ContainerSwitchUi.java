@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import sp.it.pl.layout.controller.io.IOLayer;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
-import sp.it.util.animation.interpolator.CircularInterpolator;
+import sp.it.util.animation.Anim.Interpolators;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
 import sp.it.util.reactive.Subscribed;
@@ -50,8 +50,9 @@ import static javafx.util.Duration.millis;
 import static kotlin.sequences.SequencesKt.any;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
-import static sp.it.util.animation.interpolator.EasingMode.EASE_IN;
-import static sp.it.util.animation.interpolator.EasingMode.EASE_OUT;
+import static sp.it.util.animation.Anim.Interpolators.geomCircular;
+import static sp.it.util.animation.Anim.Interpolators.rev;
+import static sp.it.util.animation.Anim.Interpolators.toInterpolator;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
 import static sp.it.util.collections.UtilKt.setTo;
@@ -183,7 +184,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
         });
 
         uiDrag = new XTransition(millis(400),ui);
-        uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
+        uiDrag.setInterpolator(toInterpolator(rev(geomCircular)));
 
         sync1IfInScene(root, runnable(() -> {
             // restore last position
@@ -376,11 +377,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
         measurePulse.stop();
         // handle drag end
         if (align.get()) {
-            uiDrag.setInterpolator(new CircularInterpolator(EASE_IN){
-                @Override protected double baseCurve(double x) {
-                    return Math.pow(2-2/(x+1), 0.4);
-                }
-            });
+            uiDrag.setInterpolator(toInterpolator(it -> Math.pow(2-2/(it+1), 0.4)));
             alignNextTab(e);
         } else {
             // ease out manual drag animation
@@ -388,7 +385,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
             double traveled = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;
             // simulate mass - the more traveled the longer ease out
             uiDrag.setToX(x + traveled * dragInertia.get());
-            uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
+            uiDrag.setInterpolator(toInterpolator(rev(Interpolators.geomCircular)));
             // snap at the end of animation
             uiDrag.setOnFinished(a -> snapTabs());
             uiDrag.play();
@@ -580,8 +577,8 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
 
     /** Animates zoom on when true, or off when false. */
     public void zoom(boolean v) {
-        z1.setInterpolator(new CircularInterpolator(EASE_OUT));
-        z2.setInterpolator(new CircularInterpolator(EASE_OUT));
+        z1.setInterpolator(toInterpolator(rev(geomCircular)));
+        z2.setInterpolator(toInterpolator(rev(geomCircular)));
         zoomNoAcc(v ? zoomScaleFactor.get() : 1);
     }
 

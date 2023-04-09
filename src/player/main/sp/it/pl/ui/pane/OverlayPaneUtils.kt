@@ -20,8 +20,7 @@ fun Image.adjustForBlur(blur: Int): WritableImage {
    // Copy the original image's pixels to the new image, but add the surrounding pixels
    for (x in 0 until newWidth) {
       for (y in 0 until newHeight) {
-         val color = if (x < blur || x >= newWidth - blur ||
-            y < blur || y >= newHeight - blur) {
+         val color = if (x < blur || x >= newWidth - blur || y < blur || y >= newHeight - blur) {
             // If the pixel is outside the original image,
             // set it to the color at the edge of the original image
             val edgeX = min(max(x - blur, 0), originalWidth - 1)

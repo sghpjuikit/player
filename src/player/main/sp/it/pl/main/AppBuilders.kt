@@ -55,7 +55,6 @@ import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.spinner.Spinner
 import sp.it.pl.ui.objects.table.FilteredTable
-import sp.it.pl.ui.objects.table.ImprovedTable
 import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.tablerow.SpitTableRow
 import sp.it.pl.ui.objects.textfield.SpitTextField
@@ -77,9 +76,9 @@ import sp.it.util.access.vAlways
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.animPar
-import sp.it.util.animation.interpolator.CircularInterpolator
-import sp.it.util.animation.interpolator.EasingMode
-import sp.it.util.animation.interpolator.ElasticInterpolator
+import sp.it.util.animation.Anim.Interpolators.Companion.geomCircular
+import sp.it.util.animation.Anim.Interpolators.Companion.geomElastic
+import sp.it.util.animation.Anim.Interpolators.Companion.sym
 import sp.it.util.async.FX
 import sp.it.util.async.IO
 import sp.it.util.async.executor.EventReducer
@@ -362,7 +361,7 @@ fun appProgressIcon(disposer: Unsubscriber): Node {
 /** @return standardized progress indicator with start/finish animation and start/finish actions */
 @JvmOverloads
 fun appProgressIndicator(onStart: (ProgressIndicator) -> Unit = {}, onFinish: (ProgressIndicator) -> Unit = {}) = Spinner().apply {
-   val a = anim { setScaleXY(sqrt(it)) }.dur(500.millis).intpl(ElasticInterpolator()).applyNow()
+   val a = anim { setScaleXY(sqrt(it)) }.dur(500.millis).intpl(geomElastic()).applyNow()
    progressProperty() attachChanges { ov, nv ->
       if (ov.toDouble()==1.0) {
          onStart(this)
@@ -750,11 +749,11 @@ abstract class AnimationBuilder {
 
 object AppAnimator: AnimationBuilder() {
    public override fun buildAnimation(n: Node): Anim {
-      val scaleI = CircularInterpolator(EasingMode.EASE_OUT)
+      val scaleI = geomCircular.sym()
       return anim(300.millis) {
          n.isMouseTransparent = it!=1.0
          n.opacity = 1 - (1 - it)*(1 - it)
-         n.setScaleXYByTo(scaleI.interpolate(0.0, 1.0, it), -50.0, 0.0)
+         n.setScaleXYByTo(scaleI(it), -50.0, 0.0)
       }.apply {
          playAgainIfFinished = false
       }

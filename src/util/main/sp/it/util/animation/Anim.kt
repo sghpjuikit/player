@@ -4,6 +4,7 @@ package sp.it.util.animation
 
 import kotlin.jvm.JvmOverloads as O
 import kotlin.jvm.JvmStatic as S
+import kotlin.jvm.JvmField as F
 import java.util.function.DoubleConsumer
 import java.util.stream.Stream
 import javafx.animation.Interpolator
@@ -15,7 +16,13 @@ import javafx.beans.property.SimpleDoubleProperty
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.util.Duration
+import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.asin
+import kotlin.math.cos
+import kotlin.math.log2
+import kotlin.math.pow
+import kotlin.math.sin
 import kotlin.math.sqrt
 import sp.it.util.dev.Experimental
 import sp.it.util.functional.asArray
@@ -301,6 +308,84 @@ open class Anim: Transition {
                ?.let { sqrt(abs((at - it + proximity)/(proximity*2) - 0.5)) }
                ?: 1.0
          }
+
+         @S fun interpolator(i: IF): IF = i
+
+
+         @F val fxDiscrete = Interpolator.DISCRETE!!
+
+         @F val fxLinear = Interpolator.LINEAR!!
+
+         @F val fxEaseBoth = Interpolator.EASE_BOTH!!
+
+         @F val fxEaseIn = Interpolator.EASE_IN!!
+
+         @F val fxEaseOut = Interpolator.EASE_OUT!!
+
+         @F val geomSine = interpolator { sin(PI/2*it) }
+
+         @F val geomCircular = interpolator { -(sqrt(1 - it*it) - 1) }
+
+         @F val geomExponential = interpolator { 2.0.pow(10*(it - 1)) }
+
+         @S fun geomBack(amplitude: Double = 1.70158) = interpolator { it*it*((amplitude + 1)*it - amplitude) }
+
+         @S fun geomElastic(amplitude: Double = 1.70158, oscillations: Int = 3) = interpolator {
+            when (it) {
+               0.0 -> 0.0
+               1.0 -> 1.0
+               else -> {
+                  val p: Double = 1.0/oscillations
+                  var a: Double = amplitude
+                  val s: Double
+                  if (a<abs(1)) {
+                     a = 1.0
+                     s = p/4
+                  } else {
+                     s = p/(2*PI)*asin(1/a)
+                  }
+                  -(a*2.0.pow(10*(it-1))*sin(((it-1) - s)*(2*PI)/p))
+               }
+            }
+         }
+
+         @F val math_x = interpolator { it }
+
+         @F val math_xp2 = interpolator { it*it }
+
+         @F val math_xp3 = interpolator { it*it*it }
+
+         @F val math_xp4 = interpolator { it*it*it*it }
+
+         @F val math_xs2 = interpolator { sqrt(it) }
+
+         @F val math_xs4 = interpolator { sqrt(sqrt(it)) }
+
+         @F val math_log2_N20 = interpolator { log2(1.0 + (it*1024*1024))/20.0 }
+
+         @F val math_log2_N10 = interpolator { log2(1.0 + (it*1024))/10.0 }
+
+         @F val math_log2_N4 = interpolator { log2(1.0 + (it*16))/4.0 }
+
+         @F val math_log2_N2 = interpolator { log2(1.0 + (it*4))/2.0 }
+
+         @F val math_exp2_N20 = interpolator { 20.0.pow(10*(it - 1)) }
+
+         @F val math_exp2_N10 = interpolator { 10.0.pow(10*(it - 1)) }
+
+         @F val math_exp2_N4 = interpolator { 4.0.pow(10*(it - 1)) }
+
+         @F val math_exp2_N2 = interpolator { 2.0.pow(10*(it - 1)) }
+
+         @F val mathSin = interpolator { 1-cos(PI/2*it) }
+
+         @S fun IF.rev() = interpolator { 1 - this(1 - it) }
+
+         @S fun IF.sym() = interpolator { if (it<=0.5) this(2*it)/2 else (2 - this(2*(1 - it)))/2 }
+
+         @S fun Interpolator.toF(): IF = { this.interpolate(0.0, 1.0, it) }
+
+         @S fun IF.toInterpolator(): Interpolator = object: Interpolator() { override fun curve(t: Double) = this@toInterpolator(t) }
       }
    }
 
@@ -349,6 +434,7 @@ open class Anim: Transition {
       @S fun mapConcave(x: Double): Double = 1 - abs(2*(x*x - 0.5))
 
    }
+
 }
 
 /** Sets [Transition.onFinished] returns this (fluent style). */

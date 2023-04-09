@@ -12,7 +12,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.appProgressIndicator
 import sp.it.util.Locatable
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.animation.interpolator.ElasticInterpolator
+import sp.it.util.animation.Anim.Interpolators.Companion.geomElastic
 import sp.it.util.conf.Configurable
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -101,7 +101,7 @@ private fun SimpleController.compileInfoUi(): Node {
    val isCompiling = widget.factory.isCompiling(onClose)
    return hBox(10, CENTER) {
       lay += label("Compiling...").apply {
-         val a = anim { setScaleXY(it*it) }.delay(500.millis).dur(500.millis).intpl(ElasticInterpolator()).applyNow()
+         val a = anim { setScaleXY(it*it) }.delay(500.millis).dur(500.millis).intpl(geomElastic()).applyNow()
          isCompiling sync { if (it) a.playOpen() else a.playClose() } on onClose
       }
       lay += appProgressIndicator().apply {

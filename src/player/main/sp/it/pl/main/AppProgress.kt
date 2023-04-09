@@ -18,7 +18,6 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
-import javafx.scene.shape.Rectangle
 import sp.it.pl.main.AppTask.State.ACTIVE
 import sp.it.pl.main.AppTask.State.DONE_CANCEL
 import sp.it.pl.main.AppTask.State.DONE_ERROR
@@ -30,8 +29,8 @@ import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.animation.Anim.Interpolators.Companion.geomElastic
 import sp.it.util.animation.Loop
-import sp.it.util.animation.interpolator.ElasticInterpolator
 import sp.it.util.async.FX
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Result
@@ -226,7 +225,7 @@ object AppProgress {
                               }
 
                               val ar = anim { rotate = 360*it }.dur(1000.millis).intpl(LINEAR).apply { cycleCount = INDEFINITE }
-                              val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator())
+                              val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(geomElastic())
                               updateIcon()
                               state sync { if (it is ACTIVE) ar.play() } on disposer
                               state attach { if (it is DONE_OK || it is DONE_ERROR<*> || it is DONE_CANCEL) { ar.stop(); ar.applyAt(0.0) } } on disposer

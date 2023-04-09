@@ -47,10 +47,6 @@
   It is not clear how it should behave - be duplicated or displayed on screen with mouse?
 - Implement [virtual keyboard](https://github.com/comtel2000/fx-experience)  
   Useful to control pc without mouse. This would be an interesting addition. But needs lots of work
-- Consider using [ScaleNode](https://github.com/miho/ScaledFX)  
-  May be useful in some use cases
-- Reimplement [Tray] using [FXTrayIcon](https://github.com/dustinkredmond/FXTrayIcon)  
-  Would add high-dpi support and more
 - Implement **playlists** table  
   Requires deeper integration with **Update library** action, playlist discovery, etc.
 - Implement widget factory ref example **Tester** widget:

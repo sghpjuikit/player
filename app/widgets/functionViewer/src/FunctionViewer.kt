@@ -1,5 +1,6 @@
 package functionViewer
 
+import functionViewer.FunctionViewer.FunType.NORMAL
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
 import java.math.BigDecimal.TEN
@@ -42,6 +43,8 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.cv
 import sp.it.util.conf.getDelegateConfig
+import sp.it.util.conf.uiConverter
+import sp.it.util.conf.uiToggle
 import sp.it.util.functional.net
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
@@ -72,14 +75,15 @@ import sp.it.util.units.millis
 import sp.it.util.units.version
 import sp.it.util.units.year
 
-private typealias Fun = (BigDecimal) -> BigDecimal
 private typealias Num = BigDecimal
+private typealias Fun = (BigDecimal) -> BigDecimal
 private typealias NumRange = ClosedRange<BigDecimal>
 
 class FunctionViewer(widget: Widget): SimpleController(widget) {
    private val function by cv(StrExF("x")) attach { plotAnimated(it) }
    private var functionPlotted: Fun = function.value
    private val functionEditor = ConfigEditor.create(Config.forProperty<StrExF>("Function", function))
+   private val functionType by cv(NORMAL).uiConverter { it.nameUi }.uiToggle() attach { plot() }
    private val xMin by cv(Num("-1.0")) attach { plot() }
    private val xMax by cv(Num("+1.0")) attach { plot() }
    private val yMin by cv(Num("-1.0")) attach { plot() }
@@ -88,7 +92,6 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
    private val plotAnimation = anim(400.millis) { plot.animation.value = 1.0 - it*it*it*it }
    private var coordTxtUpdate: (ClosedRange<Num>) -> Unit = {}
    private var coordVisUpdate: (Boolean) -> Unit = {}
-
    init {
       root.prefSize = 500.emScaled x 500.emScaled
       root.cursor = CROSSHAIR
@@ -170,11 +173,12 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
             lay(TOP_LEFT) += vBox(5) {
                isFillWidth = false
 
-               lay += functionEditor.toHBox()
-               lay += ConfigEditor.create(::xMin.getDelegateConfig()).toHBox()
-               lay += ConfigEditor.create(::xMax.getDelegateConfig()).toHBox()
-               lay += ConfigEditor.create(::yMin.getDelegateConfig()).toHBox()
-               lay += ConfigEditor.create(::yMax.getDelegateConfig()).toHBox()
+               lay += functionEditor.toHBox("Function")
+               lay += ConfigEditor.create(::functionType.getDelegateConfig()).toHBox("")
+               lay += ConfigEditor.create(::xMin.getDelegateConfig()).toHBox("xMin")
+               lay += ConfigEditor.create(::xMax.getDelegateConfig()).toHBox("xMax")
+               lay += ConfigEditor.create(::yMin.getDelegateConfig()).toHBox("yMin")
+               lay += ConfigEditor.create(::yMax.getDelegateConfig()).toHBox("yMax")
             }
          }
       }
@@ -197,6 +201,10 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
       xMax.setValueOf { xMax.value.setScale(precision, UP) }
       yMin.setValueOf { yMin.value.setScale(precision, UP) }
       yMax.setValueOf { yMax.value.setScale(precision, UP) }
+   }
+
+   enum class FunType(val nameUi: String, val derive: Int) {
+      NORMAL("𝒇  ", 0), DERIVATION1("𝒇′ ", 1), DERIVATION2("𝒇″", 2);
    }
 
    inner class Plot: StackPane() {
@@ -237,12 +245,15 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          pathGc.clearRect(0.0, 0.0, pathRoot.width, pathRoot.height)
          coordGc.clearRect(0.0, 0.0, coordRoot.width, coordRoot.height)
 
-         // draw function
          val precision = ((xMin.value..xMax.value).precisionDigits()+2) max 10
          val xMin = xMin.value.setScale(precision, UP)
          val xMax = xMax.value.setScale(precision, UP)
          val yMin = yMin.value.setScale(precision, UP)
          val yMax = yMax.value.setScale(precision, UP)
+
+         val dx = (xMax-xMin)/Num(10000)
+         val f = (1..functionType.value.derive).fold(function) { f, _ -> f.derive(dx) }
+
          fun mapX(x: Num): Double = ((x - xMin)/(xMax - xMin)).toDouble()*width
          fun mapY(y: Num): Double = (ONE - (y - yMin)/(yMax - yMin)).toDouble()*height
          val xIncMax = (xMax - xMin)/(1.0 max width).big.setScale(precision, UP)
@@ -259,9 +270,10 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          pathXs += 0.0
          pathYs += pathRoot.height
 
+         // draw function
          while (x<xMax) {
             try {
-               val y = function(x)
+               val y = f(x)
 //               println("$previousValue $x $y")
                val isAbove = y > yMax
                val isBelow = y < yMin
@@ -390,9 +402,10 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          ShortcutPane.Entry("Graph", "Shift axes", keys("LMB drag")),
       )
 
-      fun ConfigEditor<*>.toHBox() = hBox(5, CENTER) {
+      fun ConfigEditor<*>.toHBox(labelText: String) = hBox(5, CENTER) {
          val n = buildNode()
          val l = buildLabel().apply {
+            text = labelText
             alignment = CENTER_RIGHT
             prefWidth = 100.0
             isPickOnBounds = false
@@ -442,5 +455,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
       }
 
       fun P.invertY() = apply { y = 1 - y }
+
+      fun Fun.derive(dx: Num): Fun = { (this(it + dx) - this(it)) / dx }
    }
 }

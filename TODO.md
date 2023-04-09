@@ -25,7 +25,6 @@
 - Implement better application running detection: app running without exe and app running from different directory
 - Implement `MdNode` monitor file & reload
 - Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
-- Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
 - Implement `SliderCE` logarithmic scale
   Should support arbitrary N(0-1) -> N(0-1) function and config dsl
 - App onStart/End command user defined callbacks

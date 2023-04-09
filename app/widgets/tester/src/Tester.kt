@@ -16,11 +16,10 @@ import javafx.geometry.Insets
 import javafx.geometry.Insets.EMPTY
 import javafx.geometry.Orientation
 import javafx.geometry.Orientation.VERTICAL
-import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
-import javafx.geometry.Pos.TOP_CENTER
+import javafx.geometry.Side
 import javafx.geometry.Side.RIGHT
 import javafx.scene.Group
 import javafx.scene.Node
@@ -144,9 +143,12 @@ import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiOut
+import sp.it.util.conf.uiRadio
+import sp.it.util.conf.uiToggle
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
+import sp.it.util.dev.printIt
 import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
@@ -265,7 +267,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       }
       onContentChange()
       content.children setToOne fittingScrollPane {
-         content = form(c.toConfigurableFx())
+         content = form(c.toConfigurableFx().apply {getConfigs().map { it.nameUi }.joinToString { it }.printIt() })
       }
    }
 
@@ -277,12 +279,20 @@ class Tester(widget: Widget): SimpleController(widget) {
       val c = object: ConfigurableBase<Any?>() {
          var `c(Boolean)` by c<Boolean>(true)
          var `cn(Boolean)` by cn<Boolean>(null)
+         val `cv(Boolean) - toggle` by cv<Boolean>(true).uiToggle()
+         val `cvn(Boolean) - toggle` by cvn<Boolean>(null).uiToggle()
+         val `cv(Boolean) - radio` by cv<Boolean>(true).uiRadio()
+         val `cvn(Boolean) - radio` by cvn<Boolean>(null).uiRadio()
          val `cv(String)` by cv<String>("text")
          val `cvn(String)` by cvn<String>(null)
          val `cv(String) with autocomplete` by cv<String>("aaa").valuesUnsealed { listOf("a", "aa", "aaa") }
          val `cvn(String) with autocomplete` by cvn<String>(null).valuesUnsealed { listOf("a", "aa", "aaa", null) }
-         val `cv(Pos)` by cv<Pos>(TOP_CENTER)
-         val `cvn(Pos)` by cvn<Pos>(null)
+         val `cv(Side)` by cv<Side>(Side.LEFT)
+         val `cvn(Side)` by cvn<Side>(null)
+         val `cv(Side) - toggle` by cv<Side>(Side.LEFT).uiToggle()
+         val `cvn(Side) - toggle` by cvn<Side>(null).uiToggle()
+         val `cv(Side) - radio` by cv<Side>(Side.LEFT).uiRadio()
+         val `cvn(Side) - radio` by cvn<Side>(null).uiRadio()
          val `cv(Key)` by cv<Key>(Key.A)
          val `cvn(Key)` by cvn<Key>(null)
          val `cv(Byte)` by cv<Byte>(0)
@@ -349,12 +359,15 @@ class Tester(widget: Widget): SimpleController(widget) {
       }
       onContentChange()
       content.children setToOne vBox(1.em.emScaled) {
-         lay += form(r).apply {
-            editorUi.value = MINI
-            minPrefMaxHeight = 6.em.emScaled
+         lay += stackPane {
+            styleClass += "h2p"
+            lay += form(r).apply {
+               editorUi.value = MINI
+               minPrefMaxHeight = 6.em.emScaled
+            }
          }
-         lay += Separator().apply {
-            minPrefMaxWidth = 10.em.emScaled
+         lay += stackPane {
+            lay += separator { minPrefMaxWidth = 10.em.emScaled }
          }
          lay += form(c).apply {
             editorUi.value = MINI
@@ -393,48 +406,54 @@ class Tester(widget: Widget): SimpleController(widget) {
          "math: exp₂(2)" to math_exp2_N2,
       )
       onContentChange()
-      content.children setToOne fittingScrollPane {
-         content = vBox {
-            lay += stackPane {
-               lay += ValueToggleButtonGroupCE(PropertyConfig(type<String>(), "Type", ConfigDef(), setOf(ValueSealedToggle), type, "Normal", "" ), listOf("Normal", "Reverted", "Symmetric"), {}).run {
-                  editor.alignment = CENTER
-                  editor
-               }
+      content.children setToOne vBox(1.em.emScaled) {
+         lay += stackPane {
+            styleClass += "h2p"
+            lay += ValueToggleButtonGroupCE(PropertyConfig(type<String>(), "Type", ConfigDef(), setOf(ValueSealedToggle), type, "Normal", ""), listOf("Normal", "Reverted", "Symmetric"), {}).run {
+               editor.alignment = CENTER
+               editor
             }
-            lay += label {  }
-            lay += interpolators.map { (name, interpolator) ->
-               vBox {
-                  padding = Insets(5.emScaled)
-                  lay += label(name)
-                  lay += hBox(15.emScaled, CENTER_RIGHT) {
-                     lay(ALWAYS) += Slider().apply {
-                        min = 0.0
-                        max = 1.0
-                     }
-                     lay += Icon(IconFA.STICKY_NOTE, 25.0)
-                     lay += Icon(IconFA.STICKY_NOTE, 25.0)
-                     lay += Icon(IconFA.STICKY_NOTE, 25.0)
+         }
+         lay += stackPane {
+            lay += separator { minPrefMaxWidth = 10.em.emScaled }
+         }
+         lay += fittingScrollPane {
+            content = vBox {
+               lay += interpolators.map { (name, interpolator) ->
+                  vBox {
+                     padding = Insets(5.emScaled)
+                     lay += label(name)
+                     lay += hBox(15.emScaled, CENTER_RIGHT) {
+                        lay(ALWAYS) += Slider().apply {
+                           min = 0.0
+                           max = 1.0
+                        }
+                        lay += Icon(IconFA.STICKY_NOTE, 25.0)
+                        lay += Icon(IconFA.STICKY_NOTE, 25.0)
+                        lay += Icon(IconFA.STICKY_NOTE, 25.0)
 
-                     anim(1.seconds) {
-                        lookupChildAt<Slider>(0).value = it
-                        lookupChildAt<Icon>(1).opacity = it
-                        lookupChildAt<Icon>(2).setScaleXY(it)
-                        lookupChildAt<Icon>(3).rotate = 180*it
-                     }.apply {
-                        type sync {
-                           stop()
-                           intpl(when (it) { "Normal" -> interpolator; "Reverted" -> interpolator.rev(); "Symmetric" -> interpolator.sym(); else -> failCase(it) })
-                           cycleCount = INDEFINITE
-                           isAutoReverse = true
-                           onContentChange += ::stop
-                           playOpen()
-                        } on onContentChange
+                        anim(1.seconds) {
+                           lookupChildAt<Slider>(0).value = it
+                           lookupChildAt<Icon>(1).opacity = it
+                           lookupChildAt<Icon>(2).setScaleXY(it)
+                           lookupChildAt<Icon>(3).rotate = 180*it
+                        }.apply {
+                           type sync {
+                              stop()
+                              intpl(when (it) { "Normal" -> interpolator; "Reverted" -> interpolator.rev(); "Symmetric" -> interpolator.sym(); else -> failCase(it) })
+                              cycleCount = INDEFINITE
+                              isAutoReverse = true
+                              onContentChange += ::stop
+                              playOpen()
+                           } on onContentChange
+                        }
                      }
                   }
                }
             }
          }
       }
+
    }
 
    fun testPathShapeTransitions() {

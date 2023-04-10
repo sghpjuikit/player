@@ -51,7 +51,7 @@ object JsConverterAnyByConfigurableFx: JsConverter<Any> {
             v.toConfigurableFx().getConfigs().forEach { c -> c.valueAsJson = value.value[c.name]!! }
          }
       }
-      else -> fail { "Must be JsObject" }
+      else -> fail { "Must be JsObject but is $value" }
    }
 
    override fun toJson(value: Any): JsValue {

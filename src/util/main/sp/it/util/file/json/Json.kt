@@ -348,6 +348,7 @@ class Json: JsonAst() {
       val typeJ = typeK.java
       val converter = converters.byType.getElementOfSuper(typeK).asIf<JsConverter<Any?>>()
       return when {
+         value is JsNull -> if (typeTarget.isMarkedNullable || typeTarget.isPlatformType) null else fail { "null is not $typeTarget" }
          converter!=null -> converter.fromJson(value)
          typeK==JsValue::class -> value
          typeK==value::class -> value

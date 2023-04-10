@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. Format base
 - Improve **StartScreen** styling (no border)
 - Improve `Overlay` show animation transitions
 - Improve filter negate icon styling
+- Improve nested config editors styling
 - Fix **CommandBar** widget shortcuts ignoring CTRL
 - Fix `Form` layout broken in some cases
 - Fix tree view cell arrow styling broken

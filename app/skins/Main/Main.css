@@ -3306,6 +3306,12 @@ TextFlow > * {
     -fx-ui: EXTENSIVE;
 }
 
+.form-config-pane .form-config-pane {
+    -fx-border-insets: 0 0 0 1em;
+    -fx-border-color: -skin-def-font-color;
+    -fx-border-width: 0 0 0 0.2;
+}
+
 /*
  * Config name label in .form-config-pane
  * inherits: .label

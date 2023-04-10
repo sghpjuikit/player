@@ -15,6 +15,7 @@ import java.util.TreeSet
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
+import javafx.scene.effect.Effect
 import javafx.scene.paint.Color
 import javafx.scene.shape.StrokeLineCap
 import javafx.scene.shape.StrokeLineJoin
@@ -52,6 +53,7 @@ import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
+import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.min
 import sp.it.util.conf.noPersist
@@ -71,6 +73,7 @@ import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.sync1IfInScene
+import sp.it.util.reactive.syncTo
 import sp.it.util.ui.canvas
 import sp.it.util.ui.lay
 import sp.it.util.units.seconds
@@ -157,6 +160,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    var barLineJoin  by c(StrokeLineJoin.ROUND)
       .def(name = "Bar line join type", info = "")
 
+   val spectralEffect by cvn<Effect>(null)
+      .def(name = "Color effect", info = "Effect applied on he entire canvas")
    val spectralColorPosition by cv(180).between(0, 360)
       .def(name = "Color spectral position (degrees)", info = "")
    val spectralColorRange by cv(180).between(-360, +360)
@@ -209,7 +214,9 @@ class Spektrum(widget: Widget): SimpleController(widget) {
 
    class SpectralView(val spektrum: Spektrum, val fft: FrequencyBarsProcessor) {
       private val settings = spektrum
-              val canvas = canvas({})
+              val canvas = canvas({}) {
+                 spektrum.spectralEffect syncTo effectProperty()
+              }
       private val gc = canvas.graphicsContext2D!!
       private val volumeHistory = LinkedList<Double>()
       private val loop = Loop { time ->

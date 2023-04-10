@@ -109,6 +109,12 @@
 }
 
 /* Menu item hover */
+.menu-item > * > LabeledText,
+.menu-item > * > .icon Text,
+.menu-item > .label {
+    -fx-fill: -skin-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
+}
 .menu-item:focused > * > LabeledText,
 .menu-item:focused > * > .icon Text,
 .menu-item:focused > .label {

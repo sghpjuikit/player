@@ -111,7 +111,6 @@ import sp.it.util.functional.runTry
 import sp.it.util.functional.toOption
 import sp.it.util.math.StrExF
 import sp.it.util.parsing.ConverterDefault
-import sp.it.util.parsing.ConverterFX
 import sp.it.util.parsing.ConverterFromString
 import sp.it.util.parsing.ConverterSerializationBase64
 import sp.it.util.parsing.ConverterString
@@ -382,7 +381,6 @@ object CoreConverter: Core {
       addP<LinearGradient>(ConverterLinearGradient)
       addP<ImagePattern>(ConverterImagePattern)
       addP<Paint>(ConverterPaint)
-      addP<Effect>(ConverterFX.toConverterOf<Effect?>().asIs())
       addP<Font>(ConverterFont)
       addParserToS(Node::class) { it::class.jvmName }
       addParserToS(Skin::class) { it::class.jvmName }

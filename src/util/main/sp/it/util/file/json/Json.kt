@@ -112,12 +112,6 @@ data class JsObject(val value: Map<String, JsValue>): JsValue(), JsRoot {
    constructor(vararg entries: Pair<String, JsValue>): this(entries.toMap(LinkedHashMap()))
 }
 
-interface JsConverter<T> {
-   fun canConvert(value: T): Boolean = true
-   fun toJson(value: T): JsValue
-   fun fromJson(value: JsValue): T?
-}
-
 open class JsonAst {
    protected val om = JsonMapper().apply {
       // less lenient parsing so "1 2" is invalid json, see https://github.com/FasterXML/jackson-core/issues/808
@@ -205,23 +199,9 @@ class Json: JsonAst() {
       }
 
       converters {
-         UUID::class convert object: JsConverter<UUID> {
-            override fun toJson(value: UUID) = JsString(value.toString())
-            override fun fromJson(value: JsValue) = value.asJsStringValue()?.let { UUID.fromString(it) }
-         }
-         Instant::class convert object: JsConverter<Instant> {
-            override fun toJson(value: Instant) = JsString(value.toString())
-            override fun fromJson(value: JsValue) = when(value) {
-               is JsNull -> null
-               is JsNumber -> Instant.ofEpochMilli(value.value.toLong())
-               is JsString -> Instant.parse(value.value)
-               else -> fail { "Unsupported ${Instant::class} value=$value" }
-            }
-         }
-         ZoneId::class convert object: JsConverter<ZoneId> {
-            override fun toJson(value: ZoneId) = JsString(value.toString())
-            override fun fromJson(value: JsValue) = value.asJsStringValue()?.let { ZoneId.of(it) }
-         }
+         UUID::class convert JsConverterUuid
+         Instant::class convert JsConverterInstant
+         ZoneId::class convert JsConverterZoneId
       }
    }
 

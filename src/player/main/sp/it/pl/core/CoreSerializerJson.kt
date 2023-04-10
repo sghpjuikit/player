@@ -65,6 +65,7 @@ import sp.it.util.functional.Try.Java.error
 import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
 import sp.it.util.math.StrExF
+import sp.it.util.file.json.JsConverterAnyByConfigurableFx
 import sp.it.util.text.StringSplitParser
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
@@ -133,7 +134,6 @@ class CoreSerializerJson: Core {
             TableColumnInfo.ColumnSortInfo::class,
             Font::class,
             GlyphIcons::class,
-            Effect::class,
             Class::class,
             KClass::class,
             PF::class,
@@ -161,6 +161,8 @@ class CoreSerializerJson: Core {
                override fun fromJson(value: JsValue): Any? = value.asJsStringValue()?.let { ofS(it).orThrow }
             }
          }
+
+         Effect::class convert JsConverterAnyByConfigurableFx.toConverterOf()
 
       }
    }

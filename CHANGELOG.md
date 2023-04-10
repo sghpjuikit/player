@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `Form` layout broken in some cases
 - Fix tree view cell arrow styling broken
 - Fix text broken in some cases
+- Fix serializing `Effect` to json
 
 ### Window owners
 When launching certain content, it is expected that the new window will stay on top of the window it was launched from.

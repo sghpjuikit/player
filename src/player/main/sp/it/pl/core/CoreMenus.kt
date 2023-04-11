@@ -22,6 +22,7 @@ import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentFactory
+import sp.it.pl.layout.ComponentLoader.Ctx
 import sp.it.pl.layout.ComponentUiBase
 import sp.it.pl.layout.Container
 import sp.it.pl.layout.Widget
@@ -72,7 +73,6 @@ import sp.it.pl.main.toMetadata
 import sp.it.pl.main.toUi
 import sp.it.pl.main.writeImage
 import sp.it.pl.plugin.PluginBox
-import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.item_node.WidgetsCE.WidgetInfoPane
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
 import sp.it.pl.ui.objects.icon.Icon
@@ -127,7 +127,6 @@ object CoreMenus: Core {
    /** Menu item builders registered per class. */
    val menuItemBuilders = ContextMenuGenerator()
 
-   @Suppress("RemoveExplicitTypeArguments")
    override fun init() {
       menuItemBuilders {
          addCustom { kClass ->

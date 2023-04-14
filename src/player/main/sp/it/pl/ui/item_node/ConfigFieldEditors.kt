@@ -143,6 +143,7 @@ import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.Constraint.UiConverter
 import sp.it.util.conf.Constraint.UiElementConverter
 import sp.it.util.conf.Constraint.UiInfoConverter
+import sp.it.util.conf.Constraint.UiNoCustomUnsealedValue
 import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
 import sp.it.util.conf.PropertyConfig
@@ -154,6 +155,7 @@ import sp.it.util.dev.failCase
 import sp.it.util.file.FilePickerType
 import sp.it.util.functional.Option.Some
 import sp.it.util.functional.Try
+import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.Util.by
 import sp.it.util.functional.and
 import sp.it.util.functional.asIf
@@ -1231,6 +1233,10 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    private var isNull = config.value==null
    private val isValueRefreshing = Suppressor()
    private var isValueRefreshingRaw = true
+   private val sealed = config.findConstraint<SealedEnumerator<T>>()
+   private val unsealed = config.findConstraint<UnsealedEnumerator<T>>()
+   private val isAutocomplete = sealed!=null || unsealed!=null
+   private val isSealed = sealed!=null || (unsealed!=null && config.hasConstraint<UiNoCustomUnsealedValue>())
    private val warnI = lazy {
       Icon().apply {
          styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON)
@@ -1313,21 +1319,23 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       }
 
       // autocomplete
-      val enumerator = null
-         ?: config.findConstraint<UnsealedEnumerator<T>>()?.net { { it.enumerateUnsealed() } }
-         ?: config.findConstraint<SealedEnumerator<T>>()?.net { { it.enumerateSealed() } }
-      enumerator.ifNotNull { e ->
+      if (isAutocomplete) {
          val isSortable = config.constraints.none { it is PreserveOrder }
+         val enumerator = null
+            ?: sealed?.net { { it.enumerateSealed() } }
+            ?: unsealed?.net { { it.enumerateUnsealed() } }
+            ?: fail { "Forbidden" }
+
          autoComplete(
             editor,
             { t ->
                @Suppress("UNCHECKED_CAST")
-               val enumeration = if (isNullable) e() - (null as T) + (null as T) else e()
+               val enumeration = if (isNullable) enumerator() - (null as T) + (null as T) else enumerator()
                val enumerationSorted = if (isSortable) enumeration.sortedBy(converterRaw) else enumeration
                enumerationSorted.filter { it.toUi().contains(t, true) }
             },
             converterRaw
-         )
+         ) on disposer
       }
 
       // readonly
@@ -1340,10 +1348,15 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    }
 
    @Suppress("UNCHECKED_CAST")
-   override fun get(): Try<T, String> = if (isNull) Try.ok(null as T) else Config.convertValueFromString(config, editor.text)
+   override fun get(): Try<T, String> =
+      // isSealed must only use value picked through autocomplete (autocomplete sets editor.userData & editor.text -> refresh() -> getValid() -> here)
+      if (isSealed) Ok(editor.userData as T)
+      else if (isNull) Ok(null as T)
+      else Config.convertValueFromString(config, editor.text)
 
    override fun refreshValue() {
       isValueRefreshing.suppressingAlways {
+         if (isSealed) editor.userData = config.value
          isNull = config.value==null
          editor.text = if (isValueRefreshingRaw) converterRaw(config.value) else converter(config.value)
          showWarnButton(validate(config.value))

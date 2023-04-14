@@ -20,6 +20,7 @@ import sp.it.util.conf.Constraint.StringNonBlank
 import sp.it.util.conf.Constraint.StringNonEmpty
 import sp.it.util.conf.Constraint.UiConverter
 import sp.it.util.conf.Constraint.UiInfoConverter
+import sp.it.util.conf.Constraint.UiNoCustomUnsealedValue
 import sp.it.util.conf.Constraint.UiSingleton
 import sp.it.util.conf.Constraint.ValueSealedRadio
 import sp.it.util.conf.Constraint.ValueSealedSet
@@ -100,6 +101,8 @@ fun <T: Any?, C: ConstrainedDsl<T>> C.readOnlyUnless(condition: Boolean) = but(R
 fun <T: Any?, C: ConstrainedDsl<T>> C.readOnlyUnless(condition: ObservableValue<Boolean>) = but(ReadOnlyIf(condition, true))
 /** Adds [PreserveOrder] */
 fun <T: Any?, C: ConstrainedDsl<T>> C.uiNoOrder() = but(PreserveOrder)
+/** Adds [UiNoCustomUnsealedValue] */
+fun <T: Any?, C: ConstrainedDsl<T>> C.uiNoCustomUnsealedValue() = but(UiNoCustomUnsealedValue)
 /** Adds [Constraint.ValueSealedSet] using the specified enumerator */
 fun                <T: Any?, C: ConstrainedDsl<T>> C.values(enumerator: () -> Collection<T>) = but(ValueSealedSet { enumerator() })
 /** Adds [Constraint.ValueSealedSet] using the specified collection as enumerator */

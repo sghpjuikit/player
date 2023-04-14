@@ -168,6 +168,14 @@ interface Constraint<in T> {
       override fun enumerateUnsealed() = enumerator()
    }
 
+   /**
+    * Hint for ui to forbid custom value editing. Only affects [ValueSealedSet].
+    * This makes it similar to [ValueSealedSet] with [ValueSealedSetIfNotIn.Strategy.USE_AND_ADD], but
+    * * does not trigger value set evaluation at deserialization time (since it may not be ready)
+    * * does not trigger in-set validation, albeit unsafe, allowing various tricks or usage of programmatic-only values
+    */
+   object UiNoCustomUnsealedValue: MarkerConstraint()
+
    /** Hints ui editor to use the specified to-string converter instead of the default one. */
    class UiConverter<T>(val converter: (T) -> String): MarkerConstraint()
 

@@ -1297,7 +1297,7 @@ TextFlow > * {
 }
 .tree-cell > .tree-disclosure-node,
 .tree-table-row-cell > .tree-disclosure-node {
-    -fx-padding: 1.1em 0.5em 0 0;
+    -fx-padding: 1.2em 0.5em 0 0;
 }
 .tree-cell > .tree-disclosure-node > .arrow,
 .tree-table-row-cell > .tree-disclosure-node > .arrow {
@@ -1790,31 +1790,6 @@ TextFlow > * {
     -fx-spacing: 0.333333em;
     -fx-padding: 1em 0 0 0;
     -fx-alignment: bottom-right;
-}
-
-/********************************* FIXED_ROWS *********************************/
-
-.list-view,
-.table-view,
-.tree-view,
-.tree-table-view,
-.combo-box-popup > .list-view {
-    -fx-fixed-cell-size: -skin-row-fixed-size;
-}
-.list-box  {
-    -fx-spacing: 0em;
-}
-.list-box > .list-box-row {
-    -fx-min-height: -skin-row-fixed-size;
-    -fx-pref-height: -skin-row-fixed-size;
-    -fx-max-width: 400000; /* row should expand to full width */
-}
-
-.list-view:no-fixed-cell-size,
-.table-view:no-fixed-cell-size,
-.tree-view:no-fixed-cell-size,
-.tree-table-view:no-fixed-cell-size {
-    -fx-fixed-cell-size: 0;
 }
 
 /******************************************************************************
@@ -3844,6 +3819,7 @@ TextFlow > * {
  *   -fx-vertical-cell-spacing: Size
  *   -fx-cell-width: Size
  *   -fx-cell-height: Size
+ *   -fx-fixed-cell-size: Size
  */
 .grid-view {
     -fx-border-width: 0;
@@ -3912,11 +3888,12 @@ TextFlow > * {
     -fx-background-color: -skin-bgr-color;
 }
 
-.grid-cell:full-width {
-    -fx-background-color: transparent;
-}
+.grid-cell:full-width,
 .grid-cell:full-width > * > .label {
     -fx-background-color: transparent;
+}
+.grid-cell:full-width:selected {
+    -fx-background-color: rgba(0,0,0,0.3);
 }
 
 /*
@@ -3989,10 +3966,7 @@ TextFlow > * {
     -fx-background-color: rgba(0,0,0,0);
     -glyph-gap: 0;
 }
-.icon-file-grid-cell:selected .icon {
-    -fx-fill: -skin-def-font-color-hover;
-    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
-}
+
 
 /***************************** FONT PICKER DIALOG *****************************
  * Font picker dialog
@@ -4257,3 +4231,37 @@ TextFlow > * {
     -fx-text-fill: -skin-def-font-color-hover;
 }
 
+
+/*************************** ICONS IN SELECTED CELLS **************************/
+
+/* Icon in rows effect */
+.cell:selected .icon {
+    -fx-fill: -skin-def-font-color-hover;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+}
+
+/********************************* FIXED_ROWS *********************************/
+
+.list-view,
+.table-view,
+.tree-view,
+.tree-table-view,
+.grid-view,
+.combo-box-popup > .list-view {
+    -fx-fixed-cell-size: -skin-row-fixed-size;
+}
+.list-box  {
+    -fx-spacing: 0em;
+}
+.list-box > .list-box-row {
+    -fx-min-height: -skin-row-fixed-size;
+    -fx-pref-height: -skin-row-fixed-size;
+    -fx-max-width: 400000; /* row should expand to full width */
+}
+
+.list-view:no-fixed-cell-size,
+.table-view:no-fixed-cell-size,
+.tree-view:no-fixed-cell-size,
+.tree-table-view:no-fixed-cell-size {
+    -fx-fixed-cell-size: 0;
+}

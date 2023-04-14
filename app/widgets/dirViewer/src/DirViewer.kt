@@ -194,7 +194,9 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       .def(name = "Use thumbnail cache", info = "Cache thumbnails on disk for faster loading. Useful when items form mostly finite set. Cache is an internal directory split by thumbnail size.")
    val coverCacheId by cv(UUID.randomUUID()).noUi()
       .def(name = "Thumbnail cache id", info = "Isolates image cache of this widget instance by the id. Unique per widget instance.")
+
    val cellTextHeight = APP.ui.font.map { 43.0.emScaled }.apply { attach { applyCellSize() } on onClose }
+   val cellHeightFixed = grid.cellHeightFixed.apply { attach { applyCellSize() } on onClose }
 
    private val itemVisitId = AtomicLong(0)
    private var item: Item? = null
@@ -459,7 +461,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       }
       grid.cellHeight.value= when (type) {
          CellType.NORMAL -> height.emScaled + cellTextHeight.value
-         CellType.LIST -> height.emScaled
+         CellType.LIST -> grid.cellHeightFixed.value * cellSize.value.width/NORMAL.width
       }
       grid.horizontalCellSpacing.value = when (type) {
          CellType.NORMAL -> 10.emScaled

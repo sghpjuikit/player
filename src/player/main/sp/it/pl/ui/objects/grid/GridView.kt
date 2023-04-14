@@ -89,10 +89,16 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    /** [selectedOrAllItems] if orAll is true or [selectedItems]. Intended for immediate consumption (it may be backed by an observable). */
    fun getSelectedOrAllItems(orAll: Boolean): Sequence<T> = if (orAll) selectedOrAllItems else selectedItems
 
+   /** Horizontal gap between grid cells */
    val horizontalCellSpacing: StyleableObjectProperty<Double> by sv(HORIZONTAL_CELL_SPACING)
+   /** Horizontal gap between grid cells */
    val verticalCellSpacing: StyleableObjectProperty<Double> by sv(VERTICAL_CELL_SPACING)
+   /** Cell width */
    val cellWidth: StyleableObjectProperty<Double> by sv(CELL_WIDTH)
+   /** Cell height */
    val cellHeight: StyleableObjectProperty<Double> by sv(CELL_HEIGHT)
+   /** Cell text height. Similar to [javafx.scene.control.TableView.fixedCellSize]. Has no effect by default but can be used to calculate [cellHeight]. */
+   val cellHeightFixed: StyleableObjectProperty<Double> by sv(CELL_HEIGHT_FIXED)
 
    val cellWidthActual
       get() = cellWidth.value.takeIf { it!=CELL_SIZE_UNBOUND } ?: width
@@ -247,5 +253,6 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
       val VERTICAL_CELL_SPACING by svMetaData<GridView<*, *>, Double>("-fx-vertical-cell-spacing", StyleConverter.getSizeConverter().asIs(), 12.0, GridView<*, *>::verticalCellSpacing)
       val CELL_WIDTH by svMetaData<GridView<*, *>, Double>("-fx-cell-width", StyleConverter.getSizeConverter().asIs(), 64.0, GridView<*, *>::cellWidth)
       val CELL_HEIGHT by svMetaData<GridView<*, *>, Double>("-fx-cell-height", StyleConverter.getSizeConverter().asIs(), 64.0, GridView<*, *>::cellHeight)
+      val CELL_HEIGHT_FIXED by svMetaData<GridView<*, *>, Double>("-fx-fixed-cell-size", StyleConverter.getSizeConverter().asIs(), 12.0, GridView<*, *>::cellHeightFixed)
    }
 }

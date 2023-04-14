@@ -30,10 +30,13 @@
 package sp.it.pl.ui.objects.autocomplete
 
 import javafx.scene.Node
+import javafx.stage.WindowEvent.WINDOW_HIDDEN
+import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.StringConverter
 import sp.it.util.access.v
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.EventReducer.toLast
+import sp.it.util.async.runFX
 import sp.it.util.async.runLater
 import sp.it.util.async.runVT
 import sp.it.util.collections.setTo
@@ -42,7 +45,9 @@ import sp.it.util.functional.ifIs
 import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Handler1
+import sp.it.util.reactive.onEventUp
 import sp.it.util.ui.minPrefMaxWidth
+import sp.it.util.units.millis
 
 /**
  * Base class for auto-completion bindings.
@@ -97,6 +102,8 @@ abstract class AutoCompletionBinding<T> {
    protected open fun buildPopup() = AutoCompletePopup<T>()
 
    private fun initPopup(p: AutoCompletePopup<T>) {
+      p.onEventUp(WINDOW_SHOWING) { isAutoCompletePopupShowingLater = true }
+      p.onEventUp(WINDOW_HIDDEN) { runFX(100.millis) { isAutoCompletePopupShowingLater = false } }
       p.converter = object: StringConverter<T>() {
          override fun toString(o: T) = converter(o)
          override fun fromString(string: String?) = fail { "" }
@@ -123,6 +130,9 @@ abstract class AutoCompletionBinding<T> {
 
    /** Consumes user selected suggestion. Normally when user clicks or presses ENTER key on given suggestion. */
    protected abstract fun Ctx.acceptSuggestion(suggestion: T)
+
+   protected var isAutoCompletePopupShowingLater = false
+   protected fun isAutoCompletePopupShowing() = popup.orNull()?.isShowing==true
 
    protected fun showAutoCompletePopup() {
       popup.value.show(completionTarget)

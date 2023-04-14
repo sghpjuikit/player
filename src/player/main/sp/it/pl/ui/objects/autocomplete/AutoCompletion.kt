@@ -33,12 +33,16 @@ import java.util.Objects
 import javafx.scene.control.TextInputControl
 import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onEventUp
 
 /**
  * Represents a binding between a text field and an auto-completion popup
@@ -59,28 +63,43 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
       this.completionTargetTyped = textField
       this.converter = converter
 
+      // show suggestions on text change
       textField.textProperty().attach(disposer) {
          if (it!=null && completionTarget.isFocused)
             updateSuggestions(it)
       }
+      // hide suggestions on focus lost
       textField.focusedProperty().attach(disposer) {
          if (!it)
             hideAutoCompletePopup()
       }
+      // toggle suggestions on CTRL+SPACE
       textField.onEventDown(KEY_PRESSED, SPACE, false) {
          if (it.isShortcutDown) {
             updateSuggestions("")
             it.consume()
          }
       } on disposer
+      // toggle suggestions on MOUSE_CLICK
+      var wasShowing = false
+      textField.onEventUp(MOUSE_PRESSED, PRIMARY, consume = false) {
+         wasShowing = isAutoCompletePopupShowingLater
+      } on disposer
+      textField.onEventDown(MOUSE_CLICKED, PRIMARY, consume = false) {
+         if (it.isStillSincePress)
+            if (isAutoCompletePopupShowingLater || wasShowing) hideAutoCompletePopup() else updateSuggestions("")
+      } on disposer
    }
 
    override fun dispose() = disposer()
 
    override fun Ctx.acceptSuggestion(suggestion: T) {
-      val newText = converter(suggestion)
-      completionTargetTyped.text = newText
-      completionTargetTyped.positionCaret(newText.length)
+      if (completionTargetTyped.isEditable) {
+         val newText = converter(suggestion)
+         completionTargetTyped.userData = suggestion // set userData first so text listeners see new value
+         completionTargetTyped.text = newText
+         completionTargetTyped.positionCaret(newText.length)
+      }
    }
 
    companion object {
@@ -90,7 +109,10 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
       fun <T> autoComplete(textField: TextInputControl, suggestionProvider: (String) -> Collection<T>, converter: (T) -> String): Subscription {
          val a = AutoCompletion(textField, suggestionProvider, converter)
          textField.properties["autocomplete"] = a
-         return Subscription { a.dispose() }
+         return Subscription {
+            textField.properties - "autocomplete"
+            a.dispose()
+         }
       }
 
       fun <T> autoComplete(textField: TextInputControl, suggestionProvider: (String) -> Collection<T>) = autoComplete(textField, suggestionProvider, defaultStringConverter())

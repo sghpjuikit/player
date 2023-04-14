@@ -117,6 +117,8 @@ class SongInfo(showCover: Boolean = true): HBox(15.0), SongReader {
 
    override fun read(song: Song?) = apply { this.song.value = song?.toMeta() }.toUnit()
 
+   override fun isRatingDisplayed() = true
+
    private fun Thumbnail.loadCoverOf(data: Metadata) {
       val id = dataId.incrementAndGet()
       runVT {

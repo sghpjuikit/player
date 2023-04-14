@@ -530,6 +530,8 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       if (readingAddMode) readAdd(unique, false) else readSet(unique)
    }
 
+   override fun isRatingDisplayed() = true
+
    fun readFromDisc(songsToRead: List<Song> = allSongs) = read(songsToRead.map { it.toSimple() })
 
    private fun readSet(songsToSet: Set<Song>) {

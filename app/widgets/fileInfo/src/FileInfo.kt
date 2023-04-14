@@ -166,6 +166,8 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
 
    override fun read(songs: List<Song>) = read(songs.firstOrNull())
 
+   override fun isRatingDisplayed() = fieldsM.isSelected(RATING)
+
    private fun setValue(song: Song?) = when (song) {
       null -> setValue(EMPTY)
       is Metadata -> setValue(song)

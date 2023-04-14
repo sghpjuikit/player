@@ -91,6 +91,8 @@ interface SongReader {
 
    /** Passes songs into this reader. Displays metadata and displays them. */
    fun read(songs: List<Song>)
+
+   fun isRatingDisplayed(): Boolean? = null
 }
 
 @Feature(name = "Song metadata writer", description = "Capable of writing data to song tags", type = SongWriter::class)

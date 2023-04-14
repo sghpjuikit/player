@@ -377,6 +377,7 @@ class CheckList<out T, S: Boolean?> private constructor(
    fun forEach(block: (Pair<T, S>) -> Unit): Unit = (all zip selections).forEach(block)
    fun forEachIndexed(block: (Triple<Int, T, S>) -> Unit): Unit = all.indices.forEach { block(Triple(it, all[it], selections[it])) }
    fun selected(s: S): List<T> = all.filterIndexed { i, _ -> selections[i]==s }
+   fun isSelected(e: @UnsafeVariance T): S = selections[all.indexOf(e)]
    override fun addListener(listener: InvalidationListener?) = selections.addListener(listener)
    override fun removeListener(listener: InvalidationListener?) = selections.removeListener(listener)
 

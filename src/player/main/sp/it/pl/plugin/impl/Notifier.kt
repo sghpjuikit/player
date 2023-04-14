@@ -223,8 +223,11 @@ class Notifier: PluginBase() {
    fun showNowPlayingNotification() = songChange(APP.audio.playingSong.value)
 
    fun showSongRatingChangedNotification(rating: Double?) {
-      showNotification("Song rating changed", songRateNotificationUi)
-      songRateNotificationUi.rating.value = rating
+      val isRatingDisplayed = songNotificationUi.scene?.window?.isShowing==true && songNotificationInfo.isRatingDisplayed()==true
+      if (!isRatingDisplayed) {
+         showNotification("Song rating changed", songRateNotificationUi)
+         songRateNotificationUi.rating.value = rating
+      }
    }
 
    private fun songChange(song: Metadata) {

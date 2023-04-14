@@ -37,6 +37,7 @@ import sp.it.util.file.del
 import sp.it.util.file.deleteRecursivelyOrThrow
 import sp.it.util.file.div
 import sp.it.util.file.unzip
+import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
@@ -63,7 +64,7 @@ import uk.co.caprica.vlcj.player.base.MediaPlayerEventListener
 
 class VlcPlayer: GeneralPlayer.Play {
 
-   @Volatile private var playerFactory: MediaPlayerFactory? = null
+   @Volatile var playerFactory: MediaPlayerFactory? = null
    @Volatile private var player: MediaPlayer? = null
    private val d = Disposer()
 
@@ -121,9 +122,21 @@ class VlcPlayer: GeneralPlayer.Play {
             player = this
          }
 
+         // set volume
          state.volume zip state.volumeFadeMultiplier sync { (v, vm) -> p.audio().setVolume((100*v.toDouble()*vm.toDouble()).roundToInt()) } on d
          state.mute sync { p.audio().isMute = it } on d
+         // set rate
          state.rate sync { p.controls().setRate(it.toFloat()) } on d
+         // set channel, can be done during playback
+         APP.audio.audioChannel sync { p.audio().setChannel(it) } on d
+         // set output, can only be done before playback
+         APP.audio.audioDevice.value.ifNotNull { device ->
+            val o = pf.audio().audioOutputs().find { it.name==device.name }
+            val d = o?.devices?.find { it.deviceId==device.deviceId }
+            if (o!=null && d!=null) p.audio().setOutput(device.name)
+            if (o!=null && d!=null) p.audio().setOutputDevice(device.name, device.deviceId)
+         }
+         // set loop mode - an optimization, as application could do it instead
          state.loopMode sync { p.controls().repeat = it==SONG } on d
 
          p.media().prepare(song.uriAsVlcPath())
@@ -205,8 +218,8 @@ class VlcPlayer: GeneralPlayer.Play {
 
       override fun stopped(mediaPlayer: MediaPlayer) {
          runFX {
-         if (!APP.audio.isSuspended)
-            state.status.value = STOPPED
+            if (!APP.audio.isSuspended)
+               state.status.value = STOPPED
          }
       }
 
@@ -334,6 +347,8 @@ class VlcPlayer: GeneralPlayer.Play {
       fun setup() = setup
 
    }
+
+   data class AudioDevice(val name: String, val deviceId: String)
 
    companion object: KLogging() {
 

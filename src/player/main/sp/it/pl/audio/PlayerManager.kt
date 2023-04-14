@@ -20,6 +20,7 @@ import sp.it.pl.audio.PlayerManager.Events.PlaybackSuspended
 import sp.it.pl.audio.playback.GeneralPlayer
 import sp.it.pl.audio.playback.PlayTimeHandler
 import sp.it.pl.audio.playback.VlcPlayer
+import sp.it.pl.audio.playback.VlcPlayer.AudioDevice
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
@@ -30,10 +31,13 @@ import sp.it.pl.audio.tagging.readTask
 import sp.it.pl.audio.tagging.setOnDone
 import sp.it.pl.audio.tagging.write
 import sp.it.pl.audio.tagging.writeRating
+import sp.it.pl.core.NameUi
 import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.layout.controller.io.appWide
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
+import sp.it.pl.main.AppTexts
+import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.initApp
 import sp.it.pl.ui.pane.OverlayPane
@@ -65,15 +69,22 @@ import sp.it.util.conf.cvro
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.only
+import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.relativeTo
+import sp.it.util.conf.uiConverter
+import sp.it.util.conf.uiNoCustomUnsealedValue
+import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
+import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.functional.Util.SAME
+import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.net
 import sp.it.util.functional.nullsLast
 import sp.it.util.inSort
 import sp.it.util.math.max
@@ -97,6 +108,7 @@ import sp.it.util.ui.text
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
+import uk.co.caprica.vlcj.player.base.AudioChannel
 
 class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
@@ -125,6 +137,26 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       .def(
          name = "Vlc player locations",
          info = "Custom locations to look for the Vlc player, besides default installation locations and app-relative '/vlc' location. Requires application restart to take effect."
+      )
+
+   val audioChannel by cv(AudioChannel.UNSET)
+      .uiNoOrder()
+      .readOnlyUnless(player.pInfo.map { it=="VlcPlayer" })
+      .def(
+         name = "Player audio channel",
+         info = "Player audio channel. Affects only Vlc player. It is also possible to manually set this using settings in Vlc player"
+      )
+   val audioDevice by cvn<AudioDevice>(null)
+      .readOnlyUnless(player.pInfo.map { it=="VlcPlayer" })
+      .uiConverter { it?.net { "${it.name} - ${it.deviceId}" } ?: textNoVal }
+      .valuesUnsealed { player.listAudioDevices() + null }
+      .uiNoCustomUnsealedValue()
+      .def(
+         name = "Player audio device",
+         info = "Device that receives the audio from the playback, such as Speakers or Headphones. " +
+            "Requires restarting playback. " +
+            "Null lets Vlc player decide. " +
+            "Affects only Vlc player. It is also possible to manually set this using settings in Vlc player."
       )
 
    init {

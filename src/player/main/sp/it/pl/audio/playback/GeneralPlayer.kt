@@ -46,7 +46,9 @@ class GeneralPlayer(state: PlayerState) {
 
       i = song
       p?.disposePlayback()
-      val player = p ?: computePlayer().apply { p = this }
+
+      @Suppress("RedundantNullableReturnType")
+      val player: Play? = p ?: VlcPlayer().apply { p = this }
       val onUnableToPlay = { _: PlaylistSong -> runFX { PlaylistManager.use { it.playNextItem() } } }
 
       _pInfo.value = when (p) {
@@ -95,9 +97,6 @@ class GeneralPlayer(state: PlayerState) {
          }
       }
    }
-
-   @Suppress("RedundantNullableReturnType")
-   private fun computePlayer(): Play? = VlcPlayer()
 
    fun resume() {
       p.ifNotNull {
@@ -162,6 +161,12 @@ class GeneralPlayer(state: PlayerState) {
    fun dispose() {
       p?.dispose()
       p = null
+   }
+
+   fun listAudioDevices() = when (val pl = p) {
+      null -> listOf()
+      is VlcPlayer -> pl.playerFactory?.audio()?.audioOutputs()?.flatMap { o -> o.devices.map { VlcPlayer.AudioDevice(o.name, it.deviceId) } }.orEmpty()
+      is JavaFxPlayer -> listOf()
    }
 
    companion object: KLogging()

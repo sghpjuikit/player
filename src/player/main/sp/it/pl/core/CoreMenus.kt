@@ -3,7 +3,6 @@ package sp.it.pl.core
 import javafx.stage.Window as WindowFX
 import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
-import java.lang.reflect.Modifier
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
@@ -101,7 +100,6 @@ import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
-import sp.it.util.functional.runTry
 import sp.it.util.reactive.into
 import sp.it.util.reactive.sync1IfNonNull
 import sp.it.util.reactive.syncNonNullWhile
@@ -159,26 +157,6 @@ object CoreMenus: Core {
                   }
                   separator()
                   widgetItems<Opener> { it.open(value) }
-               }
-            if (value !is CoreMenuNoInspect && APP.developerMode.value)
-               menu("Invoke") {
-                  val v = value
-                  items(
-                     v::class.java.methods.asSequence()
-                        .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
-                        .filter { it.name!="notify" || it.name!="notifyAll" || it.name!="wait" }
-                        .sortedBy { it.name }
-                        .filter { it.parameterCount==0 && (it.returnType==Void::class.javaObjectType || it.returnType==Void::class.javaPrimitiveType || it.returnType==Unit::class.java) },
-                     { it.name },
-                     { null },
-                     {
-                        runTry {
-                           it(v)
-                        }.ifError { e ->
-                           logger.error(e) { "Could not invoke method=$it on object=$v" }
-                        }
-                     }
-                  )
                }
          }
          add<App> {

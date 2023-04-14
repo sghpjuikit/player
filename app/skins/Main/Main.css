@@ -19,8 +19,8 @@
     -skin-window-bgr-color: rgb(10, 10, 10); /* Window bgr color for application windows with layout content. */
     -skin-window-bgr-color-content-free: rgba(15,25,45,0.95); /* Window bgr color for windows without layout content: tooltips and popup, .etc. */
     -skin-value-font-color: rgb(75, 175, 105);
-    -skin-row-fixed-size: 2em; /* size for fixed row size */
-    -skin-row-icon-size: 1.25em; /* -glyph-size for .icon in tables, should be 0.625*-skin-row-fixed-size */
+    -skin-row-fixed-size: 2em; /* size for fixed row size; affects .tree-cell > .tree-disclosure-node, .tree-table-row-cell > .tree-disclosure-node */
+    -skin-row-icon-size: 1.25em; /* -glyph-size for .icon in tables, affected by -skin-row-fixed-size */
 
     transparent-nct: rgba(0,0,0,0.005); /* Same as `transparent`, is not click-through */
 
@@ -1297,13 +1297,14 @@ TextFlow > * {
 }
 .tree-cell > .tree-disclosure-node,
 .tree-table-row-cell > .tree-disclosure-node {
-    -fx-padding: 1.2em 0.5em 0 0;
+    -fx-padding: 0.75em 0.5em 0 0;
 }
 .tree-cell > .tree-disclosure-node > .arrow,
 .tree-table-row-cell > .tree-disclosure-node > .arrow {
     -fx-background-color: -skin-def-font-color;
     -fx-padding: 0.3em 0.2em;
     -fx-shape: "M 0 -3 L 5 0 L 0 3 z";
+
 }
 .tree-cell:expanded > .tree-disclosure-node > .arrow,
 .tree-table-row-cell:expanded > .tree-disclosure-node > .arrow {

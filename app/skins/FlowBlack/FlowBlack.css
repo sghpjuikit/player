@@ -29,8 +29,16 @@
     -skin-window-bgr-color-content-free: rgba(0, 0, 0, 0.64); // needs to be consistent with (.window bgr color > .widget-ui bgr color)
     -skin-pane-color: rgba(10, 10, 10, 0.6);
     -skin-def-icon-border-color: rgba(200,200,200, 0.2);
+}
+
+/* Row height */
+* {
     -skin-row-fixed-size: 3em;
     -skin-row-icon-size: 1.5em;
+}
+.tree-cell > .tree-disclosure-node,
+.tree-table-row-cell > .tree-disclosure-node {
+    -fx-padding: 1.25em 0.5em 0 0;
 }
 
 /* Add focus effect */

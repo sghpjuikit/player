@@ -12,8 +12,17 @@
     -skin-window-bgr-color-content-free: rgba(12, 12, 30, 0.64);
     -skin-pane-color: rgba(22, 15, 30, 0.6);
     -skin-def-icon-border-color: rgba(130,180,240, 0.2);
+    -skin-row-fixed-size: 2em;
+}
+
+/* Row height */
+* {
     -skin-row-fixed-size: 3em;
     -skin-row-icon-size: 1.5em;
+}
+.tree-cell > .tree-disclosure-node,
+.tree-table-row-cell > .tree-disclosure-node {
+    -fx-padding: 1.25em 0.5em 0 0;
 }
 
 /* Add focus effect */

@@ -400,7 +400,8 @@ class WidgetManager {
                } else {
                   val widgetType = (type as Class<Controller>).kotlin
                   val widgetFactory = WidgetFactory(widgetType, widgetDir)
-                  unregisterFactory(widgetFactory, true)
+                  val widgetFactoryOld = factoriesW.find { it.id==widgetFactory.id }
+                  if (widgetFactoryOld!=null) unregisterFactory(widgetFactory, true)
                   registerFactory(widgetFactory)
                   if (initialized) widgetFactory.reloadAllOpen()
                }

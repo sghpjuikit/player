@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+- Implement audio channel settings for vlc playback
+- Implement audio device settings for vlc playback
 - Implement correct window owners for content in popups launched through actions
 - Implement **FunctionViewer** widget derivation
 - Implement **Git projects** widget project directory refresh on delete
@@ -14,14 +16,22 @@ All notable changes to this project will be documented in this file. Format base
 - Improve **Tester** widget layout & initial size
 - Improve **StartScreen** styling (no border)
 - Improve `Overlay` show animation transitions
+- Improve autocomplete show/hide UX
 - Improve filter negate icon styling
 - Improve nested config editors styling
+- Improve **Flow** skin bgr opacity styling
+- Improve showing song rating change notification [show only when rating not showing in other notification]
 - Fix **CommandBar** widget shortcuts ignoring CTRL
 - Fix `Form` layout broken in some cases
 - Fix tree view cell arrow styling broken
+- Fix inconsistent row height styling
 - Fix inconsistent cell & icon in cell styling 
 - Fix text broken in some cases
 - Fix serializing `Effect` to json
+- Fix incorrect widget factory disposing upon recompile
+
+### Vlc playback
+It is now possible to change audio channels and audio output device used for playback through application settings.
 
 ### Window owners
 When launching certain content, it is expected that the new window will stay on top of the window it was launched from.
@@ -36,7 +46,7 @@ This improves UX in some scenarios.
 This version will use the new K2 compiler, which improves compilation time 2.5 times.
 
 ### Widget kotlin compiling
-Until now the Kotlin compiler has been downloaded from Github.
+Until now the Kotlin compiler has been downloaded from GitHub.
 Now, the application uses `kotlin-compiler-embeddable` jar packaged with the application.
 This removes the need to obtain the compiler and prevents multitude of possible problems occurring for the user.
 The embedded compiler uses daemon and increases compilation time up to 5 times!

@@ -98,13 +98,13 @@ fun <T: Node> Node.lookupSiblingUp(by: Int = 1): T = parent!!.asIs<Parent>().chi
 fun <T: Node> Node.lookupSiblingDown(by: Int = 1): T = parent!!.asIs<Parent>().childrenUnmodifiable.net { it.getOrNull(it.indexOf(this) + by)!! } as T
 
 /** @return whether this node shape contains the scene coordinates represented by the specified point */
-fun Node.containsScene(scenePoint: Point2D): Boolean = contains(sceneToLocal(scenePoint)!!)
+fun Node.containsScene(scenePoint: Point2D): Boolean = sceneToLocal(scenePoint)?.net { contains(it) } ?: false
 
 /** @return whether this node shape contains the scene coordinates */
 fun Node.containsScene(sceneX: Double, sceneY: Double) = containsScene(Point2D(sceneX, sceneY))
 
 /** @return whether this node shape contains the screen coordinates represented by the specified point */
-fun Node.containsScreen(screenPoint: Point2D): Boolean = contains(screenToLocal(screenPoint)!!)
+fun Node.containsScreen(screenPoint: Point2D): Boolean = screenToLocal(screenPoint)?.net { contains(it) } ?: false
 
 /** @return whether this node shape contains the screen coordinates */
 fun Node.containsScreen(screenX: Double, screenY: Double) = containsScene(Point2D(screenX, screenY))

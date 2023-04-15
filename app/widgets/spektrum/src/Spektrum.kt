@@ -60,6 +60,7 @@ import sp.it.util.conf.noPersist
 import sp.it.util.conf.noUi
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiInfoConverter
+import sp.it.util.conf.uiNoCustomUnsealedValue
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.ThreadSafe
@@ -74,6 +75,8 @@ import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncTo
+import sp.it.util.type.Util.getFieldValue
+import sp.it.util.type.Util.setField
 import sp.it.util.ui.canvas
 import sp.it.util.ui.lay
 import sp.it.util.units.seconds
@@ -90,7 +93,12 @@ import spektrum.WeightWindow.dBZ
 class Spektrum(widget: Widget): SimpleController(widget) {
 
    val inputDevice by cv("Primary Sound Capture").attach { audioEngine.restartOnNewThread() } // support refresh on audio device add/remove, see https://stackoverflow.com/questions/29667565/jna-detect-audio-device-arrival-remove
-      .valuesUnsealed { AudioSystem.getMixerInfo().filter { it.description.contains("Capture") }.map { it.name } }
+      .valuesUnsealed {
+         AudioSystem.getMixerInfo()
+            .filter { AudioSystem.getMixer(it).targetLines.any { it.lineInfo.lineClass==TargetDataLine::class.java } }
+            .map { it.name }
+      }
+      .uiNoCustomUnsealedValue()
       .def(name = "Audio input device", info = "")
    val audioFormatChannels by c(2).readOnly().noPersist()
       .def(name = "Audio format channels", info = "Information regarding the format the audio is read for FFT", editable = NONE)
@@ -179,12 +187,15 @@ class Spektrum(widget: Widget): SimpleController(widget) {
 
    init {
       root.lay += spectralView.canvas
-      root.sync1IfInScene {
-         onClose += audioEngine::dispose
-         audioEngine.start()
-         onClose += spectralView::stop
+      root.sync1IfInScene {         audioEngine.start()
          spectralView.play()
       }
+   }
+
+   override fun close() {
+      super.close()
+      audioEngine.dispose()
+      spectralView.stop()
    }
 
    companion object: WidgetCompanion {
@@ -203,13 +214,20 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       val openLines = ConcurrentHashMap<Mixer, LineUses>()
 
       override fun dispose() {
+         openLines.values.forEach { it.close() }
          super.dispose()
-         openLines.values.forEach { it.line.close() }
       }
    }
 
    class LineUses(val line: TargetDataLine, count: Int) {
       val count = AtomicInteger(count)
+      fun close() {
+         if (line.isActive()) {
+            line.flush() // avoids deadlock, see TargetDataLineInputStream.close
+            line.stop()
+         }
+         line.close()
+      }
    }
 
    class SpectralView(val spektrum: Spektrum, val fft: FrequencyBarsProcessor) {
@@ -519,20 +537,17 @@ class TarsosAudioEngine(val settings: Spektrum, val fft: FrequencyBarsProcessor)
    }
 
    fun stop() {
-      try {
-         dispatcher?.stop()
-         audioThread?.join((1*1000).toLong()) // wait for audio dispatcher to finish
-      } catch (e: InterruptedException) {
-         logger.trace { "Thread=${Thread.currentThread().name} interrupted" }
-      }
+      // Cant call AudioDispatcher.stop as it closes stream and line
+      // dispatcher?.stop()
+      dispatcher?.ifNotNull { setField(it, "stopped", true) }
+      dispatcher?.ifNotNull { getFieldValue<List<AudioProcessor>>(it, "audioProcessors").forEach { it.processingFinished() } }
 
       mixerRef.ifNotNull {
          val lineUses = Spektrum.openLines[it]
          if (lineUses!=null) {
             if (lineUses.count.decrementAndGet() == 0) {
                Spektrum.openLines -= it
-               lineUses.line.stop()
-               lineUses.line.close()
+               lineUses.close()
             }
          }
       }
@@ -555,7 +570,7 @@ class TarsosAudioEngine(val settings: Spektrum, val fft: FrequencyBarsProcessor)
    }
 
    private fun obtainMixer(): Mixer? = AudioSystem.getMixerInfo()
-      .find { m -> settings.inputDevice.value.let { it.isNotBlank() && it in m.name } }
+      .find { m -> settings.inputDevice.value.let { it.isNotBlank() && it == m.name } }
       ?.net { AudioSystem.getMixer(it) }
 
    private fun obtainLine(mixer: Mixer, audioFormat: AudioFormat, lineBuffer: Int): TargetDataLine {

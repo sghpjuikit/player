@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file. Format base
 - Improve **Flow** skin bgr opacity styling
 - Improve showing song rating change notification [show only when rating not showing in other notification]
 - Fix **CommandBar** widget shortcuts ignoring CTRL
+- Fix **Spektrum** widget stops working if another instance closes
+- Fix **Spektrum** widget audio capture device selection
 - Fix `Form` layout broken in some cases
 - Fix tree view cell arrow styling broken
 - Fix inconsistent row height styling

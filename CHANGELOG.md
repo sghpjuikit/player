@@ -27,7 +27,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `Form` layout broken in some cases
 - Fix tree view cell arrow styling broken
 - Fix inconsistent row height styling
-- Fix inconsistent cell & icon in cell styling 
+- Fix inconsistent cell & icon in cell styling
+- Fix css errors due to missing colors
 - Fix text broken in some cases
 - Fix serializing `Effect` to json
 - Fix incorrect widget factory disposing upon recompile

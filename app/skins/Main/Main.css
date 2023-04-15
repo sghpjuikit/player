@@ -6,11 +6,31 @@
 
 /* Global variables*/
 * {
+    /* constants */
+    transparent-nct: rgba(0,0,0,0.005); /* Same as `transparent`, is not click-through */
+
+    /* fx overridden values */
+    -fx-hover-base: yellow;
+    -fx-pressed-base: yellow;
+    -fx-outer-border: yellow;
+    -fx-inner-border: yellow;
+    -fx-body-color: yellow;
+    -fx-mark-highlight-color: yellow;
+    -fx-base: yellow;
+    -fx-shadow-highlight-color: yellow;
+    -fx-text-background-color: yellow;
+    -fx-background-color: transparent;
+    -fx-text-base-color: -skin-def-font-color;
+    -fx-disabled-opacity: 0.4;
+    -fx-focus-color: #ffcc66;
+    -fx-faint-focus-color: #ffcc66;
+    -fx-focused-mark-color: transparent;
+
+    /* skin values */
     -skin-bgr-color: rgb(10, 10, 10);
     -skin-def-font-color: rgb(160, 160, 180);
     -skin-def-font-color-hover: #ffcc66;
     -skin-sel-font-color: rgb(175, 175, 176);
-    -fx-text-base-color: -skin-def-font-color;
     -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
     -skin-color-darker: rgba(0,0,0,0.2);
     -skin-color-lighter: rgba(180,200,255,0.08);
@@ -21,13 +41,6 @@
     -skin-value-font-color: rgb(75, 175, 105);
     -skin-row-fixed-size: 2em; /* size for fixed row size; affects .tree-cell > .tree-disclosure-node, .tree-table-row-cell > .tree-disclosure-node */
     -skin-row-icon-size: 1.25em; /* -glyph-size for .icon in tables, affected by -skin-row-fixed-size */
-
-    transparent-nct: rgba(0,0,0,0.005); /* Same as `transparent`, is not click-through */
-
-    -fx-disabled-opacity: 0.4;
-    -fx-focus-color: #ffcc66;
-    -fx-faint-focus-color: #ffcc66;
-    -fx-focused-mark-color: transparent;
     -skin-focus-bgr-color: ladder(hsb(180, 100%, 50%), transparent 0%, -fx-focus-color 100%);
 }
 
@@ -2335,6 +2348,10 @@ TextFlow > * {
     -fx-skin: "sp.it.pl.ui.objects.SpitSplitPaneContainerBiSkin"
 }
 
+.container-seq-ui VBox,
+.container-seq-ui HBox {
+    -fx-spacing: 2;
+}
 
 /*
  * ContainerFreeForm ui
@@ -2370,6 +2387,15 @@ TextFlow > * {
 .switch-pane-tab {}
 .switch-pane-tab .switch-pane-tab-bgr {}
 
+.switch-pane-tab:left {
+    -fx-padding: 0 2 0 0;
+}
+.switch-pane-tab:center {
+    -fx-padding: 0 0 0 0;
+}
+.switch-pane-tab:right {
+    -fx-padding: 0 0 0 2;
+}
 /**********************************************************************************************************************/
 
 /* HBox containing buttons within a header */

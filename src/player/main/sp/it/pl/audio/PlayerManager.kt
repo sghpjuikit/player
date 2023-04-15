@@ -31,12 +31,10 @@ import sp.it.pl.audio.tagging.readTask
 import sp.it.pl.audio.tagging.setOnDone
 import sp.it.pl.audio.tagging.write
 import sp.it.pl.audio.tagging.writeRating
-import sp.it.pl.core.NameUi
 import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.layout.controller.io.appWide
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
-import sp.it.pl.main.AppTexts
 import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.initApp
@@ -81,7 +79,6 @@ import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.functional.Util.SAME
-import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net

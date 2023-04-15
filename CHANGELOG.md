@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **CommandBar** widget shortcuts ignoring CTRL
 - Fix **Spektrum** widget stops working if another instance closes
 - Fix **Spektrum** widget audio capture device selection
+- Fix **Spektrum** widget efficiency when drawing same content
 - Fix `Form` layout broken in some cases
 - Fix tree view cell arrow styling broken
 - Fix inconsistent row height styling

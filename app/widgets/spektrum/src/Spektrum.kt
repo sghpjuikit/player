@@ -237,6 +237,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
               }
       private val gc = canvas.graphicsContext2D!!
       private val volumeHistory = LinkedList<Double>()
+      private var dataOld: DrawingData? = null
       private val loop = Loop { time ->
          val barsRaw = fft.frequencyBars
          val barsAvg = barsRaw.sumOf { it.height }/barsRaw.count()
@@ -261,6 +262,10 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       }
 
       fun DrawingData.updateBars() {
+         val isUpdateNeeded = barCount!=dataOld?.barCount || (bars zip dataOld?.bars.orEmpty()).any { (a,b) -> a.height!=b.height }
+         dataOld = this
+         if (!isUpdateNeeded) return
+
          val w = spektrum.root.width
          val h = spektrum.root.height
          val w2 = w/2

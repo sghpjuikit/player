@@ -34,7 +34,7 @@ import sp.it.pl.ui.item_node.FieldedPredicateChainItemNode;
 import sp.it.pl.ui.item_node.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.ui.nodeinfo.GridInfo;
 import sp.it.pl.ui.nodeinfo.TableInfo;
-import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem;
+import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean;
 import sp.it.pl.ui.objects.grid.GridView.CellGap;
 import sp.it.pl.ui.objects.grid.GridView.Search;
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn;
@@ -250,7 +250,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	private final Menu menuOrderAlign = new Menu("Align");
 	public final Menu menuOrder = with(new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded(), menuOrderAlign), m ->
 		m.addEventHandler(Menu.ON_SHOWING, e ->
-			menuOrderAlign.getItems().setAll(SelectionMenuItem.Companion.buildSingleSelectionMenu(CellGap.Companion.getValues(), grid.getCellAlign().getValue(), it -> toUi(it), it -> grid.getCellAlign().setValue(it)))
+			menuOrderAlign.getItems().setAll(MenuItemBoolean.Companion.buildSingleSelectionMenu(CellGap.Companion.getValues(), grid.getCellAlign().getValue(), it -> toUi(it), it -> grid.getCellAlign().setValue(it)))
 		)
 	);
 	/** Table menu bar in the bottom with menus. Feel free to modify. */

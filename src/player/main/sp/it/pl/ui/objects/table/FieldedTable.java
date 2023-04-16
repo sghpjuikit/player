@@ -21,7 +21,7 @@ import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import sp.it.pl.access.fieldvalue.AnyField.STRING_UI;
-import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem;
+import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean;
 import sp.it.pl.ui.objects.table.TableColumnInfo.ColumnInfo;
 import sp.it.util.Sort;
 import sp.it.util.access.fieldvalue.MetaField;
@@ -237,7 +237,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 					.map(c -> {
 						var f = columnIdToF(c.id);
 						var d = f.description();
-						var m = new SelectionMenuItem(f.name(), isColumnVisible(f));
+						var m = new MenuItemBoolean(f.name(), isColumnVisible(f));
 						m.setUserData(f);
 						m.getSelected().addListener((o,ov,nv) -> setColumnVisible(this, f, nv));
 						if (!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));

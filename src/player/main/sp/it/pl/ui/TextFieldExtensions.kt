@@ -14,7 +14,7 @@ import javafx.scene.text.TextAlignment
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.main.Key
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
+import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean
 import sp.it.util.reactive.attach
 import sp.it.util.text.keys
 import sp.it.util.type.estimateRuntimeType
@@ -51,11 +51,11 @@ fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> 
          if (tf is TextArea) {
             separator()
             item {
-               SelectionMenuItem("Wrap text", tf.isWrapText).apply { selected.attach { tf.isWrapText = it } }
+               MenuItemBoolean("Wrap text", tf.isWrapText).apply { selected.attach { tf.isWrapText = it } }
             }
             menu("Align text") {
                items {
-                  SelectionMenuItem.buildSingleSelectionMenu(TextAlignment.values().toList(), tf.textAlignment, { it.toUi() }) { tf.textAlignment = it }.asSequence()
+                  MenuItemBoolean.buildSingleSelectionMenu(TextAlignment.values().toList(), tf.textAlignment, { it.toUi() }) { tf.textAlignment = it }.asSequence()
                }
             }
          }

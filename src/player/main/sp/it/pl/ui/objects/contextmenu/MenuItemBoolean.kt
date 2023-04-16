@@ -23,7 +23,7 @@ import sp.it.util.reactive.onEventDown
  *  *  Observable selection state
  *  *  Custom click implementation
  */
-class SelectionMenuItem(text: String? = "", selectedInitial: Property<Boolean> = v(false)): MenuItem(text) {
+class MenuItemBoolean(text: String? = "", selectedInitial: Property<Boolean> = v(false)): MenuItem(text) {
    /** Selection icon */
    private val icon = CheckIcon(selectedInitial)
    /** Selection mouse click disposer */
@@ -65,13 +65,13 @@ class SelectionMenuItem(text: String? = "", selectedInitial: Property<Boolean> =
        */
       fun <I> buildSingleSelectionMenu(inputs: Collection<I>, inputSelected: I, toNameUi: (I) -> String, action: Consumer<I>): List<MenuItem> = inputs.asSequence()
          .map { input ->
-            SelectionMenuItem(toNameUi(input), input===inputSelected).apply {
+            MenuItemBoolean(toNameUi(input), input===inputSelected).apply {
                icon.styleclass(STYLECLASS_ICON_SINGLE_SEL)
                installOnMouseClick { selected.value = true }
                userData = input
                selected attachTrue {
                   parentMenu.ifNotNull { p ->
-                     p.items.forEach { i: MenuItem -> (i as SelectionMenuItem).selected.value = i===this }
+                     p.items.forEach { i: MenuItem -> (i as MenuItemBoolean).selected.value = i===this }
                      action.accept(input)
                   }
                }

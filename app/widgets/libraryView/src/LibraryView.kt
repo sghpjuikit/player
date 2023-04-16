@@ -51,7 +51,7 @@ import sp.it.pl.main.setSongsAndFiles
 import sp.it.pl.main.showConfirmation
 import sp.it.pl.ui.item_node.FieldedPredicateItemNode.PredicateData
 import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
-import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSelectionMenu
+import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean.Companion.buildSingleSelectionMenu
 import sp.it.pl.ui.objects.rating.RatingCellFactory
 import sp.it.pl.ui.objects.table.FieldedTable.UNCONSTRAINED_RESIZE_POLICY_FIELDED
 import sp.it.pl.ui.objects.table.FilteredTable

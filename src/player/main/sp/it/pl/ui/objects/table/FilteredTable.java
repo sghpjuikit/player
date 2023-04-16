@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import sp.it.pl.ui.item_node.FieldedPredicateChainItemNode;
 import sp.it.pl.ui.item_node.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.ui.nodeinfo.TableInfo;
-import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem;
+import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.search.SearchAutoCancelable;
 import sp.it.util.access.V;
@@ -469,7 +469,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			columnMenu.getItems().add(menu);
 			columnMenu.addEventHandler(WINDOW_HIDDEN, e -> menu.getItems().clear());
 			columnMenu.addEventHandler(WINDOW_SHOWING, e -> menu.getItems().addAll(
-				SelectionMenuItem.Companion.buildSingleSelectionMenu(filter(fieldsAll, ObjectField::searchSupported), field, ObjectField::name, this::setColumn)
+				MenuItemBoolean.Companion.buildSingleSelectionMenu(filter(fieldsAll, ObjectField::searchSupported), field, ObjectField::name, this::setColumn)
 			));
 		}
 

@@ -73,7 +73,8 @@ import sp.it.pl.main.toUi
 import sp.it.pl.main.writeImage
 import sp.it.pl.plugin.PluginBox
 import sp.it.pl.ui.item_node.WidgetsCE.WidgetInfoPane
-import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
+import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean
+import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean.Companion.buildSingleSelectionMenu
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.objects.window.stage.Window
@@ -420,7 +421,7 @@ object CoreMenus: Core {
          add<Component> {
             menu("Load type") {
                items {
-                  SelectionMenuItem.buildSingleSelectionMenu(Widget.LoadType.values().toList(), value.loadType.value, { it.toUi() }) { value.loadType.value = it }.asSequence()
+                  buildSingleSelectionMenu(Widget.LoadType.values().toList(), value.loadType.value, { it.toUi() }) { value.loadType.value = it }.asSequence()
                }
             }
             item("Close") { it.close() }

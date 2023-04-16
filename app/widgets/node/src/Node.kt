@@ -27,7 +27,7 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
+import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.collections.setTo
 import sp.it.util.conf.cv
@@ -135,7 +135,7 @@ class Node(widget: Widget): SimpleController(widget) {
            menu(namePrefix + declaringClass.toUi()) {
               properties.forEach { p ->
                  item {
-                    SelectionMenuItem(p.name + ": " + p.type.toUi(), p.name in propertiesWithInputs).apply {
+                    MenuItemBoolean(p.name + ": " + p.type.toUi(), p.name in propertiesWithInputs).apply {
                        selected attachFalse {
                           io.i.getInputs().find { it.name==p.name }.ifNotNull {
                              io.i.remove(it)

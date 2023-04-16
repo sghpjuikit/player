@@ -24,7 +24,6 @@
 - Migrate `ActionPane`  actions to `AppActions.kt`& integrate with `Action`, adding icon to Action & keys to ActionData 
 - Implement better application running detection: app running without exe and app running from different directory
 - Implement `MdNode` monitor file & reload
-- Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
 - Implement `SliderCE` logarithmic scale
   Should support arbitrary N(0-1) -> N(0-1) function and config dsl
 - App onStart/End command user defined callbacks
@@ -41,8 +40,6 @@
   It is not clear where exactly this would make the most impact. Potentially, custom action to reorganize windows.
 - Use standalone `README.md` for widgets  
   Will require lots of work. Also needs markdown support for displaying widget info in `Settings` and `WidgetPicker`.
-- Implement `OverlayPane` autohide/onTop icons  
-  Dock windows already have this feature. Overlay already supports the shortcuts, so this is very low priority.
 - Implement multiple-screen support for `Dock`  
   It is not clear how it should behave - be duplicated or displayed on screen with mouse?
 - Implement [virtual keyboard](https://github.com/comtel2000/fx-experience)  
@@ -84,6 +81,7 @@
 - Popup unable to receive focus sometimes
 - Application search shortening result label width unnecessarily
 - Recompiling or manual widget loading does not rebind inputs properly
+- **Function Viewer** plotting steep functions clipped too soon
 
 ## External bugs
 - [ ] [jaudiotagger-65](https://bitbucket.org/ijabz/jaudiotagger/issues/65/add-support-for-ogg-opus-format) opus ogg support

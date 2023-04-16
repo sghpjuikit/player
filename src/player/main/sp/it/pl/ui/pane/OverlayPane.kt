@@ -345,8 +345,8 @@ abstract class OverlayPane<in T>: StackPane() {
                styleClass += "bgr-image"   // replicate app window bgr for style & consistency
             }
             val contentImg = ImageView(image).apply {
-               fitWidth = screen.bounds.width+4*blurMax
-               fitHeight = screen.bounds.height+4*blurMax
+               fitWidth = screen.bounds.width + op.displayBgr.value.computeImageBlurPaddingAmount() * 2 * blurMax
+               fitHeight = screen.bounds.height + op.displayBgr.value.computeImageBlurPaddingAmount() * 2 * blurMax
                applyViewPort(image, OUTSIDE)
             }
             val root = stackPane(stackPane(bgr, contentImg)) {
@@ -468,6 +468,13 @@ enum class ScreenBgrGetter(val stageStyle: StageStyle, val needsBlur: Boolean, v
          SCREEN_BGR -> null
                ?: APP.plugins.get<WallpaperChanger>()?.wallpaperImage?.value
                ?: IO { screen.getWallpaperFile()?.let { imgImplLoadFX(it, ImageSize(-1.0, -1.0), true) } }
+      }
+
+   fun computeImageBlurPaddingAmount(): Double =
+      when (this) {
+         NONE -> 0.0
+         SCREEN_SHOT -> 1.0
+         SCREEN_BGR -> 2.0
       }
 }
 

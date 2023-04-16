@@ -96,6 +96,14 @@
 .root {
     -fx-font-family: "Arial";
     -fx-font-size: 1em;
+
+    /*
+      These properties currently can not be overridden as they are set byt user:
+        -fx-font-family
+        -fx-font-style
+        -fx-font-weight
+        -fx-font-size
+    */
 }
 
 /* ====   TEXT NODES IN CONTROLS   ========================================== */
@@ -1656,11 +1664,19 @@ TextFlow > * {
 .tooltip {
     -fx-text-fill: -skin-def-font-color;
     -fx-background-color: -skin-window-bgr-color-content-free;
-    -fx-background-radius: 5;
+    -fx-background-radius: 55;
     -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
     -fx-border-radius: 5;
     -fx-padding: 0.5em 1em 0.5em 1em;
+
+    /*
+      These properties currently can not be overridden as they are set byt user:
+        -fx-font-family
+        -fx-font-style
+        -fx-font-weight
+        -fx-font-size
+    */
 }
 
 /******************************* COLOR PICKER ********************************/

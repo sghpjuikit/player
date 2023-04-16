@@ -551,6 +551,10 @@ fun Font?.asStyle(orSize: Double): String {
            -fx-font-weight: $weightS;
            -fx-font-size: $size;
          }
+         .tooltip {
+           -fx-font-size: ${size*0.9};
+           -fx-font-weight: normal;
+         }
       """.trimIndent()
    }
 }

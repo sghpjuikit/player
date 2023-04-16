@@ -1,20 +1,14 @@
 package sp.it.util.ui
 
 import javafx.event.ActionEvent
-import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
-import javafx.scene.control.Label
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.SeparatorMenuItem
-import javafx.scene.input.KeyCombination.NO_MATCH
 import sp.it.util.dev.Dsl
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIs
-import sp.it.util.functional.ifNotNull
-import sp.it.util.reactive.sync1IfNonNull
-import sp.it.util.text.nullIfBlank
 
 @Dsl
 open class MenuBuilder<M, V>(val owner: M, val value: V) {

@@ -120,6 +120,7 @@ import sp.it.util.ui.menuItem
 import sp.it.util.ui.sourceMenuItem
 import sp.it.util.ui.traverseToPopupOwnerWindow
 
+@Suppress("RemoveExplicitTypeArguments")
 object CoreMenus: Core {
 
    /** Menu item builders registered per class. */

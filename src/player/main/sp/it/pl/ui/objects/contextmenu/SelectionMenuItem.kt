@@ -3,7 +3,6 @@ package sp.it.pl.ui.objects.contextmenu
 import java.util.function.Consumer
 import javafx.beans.property.Property
 import javafx.event.ActionEvent.ACTION
-import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.util.access.toggle
@@ -11,22 +10,20 @@ import sp.it.util.access.v
 import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attachTrue
-import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
-import sp.it.util.ui.styleclassToggle
 
 /**
- * Simple [Menu] implementation with check icon. Clicking on the icon
- * always has the same effect as clicking on the menu item text. The icon
- * selection changes on/off on mouse click but this default behavior can be
- * changed using [.setOnMouseClicked] which overrides it.
+ * Simple [MenuItem] implementation with check icon.
+ * Clicking on the icon always has the same effect as clicking on the menu item text.
+ * The icon selection changes on/off on mouse click but this default behavior can be
+ * changed using [installOnMouseClick] which overrides it.
  *
  * Features:
  *  *  Check icon reflecting selection state
  *  *  Observable selection state
  *  *  Custom click implementation
  */
-class SelectionMenuItem(text: String? = "", selectedInitial: Property<Boolean> = v(false)): Menu(text) {
+class SelectionMenuItem(text: String? = "", selectedInitial: Property<Boolean> = v(false)): MenuItem(text) {
    /** Selection icon */
    private val icon = CheckIcon(selectedInitial)
    /** Selection mouse click disposer */
@@ -40,12 +37,7 @@ class SelectionMenuItem(text: String? = "", selectedInitial: Property<Boolean> =
       graphic = icon
       icon.styleclass(STYLECLASS_ICON)
       icon.gap(0)
-
-      // action = toggle selection
       installOnMouseClick { selected.toggle() }
-
-      // hide open submenu arrow if no children
-      items.onChangeAndNow { styleclassToggle(STYLECLASS_NO_CHILDREN, items.isEmpty()) }
    }
 
    /**
@@ -67,7 +59,6 @@ class SelectionMenuItem(text: String? = "", selectedInitial: Property<Boolean> =
       private const val STYLECLASS = "checkicon-menu-item"
       private const val STYLECLASS_ICON = "checkicon-menu-item-icon"
       private const val STYLECLASS_ICON_SINGLE_SEL = "checkicon-menu-item-icon-single-selection"
-      private const val STYLECLASS_NO_CHILDREN = "menu-nochildren"
 
       /**
        * @param inputSelected must be in [inputs], by object reference

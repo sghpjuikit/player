@@ -913,7 +913,7 @@ TextFlow > * {
     -fx-padding: 0.2em 0.4em 0.2em 0.4em;
 }
 .menu > .right-container {
-    -fx-padding: 0 1em;
+    -fx-padding: 0 0.5em 0 2em;
 }
 .menu > .right-container > .arrow {
     -fx-padding: 0.25em 0.167em 0.25em 0.167em; /* 4.5 2 4.5 2 */
@@ -935,6 +935,9 @@ TextFlow > * {
     -fx-padding: 0.666667em 0.416667em 0.0em 0.416667em;  /* 8 5 0 5 */
     -fx-shape: "M0 0 L1 0 L.5 1 Z";
     -fx-effect: innershadow( two-pass-box , rgba(0,0,0,0.6) , 4, 0.0 , 0 , 1 );
+}
+.menu > .accelerator-text {
+    -fx-padding: 0 2em 0 2em;
 }
 
 /*******************************************************************************
@@ -958,6 +961,9 @@ TextFlow > * {
 .menu-item:focused > .label {
     -fx-background-color: transparent;
     -fx-text-fill: -fx-focus-color;
+}
+.menu-item > .accelerator-text {
+    -fx-padding: 0 2em 0 0;
 }
 
 /*******************************************************************************
@@ -3538,11 +3544,8 @@ TextFlow > * {
 /********************************** MENU *******************************************************************************
  * Menu item with a check icon
  * inherits: .menu
- * pseudoclasses: no support -> use .menu-nochildren styleclass instead
  */
-.checkicon-menu-item {
-
-}
+.checkicon-menu-item {}
 
 /*
  * The icon of checkicon
@@ -3565,14 +3568,6 @@ TextFlow > * {
     visibility: visible;
     -glyph-name: "FontAwesomeIcon.CHECK";
 }
-
-/* hide the arrow if no children */
-.menu-nochildren > .right-container > .arrow,
-.menu-nochildren:focused > .right-container > .arrow {
-     -fx-padding: 0;
-     -fx-background-color: transparent;
-}
-
 
 /***************************** WIDGET INPUT OUTPUT *********************************************************************
  * Shown in layout mode, a graph displaying widget outputs and inputs as nodes

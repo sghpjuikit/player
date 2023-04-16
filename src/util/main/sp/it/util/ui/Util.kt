@@ -170,6 +170,7 @@ inline fun textArea(text: String = "", block: TextArea.() -> Unit = {}) = TextAr
 inline fun textFlow(block: TextFlow.() -> Unit = {}) = TextFlow().apply(block)
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
 inline fun menuItem(text: String, graphics: Node? = null, crossinline action: (ActionEvent) -> Unit) = MenuItem(text, graphics).apply { onAction = EventHandler { action(it) } }
+inline fun menuItem(text: String, graphics: Node? = null, keys: String?, crossinline action: (ActionEvent) -> Unit) = menuItem(text, graphics, action).apply { acceleratorText = keys }
 inline fun menuSeparator(block: SeparatorMenuItem.() -> Unit = {}) = SeparatorMenuItem().apply(block)
 inline fun <T> listView(block: ListView<T>.() -> Unit = {}) = ListView<T>().apply(block)
 inline fun <T> tableView(block: TableView<T>.() -> Unit = {}) = TableView<T>().apply(block)

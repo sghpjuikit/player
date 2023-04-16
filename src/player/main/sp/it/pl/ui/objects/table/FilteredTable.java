@@ -62,6 +62,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
+import static sp.it.pl.main.AppBuildersMenuKt.menuItemBool;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.computeMaxIndex;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.rows;
@@ -331,8 +332,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS).scale(1.3).embedded());
 	public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS).scale(1.3).embedded());
 	public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
-		menuItem("Select all (" + keys(CONTROL, A) + ")", null, consumer(e -> selectAll())),
-		menuItem("Select none (" + keys(ESCAPE) + ")", null, consumer(e -> selectNone())),
+		menuItem("Select all", null, keys(CONTROL, A), consumer(e -> selectAll())),
+		menuItem("Select none", null, keys(ESCAPE), consumer(e -> selectNone())),
 		menuItem("Select inverse", null, consumer(e -> selectInverse()))
 	);
 	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.SORT).embedded(),
@@ -365,9 +366,9 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	);
 	public final Menu menuColumns = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded().onClickDo(consumer(it -> columnMenu.show(this, Side.RIGHT, 0.0, 0.0))));
 	public final Menu menuExtra = new Menu("", new Icon(FontAwesomeIcon.TASKS).embedded(),
-		new SelectionMenuItem("Show filter (" + keys(CONTROL, F) + ")", filterVisible),
-		new SelectionMenuItem("Show header", headerVisible),
-		new SelectionMenuItem("Show footer", footerVisible)
+		menuItemBool("Show filter", filterVisible, keys(CONTROL, F)),
+		menuItemBool("Show header", headerVisible, null),
+		menuItemBool("Show footer", footerVisible, null)
 	);
 	/** Table menu-bar in the bottom with menus. Feel free to modify. */
 	public final MenuBar menus = new MenuBar(menuAdd, menuRemove, menuSelected, menuOrder, menuColumns, menuExtra);

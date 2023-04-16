@@ -118,8 +118,11 @@
 
 /* Menu item hover */
 .menu-item > * > LabeledText,
+.menu-item:focused:disabled > * > LabeledText,
 .menu-item > * > .icon Text,
-.menu-item > .label {
+.menu-item:focused:disabled > * > .icon Text,
+.menu-item > .label,
+.menu-item:focused:disabled > .label {
     -fx-fill: -skin-def-font-color;
     -fx-text-fill: -skin-def-font-color;
 }

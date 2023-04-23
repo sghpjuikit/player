@@ -85,6 +85,7 @@ open class Picker<E> {
             null -> label(contentText)
             else -> vBox(5.0, Pos.CENTER) {
                lay += Icon(contentIcon).apply {
+                  focusOwner.value = this@stackPane
                   this@stackPane.heightProperty() attach {
                      size((it.toDouble() - 3.0.em)/2.0 min 64.0)
                   }

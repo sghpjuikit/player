@@ -1,8 +1,8 @@
 package gameView
 
 import de.jensd.fx.glyphs.GlyphIcons
+import io.ktor.http.encodeURLQueryComponent
 import java.io.File
-import java.net.URI
 import java.util.UUID
 import javafx.geometry.Insets
 import javafx.geometry.Pos.TOP_CENTER
@@ -150,6 +150,7 @@ import sp.it.util.ui.x2
 import sp.it.util.units.FileSize
 import sp.it.util.units.millis
 import sp.it.util.units.times
+import sp.it.util.units.uri
 import sp.it.util.units.version
 import sp.it.util.units.year
 
@@ -477,6 +478,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                   lay += IconFA.GAMEPAD icon { game.setupAndPlay() }
                   lay += IconUN(0x1f4c1) icon { game.location.open() }
                   lay += IconMD.WIKIPEDIA icon { WikipediaQBuilder(game.name).browse() }
+                  lay += IconFA.INFO icon { PCGamingWikiQBuilder(game.name).browse() }
                   lay += IconMD.STEAM icon { SteamQBuilder(game.name).browse() }
                   lay += IconTx("GOG") icon { GogQBuilder(game.name).browse() }
 
@@ -584,12 +586,17 @@ class GameView(widget: Widget): SimpleController(widget) {
       private object GogQBuilder: WebSearchUriBuilder {
          override val icon = IconTx("GOG")
          override val name = "GOG"
-         override fun build(q: String): URI = URI.create("https://www.gog.com/games?sort=popularity&page=1&search=$q")
+         override fun build(q: String) = uri("https://www.gog.com/games?sort=popularity&page=1&search=${q.encodeURLQueryComponent()}")
       }
       private object SteamQBuilder: WebSearchUriBuilder {
          override val icon = IconMD.STEAM
          override val name = "Steam"
-         override fun build(q: String): URI = URI.create("https://store.steampowered.com/search/?term=$q")
+         override fun build(q: String) = uri("https://store.steampowered.com/search/?term=${q.encodeURLQueryComponent()}")
+      }
+      private object PCGamingWikiQBuilder: WebSearchUriBuilder {
+         override val icon = IconFA.INFO
+         override val name = "PCGamingWiki"
+         override fun build(q: String) = uri("""https://www.pcgamingwiki.com/w/index.php?search=${q.encodeURLQueryComponent()}""")
       }
 
    }

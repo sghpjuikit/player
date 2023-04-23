@@ -10,7 +10,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Git projects** widget project directory refresh on delete
 - Implement **Tester** widget interpolators easing settings
 - Implement **Tester** widget more editor tests
-- Implement **Spektrum** widget user configurable effect 
+- Implement **Spektrum** widget user configurable effect
+- Implement **GameView** widget PCGamingWiki link
 - Implement enumerable editor with toggle button
 - Implement enumerable editor with radio button
 - Implement `list-box` - a `VBox` emulation of `list-view` and provide consistent styling where used

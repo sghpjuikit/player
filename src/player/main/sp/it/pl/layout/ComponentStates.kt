@@ -3,6 +3,7 @@ package sp.it.pl.layout
 import java.io.File
 import java.util.UUID
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
@@ -78,6 +79,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is SwitchContainerDb -> SwitchContainerDb(id.dd(), translate, loading, locked, children.mapValues { it.value?.dd() }, properties)
       is UniContainerDb -> UniContainerDb(id.dd(), loading, locked, child?.dd(), properties)
       is BiContainerDb -> BiContainerDb(id.dd(), orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd() }, properties)
+      is SeqContainerDb -> SeqContainerDb(id.dd(), orientation, fill, alignment, loading, locked, children.mapValues { it.value?.dd() }, properties)
       is FreeFormContainerDb -> FreeFormContainerDb(id.dd(), loading, locked, showHeaders, children.mapValues { it.value?.dd() }, properties)
       is WidgetDb -> WidgetDb(id.dd(), factoryId, nameUi, loading, locked, properties, fields)
    }
@@ -88,6 +90,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is SwitchContainerDb -> SwitchContainerDb(id, translate, loading, locked, children.mapValues { it.value?.dd2() }, properties)
       is UniContainerDb -> UniContainerDb(id, loading, locked, child?.dd2(), properties)
       is BiContainerDb -> BiContainerDb(id, orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd2() }, properties)
+      is SeqContainerDb -> SeqContainerDb(id, orientation, fill, alignment, loading, locked, children.mapValues { it.value?.dd2() }, properties)
       is FreeFormContainerDb -> FreeFormContainerDb(id, loading, locked, showHeaders, children.mapValues { it.value?.dd2() }, properties)
       is WidgetDb -> WidgetDb(id, factoryId, nameUi, loading, locked, properties.dd(), fields)
    }
@@ -153,6 +156,19 @@ class BiContainerDb(
    properties: Map<String, Any?> = mapOf()
 ): ComponentDb(id, loading, locked, properties) {
    override fun toDomain() = ContainerBi(this)
+}
+
+class SeqContainerDb(
+   id: UUID = UUID.randomUUID(),
+   val orientation: Orientation = Orientation.VERTICAL,
+   val fill: Boolean = false,
+   val alignment: Pos = Pos.CENTER,
+   loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,
+   locked: Boolean = false,
+   val children: Map<Int, ComponentDb?> = mapOf(),
+   properties: Map<String, Any?> = mapOf()
+): ComponentDb(id, loading, locked, properties) {
+   override fun toDomain() = ContainerSeq(this)
 }
 
 class FreeFormContainerDb(

@@ -48,6 +48,7 @@ import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.fieldvalue.IconField
 import org.jetbrains.annotations.Blocking
+import sp.it.pl.layout.SeqContainerDb
 import sp.it.pl.layout.WidgetNodeInstance
 import sp.it.util.conf.Config
 import sp.it.util.file.json.JsConverter
@@ -83,6 +84,7 @@ class CoreSerializerJson: Core {
           "root-container" alias RootContainerDb::class
            "uni-container" alias UniContainerDb::class
             "bi-container" alias BiContainerDb::class
+           "seq-container" alias SeqContainerDb::class
           "free-container" alias FreeFormContainerDb::class
    "free-container-window" alias ContainerFreeFormUi.WindowPosition::class
         "switch-container" alias SwitchContainerDb::class

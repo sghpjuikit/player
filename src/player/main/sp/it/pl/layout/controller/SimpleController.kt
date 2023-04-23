@@ -35,6 +35,8 @@ open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator
 
    /** The ui root that attaches this widget to the scene graph */
    @JvmField val root = stackPane {
+      id = "controller-root"
+
       if (widget.fieldsRaw["node"] == null) {
          onEventUp(MOUSE_CLICKED, SECONDARY, false) { if (it.isPrimaryButtonDown && it.isStillSincePress) { contextMenuFor(widget).show(this, it); it.consume() } }
          onEventDown(CONTEXT_MENU_REQUESTED) { if (it.isKeyboardTrigger) { contextMenuFor(widget).show(this, it); it.consume() } }

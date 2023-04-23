@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. Format base
 ## [Latest]
 - Implement audio channel settings for vlc playback
 - Implement audio device settings for vlc playback
+- Implement `ContainerSeq` - sequential container based on HBox/VBox
 - Implement correct window owners for content in popups launched through actions
 - Implement **FunctionViewer** widget derivation
 - Implement **Git projects** widget project directory refresh on delete

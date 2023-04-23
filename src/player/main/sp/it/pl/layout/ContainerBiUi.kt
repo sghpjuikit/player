@@ -275,8 +275,7 @@ class ContainerBiUi(c: ContainerBi): ContainerUi<ContainerBi>(c) {
             }
          }
          is Widget -> {
-            ui.value = ui.value.takeIf { it is WidgetUi && it.widget==c }
-               ?: WidgetUi(container, i, c).closeUi(ui).showIfLM()
+            ui.value = ui.value.takeIf { it is WidgetUi && it.widget==c } ?: WidgetUi(container, i, c).closeUi(ui).showIfLM()
             ui.value!!.root
          }
          null -> {

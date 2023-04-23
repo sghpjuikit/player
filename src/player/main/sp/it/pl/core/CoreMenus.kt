@@ -73,7 +73,6 @@ import sp.it.pl.main.toUi
 import sp.it.pl.main.writeImage
 import sp.it.pl.plugin.PluginBox
 import sp.it.pl.ui.item_node.WidgetsCE.WidgetInfoPane
-import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean
 import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean.Companion.buildSingleSelectionMenu
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.image.Thumbnail
@@ -387,7 +386,7 @@ object CoreMenus: Core {
                items(
                   APP.instances.getInstancesAsSeq<SearchUriBuilder>(),
                   { "in ${it.name}" },
-                  { null },
+                  { it.icon?.toCmUi() },
                   { uriBuilder -> value.songs.firstOrNull()?.toMetadata { uriBuilder(it.getAlbumOrEmpty()).browse() } }
                )
             }

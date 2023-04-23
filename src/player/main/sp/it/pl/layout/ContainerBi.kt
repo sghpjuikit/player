@@ -37,7 +37,7 @@ class ContainerBi: Container<ContainerBiUi> {
    /** Whether the children should appear as one, i.e., the divider has little to no visibility */
    val joined by cv(false).def(name = "Joined", info = "Whether the children should appear as one, i.e., the divider has little to no visibility.")
 
-   constructor(state: BiContainerDb = BiContainerDb()): super(state) {
+   constructor(state: ContainerBiDb = ContainerBiDb()): super(state) {
       orientation.value = state.orientation
       position.value = state.position
       absoluteSize.value = state.absoluteSize
@@ -47,7 +47,7 @@ class ContainerBi: Container<ContainerBiUi> {
       setChildrenParents()
    }
 
-   constructor(o: Orientation): this(BiContainerDb(orientation = o))
+   constructor(o: Orientation): this(ContainerBiDb(orientation = o))
 
    override fun load(): Node {
       val u = ui ?: ContainerBiUi(this)
@@ -91,6 +91,6 @@ class ContainerBi: Container<ContainerBiUi> {
 
    override fun hide() = ui?.hide() ?: Unit
 
-   override fun toDb() = BiContainerDb(id, orientation.value, position.value, absoluteSize.value, collapsed.value, joined.value, loadType.value, locked.value, children.mapValues { it.value?.toDb() }, properties)
+   override fun toDb() = ContainerBiDb(id, orientation.value, position.value, absoluteSize.value, collapsed.value, joined.value, loadType.value, locked.value, children.mapValues { it.value?.toDb() }, properties)
 
 }

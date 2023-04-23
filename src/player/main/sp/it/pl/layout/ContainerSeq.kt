@@ -19,7 +19,7 @@ class ContainerSeq: Container<ContainerSeqUi> {
    val fill by cv(false).def(name = "Fill", info = "Whether or not resizable children will be resized to fill the full size of the box or be resized to their preferred size and aligned according to the alignment value. Note that if the box alignment is set to BASELINE, then this property will be ignored and children will be resized to their preferred size.")
    val alignment by cv(Pos.CENTER).def(name = "Alignment", info = "")
 
-   constructor(state: SeqContainerDb = SeqContainerDb()): super(state) {
+   constructor(state: ContainerSeqDb = ContainerSeqDb()): super(state) {
       orientation.value = state.orientation
       fill.value = state.fill
       alignment.value = state.alignment
@@ -27,7 +27,7 @@ class ContainerSeq: Container<ContainerSeqUi> {
       setChildrenParents()
    }
 
-   constructor(o: Orientation): this(SeqContainerDb(orientation = o))
+   constructor(o: Orientation): this(ContainerSeqDb(orientation = o))
 
    override fun load(): Node {
       val u = ui ?: ContainerSeqUi(this)
@@ -61,6 +61,6 @@ class ContainerSeq: Container<ContainerSeqUi> {
 
    override fun hide() = ui?.hide() ?: Unit
 
-   override fun toDb() = SeqContainerDb(id, orientation.value, fill.value, alignment.value, loadType.value, locked.value, children.mapValues { it.value?.toDb() }, properties)
+   override fun toDb() = ContainerSeqDb(id, orientation.value, fill.value, alignment.value, loadType.value, locked.value, children.mapValues { it.value?.toDb() }, properties)
 
 }

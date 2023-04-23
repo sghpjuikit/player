@@ -2,7 +2,7 @@ package sp.it.pl.ui.objects.window.stage
 
 import javafx.stage.StageStyle
 import javafx.stage.StageStyle.TRANSPARENT
-import sp.it.pl.layout.RootContainerDb
+import sp.it.pl.layout.ContainerRootDb
 import sp.it.pl.main.APP
 import sp.it.pl.main.Double01
 import sp.it.pl.ui.objects.window.stage.Window.BgrEffect
@@ -29,7 +29,7 @@ data class WindowDb(
    val effect: OrValue<BgrEffect>? = OrValue(false, BgrEffect.OFF),
    val isTaskbarVisible: Boolean = true,
    val opacity: OrValue<Double01>? = null,
-   val layout: RootContainerDb? = null
+   val layout: ContainerRootDb? = null
 ) {
    fun toDomain(): Window = APP.windowManager.create(state = this).also {
       it.X.value = x

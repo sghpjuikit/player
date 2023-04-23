@@ -22,7 +22,7 @@ open class ContainerUni: Container<ComponentUi> {
       get() = children[1]
       set(w) = addChild(1, w)
 
-   constructor(state: UniContainerDb = UniContainerDb()): super(state) {
+   constructor(state: ContainerUniDb = ContainerUniDb()): super(state) {
       children[1] = state.child?.toDomain()
       setChildrenParents()
    }
@@ -69,7 +69,7 @@ open class ContainerUni: Container<ComponentUi> {
 
    override fun getEmptySpot(): Int? = if (child===null) 1 else null
 
-   override fun toDb(): ComponentDb = UniContainerDb(id, loadType.value, locked.value, child?.toDb(), properties)
+   override fun toDb(): ComponentDb = ContainerUniDb(id, loadType.value, locked.value, child?.toDb(), properties)
 
    private fun <T> T.disposeUi() = apply { ui?.dispose() }
 

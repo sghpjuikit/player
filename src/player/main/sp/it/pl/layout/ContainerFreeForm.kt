@@ -13,7 +13,7 @@ class ContainerFreeForm: Container<ContainerFreeFormUi> {
    val showHeaders by cv(true).def(name = "Show header", info = "Whether window headers are visible")
 
    @JvmOverloads
-   constructor(state: FreeFormContainerDb = FreeFormContainerDb()): super(state) {
+   constructor(state: ContainerFreeFormDb = ContainerFreeFormDb()): super(state) {
       showHeaders.value = state.showHeaders
       children += state.children.mapValues { it.value?.toDomain() }.filterNotNullValues()
       setChildrenParents()
@@ -50,7 +50,7 @@ class ContainerFreeForm: Container<ContainerFreeFormUi> {
       return ui!!.root
    }
 
-   override fun toDb() = FreeFormContainerDb(id, loadType.value, locked.value, showHeaders.value, children.mapValues { it.value?.toDb() }, properties)
+   override fun toDb() = ContainerFreeFormDb(id, loadType.value, locked.value, showHeaders.value, children.mapValues { it.value?.toDb() }, properties)
 
    override fun show() = ui?.show() ?: Unit
 

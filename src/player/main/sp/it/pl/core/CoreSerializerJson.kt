@@ -30,13 +30,13 @@ import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.conf.Command
-import sp.it.pl.layout.BiContainerDb
+import sp.it.pl.layout.ContainerBiDb
 import sp.it.pl.layout.ContainerFreeFormUi
-import sp.it.pl.layout.FreeFormContainerDb
+import sp.it.pl.layout.ContainerFreeFormDb
 import sp.it.pl.layout.NoComponentDb
-import sp.it.pl.layout.RootContainerDb
+import sp.it.pl.layout.ContainerRootDb
 import sp.it.pl.layout.SwitchContainerDb
-import sp.it.pl.layout.UniContainerDb
+import sp.it.pl.layout.ContainerUniDb
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetDb
 import sp.it.pl.main.APP
@@ -48,7 +48,7 @@ import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.fieldvalue.IconField
 import org.jetbrains.annotations.Blocking
-import sp.it.pl.layout.SeqContainerDb
+import sp.it.pl.layout.ContainerSeqDb
 import sp.it.pl.layout.WidgetNodeInstance
 import sp.it.util.conf.Config
 import sp.it.util.file.json.JsConverter
@@ -81,11 +81,11 @@ class CoreSerializerJson: Core {
       json.typeAliases {
          // @formatter:off
             "no-container" alias NoComponentDb::class
-          "root-container" alias RootContainerDb::class
-           "uni-container" alias UniContainerDb::class
-            "bi-container" alias BiContainerDb::class
-           "seq-container" alias SeqContainerDb::class
-          "free-container" alias FreeFormContainerDb::class
+          "root-container" alias ContainerRootDb::class
+           "uni-container" alias ContainerUniDb::class
+            "bi-container" alias ContainerBiDb::class
+           "seq-container" alias ContainerSeqDb::class
+          "free-container" alias ContainerFreeFormDb::class
    "free-container-window" alias ContainerFreeFormUi.WindowPosition::class
         "switch-container" alias SwitchContainerDb::class
                   "widget" alias WidgetDb::class

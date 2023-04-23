@@ -75,23 +75,23 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
 
    fun ComponentDb.dd(): ComponentDb = when (this) {
       is NoComponentDb -> this
-      is RootContainerDb -> RootContainerDb(id.dd(), loading, locked, child?.dd(), properties)
+      is ContainerRootDb -> ContainerRootDb(id.dd(), loading, locked, child?.dd(), properties)
       is SwitchContainerDb -> SwitchContainerDb(id.dd(), translate, loading, locked, children.mapValues { it.value?.dd() }, properties)
-      is UniContainerDb -> UniContainerDb(id.dd(), loading, locked, child?.dd(), properties)
-      is BiContainerDb -> BiContainerDb(id.dd(), orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd() }, properties)
-      is SeqContainerDb -> SeqContainerDb(id.dd(), orientation, fill, alignment, loading, locked, children.mapValues { it.value?.dd() }, properties)
-      is FreeFormContainerDb -> FreeFormContainerDb(id.dd(), loading, locked, showHeaders, children.mapValues { it.value?.dd() }, properties)
+      is ContainerUniDb -> ContainerUniDb(id.dd(), loading, locked, child?.dd(), properties)
+      is ContainerBiDb -> ContainerBiDb(id.dd(), orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd() }, properties)
+      is ContainerSeqDb -> ContainerSeqDb(id.dd(), orientation, fill, alignment, loading, locked, children.mapValues { it.value?.dd() }, properties)
+      is ContainerFreeFormDb -> ContainerFreeFormDb(id.dd(), loading, locked, showHeaders, children.mapValues { it.value?.dd() }, properties)
       is WidgetDb -> WidgetDb(id.dd(), factoryId, nameUi, loading, locked, properties, fields)
    }
 
    fun ComponentDb.dd2(): ComponentDb = when (this) {
       is NoComponentDb -> this
-      is RootContainerDb -> RootContainerDb(id, loading, locked, child?.dd2(), properties)
+      is ContainerRootDb -> ContainerRootDb(id, loading, locked, child?.dd2(), properties)
       is SwitchContainerDb -> SwitchContainerDb(id, translate, loading, locked, children.mapValues { it.value?.dd2() }, properties)
-      is UniContainerDb -> UniContainerDb(id, loading, locked, child?.dd2(), properties)
-      is BiContainerDb -> BiContainerDb(id, orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd2() }, properties)
-      is SeqContainerDb -> SeqContainerDb(id, orientation, fill, alignment, loading, locked, children.mapValues { it.value?.dd2() }, properties)
-      is FreeFormContainerDb -> FreeFormContainerDb(id, loading, locked, showHeaders, children.mapValues { it.value?.dd2() }, properties)
+      is ContainerUniDb -> ContainerUniDb(id, loading, locked, child?.dd2(), properties)
+      is ContainerBiDb -> ContainerBiDb(id, orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd2() }, properties)
+      is ContainerSeqDb -> ContainerSeqDb(id, orientation, fill, alignment, loading, locked, children.mapValues { it.value?.dd2() }, properties)
+      is ContainerFreeFormDb -> ContainerFreeFormDb(id, loading, locked, showHeaders, children.mapValues { it.value?.dd2() }, properties)
       is WidgetDb -> WidgetDb(id, factoryId, nameUi, loading, locked, properties.dd(), fields)
    }
 
@@ -111,14 +111,14 @@ object NoComponentDb: ComponentDb() {
    override fun toDomain() = null
 }
 
-class RootContainerDb(
+class ContainerRootDb(
    id: UUID = UUID.randomUUID(),
    loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,
    locked: Boolean = false,
    val child: ComponentDb? = null,
    properties: Map<String, Any?> = mapOf()
 ): ComponentDb(id, loading, locked, properties) {
-   fun toUni() = UniContainerDb(id, loading, locked, child, properties)
+   fun toUni() = ContainerUniDb(id, loading, locked, child, properties)
    override fun toDomain() = Layout(this)
 }
 
@@ -133,7 +133,7 @@ class SwitchContainerDb(
    override fun toDomain() = ContainerSwitch(this)
 }
 
-class UniContainerDb(
+class ContainerUniDb(
    id: UUID = UUID.randomUUID(),
    loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,
    locked: Boolean = false,
@@ -143,7 +143,7 @@ class UniContainerDb(
    override fun toDomain() = ContainerUni(this)
 }
 
-class BiContainerDb(
+class ContainerBiDb(
    id: UUID = UUID.randomUUID(),
    val orientation: Orientation = Orientation.VERTICAL,
    val position: Double = 0.5,
@@ -158,7 +158,7 @@ class BiContainerDb(
    override fun toDomain() = ContainerBi(this)
 }
 
-class SeqContainerDb(
+class ContainerSeqDb(
    id: UUID = UUID.randomUUID(),
    val orientation: Orientation = Orientation.VERTICAL,
    val fill: Boolean = false,
@@ -171,7 +171,7 @@ class SeqContainerDb(
    override fun toDomain() = ContainerSeq(this)
 }
 
-class FreeFormContainerDb(
+class ContainerFreeFormDb(
    id: UUID = UUID.randomUUID(),
    loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,
    locked: Boolean = false,

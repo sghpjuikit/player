@@ -18,7 +18,7 @@ class Layout: ContainerUni {
    private var uiL: LayoutUi? = null
 
    @JvmOverloads
-   constructor(state: RootContainerDb = RootContainerDb()): super(state.toUni())
+   constructor(state: ContainerRootDb = ContainerRootDb()): super(state.toUni())
 
    override fun load(): Node {
       setParentRec()
@@ -47,7 +47,7 @@ class Layout: ContainerUni {
 
    override fun toString() = "${Layout::class} name=$name"
 
-   override fun toDb() = RootContainerDb(id, loadType.value, locked.value, child?.toDb(), properties)
+   override fun toDb() = ContainerRootDb(id, loadType.value, locked.value, child?.toDb(), properties)
 
    private fun <T> T.disposeUiL() = apply { uiL?.dispose() }
 

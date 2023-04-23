@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix inconsistent cell & icon in cell styling
 - Fix inconsistent menu shortcut hint styling
 - Fix inconsistent disabled menu styling
+- Fix inconsistent context menu item height styling
 - Fix `Node.containsScene` errors in some cases
 - Fix css errors due to missing colors
 - Fix text broken in some cases

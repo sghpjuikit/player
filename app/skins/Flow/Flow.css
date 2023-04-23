@@ -24,6 +24,9 @@
 .tree-table-row-cell > .tree-disclosure-node {
     -fx-padding: 1.25em 0.5em 0 0;
 }
+.menu-item {
+    -fx-pref-height: 2em;
+}
 
 /* Add focus effect */
 .icon:hover {

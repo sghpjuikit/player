@@ -1323,6 +1323,8 @@ TextFlow > * {
 
 /* Standard cell */
 .list-cell,
+.table-cell,
+.tree-table-cell,
 .tree-cell {}
 
 /* Selected rows focused control*/
@@ -1399,6 +1401,8 @@ TextFlow > * {
     /* Constants used throughout the table-view. */
     -fx-table-header-border-color: -fx-box-border;
     -fx-table-cell-border-color: derive(-fx-color,5%);
+        -fx-border-width: 1;
+        -fx-border-insets: 0;
 }
 /***** ROW CELLS **************************************************************/
 /* Each row in the table is a table-row-cell. Inside a table-row-cell is any
@@ -1434,6 +1438,8 @@ TextFlow > * {
     -fx-opacity: 0.6;
     -fx-background-color: -fx-background;
     -fx-padding: 0.0em 0.0416667em 0.0em 0.0416667em; /* 0 0.571429 0 0.571429 */
+        -fx-border-width: 1;
+        -fx-border-insets: 0;
 }
 /* This is the area behind the column headers. An ideal place to specify background
    and border colors for the whole area (not individual column-header's). */
@@ -1664,10 +1670,10 @@ TextFlow > * {
 .tooltip {
     -fx-text-fill: -skin-def-font-color;
     -fx-background-color: -skin-window-bgr-color-content-free;
-    -fx-background-radius: 55;
+    -fx-background-radius: 0;
     -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
-    -fx-border-radius: 5;
+    -fx-border-radius: 0;
     -fx-padding: 0.5em 1em 0.5em 1em;
 
     /*

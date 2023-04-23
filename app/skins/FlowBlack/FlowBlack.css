@@ -210,7 +210,7 @@
 /* Gradient cell effect - border support */
 .list-cell, .table-row-cell, .grid-cell, .tree-cell, .tree-table-row-cell {
     -fx-border-color: transparent;
-    -fx-border-width: 1;
+    -fx-border-width: 2;
 }
 /* Gradient cell effect - hover */
 .list-cell:filled:hover,
@@ -219,8 +219,9 @@
 .tree-cell:filled:hover,
 .tree-table-row-cell:filled:hover {
     -fx-background-color: transparent;
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(0,255,255,0.05) 25%, transparent 70%);
     -fx-border-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%);
-    -fx-border-width: 1;
+    -fx-border-width: 2;
 }
 
 /* Gradient cell effect - focus */
@@ -238,7 +239,7 @@
 .tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
     -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(255,0,0,0.2) 25%, transparent 70%);
     -fx-border-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(255,0,0,1.0) 50%, transparent 100%);
-    -fx-border-width: 1;
+    -fx-border-width: 2;
 }
 .combo-box > .list-cell,
 .combo-box:editable > .list-cell,

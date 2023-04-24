@@ -87,18 +87,18 @@ User installation steps necessary:
 ##### Windows
 
 As gui application: open `./SpitPlayer.exe` file   
-As console application: open `./SpitPlayerc.exe` file
+As console application: open `./SpitPlayer.com` file
 
-The difference between `./SpitPlayer.exe` and `./SpitPlayerc.exe` is that
+The difference between `./SpitPlayer.exe` and `./SpitPlayer.com` is that
 - `./SpitPlayer.exe` launched from terminal/commandline does not wait for process end and shows no output (stdout/stderr).   
   Recommended using for starting the application normally, from file explorer or by shortcut.
-- `./SpitPlayerc.exe` launched from outside terminal will open new commandline window
+- `./SpitPlayer.com` launched from outside terminal will open new commandline window
   Recommended using for starting the application from terminal, particularly to see its output or use its commands like help.
 
 From terminal (using bash):
 - `cd /drive-letter/path/to/application/directory`
-- `./SpitPlayerc.exe` to launch the application as console application
-- for options and commands see help to use `./SpitPlayerc -h` or `./SpitPlayerc --help`
+- `./SpitPlayer.com` to launch the application as console application
+- for options and commands see help to use `./SpitPlayer.com -h` or `./SpitPlayer.com --help`
 
 ##### Linux
 

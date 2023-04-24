@@ -53,8 +53,8 @@ Run one of the binaries or launchers in the [app](/app) directory (which can be 
 - `./SpitPlayer.com --help` shows help
 
 #### OSX & Linux
-- `./SpitPlayerc.sh` starts the application
-- `./SpitPlayerc.sh --help` shows help
+- `./SpitPlayer.sh` starts the application
+- `./SpitPlayer.sh --help` shows help
 
 #### Properties
 
@@ -76,12 +76,12 @@ Run one of the binaries or launchers in the [app](/app) directory (which can be 
   Project build definition, like build files, etc.
 - [gradle/\<module\>.gradle.kts](gradle/project.gradle.kts)  
   Project module build definition, like dependencies, etc.
-- [app/user/application.properties](app/user/application.properties)  
+- [app/user/application.json](app/user/application.json)  
   User application properties, managed by application and editable through its ui
 - [app/SpitPlayer.l4j.ini](app/SpitPlayer.l4j.ini)  
   User JVM arguments for [SpitPlayer.exe](app/SpitPlayer.exe)
-- [app/SpitPlayerc.l4j.ini](app/SpitPlayerc.l4j.ini)  
-  User JVM arguments for [SpitPlayerc.exe](app/SpitPlayerc.exe)
+- [app/SpitPlayerc.l4j.ini](app/SpitPlayer.com.l4j.ini)  
+  User JVM arguments for [SpitPlayer.com](app/SpitPlayer.com)
 
 ## Dependencies
 

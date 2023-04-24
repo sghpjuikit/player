@@ -532,18 +532,18 @@ object `AppLocation`: Dir(File("").absolutePath) {
    
    }
 
-   /** File child [`SpitPlayerc_exe`]. */
-   val `spitplayerc_exe` = `SpitPlayerc_exe`
+   /** File child [`SpitPlayer_com`]. */
+   val `spitplayer_com` = `SpitPlayer_com`
    
    /**
     * Compile-time object representing file `File("").absolutePath`, usable in annotations.
     * 
     * Windows executable file that opens this application as gui application.
     */
-   object `SpitPlayerc_exe`: Fil(File("").absolutePath + separator + "SpitPlayerc.exe") {
+   object `SpitPlayer_com`: Fil(File("").absolutePath + separator + "SpitPlayer.com") {
    
-      /** Same as [getName]. Compile-time constant. `SpitPlayerc.exe`.*/
-      const val fileName: String = """SpitPlayerc.exe"""
+      /** Same as [getName]. Compile-time constant. `SpitPlayer.com`.*/
+      const val fileName: String = """SpitPlayer.com"""
       /** Description of this file. Compile-time constant. Same as documentation for this object. */
       const val fileDescription: String = """Windows executable file that opens this application as gui application."""
    

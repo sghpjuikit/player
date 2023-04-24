@@ -409,7 +409,7 @@ private fun File.openWindowsExplorerAndSelect() =
  */
 @NonBlocking
 fun File.isExecutable(): Boolean = when (Os.current) {
-   Os.WINDOWS -> hasExtension("exe", "bat") || (this.hasExtension("lnk") && WindowsShortcut.targetedFile(this).orNull()?.isExecutable()==true)
+   Os.WINDOWS -> hasExtension("exe", "bat", "com") || (this.hasExtension("lnk") && WindowsShortcut.targetedFile(this).orNull()?.isExecutable()==true)
    else -> hasExtension("sh")
 }
 

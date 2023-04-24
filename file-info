@@ -84,7 +84,7 @@ app {
   # File containing application source code and main class. Executed by java.exe when started.
   SpitPlayer.jar
   # Windows executable file that opens this application as gui application.
-  SpitPlayerc.exe
+  SpitPlayer.com
   # Windows executable file that opens this application as console application.
   SpitPlayer.exe
   # Linux/Mac executable file that opens this application.

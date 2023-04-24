@@ -69,7 +69,7 @@ fun ComponentFactory<*>.loadIn(strategy: ComponentLoaderStrategy, process: Compo
          }
       }
       NEW_PROCESS -> {
-         val f = if (Os.WINDOWS.isCurrent) APP.location.spitplayerc_exe else APP.location.spitplayer_sh
+         val f = if (Os.WINDOWS.isCurrent) APP.location.spitplayer_com else APP.location.spitplayer_sh
          val fArgs = (APP.location/"SpitPlayer.l4j.ini").readLines().filter { it.isNotBlank() && !it.startsWith("#") }.toTypedArray()
          f.runAsAppProgram(
             "Launching component ${c.name} in new process",
@@ -89,7 +89,7 @@ fun Component.openIn(strategy: ComponentLoaderStrategy, process: ComponentLoader
          }
       }
       NEW_PROCESS -> {
-         val f = if (Os.WINDOWS.isCurrent) APP.location.spitplayerc_exe else APP.location.spitplayer_sh
+         val f = if (Os.WINDOWS.isCurrent) APP.location.spitplayer_com else APP.location.spitplayer_sh
          val fArgs = (APP.location/"SpitPlayer.l4j.ini").readLines().filter { it.isNotBlank() && !it.startsWith("#") }.toTypedArray()
          f.runAsAppProgram(
             "Launching component ${c.name} in new process",

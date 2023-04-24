@@ -49,8 +49,8 @@ Run one of the binaries or launchers in the [app](/app) directory (which can be 
 - run `SpitPlayer.exe`
 
 #### Windows console
-- `./SpitPlayerc.exe` starts the application
-- `./SpitPlayerc.exe --help` shows help
+- `./SpitPlayer.com` starts the application as console application
+- `./SpitPlayer.com --help` shows help
 
 #### OSX & Linux
 - `./SpitPlayerc.sh` starts the application

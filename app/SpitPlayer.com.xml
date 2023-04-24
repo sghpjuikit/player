@@ -4,12 +4,12 @@
   <dontWrapJar>true</dontWrapJar>
   <headerType>console</headerType>
   <jar>SpitPlayer.jar</jar>
-  <outfile>SpitPlayerc.exe</outfile>
+  <outfile>SpitPlayer.com</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>
   <priority>normal</priority>
-  <downloadUrl>http://java.com/download</downloadUrl>
+  <downloadUrl>https://java.com/download</downloadUrl>
   <supportUrl></supportUrl>
   <stayAlive>true</stayAlive>
   <restartOnCrash>false</restartOnCrash>

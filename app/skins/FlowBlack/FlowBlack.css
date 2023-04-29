@@ -22,8 +22,8 @@
     -skin-window-bgr-color: rgba(20, 20, 20, 0.7);
     -skin-window-bgr-color-content-free: rgba(0, 0, 0, 0.64);
 
-    -fx-focus-color: rgb(255,0,0);
-    -fx-faint-focus-color: rgb(255,0,0);
+    -fx-focus-color: red;
+    -fx-faint-focus-color: red;
 
     -skin-bgr-color: rgb(0, 0, 0);
     -skin-window-bgr-color-content-free: rgba(0, 0, 0, 0.64); // needs to be consistent with (.window bgr color > .widget-ui bgr color)
@@ -105,15 +105,17 @@
 }
 
 /* Make text more readable */
-.list-cell LabeledText,
-.tree-cell LabeledText,
-.table-row-cell LabeledText,
-.tree-table-row-cell LabeledText,
+.list-cell > LabeledText,
+.grid-cell > LabeledText,
+.table-cell > LabeledText,
+.tree-cell > LabeledText,
+.tree-table-cell > LabeledText,
 .menu .label .icon Text,
 .menu-button .label .icon Text,
 .label {
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0, 0.5), 1,1 , 0,0);
+    -fx-effect: dropshadow(one-pass-box, rgba(0,0,0, 0.5), 5,1 , 0,0);
 }
+
 .menu .label,
 .menu-button .label {
     -fx-effect: null;

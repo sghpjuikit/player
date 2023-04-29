@@ -212,6 +212,12 @@
     -fx-effect: dropshadow(gaussian, red, 24,0 , 0,0);
 }
 
+/* Played row */
+.table-row-cell:played > .indexed-cell,
+.table-row-cell:played:selected > .indexed-cell {
+    -fx-text-fill: -skin-def-font-color;
+}
+
 /* Gradient cell effect - hover */
 .list-cell:filled:hover,
 .table-row-cell:filled:hover,
@@ -225,6 +231,7 @@
 
 /* Gradient cell effect - focus */
 .list-cell:filled:selected,
+.table-row-cell:filled:played,
 .table-row-cell:filled:selected,
 .grid-cell:full-width:selected,
 .tree-cell:filled:selected,

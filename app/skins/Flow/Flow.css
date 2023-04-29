@@ -116,6 +116,13 @@
     -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
 }
 
+/* Gradient cell effect - support */
+.grid-cell:full-width,
+.tree-cell:filled {
+    -fx-border-color: transparent;
+    -fx-border-width: 1 0 1 0;
+}
+
 /* Gradient cell effect - hover */
 .list-cell:filled:hover,
 .table-row-cell:filled:hover,

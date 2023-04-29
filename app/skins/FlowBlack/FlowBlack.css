@@ -218,6 +218,13 @@
     -fx-text-fill: -skin-def-font-color;
 }
 
+/* Gradient cell effect - support */
+.grid-cell:full-width,
+.tree-cell:filled {
+    -fx-border-color: transparent;
+    -fx-border-width: 2 0 2 0;
+}
+
 /* Gradient cell effect - hover */
 .list-cell:filled:hover,
 .table-row-cell:filled:hover,

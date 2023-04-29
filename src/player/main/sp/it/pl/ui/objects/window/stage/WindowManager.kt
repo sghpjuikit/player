@@ -32,7 +32,6 @@ import javafx.stage.StageStyle
 import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.StageStyle.UTILITY
-import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import kotlin.math.sqrt
 import kotlinx.coroutines.invoke
@@ -122,11 +121,9 @@ import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
-import sp.it.util.reactive.onEventUp1
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSyncWhile
-import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncFrom
@@ -255,7 +252,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                if (w.isOverlayWindow() && w.asOverlayWindow()!!.displayBgr.value!=ScreenBgrGetter.NONE)
                   return@onItemSyncWhile Subscription { }
 
-               val s1 = (w.asAppWindow()?.transparency ?: windowTransparency) zip (w.asAppWindow()?.effect ?: windowEffect) sync { (transparency, effect) ->
+               (w.asAppWindow()?.transparency ?: windowTransparency) zip (w.asAppWindow()?.effect ?: windowEffect) sync { (transparency, effect) ->
                   runLater {
                      w.takeIf { it.isShowing }?.reflectHwnd().ifNotNull {
                         it.alpha(0.0f) // remove visual artefact
@@ -273,10 +270,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                      }
                   }
                }
-            val s2 = w.onEventUp1(WINDOW_HIDING) {
-               w.reflectHwnd()?.applyBlur(ACCENT_DISABLED)
-            }
-            s1 + s2
          }
 
       APP.mouse.screens.onChangeAndNow {

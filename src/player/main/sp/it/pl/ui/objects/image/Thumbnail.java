@@ -444,7 +444,7 @@ public class Thumbnail {
 
 	private @Nullable Boolean animInitialized = null;
 	private @Nullable Timeline animation = null;
-	private Fut<List<ImageFrame>> animImages = Fut.fut(null);
+	private @Nullable Fut<List<ImageFrame>> animImages = null;
 	private Runnable animCommand = () -> {};
 
 	private void animDispose() {
@@ -452,13 +452,14 @@ public class Thumbnail {
 		animCommand = () -> {};
 		if (animation != null) animation.stop();
 		animation = null;
-		animImages.ui(consumer(images -> { if (images!=null) images.forEach(img -> destroyImage(img.getImg())); }));
-		animImages = Fut.fut(null);
+		if (animImages!=null) animImages.ui(consumer(images -> { if (images!=null) images.forEach(img -> destroyImage(img.getImg())); }));
+		animImages = null;
 		if (imageView.getImage() != image.getValue()) setImgFrame(image.getValue());
 	}
 
 	private void animInitialize(boolean lazy) {
 		if (!lazy) animInitializeImpl();
+		if (animImages==null) return;
 		if (animImages.isDone()) animCommand.run();
 		else animImages.ui(consumer(it -> animCommand.run()));
 	}

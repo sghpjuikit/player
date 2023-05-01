@@ -28,6 +28,7 @@ import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.util.HierarchicalBase
 import sp.it.util.JavaLegacy
 import sp.it.util.access.fieldvalue.CachingFile
+import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.async.SemaphoreLock
 import sp.it.util.async.VT
 import sp.it.util.async.future.Fut
@@ -71,6 +72,8 @@ abstract class Item(parent: Item?, value: File, valueType: FileType): Hierarchic
    protected var childrenRaw: MutableSet<String>? = null
 
    @Volatile var cover: ImageLoad = NotStarted
+
+   @Volatile var isHidden: Fut<Boolean>? = null
 
    @Volatile
    protected var coverFile: Option<File?> = None
@@ -215,6 +218,24 @@ abstract class Item(parent: Item?, value: File, valueType: FileType): Hierarchic
          if (fileExists(n, ch)) return File(dir, n)
       }
       return null
+   }
+
+   fun computeIsHidden(): Fut<Boolean> {
+      failIfNotFxThread()
+      return when (val h = isHidden) {
+         null -> computeIsHiddenAsync().apply { isHidden = this }
+         else -> h
+      }
+   }
+
+   private fun computeIsHiddenAsync(): Fut<Boolean> {
+      return if (disposed) {
+         fut(false)
+      } else {
+         runOn(CoverStrategy.VT_IMAGE) {
+            FileField.IS_HIDDEN.getOf(value)
+         }
+      }
    }
 
    open fun computeCoverInterrupt() {

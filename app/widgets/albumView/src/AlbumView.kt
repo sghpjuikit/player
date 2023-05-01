@@ -3,13 +3,13 @@ package albumView
 import java.io.File
 import java.util.function.Supplier
 import javafx.geometry.Pos
+import javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
 import javafx.scene.control.Label
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
-import javafx.scene.layout.Pane
 import javafx.scene.shape.Rectangle
 import kotlin.math.round
 import kotlin.math.sqrt
@@ -85,10 +85,12 @@ import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.Interrupts
 import sp.it.util.ui.image.Interrupts.interrupt
+import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.width
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
 import sp.it.util.units.millis
@@ -345,7 +347,6 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
    }
 
    inner class AlbumCell: GridCell<Album, MetadataGroup>() {
-      private lateinit var root: Pane
       private lateinit var name: Label
       private lateinit var stroke: Rectangle
       private var thumb: Thumbnail? = null
@@ -356,9 +357,10 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          anim(150.millis) {
             val p = sqrt(it)
             val s = 2.emScaled
-            val x = -s+(1-p)*(s + computeCellTextHeight())
+            val xRaw = s + computeCellTextHeight()
+            val x = p*xRaw
             stroke.strokeWidth = (p*s) max 1.0
-            name.style = "-fx-background-insets: $x 0 0 0;"
+            thumb?.pane?.style = "-fx-border-color: black; -fx-border-width: 0 0 $x 0; -fx-border-insets: 0 0 -$xRaw 0;"
          }
       }
       private var disposed = false
@@ -399,16 +401,10 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          if (disposed) return
          super.updateItem(item, empty)
 
-         if (empty) {
-            // do not discard contents of the graphics
-         } else {
-            if (!::root.isInitialized) computeGraphics()  // create graphics lazily and only once
-            if (graphic!==root) graphic = root           // set graphics only when necessary
-
-            if (item!=null) {
-               name.text = computeName(item)
-               setCoverNow(item)
-            }
+         if (!empty) {
+            if (!::name.isInitialized) computeGraphics()  // create graphics lazily and only once
+            if (item!=null) name.text = computeName(item)
+            if (item!=null) setCoverNow(item)
          }
       }
 
@@ -419,8 +415,10 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       }
 
       private fun computeGraphics() {
-         name = Label()
-         name.alignment = Pos.CENTER
+         contentDisplay = GRAPHIC_ONLY
+         name = label {
+            alignment = Pos.CENTER
+         }
 
          thumb = object: Thumbnail() {
             override fun getRepresentant() = item?.items
@@ -444,28 +442,27 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
             isMouseTransparent = true
          }
 
-         root = object: Pane(thumb!!.pane, name, stroke) {
-            override fun layoutChildren() {
-               val x = 0.0 ; val y = 0.0 ; val w = width ; val h = height ; val th = computeCellTextHeight()
-               thumb!!.pane.resizeRelocate(x, y, w, h - th)
-               name.resizeRelocate(x, h - th, w, th)
-               stroke.x = x; stroke.y = y; stroke.width = w; stroke.height = h
-            }
-         }.apply {
-            isSnapToPixel = true
-            minSize = -1.0 x -1.0
-            prefSize = -1.0 x -1.0
-            maxSize = -1.0 x -1.0
-            onEventDown(MOUSE_CLICKED) {
-               if (it.button==PRIMARY && it.clickCount==2) {
-                  onAction(item, it.isShiftDown)
-                  it.consume()
-               }
-            }
-            hoverProperty() sync { h ->
-               hoverAnim.value.playFromDir(h || isSelected)
+         children += listOf(thumb!!.pane, name, stroke)
+         isSnapToPixel = true
+         minSize = -1.0 x -1.0
+         prefSize = -1.0 x -1.0
+         maxSize = -1.0 x -1.0
+         onEventDown(MOUSE_CLICKED) {
+            if (it.button==PRIMARY && it.clickCount==2) {
+               onAction(item, it.isShiftDown)
+               it.consume()
             }
          }
+         hoverProperty() sync { h ->
+            hoverAnim.value.playFromDir(h || isSelected)
+         }
+      }
+
+      override fun layoutChildren() {
+         val x = 0.0; val y = 0.0; val w = width; val h = height; val th = computeCellTextHeight() max 0.0; val lp = labelPadding
+         thumb!!.pane.resizeRelocate(x, y, w, h - th)
+         name.resizeRelocate(x + lp.left, h - th, (w - lp.width) max 0.0, th)
+         stroke.x = x; stroke.y = y; stroke.width = w; stroke.height = h
       }
 
       /** @return size of an image to be loaded for the thumbnail */
@@ -482,7 +479,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       /** @return true if this cell is detached from the grid (i.e. not its child) */
       private fun isInvalidVisibility(): Boolean = parent==null
 
-      private fun isInvalid(item: Album, i: Int): Boolean = isInvalidItem(item) || isInvalidIndex(i) || isInvalidVisibility()
+      private fun isInvalid(item: Album, i: Int): Boolean = disposed || isInvalidItem(item) || isInvalidIndex(i) || isInvalidVisibility()
 
       /**
        * Begins loading cover for the item. If item changes meanwhile, the result is stored
@@ -511,7 +508,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       }
 
       private fun setCoverPost(item: Album, index: Int, img: ImageLoad) {
-         if (!disposed && !isInvalid(item, index) && thumb!!.getImage()!==img.image) {
+         if (!isInvalid(item, index) && thumb!!.getImage()!==img.image) {
             imgLoadAnim?.stop()
             imgLoadAnimItem = item
             imgLoadAnim?.playOpenFrom(item.loadProgress)

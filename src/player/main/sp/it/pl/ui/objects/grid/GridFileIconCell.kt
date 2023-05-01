@@ -3,22 +3,19 @@ package sp.it.pl.ui.objects.grid
 import java.io.File
 import javafx.geometry.Pos
 import javafx.scene.Node
+import javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
 import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.layout.Pane
-import javafx.scene.layout.StackPane
 import sp.it.pl.main.Double01
 import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.fileIcon
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.nameOrRoot
@@ -27,12 +24,12 @@ import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.label
-import sp.it.util.ui.lay
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.show
+import sp.it.util.ui.width
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 
@@ -41,9 +38,9 @@ import sp.it.util.units.millis
  * that shows a thumbnail image. Supports asynchronous loading of thumbnails and loading animation.
  */
 open class GridFileIconCell: GridCell<Item, File>() {
-   protected lateinit var root: Pane
    protected lateinit var name: Label
    protected lateinit var icon: Icon
+   protected var disposed = false
    protected var imgLoadAnimation: Anim? = null
    private var loadProgress: Double01 = 0.0
 
@@ -66,13 +63,14 @@ open class GridFileIconCell: GridCell<Item, File>() {
    }
 
    override fun dispose() {
-      failIfNotFxThread()
-
+      disposed = true
       imgLoadAnimation?.stop()
       imgLoadAnimation = null
    }
 
    override fun updateItem(item: Item?, empty: Boolean) {
+      if (disposed) return
+
       if (item===getItem()) {
          if (!empty) updateIcon(item!!)
          return
@@ -84,22 +82,16 @@ open class GridFileIconCell: GridCell<Item, File>() {
          imgLoadAnimation?.applyAt(loadProgress)
       }
 
-      if (empty) {
-         graphic = null   // do not discard contents of the graphics
-      } else {
-         if (!::root.isInitialized) computeGraphics()  // create graphics lazily and only once
-         if (graphic!==root) graphic = root           // set graphics only when necessary
-      }
-
-      if (graphic!=null) {
+      if (!empty) {
+         if (!::icon.isInitialized) computeGraphics()  // create graphics lazily and only once
          name.text = if (item==null) null else computeName(item)
-         updateIcon(item!!)
-         pseudoClassChanged("file-hidden", FileField.IS_HIDDEN.getOf(item.value))
+         if (item!=null) updateIcon(item)
+         if (item!=null) updateHidden(item)
       }
    }
 
    protected open fun computeGraphics() {
-      val iconAnimationParent = StackPane() // prevents opacity clash with css
+      contentDisplay = GRAPHIC_ONLY
       name = label {
          alignment = Pos.CENTER
       }
@@ -108,46 +100,38 @@ open class GridFileIconCell: GridCell<Item, File>() {
          isManaged = false
          isAnimated.value = false
          isFocusTraversable = false
-         iconAnimationParent.lay += this
       }
-      root = object: Pane(iconAnimationParent, name) {
-         override fun layoutChildren() {
-            val x = 0.0
-            val y = 0.0
-            val w = layoutBounds.width
-            val h = layoutBounds.height
-            val nameGap = 5.emScaled
-            val th = computeCellTextHeight()
-
-            if (gridView.value?.cellWidth?.value == GridView.CELL_SIZE_UNBOUND) {
-               name.alignment = Pos.CENTER_LEFT
-               name.resizeRelocate(h + nameGap, y, (w-h-2*nameGap) max 0.0, h)
-               icon.relocateCenter(h/2, h/2)
-            } else {
-               name.alignment = Pos.CENTER
-               iconAnimationParent.resizeRelocate(x, y, w, h - th)
-               name.resizeRelocate(x + nameGap, h - th + nameGap, (w-2*nameGap) max 0.0, (th-2*nameGap) max 0.0)
-               icon.relocate((iconAnimationParent.width-icon.width)/2, (iconAnimationParent.height-icon.height)/2)
-            }
+      children += listOf(icon, name)
+      isSnapToPixel = true
+      minSize = -1.0 x -1.0
+      prefSize = -1.0 x -1.0
+      maxSize = -1.0 x -1.0
+      onEventDown(MOUSE_CLICKED) {
+         if (it.button==PRIMARY && it.clickCount==2) {
+            onAction(item, it.isShiftDown)
+            it.consume()
          }
-      }.apply {
-         isSnapToPixel = true
-         minSize = -1.0 x -1.0
-         prefSize = -1.0 x -1.0
-         maxSize = -1.0 x -1.0
-         onEventDown(MOUSE_CLICKED) {
-            if (it.button==PRIMARY && it.clickCount==2) {
-               onAction(item, it.isShiftDown)
-               it.consume()
-            }
-         }
-         onEventDown(MOUSE_CLICKED, SECONDARY) {
-            contextMenuFor(item?.value).show(root, it)
-         }
+      }
+      onEventDown(MOUSE_CLICKED, SECONDARY) {
+         contextMenuFor(item?.value).show(this, it)
       }
       imgLoadAnimation = anim(200.millis) {
          loadProgress = it
-         iconAnimationParent.opacity = it*it*it*it
+         icon.opacity = it*it*it*it
+      }
+   }
+
+   override fun layoutChildren() {
+      val x = 0.0; val y = 0.0; val w = width; val h = height; val th = computeCellTextHeight() max 0.0; val lp = labelPadding
+
+      if (gridView.value?.cellWidth?.value == GridView.CELL_SIZE_UNBOUND) {
+         name.alignment = Pos.CENTER_LEFT
+         name.resizeRelocate(h + lp.left, y, (w - h - lp.width) max 0.0, h)
+         icon.relocateCenter(h/2, h/2)
+      } else {
+         name.alignment = Pos.CENTER
+         icon.resizeRelocate(x, y, w, h - th)
+         name.resizeRelocate(x + lp.left, h - th, (w - lp.width) max 0.0, th)
       }
    }
 
@@ -163,7 +147,42 @@ open class GridFileIconCell: GridCell<Item, File>() {
       imgLoadAnimation?.playOpenFrom(loadProgress)
    }
 
+   /** @return true if the item of this cell is not the same object as the item specified */
+   protected fun isInvalidItem(item: Item): Boolean = this.item!==item
+
+   /** @return true if the index of this cell is not the same as the index specified */
+   protected fun isInvalidIndex(index: Int): Boolean = this.index!=index
+
+   /** @return true if this cell is detached from the grid (i.e. not its child) */
+   protected fun isInvalidVisibility(): Boolean = parent==null
+
+   private fun isInvalid(item: Item, i: Int): Boolean = disposed || isInvalidItem(item) || isInvalidIndex(i) || isInvalidVisibility()
+
+   /**
+    * Begins loading isHidden attribute for the item. If item changes meanwhile, the result is stored
+    * (it will not need to load again) to the old item, but not showed.
+    *
+    * Thumbnail quality may be decreased to achieve good performance, while loading high
+    * quality thumbnail in the bgr. Each phase uses its own executor.
+    *
+    * Must be called on FX thread.
+    */
+   private fun updateHidden(item: Item, i: Int = index) {
+      val isHidden = item.computeIsHidden()
+      when {
+         isHidden.isDone() ->
+            pseudoClassChanged("file-hidden", isHidden.getDone().or { false })
+         else -> {
+            pseudoClassChanged("file-hidden", false)
+            isHidden ui { if (!isInvalid(item, i)) pseudoClassChanged("file-hidden", it) }
+         }
+      }
+   }
+
+   companion object {
+      private fun Node.relocateCenter(x: Double, y: Double) {
+         relocate(x - layoutBounds.width/2, y - layoutBounds.height/2)
+      }
+   }
 }
-fun Node.relocateCenter(x: Double, y: Double) {
-   relocate(x - layoutBounds.width/2, y - layoutBounds.height/2)
-}
+

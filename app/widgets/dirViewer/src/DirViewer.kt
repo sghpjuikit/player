@@ -110,7 +110,6 @@ import sp.it.util.functional.traverse
 import sp.it.util.inSort
 import sp.it.util.math.clip
 import sp.it.util.math.max
-import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -384,9 +383,9 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    /** Visits last visited item. Rebuilds entire hierarchy. */
    private fun revisitCurrent() {
       disposeItems()
-      val topItem = TopItem()
+      val topItem = item?.hRoot ?: TopItem()
       if (lastVisited==null) {
-         visit(topItem)
+         visit(TopItem())
       } else {
          val fLv = lastVisited
          runVT {
@@ -549,10 +548,10 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
       override fun computeGraphics() {
          super.computeGraphics()
-         root install appTooltipForData { item?.value }
-         root.onEventDown(DRAG_DETECTED, PRIMARY) {
+         this install appTooltipForData { item?.value }
+         onEventDown(DRAG_DETECTED, PRIMARY) {
             item?.value.ifNotNull {
-               root.startDragAndDrop(*ANY)[FILES] = listOf(it)
+               startDragAndDrop(*ANY)[FILES] = listOf(it)
             }
          }
       }
@@ -560,18 +559,17 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    }
 
    private inner class Cell: GridFileThumbCell() {
-      private val disposer = Disposer()
 
       override fun computeCellTextHeight(): Double = cellTextHeight.value
 
       override fun computeGraphics() {
          super.computeGraphics()
-         thumb!!.fitFrom syncFrom coverFitFrom on disposer
+         thumb!!.fitFrom syncFrom coverFitFrom on onDispose
          thumb!!.isDragEnabled = false
-         root install appTooltipForData { thumb!!.representant }
-         root.onEventDown(DRAG_DETECTED, PRIMARY) {
+         this install appTooltipForData { thumb!!.representant }
+         onEventDown(DRAG_DETECTED, PRIMARY) {
             item?.value.ifNotNull {
-               val db = root.startDragAndDrop(*ANY)
+               val db = startDragAndDrop(*ANY)
                db.dragView = thumb?.getImage()
                db[FILES] = listOf(it)
             }
@@ -582,10 +580,6 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
       override fun onAction(i: Item, edit: Boolean) = doubleClickItem(i, edit)
 
-      override fun dispose() {
-         disposer()
-         super.dispose()
-      }
    }
 
    private open inner class FItem(parent: Item?, value: File, type: FileType): Item(parent, value, type) {

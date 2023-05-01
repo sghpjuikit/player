@@ -4,13 +4,3 @@
  * inherits: .grid-view
  */
 .album-grid {}
-
-/*
- * Album grid cell
- * inherits: .grid-cell
- */
-.album-grid-cell,
-.album-grid-cell:hover,
-.album-grid-cell:selected {
-    -fx-background-color: null;
-}

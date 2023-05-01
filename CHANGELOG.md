@@ -24,6 +24,8 @@ All notable changes to this project will be documented in this file. Format base
 - Improve **Flow** skin bgr opacity styling
 - Improve showing song rating change notification [show only when rating not showing in other notification]
 - Fix **CommandBar** widget shortcuts ignoring CTRL
+- Fix **GridView** widget exception on item selected after deserialization sometimes
+- Fix **GridView** widget checking `File.isHidden` causing stutter
 - Fix **Spektrum** widget stops working if another instance closes
 - Fix **Spektrum** widget audio capture device selection
 - Fix **Spektrum** widget efficiency when drawing same content
@@ -35,6 +37,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix inconsistent menu shortcut hint styling
 - Fix inconsistent disabled menu styling
 - Fix inconsistent context menu item height styling
+- Fix inconsistent grid cell styling
+- Fix grid cell uses unnecessary ui objects
 - Fix `Node.containsScene` errors in some cases
 - Fix css errors due to missing colors
 - Fix text broken in some cases

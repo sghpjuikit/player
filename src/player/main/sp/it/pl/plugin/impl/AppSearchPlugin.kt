@@ -334,7 +334,7 @@ class AppSearchPlugin: PluginBase() {
          override fun computeGraphics() {
             super.computeGraphics()
             thumb!!.fitFrom.value = FitFrom.INSIDE
-            root install appTooltipForData { thumb!!.representant }
+            this install appTooltipForData { thumb!!.representant }
          }
 
          override fun computeName(item: Item) = item.value.parentDirOrRoot.name + " > " + item.value.name

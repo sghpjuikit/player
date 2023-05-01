@@ -106,14 +106,14 @@
 
 /* Make text more readable */
 .list-cell > LabeledText,
-.grid-cell > LabeledText,
+.grid-cell > .label > LabeledText,
 .table-cell > LabeledText,
 .tree-cell > LabeledText,
 .tree-table-cell > LabeledText,
 .menu .label .icon Text,
 .menu-button .label .icon Text,
-.label {
-    -fx-effect: dropshadow(one-pass-box, rgba(0,0,0, 0.5), 5,1 , 0,0);
+.label > LabeledText {
+    -fx-effect: dropshadow(one-pass-box, rgba(0,0,0, 0.5), 50,1 , 0,0);
 }
 
 .menu .label,

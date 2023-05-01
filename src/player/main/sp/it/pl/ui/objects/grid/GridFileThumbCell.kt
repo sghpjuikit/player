@@ -2,10 +2,10 @@ package sp.it.pl.ui.objects.grid
 
 import java.io.File
 import javafx.geometry.Pos
+import javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
 import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.layout.StackPane
 import javafx.scene.shape.Rectangle
 import kotlin.math.sqrt
 import sp.it.pl.main.emScaled
@@ -13,7 +13,6 @@ import sp.it.pl.ui.objects.grid.GridView.Companion.CELL_SIZE_UNBOUND
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.util.JavaLegacy
-import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.file.FileType
@@ -31,6 +30,7 @@ import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassChanged
+import sp.it.util.ui.width
 import sp.it.util.ui.x
 import sp.it.util.units.em
 import sp.it.util.units.millis
@@ -40,7 +40,6 @@ import sp.it.util.units.millis
  * that shows a thumbnail image. Supports asynchronous loading of thumbnails and loading animation.
  */
 open class GridFileThumbCell: GridCell<Item, File>() {
-   protected lateinit var root: StackPane
    protected lateinit var name: Label
    protected lateinit var stroke: Rectangle
    protected var thumb: Thumbnail? = null
@@ -50,9 +49,10 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       anim(150.millis) {
          val p = sqrt(it)
          val s = 2.emScaled
-         val x = -s+(1-p)*(s + computeCellTextHeight())
+         val xRaw = s + computeCellTextHeight()
+         val x = p*xRaw
          stroke.strokeWidth = (p*s) max 1.0
-         name.style = "-fx-background-insets: $x 0 0 0;"
+         thumb?.pane?.style = "-fx-border-color: black; -fx-border-width: 0 0 $x 0; -fx-border-insets: 0 0 -$xRaw 0;"
       }
    }
    protected var onLayoutChildren: (Double, Double, Double, Double) -> Unit = { _, _, _, _ -> }
@@ -98,17 +98,11 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       if (disposed) return
       super.updateItem(item, empty)
 
-      if (empty) {
-         // do not discard contents of the graphics
-      } else {
-         if (!::root.isInitialized) computeGraphics()  // create graphics lazily and only once
-         if (graphic!==root) graphic = root           // set graphics only when necessary
-
+      if (!empty) {
+         if (!::name.isInitialized) computeGraphics()  // create graphics lazily and only once
          name.text = if (item==null) null else computeName(item)
-         if (item!=null) {
-            setCoverNow(item)
-            pseudoClassChanged("file-hidden", FileField.IS_HIDDEN.getOf(item.value))
-         }
+         if (item!=null) updateCoverNow(item)
+         if (item!=null) updateHiddenNow(item)
       }
    }
 
@@ -117,11 +111,12 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       if (this.isSelected==selected) return
 
       super.updateSelected(selected)
-      hoverAnim.value.playFromDir(selected || root.isHover)
+      hoverAnim.value.playFromDir(selected || isHover)
       if (thumb!=null && thumb!!.image.value!=null) thumb!!.animationPlayPause(selected)
    }
 
    protected open fun computeGraphics() {
+      contentDisplay = GRAPHIC_ONLY
       name = label {
          alignment = Pos.CENTER
          isManaged = false
@@ -135,7 +130,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
             view.isSmooth = false
             fitFrom attach {
                item?.disposeCover()
-               if (index>=0) setCoverNow(item)
+               if (index>=0) updateCoverNow(item)
             }
          }
          override fun getRepresentant() = item?.value
@@ -152,40 +147,37 @@ open class GridFileThumbCell: GridCell<Item, File>() {
          isManaged = false
          isMouseTransparent = true
       }
-      root = object: StackPane(thumb!!.pane, name, stroke) {
-         override fun layoutChildren() {
-            val x = 0.0 ; val y = 0.0 ; val w = width ; val h = height ; val th = computeCellTextHeight() max 0.0
-
-            if (gridView.value?.cellWidth?.value == CELL_SIZE_UNBOUND) {
-               name.alignment = Pos.CENTER_LEFT
-               name.resizeRelocate(h, y, (w-h) max 0.0, h)
-               thumb!!.pane.resizeRelocate(x, y, h, h)
-               stroke.x = x; stroke.y = y; stroke.width = h; stroke.height = h
-            } else {
-               name.alignment = Pos.CENTER
-               name.resizeRelocate(x, h - th, w, th)
-               thumb!!.pane.resizeRelocate(x, y, w, h - th)
-               stroke.x = x; stroke.y = y; stroke.width = w; stroke.height = h
-            }
-            onLayoutChildren(x, y, w, h)
-         }
-      }.apply {
-         isSnapToPixel = true
-         minSize = -1.0 x -1.0
-         prefSize = -1.0 x -1.0
-         maxSize = -1.0 x -1.0
-         isCache = true
-         isCacheShape = true
-         onEventDown(MOUSE_CLICKED) {
-            if (it.button==PRIMARY && it.clickCount==2) {
-               onAction(item, it.isShiftDown)
-               it.consume()
-            }
-         }
-         hoverProperty() sync { h ->
-            hoverAnim.value.playFromDir(h || isSelected)
+      children.addAll(thumb!!.pane, stroke, name)
+      isSnapToPixel = true
+      minSize = -1.0 x -1.0
+      prefSize = -1.0 x -1.0
+      maxSize = -1.0 x -1.0
+      isCache = true
+      isCacheShape = true
+      onEventDown(MOUSE_CLICKED) {
+         if (it.button==PRIMARY && it.clickCount==2) {
+            onAction(item, it.isShiftDown)
+            it.consume()
          }
       }
+      hoverProperty() sync { h ->
+         hoverAnim.value.playFromDir(h || isSelected)
+      }
+   }
+
+   override fun layoutChildren() {
+      val x = 0.0; val y = 0.0; val w = width; val h = height; val th = computeCellTextHeight() max 0.0; val lp = labelPadding
+
+      if (gridView.value?.cellWidth?.value == CELL_SIZE_UNBOUND) {
+         name.resizeRelocate(h + lp.left, y, (w - h - lp.width) max 0.0, h)
+         thumb!!.pane.resizeRelocate(x, y, h, h)
+         stroke.x = x; stroke.y = y; stroke.width = h; stroke.height = h
+      } else {
+         name.resizeRelocate(x + lp.left, h - th, (w - lp.width) max 0.0, th)
+         thumb!!.pane.resizeRelocate(x, y, w, h - th)
+         stroke.x = x; stroke.y = y; stroke.width = w; stroke.height = h
+      }
+      onLayoutChildren(x, y, w, h)
    }
 
    /** @return size of an image to be loaded for the thumbnail */
@@ -206,7 +198,28 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    /** @return true if this cell is detached from the grid (i.e. not its child) */
    protected fun isInvalidVisibility(): Boolean = parent==null
 
-   private fun isInvalid(item: Item, i: Int): Boolean = isInvalidItem(item) || isInvalidIndex(i) || isInvalidVisibility()
+   private fun isInvalid(item: Item, i: Int): Boolean = disposed || isInvalidItem(item) || isInvalidIndex(i) || isInvalidVisibility()
+
+   /**
+    * Begins loading isHidden attribute for the item. If item changes meanwhile, the result is stored
+    * (it will not need to load again) to the old item, but not showed.
+    *
+    * Thumbnail quality may be decreased to achieve good performance, while loading high
+    * quality thumbnail in the bgr. Each phase uses its own executor.
+    *
+    * Must be called on FX thread.
+    */
+   private fun updateHiddenNow(item: Item, i: Int = index) {
+      val isHidden = item.computeIsHidden()
+      when {
+         isHidden.isDone() ->
+            pseudoClassChanged("file-hidden", isHidden.getDone().or { false })
+         else -> {
+            pseudoClassChanged("file-hidden", false)
+            isHidden ui { if (!isInvalid(item, i)) pseudoClassChanged("file-hidden", it) }
+         }
+      }
+   }
 
    /**
     * Begins loading cover for the item. If item changes meanwhile, the result is stored
@@ -217,25 +230,23 @@ open class GridFileThumbCell: GridCell<Item, File>() {
     *
     * Must be called on FX thread.
     */
-   private fun setCoverNow(item: Item) {
+   private fun updateCoverNow(item: Item, i: Int = index) {
       when (val cover = item.cover) {
          is ImageLoad.NotStarted, is ImageLoad.DoneInterrupted -> {
             thumb!!.loadImage(null)
-            val i = index
-            item.computeCover(computeThumbSize(), thumb!!.fitFrom.value) ui { setCoverPost(item, i, it) }
+            item.computeCover(computeThumbSize(), thumb!!.fitFrom.value) ui { updateCoverPost(item, i, it) }
          }
          is ImageLoad.Loading -> {
             thumb!!.loadImage(null)
-            val i = index
-            cover.loading ui { setCoverPost(item, i, it) }
+            cover.loading ui { updateCoverPost(item, i, it) }
          }
          is ImageLoad.DoneErr -> {}
-         is ImageLoad.DoneOk -> setCoverPost(item, index, cover)
+         is ImageLoad.DoneOk -> updateCoverPost(item, index, cover)
       }
    }
 
-   private fun setCoverPost(item: Item, index: Int, img: ImageLoad) {
-      if (!disposed && !isInvalid(item, index)) {
+   private fun updateCoverPost(item: Item, index: Int, img: ImageLoad) {
+      if (!isInvalid(item, index)) {
          if (thumb!!.getImage()!==img.image)
          imgLoadAnim?.stop()
          imgLoadAnimItem = item

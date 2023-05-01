@@ -3915,20 +3915,14 @@ TextFlow > * {
  *   -fx-cell-height: Size
  *   -fx-fixed-cell-size: Size
  */
-.grid-view {
-    -fx-border-width: 0;
-    -fx-padding: 0;
-}
+.grid-view {}
 
 /**
  * Cell in a grid view.
  * inherits: .indexed-cell
  * pseudoclasses: selected - when any cell in the row is selected
  */
-.grid-row {
-    -fx-border-width: 0;
-    -fx-padding: 0;
-}
+.grid-row {}
 
 /**
  * Cell in a grid view row.
@@ -3940,11 +3934,11 @@ TextFlow > * {
  *  searchmatchnot: when search is active and cell does not match search term
  */
 .grid-cell {
-    -fx-border-width: 0;
     -fx-padding: 0;
     // -fx-background-color: -skin-color-darker; /* dark cells */
     -fx-background-color: -skin-color-lighter;  /* dark cells */
     -fx-font-size: 0.9em;   /* improves readability */
+    -fx-label-padding: 0 0.5em 0 0.5em;
 }
 
 .grid-cell:full-width {
@@ -3964,26 +3958,21 @@ TextFlow > * {
     //-fx-padding: -2;
 }
 
-.grid-cell .grid-cell-stroke {
+.grid-cell > .grid-cell-stroke {
     -fx-fill: null;
-    -fx-stroke: -skin-bgr-color;
+    -fx-stroke: black;
     -fx-stroke-type: INSIDE;
     // if we were not using programmatic hover/select animation:
     //-fx-stroke-width: 1;
 }
 
-.grid-cell:selected .grid-cell-stroke {
+.grid-cell:selected > .grid-cell-stroke {
     // if we were not using programmatic hover/select animation:
     // -fx-stroke-width: 2;
 }
 
-.grid-cell > * > .label {
-    -fx-padding: 0 0.5em 0 0.5em;
-    -fx-background-color: -skin-bgr-color;
-}
-
 .grid-cell:full-width,
-.grid-cell:full-width > * > .label {
+.grid-cell:full-width > .label {
     -fx-background-color: transparent;
 }
 .grid-cell:full-width:selected {
@@ -4037,7 +4026,7 @@ TextFlow > * {
  * pseudoclasses: file-hidden
  */
 .thumb-file-grid-cell {}
-.thumb-file-grid-cell:file-hidden .icon {
+.thumb-file-grid-cell:file-hidden .thumbnail {
     -fx-opacity: 0.4;
 }
 
@@ -4053,7 +4042,7 @@ TextFlow > * {
     -fx-background-color: null;
 }
 
-.icon-file-grid-cell:file-hidden .icon {
+.icon-file-grid-cell:file-hidden .icon Text {
     -fx-opacity: 0.4;
 }
 .icon-file-grid-cell .icon {

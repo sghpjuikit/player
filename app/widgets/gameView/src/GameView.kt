@@ -303,11 +303,11 @@ class GameView(widget: Widget): SimpleController(widget) {
                val mh = h min p.maxHeight
                p.resizeRelocate(x + p.snappedLeftInset(), y + (h-mh-computeCellTextHeight()/2)/2, w-p.snappedLeftInset()-p.snappedRightInset(), mh)
             }
-            root.lay += p
+            children += p
             anim(200.millis) { p.opacity = it*it }.play()
          } else {
             onLayoutChildren = { _, _, _, _ -> }
-            playPlaceholderPane.orNull().ifNotNull { root.lay -= it }
+            playPlaceholderPane.orNull().ifNotNull { children -= it }
          }
       }
 

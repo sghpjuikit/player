@@ -215,11 +215,13 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    @Experimental("Temporary") val onLoad = Handler0()
 
    constructor(id: UUID, factory: WidgetFactory<*>, isDeserialized: Boolean): this(factory, isDeserialized, WidgetDb(id)) {
+      forceLoading = false
       customName.value = factory.name
       focused.addListener(computeFocusChangeHandler())
    }
 
    constructor(state: WidgetDb): this(APP.widgetManager.factories.getFactory(state.factoryId).orNone(), true, state) {
+      forceLoading = false
       customName.value = state.nameUi
       focused.addListener(computeFocusChangeHandler())
       properties.entries.stream()

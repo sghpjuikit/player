@@ -418,6 +418,8 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          contentDisplay = GRAPHIC_ONLY
          name = label {
             alignment = Pos.CENTER
+            isCache = true
+            isCacheShape = true
          }
 
          thumb = object: Thumbnail() {
@@ -440,6 +442,8 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
             id = "grid-cell-stroke"
             styleClass += "grid-cell-stroke"
             isMouseTransparent = true
+            isCache = true
+            isCacheShape = true
          }
 
          children += listOf(thumb!!.pane, name, stroke)

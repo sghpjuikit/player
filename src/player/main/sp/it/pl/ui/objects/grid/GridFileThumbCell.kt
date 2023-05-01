@@ -121,6 +121,8 @@ open class GridFileThumbCell: GridCell<Item, File>() {
          alignment = Pos.CENTER
          isManaged = false
          isWrapText = true
+         isCache = true
+         isCacheShape = true
       }
       thumb = object: Thumbnail() {
          init {
@@ -146,14 +148,14 @@ open class GridFileThumbCell: GridCell<Item, File>() {
          styleClass += "grid-cell-stroke"
          isManaged = false
          isMouseTransparent = true
+         isCache = true
+         isCacheShape = true
       }
       children.addAll(thumb!!.pane, stroke, name)
       isSnapToPixel = true
       minSize = -1.0 x -1.0
       prefSize = -1.0 x -1.0
       maxSize = -1.0 x -1.0
-      isCache = true
-      isCacheShape = true
       onEventDown(MOUSE_CLICKED) {
          if (it.button==PRIMARY && it.clickCount==2) {
             onAction(item, it.isShiftDown)

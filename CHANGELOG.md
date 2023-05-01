@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. Format base
 - Improve nested config editors styling
 - Improve **Flow** skin bgr opacity styling
 - Improve showing song rating change notification [show only when rating not showing in other notification]
+- Improve performance in various situations
 - Fix **CommandBar** widget shortcuts ignoring CTRL
 - Fix **GridView** widget exception on item selected after deserialization sometimes
 - Fix **GridView** widget checking `File.isHidden` causing stutter

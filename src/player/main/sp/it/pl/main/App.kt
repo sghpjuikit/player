@@ -64,6 +64,7 @@ import sp.it.util.file.type.MimeTypes
 import sp.it.util.functional.Try
 import sp.it.util.functional.apply_
 import sp.it.util.functional.runTry
+import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
 import sp.it.util.system.Os.WINDOWS
@@ -90,6 +91,7 @@ fun main(args: Array<String>) {
    if (!isValidatedDirectory(tmp)) fail { "Invalid tmp directory" }
    System.setProperty("java.io.tmpdir", tmp.absolutePath)
    System.setProperty("user.home", tmp.absolutePath)
+   System.setProperty("jdk.virtualThreadScheduler.parallelism", ((Runtime.getRuntime().availableProcessors()*3/4) max 1).toString())
 
    // Disable url caching, which may cause jar files being held in memory
    URLConnection.setDefaultUseCaches("file", false)

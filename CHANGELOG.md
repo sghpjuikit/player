@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `ContainerSeq` - sequential container based on HBox/VBox
 - Implement correct window owners for content in popups launched through actions
 - Implement **FunctionViewer** widget derivation
+- Implement **DirViewer** widget smooth scrolling
 - Implement **Git projects** widget project directory refresh on delete
 - Implement **Tester** widget interpolators easing settings
 - Implement **Tester** widget more editor tests

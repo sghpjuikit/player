@@ -29,6 +29,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 import kotlin.reflect.KClass;
 import sp.it.pl.ui.item_node.FieldedPredicateChainItemNode;
 import sp.it.pl.ui.item_node.FieldedPredicateItemNode.PredicateData;
@@ -50,6 +51,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.rint;
 import static java.lang.Math.signum;
+import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.rangeClosed;
 import static javafx.application.Platform.runLater;
@@ -63,6 +65,7 @@ import static sp.it.pl.main.AppExtensionsKt.toUi;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.grid.GridView.CELL_SIZE_UNBOUND;
 import static sp.it.util.Util.clip;
+import static sp.it.util.animation.Anim.anim;
 import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.IS;
@@ -440,6 +443,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		private final FlowScrollBar scrollbar;
 		private final Scrolled root;
 		private double viewStart = 0;
+		private double viewStartTo = 0;
 		private boolean needsAdjustSize = false;
 		private boolean needsRemoveCachedCells = false;
 		private boolean needsRebuildCells = true;
@@ -465,7 +469,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 			// scrolling
 			addEventHandler(SCROLL, e -> {
-				scrollBy(-e.getDeltaY()*scrollSpeedMultiplier);
+				scrollByAnim(-e.getDeltaY()*scrollSpeedMultiplier);
 				e.consume();
 			});
 
@@ -555,6 +559,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 			// update position in case resize put it out of view
 			viewStart = min(viewStart, computeMaxViewStart());
+			viewStartTo = min(viewStartTo, computeMaxViewStart());
 
 			List<T> items = getSkinnable().getItemsShown();
 			int itemsAllCount = items.size();
@@ -726,7 +731,11 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		}
 
 		public void scrollBy(double by) {
-			scrollTo(viewStart + by);
+			scrollTo(viewStartTo + by);
+		}
+
+		public void scrollByAnim(double by) {
+			scrollToAnim(viewStartTo + by);
 		}
 
 		public void scrollByRows(int by) {
@@ -762,7 +771,20 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			double newY = clip(minY, to, maxY);
 			if (viewStart!=newY) {
 				viewStart = newY;
+				viewStartTo = newY;
 				rebuildCellsNow();
+			}
+		}
+
+		public void scrollToAnim(double to) {
+			double minY = 0;
+			double maxY = max(0, computeRowCount(getSkinnable().getItemsShown())*computeRowHeight() - getHeight());
+			double newY = clip(minY, to, maxY);
+			double oldY = viewStart;
+			if (viewStart!=newY) {
+				viewStart = newY;
+				viewStartTo = newY;
+				anim(Duration.millis(250), consumer(it -> scrollTo(oldY + it*(newY-oldY)))).intpl(it -> sqrt(sqrt(it))).play();
 			}
 		}
 

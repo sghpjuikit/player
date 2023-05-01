@@ -64,11 +64,9 @@ import sp.it.util.conf.uiNoCustomUnsealedValue
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.ThreadSafe
-import sp.it.util.functional.getOr
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
-import sp.it.util.math.P
 import sp.it.util.math.abs
 import sp.it.util.math.clip
 import sp.it.util.math.max
@@ -193,9 +191,9 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    }
 
    override fun close() {
-      super.close()
-      audioEngine.dispose()
       spectralView.stop()
+      audioEngine.dispose()
+      super.close()
    }
 
    companion object: WidgetCompanion {
@@ -281,28 +279,36 @@ class Spektrum(widget: Widget): SimpleController(widget) {
          gc.lineJoin = settings.barLineJoin
          gc.save()
 
-         val barPositionsLow = ArrayList<P>(barCount)
-         val barPositionsHig = ArrayList<P>(barCount)
+         val barPositionsLowX = DoubleArray(barCount)
+         val barPositionsLowY = DoubleArray(barCount)
+         val barPositionsHigX = DoubleArray(barCount)
+         val barPositionsHigY = DoubleArray(barCount)
          when (settings.barAlignment) {
             BarShape.CENTER -> {
                bars.forEachIndexed { i, bar ->
                   val f = fade(i)
-                  barPositionsLow += P(barWg2+i*barWg, h/2 - f*bar.height*wh2)
-                  barPositionsHig += P(barWg2+i*barWg, h/2 + f*bar.height*wh2)
+                  barPositionsLowX[i] = barWg2+i*barWg
+                  barPositionsLowY[i] = h/2 - f*bar.height*wh2
+                  barPositionsHigX[i] = barWg2+i*barWg
+                  barPositionsHigY[i] = h/2 + f*bar.height*wh2
                }
             }
             BarShape.BOTTOM -> {
                bars.forEachIndexed { i, bar ->
                   val f = fade(i)
-                  barPositionsLow += P(barWg2+i*barWg, h)
-                  barPositionsHig += P(barWg2+i*barWg, h - f*bar.height*wh)
+                  barPositionsLowX[i] = barWg2+i*barWg
+                  barPositionsLowY[i] = h
+                  barPositionsHigX[i] = barWg2+i*barWg
+                  barPositionsHigY[i] = h - f*bar.height*wh
                }
             }
             BarShape.TOP -> {
                bars.forEachIndexed { i, bar ->
                   val f = fade(i)
-                  barPositionsLow += P(barWg2+i*barWg, 0.0)
-                  barPositionsHig += P(barWg2+i*barWg, f*bar.height*wh)
+                  barPositionsLowX[i] = barWg2+i*barWg
+                  barPositionsLowY[i] = 0.0
+                  barPositionsHigX[i] = barWg2+i*barWg
+                  barPositionsHigY[i] = f*bar.height*wh
                }
             }
             BarShape.CIRCLE_IN, BarShape.CIRCLE_MIDDLE, BarShape.CIRCLE_OUT -> {
@@ -314,8 +320,10 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                   val min = base - (if (settings.barAlignment==BarShape.CIRCLE_OUT) 0.0 else barH/8.0)
                   val barCos = cos(2*PI*i/barCount - PI/2)
                   val barSin = sin(2*PI*i/barCount - PI/2)
-                  barPositionsLow += P(w2 + min*barCos, h/2 + min*barSin)
-                  barPositionsHig += P(w2 + max*barCos, h/2 + max*barSin)
+                  barPositionsLowX[i] = w2 + min*barCos
+                  barPositionsLowY[i] = h/2 + min*barSin
+                  barPositionsHigX[i] = w2 + max*barCos
+                  barPositionsHigY[i] = h/2 + max*barSin
 
                   // fade effect, can we generalize this?
                   // gc.lineWidth = barW
@@ -331,7 +339,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                gc.lineWidth = barW
                bars.forEachIndexed { i, bar ->
                   gc.stroke = bar.color
-                  gc.strokeLine(barPositionsLow[i].x, barPositionsLow[i].y, barPositionsHig[i].x, barPositionsHig[i].y)
+                  gc.strokeLine(barPositionsLowX[i], barPositionsLowY[i], barPositionsHigX[i], barPositionsHigY[i])
                }
                gc.lineWidth = 0.0
             }
@@ -340,37 +348,38 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                gc.lineWidth = 2.0
                bars.forEachIndexed { i, bar ->
                   gc.stroke = bar.color
-                  gc.strokeLine(barPositionsLow[i].x, barPositionsLow[i].y, barPositionsHig[i].x, barPositionsHig[i].y)
+                  gc.strokeLine(barPositionsLowX[i], barPositionsLowY[i], barPositionsHigX[i], barPositionsHigY[i])
                }
                gc.stroke = bars.firstOrNull()?.color ?: Color.BLACK
-               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (barPositionsLow.map { it.x }.toDoubleArray(), barPositionsLow.map { it.y }.toDoubleArray(), bars.size)
-               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(barPositionsLow.map { it.x }.toDoubleArray(), barPositionsLow.map { it.y }.toDoubleArray(), bars.size)
-               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
-               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
+               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (barPositionsLowX, barPositionsLowY, bars.size)
+               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(barPositionsLowX, barPositionsLowY, bars.size)
+               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (barPositionsHigX, barPositionsHigY, bars.size)
+               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(barPositionsHigX, barPositionsHigY, bars.size)
                gc.lineWidth = 0.0
             }
             BarStyle.NET_OUTLINE -> {
                gc.lineWidth = 2.0
                gc.stroke = bars.firstOrNull()?.color ?: Color.BLACK
-               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (barPositionsLow.map { it.x }.toDoubleArray(), barPositionsLow.map { it.y }.toDoubleArray(), bars.size)
-               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(barPositionsLow.map { it.x }.toDoubleArray(), barPositionsLow.map { it.y }.toDoubleArray(), bars.size)
-               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
-               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
+               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (barPositionsLowX, barPositionsLowY, bars.size)
+               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(barPositionsLowX, barPositionsLowY, bars.size)
+               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (barPositionsHigX, barPositionsHigY, bars.size)
+               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(barPositionsHigX, barPositionsHigY, bars.size)
                gc.lineWidth = 0.0
             }
             BarStyle.OUTLINE -> {
                gc.lineWidth = 2.0
                gc.stroke = bars.firstOrNull()?.color ?: Color.BLACK
-               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
-               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
+               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (barPositionsHigX, barPositionsHigY, bars.size)
+               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(barPositionsHigX, barPositionsHigY, bars.size)
                gc.lineWidth = 0.0
             }
             BarStyle.ZIGZAG -> {
                gc.lineWidth = 2.0
                gc.stroke = bars.firstOrNull()?.color ?: Color.BLACK
-               val pointSelector = { it: Int -> (if (it%2==0) barPositionsLow else barPositionsHig)[it] }
-               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (DoubleArray(bars.size) { pointSelector(it).x }, DoubleArray(bars.size) { pointSelector(it).y }, bars.size)
-               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(DoubleArray(bars.size) { pointSelector(it).x }, DoubleArray(bars.size) { pointSelector(it).y }, bars.size)
+               val pointSelectorX = { it: Int -> (if (it%2==0) barPositionsLowX else barPositionsHigX)[it] }
+               val pointSelectorY = { it: Int -> (if (it%2==0) barPositionsLowY else barPositionsHigY)[it] }
+               if (bars.size>1 &&  settings.barAlignment.connect) gc.strokePolygon (DoubleArray(bars.size) { pointSelectorX(it) }, DoubleArray(bars.size) { pointSelectorY(it) }, bars.size)
+               if (bars.size>1 && !settings.barAlignment.connect) gc.strokePolyline(DoubleArray(bars.size) { pointSelectorX(it) }, DoubleArray(bars.size) { pointSelectorY(it) }, bars.size)
                gc.lineWidth = 0.0
             }
          }
@@ -674,8 +683,9 @@ class FFTAudioProcessor(val audioFormat: AudioFormat, val onProcess: FrequencyBa
          val frequencyMin = floor(computeLowLimit(frequency, octave))
          val frequencyMax = floor(computeHighLimit(frequency, octave))
          val step = 2.0.pow(1.0/octave)
+         fun frequencyRange(it: Double) = try { interpolateFunction.value(it)*doublesAmplitudesFactor } catch(e: Throwable) { 0.0 }
          val frequencyRange = generateSequence(frequencyMin) { it+step }.takeWhile { it<frequencyMax }
-         var amplitude = frequencyRange.sumOf { runTry { interpolateFunction.value(it)*doublesAmplitudesFactor }.getOr(0.0).pow(2) } // sum up range's individual "normalized window corrected" energies
+         var amplitude = frequencyRange.sumOf { frequencyRange(it).pow(2) } // sum up range's individual "normalized window corrected" energies
          amplitude = if (maxLevel.value=="RMS") sqrt(amplitude/2) else sqrt(amplitude) // calculate the RMS of the amplitude
          amplitude = 20*log10(amplitude) // convert to logarithmic scale
          amplitude += weightWindow(frequency) // use weight to adjust the spectrum

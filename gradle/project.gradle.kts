@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.8.20"
+   kotlin("jvm") version "1.8.21"
    application
    id("com.github.ben-manes.versions") version "0.46.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.2"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
@@ -92,9 +92,9 @@ allprojects {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
          implementation(kotlin("compiler-embeddable"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.0-Beta")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.0-Beta")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.7.0-Beta")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.0-RC")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.0-RC")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.7.0-RC")
          implementation("org.jetbrains", "annotations", "24.0.1")
       }
 
@@ -143,11 +143,11 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "5.2.0")
+         implementation("com.github.f4b6a3", "uuid-creator", "5.3.1")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.2")
          implementation("com.github.oshi", "oshi-core", "6.4.1")
-         implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0") {
+         implementation("com.vladsch.flexmark", "flexmark-all", "0.64.2") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
          implementation("org.apache.pdfbox", "pdfbox", "3.0.0-RC1")
@@ -181,13 +181,13 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.2.4")
-         implementation("io.ktor", "ktor-client-cio", "2.2.4")
+         implementation("io.ktor", "ktor-server-core", "2.3.0")
+         implementation("io.ktor", "ktor-client-cio", "2.3.0")
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.5.5")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.5.5")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.6.1")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.6.1")
       }
 
    }

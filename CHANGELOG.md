@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix incorrect widget factory disposing upon recompile
 - Fix disabling window blur effect on window hiding unnecessarily
 - Fix "Convert image" action closing prematurely
+- Fix recursive file search not returning top level files
 
 ### Vlc playback
 It is now possible to change audio channels and audio output device used for playback through application settings.

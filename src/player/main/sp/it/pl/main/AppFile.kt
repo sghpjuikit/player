@@ -332,7 +332,7 @@ private fun File.asDirTree(): Sequence<File> =
 
 private fun File.asFileTree(): Sequence<File> =
    when {
-      !isDirectory -> sequenceOf()
+      !isDirectory -> sequenceOf(this)
       Os.WINDOWS.isCurrent -> windowsCmdDir(this, FILE).asSequence()
       else -> walk().filter(File::isFile)
    }

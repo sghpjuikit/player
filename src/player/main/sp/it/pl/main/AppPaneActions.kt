@@ -48,15 +48,16 @@ import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.runGet
-import sp.it.util.async.runFX
 import sp.it.util.async.runVT
 import sp.it.util.collections.map.KClassListMap
+import sp.it.util.collections.toStringPretty
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyIf
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
 import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
@@ -233,9 +234,8 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconMD.FILE_FIND,
          BLOCK
       ) { fs ->
-         val rfs = FileFlatter.ALL.flatten(fs).map { CachingFile(it) }.toList()
-         runFX { apOrApp.show(rfs) }
-      }.preventClosing(),
+         FileFlatter.ALL.flatten(fs).map { CachingFile(it) }.toList().apply { toStringPretty().printIt() }
+      },
       actionAll<File>(
          "Add to library",
          "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",

@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Spektrum** widget efficiency when drawing same content
 - Fix `Form` layout broken in some cases
 - Fix tree view cell arrow styling broken
+- Fix inconsistent row border styling
 - Fix inconsistent row height styling
 - Fix inconsistent cell & icon in cell styling
 - Fix inconsistent menu shortcut hint styling
@@ -39,6 +40,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix text broken in some cases
 - Fix serializing `Effect` to json
 - Fix incorrect widget factory disposing upon recompile
+- Fix disabling window blur effect on window hiding unnecessarily
+- Fix "Convert image" action closing prematurely
 
 ### Vlc playback
 It is now possible to change audio channels and audio output device used for playback through application settings.

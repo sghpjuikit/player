@@ -478,7 +478,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
             if (it.preserveTimeModified) fileTo.setLastModified(i.lastModified())
          }
       }
-   }
+   }.preventClosing()
 
    fun browseMultipleFiles(files: Sequence<File>) {
       val fs = files.toSet()

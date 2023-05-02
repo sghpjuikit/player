@@ -72,6 +72,14 @@ Now, the application uses `kotlin-compiler-embeddable` jar packaged with the app
 This removes the need to obtain the compiler and prevents multitude of possible problems occurring for the user.
 The embedded compiler uses daemon and increases compilation time up to 5 times!
 
+### Grid
+The grid now has smooth scrolling.
+Also, several aspects of the grid have been optimized to further reduce stutter during.
+
+### Styling
+This update brings lots of improvements in styling consistency and UX.
+The application is much more pleasant to use.
+
 ## [7.7.0] 2023 04 01
 
 - Update Kotlin to 1.8.20

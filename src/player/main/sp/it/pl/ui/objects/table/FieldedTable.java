@@ -233,7 +233,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			// build new table column menu
 			columnMenu.addEventHandler(WINDOW_HIDDEN, e -> columnVisibleMenu.getItems().clear());
 			columnMenu.addEventHandler(WINDOW_SHOWING, e -> columnVisibleMenu.getItems().addAll(
-				columnStateDefault.columns.streamV()
+				columnStateDefault.columns.getValues().stream()
 					.map(c -> {
 						var f = columnIdToF(c.id);
 						var d = f.description();

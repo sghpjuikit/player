@@ -174,6 +174,15 @@ class MapSet<K: Any, E: Any>(backingMap: MutableMap<K, E>, keyMapper: (E) -> K):
    /** @return elements */
    fun streamV(): Stream<E> = m.values.stream()
 
+   /** @return [Map.entries] */
+   val entries: Set<Map.Entry<K, E>> get() = m.entries
+
+   /** @return [Map.keys] */
+   val keys: Set<K> get() = m.keys
+
+   /** @return [Map.values] */
+   val values: Collection<E> get() = m.values
+
    fun ifHasK(k: K, action: (E) -> Unit) {
       if (containsKey(k))
          action(m[k]!!)

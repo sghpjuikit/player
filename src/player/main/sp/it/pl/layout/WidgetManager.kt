@@ -686,7 +686,7 @@ class WidgetManager {
       fun getComponentFactoryByName(name: String): ComponentFactory<*>? = getFactoryByName(name) ?: factoriesC[name]
 
       /** @return all widget factories */
-      fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()
+      fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.values.asSequence()
 
       /** @return all widget factories, observable */
       fun getFactoriesObservable() = factoriesObservableW
@@ -701,7 +701,7 @@ class WidgetManager {
       inline fun <reified FEATURE: Any> getFactoriesWith(): Sequence<FactoryRef<FEATURE>> = getFactoriesWith(FEATURE::class)
 
       /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
-      fun <FEATURE: Any> getFactoriesWith(feature: KClass<FEATURE>) = factoriesW.streamV().asSequence().filter { it.hasFeature(feature) }.map { FactoryRef(it, feature) }
+      fun <FEATURE: Any> getFactoriesWith(feature: KClass<FEATURE>) = factoriesW.values.asSequence().filter { it.hasFeature(feature) }.map { FactoryRef(it, feature) }
 
       /**
        * Register the specified factory.

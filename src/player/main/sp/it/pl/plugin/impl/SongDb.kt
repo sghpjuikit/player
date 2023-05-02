@@ -2,7 +2,6 @@ package sp.it.pl.plugin.impl
 
 import java.lang.String.CASE_INSENSITIVE_ORDER
 import java.net.URI
-import java.util.Collections.synchronizedMap
 import java.util.concurrent.ConcurrentHashMap
 import mu.KLogging
 import sp.it.pl.audio.MetadatasDB
@@ -21,9 +20,8 @@ import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runNew
 import sp.it.util.async.runVT
-import sp.it.util.collections.mapset.MapSet
-import sp.it.util.collections.setTo
 import org.jetbrains.annotations.Blocking
+import sp.it.util.collections.mapset.MapSetRO
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.div
 import sp.it.util.file.readTextTry
@@ -45,7 +43,7 @@ class SongDb {
    val songs = Output<List<Metadata>>(uuid("396d2407-7040-401e-8f85-56bc71288818"), "Song library", type(), listOf()).appWide()
 
    /** All library songs by [Song.id]. This is in memory db and should be used as read-only. */
-   @ThreadSafe val songsById = MapSet(synchronizedMap(HashMap<String, Metadata>(2000)), { it.id })
+   @ThreadSafe @Volatile var songsById = MapSetRO(mapOf<String, Metadata>(), { it.id })
 
    /** Map of unique values per field gathered from [songsById], sorted by [CASE_INSENSITIVE_ORDER] ASC. */
    @ThreadSafe val itemUniqueValuesByField = ConcurrentHashMap<Metadata.Field<*>, LinkedHashSet<String>>()
@@ -60,7 +58,7 @@ class SongDb {
    }
 
    fun stop() {
-      running = true
+      running = false
    }
 
    fun exists(song: Song) = exists(song.uri)
@@ -122,7 +120,7 @@ class SongDb {
    }
 
    private fun setInMemoryDB(l: List<Metadata>) {
-      songsById setTo l
+      songsById = MapSetRO(l, { it.id })
       updateSongValues()
 
       runFX {

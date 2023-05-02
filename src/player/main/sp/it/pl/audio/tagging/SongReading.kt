@@ -11,6 +11,7 @@ import sp.it.pl.main.APP
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isVideo
+import sp.it.util.collections.materialize
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.net
@@ -193,7 +194,7 @@ fun Song.Companion.removeMissingFromLibTask() = object: Task<Unit>() {
 
    override fun call() {
       var completed = 0
-      val allItems = APP.db.songsById.streamV().asSequence().toList()
+      val allItems = APP.db.songsById.values.toList().materialize()
       val all = allItems.size
       val removedItems = ArrayList<Metadata>()
 

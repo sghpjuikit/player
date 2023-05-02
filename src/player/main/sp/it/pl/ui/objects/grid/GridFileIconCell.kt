@@ -8,9 +8,7 @@ import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import sp.it.pl.main.Double01
 import sp.it.pl.main.contextMenuFor
-import sp.it.pl.main.emScaled
 import sp.it.pl.main.fileIcon
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.icon.Icon
@@ -42,7 +40,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
    protected lateinit var icon: Icon
    protected var disposed = false
    protected var imgLoadAnimation: Anim? = null
-   private var loadProgress: Double01 = 0.0
+   protected var imgLoadAnimationItem: Item? = null
 
    init {
       styleClass += "icon-file-grid-cell"
@@ -64,6 +62,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
 
    override fun dispose() {
       disposed = true
+      imgLoadAnimationItem = null
       imgLoadAnimation?.stop()
       imgLoadAnimation = null
    }
@@ -75,18 +74,18 @@ open class GridFileIconCell: GridCell<Item, File>() {
          if (!empty) updateIcon(item!!)
          return
       }
+
       super.updateItem(item, empty)
 
-      if (imgLoadAnimation!=null) {
-         imgLoadAnimation?.stop()
-         imgLoadAnimation?.applyAt(loadProgress)
-      }
-
+      imgLoadAnimationItem = null
+      imgLoadAnimation?.stop()
       if (!empty) {
          if (!::icon.isInitialized) computeGraphics()  // create graphics lazily and only once
          name.text = if (item==null) null else computeName(item)
          if (item!=null) updateIcon(item)
          if (item!=null) updateHidden(item)
+         imgLoadAnimationItem = item
+         imgLoadAnimation?.playOpenFrom(imgLoadAnimationItem!!.loadProgress)
       }
    }
 
@@ -116,8 +115,10 @@ open class GridFileIconCell: GridCell<Item, File>() {
          contextMenuFor(item?.value).show(this, it)
       }
       imgLoadAnimation = anim(200.millis) {
-         loadProgress = it
-         icon.opacity = it*it*it*it
+         if (imgLoadAnimationItem!=null) {
+            imgLoadAnimationItem!!.loadProgress = it
+            icon.opacity = it*it*it*it
+         }
       }
    }
 
@@ -144,7 +145,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
       icon.isFocusTraversable = false
       icon.size(iconSize)
       icon.icon(fileIcon(i.value, i.valType))
-      imgLoadAnimation?.playOpenFrom(loadProgress)
+      icon.opacity = i.loadProgress.net { it*it*it*it }
    }
 
    /** @return true if the item of this cell is not the same object as the item specified */

@@ -76,9 +76,9 @@ open class GridFileThumbCell: GridCell<Item, File>() {
 
    override fun dispose() {
       disposed = true
+      imgLoadAnimItem = null
       imgLoadAnim?.stop()
       imgLoadAnim = null
-      imgLoadAnimItem = null
       hoverAnim.orNull()?.stop()
       onDispose()
       if (thumb!=null) {
@@ -250,6 +250,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    private fun updateCoverPost(item: Item, index: Int, img: ImageLoad) {
       if (!isInvalid(item, index)) {
          if (thumb!!.getImage()!==img.image)
+         imgLoadAnimItem = null
          imgLoadAnim?.stop()
          imgLoadAnimItem = item
          imgLoadAnim?.playOpenFrom(item.loadProgress)

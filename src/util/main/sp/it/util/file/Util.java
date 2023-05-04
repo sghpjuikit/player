@@ -3,10 +3,7 @@ package sp.it.util.file;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -192,10 +189,10 @@ public interface Util {
 	static void saveFileAs(String url, File file) throws IOException {
 		if (file.exists()) file.delete();
 		if (!requireNonNull(file.getParentFile()).exists()) file.getParentFile().mkdirs();
-		URL u = new URL(url);
 		try (
-			InputStream is = u.openStream();
-			OutputStream os = new FileOutputStream(file)) {
+			var is = URI.create(url).toURL().openStream();
+			var os = new FileOutputStream(file)
+		) {
 			byte[] b = new byte[2048];
 			int length;
 			while ((length = is.read(b))>0)

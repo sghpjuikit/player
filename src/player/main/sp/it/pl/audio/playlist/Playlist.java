@@ -5,7 +5,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -573,10 +572,9 @@ public class Playlist extends ObservableListWrapper<PlaylistSong> {
 		List<URI> add = new ArrayList<>();
 		for (String url : urls) {
 			try {
-				new URI(url);	// trigger exception
-				new URL(url);	// trigger exception
+				var u = new URI(url).toURL();	// trigger exception
 				add.add(uri(url));
-			} catch (URISyntaxException|MalformedURLException e) {
+			} catch (URISyntaxException | MalformedURLException e) {
 				throw new RuntimeException("Invalid URL.");
 			}
 		}

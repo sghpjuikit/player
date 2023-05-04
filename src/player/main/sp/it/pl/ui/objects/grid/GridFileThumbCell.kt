@@ -250,7 +250,6 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    private fun updateCoverPost(item: Item, index: Int, img: ImageLoad) {
       if (!isInvalid(item, index)) {
          if (thumb!!.getImage()!==img.image)
-         imgLoadAnimItem = null
          imgLoadAnim?.stop()
          imgLoadAnimItem = item
          imgLoadAnim?.playOpenFrom(item.loadProgress)

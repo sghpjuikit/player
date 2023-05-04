@@ -219,6 +219,7 @@ javaToolchains.compilerFor {
    vendor.set(ADOPTIUM)
 }
 
+@Suppress("UNUSED_VARIABLE")
 tasks {
 
    val copyLibs by creating(Sync::class) {
@@ -235,7 +236,6 @@ tasks {
       linkLocation = dirJdk
    }
 
-   @Suppress("UNUSED_VARIABLE")
    val generateFileHierarchy by creating(GenerateKtFileHierarchy::class) {
       group = "build setup"
       description = "Generates file hierarchy class and documentation"
@@ -246,7 +246,6 @@ tasks {
       outRootPath = """File("").absolutePath"""
    }
 
-   @Suppress("UNUSED_VARIABLE")
    val generateSettings by creating(GenerateKtSettings::class) {
       group = "build setup"
       description = "Generates application settings class"

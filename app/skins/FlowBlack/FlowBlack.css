@@ -16,17 +16,15 @@
     -skin-color-lighter: rgba(180,200,255,0.08);
     -skin-pane-color: rgba(100,130,180,0.1); /* Default color for panels such as header or widget area or other areas. */
     -skin-pane-color-dragged: rgba(10,15,25,0.8); /* Darker version of pane color. By default used for :dragged pseudoclass */
-    -skin-window-bgr-color-content-free: rgba(15,25,45,0.95); /* Default bgr color for tooltips and popups. */
+    -skin-window-bgr-color: rgba(20, 20, 20, 0.7);
+    -skin-window-bgr-color-content-free: rgba(0,0,0, 0.64); /* Default bgr color for tooltips and popups. */
     -skin-value-font-color: red;
 
-    -skin-window-bgr-color: rgba(20, 20, 20, 0.7);
-    -skin-window-bgr-color-content-free: rgba(0, 0, 0, 0.64);
 
     -fx-focus-color: red;
     -fx-faint-focus-color: red;
 
     -skin-bgr-color: rgb(0, 0, 0);
-    -skin-window-bgr-color-content-free: rgba(0, 0, 0, 0.64); // needs to be consistent with (.window bgr color > .widget-ui bgr color)
     -skin-pane-color: rgba(10, 10, 10, 0.6);
     -skin-def-icon-border-color: rgba(200,200,200, 0.2);
 }
@@ -113,7 +111,7 @@
 .menu .label .icon Text,
 .menu-button .label .icon Text,
 .label > LabeledText {
-    -fx-effect: dropshadow(one-pass-box, rgba(0,0,0, 0.5), 50,1 , 0,0);
+    -fx-effect: dropshadow(one-pass-box, rgba(0,0,0, 0.5), 3,1 , 0,0);
 }
 
 .menu .label,

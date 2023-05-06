@@ -5,6 +5,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLINK
 import javafx.geometry.NodeOrientation.LEFT_TO_RIGHT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Side
+import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.effect.BoxBlur
@@ -14,6 +15,8 @@ import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
+import javafx.scene.layout.Region
+import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
 import sp.it.pl.layout.WidgetUi.Companion.PSEUDOCLASS_DRAGGED
@@ -27,6 +30,7 @@ import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.toggle
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.collections.setTo
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
@@ -35,6 +39,7 @@ import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
 import sp.it.util.ui.centre
 import sp.it.util.ui.dsl
@@ -53,9 +58,14 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
    val absB: Icon
    val lockB: Icon
 
+   private val headerIsLong = root.widthProperty().map { it.toDouble()>300.0 }
+   private val headerChildrenLong = ArrayList<Node>()
+   private val headerChildrenShort = ArrayList<Node>()
+
    private var lmActivateArea = 20.x2
    private val lmAnim: Anim
    private val lmHiderWeak: Subscribed
+
    var isShowing = false
       private set
    var isShowingWeak = false
@@ -74,6 +84,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
          alignment = CENTER_RIGHT
          prefRows = 1
          prefColumns = 10
+         prefWidth = USE_COMPUTED_SIZE
 
          val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }.apply {
             root.insetsProperty() zip layoutBoundsProperty() attach { (p, l) -> lmActivateArea = (p.right x p.top) + l.size }
@@ -84,8 +95,10 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
          lockB = headerIcon(null, lockIconText) { toggleLocked(); APP.actionStream("Widget layout lock") }
          absB = headerIcon(IconFA.LINK, absIconText) { toggleAbsSize(); updateAbsB() }
 
-         lay += listOf(absB, lockB, menuB, closeB)
+         headerChildrenLong += listOf(absB, lockB, menuB, closeB)
+         headerChildrenShort += menuB
       }
+      headerIsLong sync { updateHeaderLength(it) }
 
       // build animations
       val blur = BoxBlur(0.0, 0.0, 1)
@@ -157,6 +170,9 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
          }
       }
    }
+
+   private fun updateHeaderLength(isLong: Boolean = headerIsLong.value) =
+      icons.children setTo if (isLong) headerChildrenLong else headerChildrenShort
 
    private fun toggleLocked() = area.widget.locked.toggle()
 

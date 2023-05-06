@@ -1,5 +1,7 @@
 package sp.it.pl.layout
 
+import javafx.geometry.HPos
+import javafx.geometry.VPos
 import javafx.scene.layout.AnchorPane
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
@@ -27,6 +29,7 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.nullify
+import sp.it.util.ui.anchorPane
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.pseudoclass
 import sp.it.util.ui.removeFromParent
@@ -38,49 +41,47 @@ import sp.it.util.units.kt
  *
  * Maintains final 1:1 relationship with the widget, always contains exactly 1 final widget.
  */
-class WidgetUi: ComponentUiBase<Widget> {
+class WidgetUi(container: Container<*>, index: Int, widget: Widget): ComponentUiBase<Widget>(widget) {
    /** Container this ui is associated with. */
-   val container: Container<*>
+   val container = container
 
    /** Index of the child in the [container] */
-   val index: Int
+   val index = index
 
    /** Widget this ui is associated with. Equivalent to [component]. */
-   val widget: Widget
-   override val root = AnchorPane()
-   val contentRoot = AnchorPane()
-   val controls: WidgetUiControls
-   val content = AnchorPane()
+   val widget = widget.apply {
+      parent = container
+      ui = this@WidgetUi
+   }
+
+   override val root = anchorPane {}
+   val content = anchorPane {
+      id = "widget-ui-content"
+      styleClass += CONTENT_STYLECLASS
+   }
+   val contentRoot = object: AnchorPane() {
+      init {
+         id = "widget-ui-contentRoot"
+         styleClass += STYLECLASS
+         layFullArea += content
+      }
+      override fun layoutChildren() {
+         super.layoutChildren()
+         controls.root.prefWidth = width
+         controls.root.prefHeight = height
+         layoutInArea(controls.root, 0.0, 0.0, width, height, 0.0, padding, true, true, HPos.CENTER, VPos.CENTER, true)
+      }
+   }
+   val controls = WidgetUiControls(this).apply {
+      root.isManaged = false
+   }
    private var disposed = false
    private val disposer = Disposer()
    private var manualLoadPane: Placeholder? = null
 
-   /**
-    * Creates area for the container and its child widget at specified child position.
-    *
-    * @param container widget's parent container
-    * @param index index of the widget within the container
-    * @param widget widget that will be managed and displayed
-    */
-   constructor(container: Container<*>, index: Int, widget: Widget): super(widget) {
-      this.container = container
-      this.index = index
-      this.widget = widget
-      this.widget.parent = container
-      this.widget.ui = this
-
+   init {
       root.id = "widget-ui"
-      root.layFullArea += contentRoot.apply {
-         id = "widget-ui-contentRoot"
-         styleClass += STYLECLASS
-
-         layFullArea += content.apply {
-            id = "widget-ui-content"
-            styleClass += CONTENT_STYLECLASS
-         }
-      }
-
-      controls = WidgetUiControls(this)
+      root.layFullArea += contentRoot
       contentRoot.layFullArea += controls.root
 
       root.installDrag(

@@ -4,6 +4,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ELLIPSIS_H
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ELLIPSIS_V
 import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Orientation.VERTICAL
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
@@ -39,23 +40,14 @@ class ContainerSeqUi(c: ContainerSeq): ContainerUi<ContainerSeq>(c) {
             HORIZONTAL -> hBox { }
             VERTICAL -> vBox { }
          }
+         updateFill()
+         updateAlignment()
          root.children.clear()
          root.layFullArea += box
          box.children setTo roots.values
       }
-      container.fill sync {
-         when (val b = box) {
-            is HBox -> b.isFillHeight = it
-            is VBox -> b.isFillWidth = it
-         }
-      }
-      container.alignment sync {
-         when (val b = box) {
-            is HBox -> b.alignment = it
-            is VBox -> b.alignment = it
-         }
-      }
-
+      container.fill sync ::updateFill
+      container.alignment sync ::updateAlignment
    }
 
    @Suppress("UNUSED_VARIABLE")
@@ -63,6 +55,18 @@ class ContainerSeqUi(c: ContainerSeq): ContainerUi<ContainerSeq>(c) {
       val orientB = Icon(IconFA.MAGIC, -1.0, "Change orientation").addExtraIcon().onClickDo { container.orientation.toggleNext() }.styleclass("header-icon")
       val addB = Icon(IconFA.PLUS, -1.0, "Add child").addExtraIcon().onClickDo { container.addChild(container.getEmptySpot(), null) }.styleclass("header-icon")
       container.orientation sync { orientB.icon(it==VERTICAL, ELLIPSIS_V, ELLIPSIS_H) } on disposer
+   }
+
+   fun updateFill(it: Boolean = container.fill.value) = when (val b = box) {
+      is HBox -> b.isFillHeight = it
+      is VBox -> b.isFillWidth = it
+      else -> {}
+   }
+
+   fun updateAlignment(it: Pos = container.alignment.value) = when (val b = box) {
+      is HBox -> b.alignment = it
+      is VBox -> b.alignment = it
+      else -> {}
    }
 
    fun setComponent(i: Int, c: Component?) {

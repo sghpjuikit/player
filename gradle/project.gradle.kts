@@ -92,9 +92,8 @@ allprojects {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
          implementation(kotlin("compiler-embeddable"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.0-RC")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.0-RC")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.7.0-RC")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.0")
          implementation("org.jetbrains", "annotations", "24.0.1")
       }
 
@@ -120,7 +119,7 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.7")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.7")
-         implementation("ch.qos.logback", "logback-classic", "1.4.6")
+         implementation("ch.qos.logback", "logback-classic", "1.4.7")
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
@@ -147,7 +146,7 @@ allprojects {
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.2")
          implementation("com.github.oshi", "oshi-core", "6.4.1")
-         implementation("com.vladsch.flexmark", "flexmark-all", "0.64.2") {
+         implementation("com.vladsch.flexmark", "flexmark-all", "0.64.4") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
          implementation("org.apache.pdfbox", "pdfbox", "3.0.0-RC1")

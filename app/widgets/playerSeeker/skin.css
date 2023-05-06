@@ -1,0 +1,13 @@
+.icon {
+    -fx-fill: -fx-focus-color;
+}
+.icon:hover {
+    -fx-fill: -fx-focus-color;
+    -fx-effect: none;
+}
+
+.seeker-label {
+    -fx-text-fill: -fx-focus-color;
+    -fx-padding: 1em;
+    -fx-font-weight: bold;
+}

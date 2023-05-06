@@ -13,7 +13,6 @@ import sp.it.pl.main.set
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.ui.height
 import sp.it.util.ui.plus
-import sp.it.util.ui.xy
 
 interface ComponentUiControls
 
@@ -37,7 +36,6 @@ abstract class ComponentUiControlsBase: ComponentUiControls {
    }
 
    protected fun onDragDetected(e: MouseEvent, root: Node) {
-      println(e.xy)
       if (e.button==PRIMARY && !e.isAltDown && !e.isShiftDown) {
          if (e.isShortcutDown) {
             area.detach()

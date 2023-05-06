@@ -16,13 +16,18 @@ class ContainerSeq: Container<ContainerSeqUi> {
    override val name = "ContainerSeq"
    /** Orientation of this container. Default [VERTICAL] */
    val orientation by cv(VERTICAL).def(name = "Orientation", info = "Orientation of this container.")
-   val fill by cv(false).def(name = "Fill", info = "Whether or not resizable children will be resized to fill the full size of the box or be resized to their preferred size and aligned according to the alignment value. Note that if the box alignment is set to BASELINE, then this property will be ignored and children will be resized to their preferred size.")
+   /** Whether resizable children will be resized to fill the full size of the box or be resized to their preferred size and aligned according to the alignment value. Note that if the box alignment is set to BASELINE, then this property will be ignored and children will be resized to their preferred size. */
+   val fill by cv(false).def(name = "Fill", info = "Whether resizable children will be resized to fill the full size of the box or be resized to their preferred size and aligned according to the alignment value. Note that if the box alignment is set to BASELINE, then this property will be ignored and children will be resized to their preferred size.")
+   /** Alignment of children of this container. Default [Pos.CENTER] */
    val alignment by cv(Pos.CENTER).def(name = "Alignment", info = "")
+   /** Whether the children should appear as one, i.e., the divider has little to no visibility */
+   val joined by cv(false).def(name = "Joined", info = "Whether the children should appear as one, i.e., the divider has little to no visibility.")
 
    constructor(state: ContainerSeqDb = ContainerSeqDb()): super(state) {
       orientation.value = state.orientation
       fill.value = state.fill
       alignment.value = state.alignment
+      joined.value = state.joined
       children += state.children.mapValues { it.value?.toDomain() }.filterNotNullValues()
       setChildrenParents()
    }
@@ -61,6 +66,6 @@ class ContainerSeq: Container<ContainerSeqUi> {
 
    override fun hide() = ui?.hide() ?: Unit
 
-   override fun toDb() = ContainerSeqDb(id, orientation.value, fill.value, alignment.value, loadType.value, locked.value, children.mapValues { it.value?.toDb() }, properties)
+   override fun toDb() = ContainerSeqDb(id, orientation.value, fill.value, alignment.value, joined.value, loadType.value, locked.value, children.mapValues { it.value?.toDb() }, properties)
 
 }

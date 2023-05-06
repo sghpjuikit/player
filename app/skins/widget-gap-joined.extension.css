@@ -89,22 +89,22 @@
 }
 
 // joined divider has width 0
-.container-ui .split-pane:joined .split-pane-divider {
+.container-ui:joined .split-pane .split-pane-divider {
     -fx-padding: 0;
     -fx-background-color: transparent;
 }
-.container-ui:layout-mode .split-pane:joined .split-pane-divider {
+.container-ui:layout-mode:joined .split-pane .split-pane-divider {
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-opacity: 0.0;
 }
-.container-ui .split-pane:joined *.vertical-grabber,
-.container-ui:layout-mode .split-pane:joined *.vertical-grabber {
+.container-ui:joined .split-pane *.vertical-grabber,
+.container-ui:layout-mode:joined .split-pane *.vertical-grabber {
     -fx-border-color: transparent;
     -fx-padding: 0 111 0 111;
 }
-.container-ui .split-pane:joined *.horizontal-grabber,
-.container-ui:layout-mode .split-pane:joined *.horizontal-grabber {
+.container-ui:joined .split-pane *.horizontal-grabber,
+.container-ui:layout-mode:joined .split-pane *.horizontal-grabber {
     -fx-border-color: transparent;
     -fx-padding: 111 0 111 0;
 }

@@ -69,11 +69,6 @@ class ContainerBiUi(c: ContainerBi): ContainerUi<ContainerBi>(c) {
          container.children[1].asIf<Container<*>?>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
          container.children[2].asIf<Container<*>?>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
       }
-   var joined: Boolean
-      get() = container.joined.value
-      set(i) {
-         splitPane.pseudoClassChanged("joined", i)
-      }
    var collapsed: Int
       get() = container.collapsed.value
       set(i) {
@@ -130,7 +125,7 @@ class ContainerBiUi(c: ContainerBi): ContainerUi<ContainerBi>(c) {
       container.orientation syncTo splitPane.orientationProperty()
       container.collapsed sync { collapsed = it }
       container.absoluteSize sync { absoluteSize = it }
-      container.joined sync { joined = it }
+      container.joined sync { root.pseudoClassChanged("joined", it) }
 
       // initialize position
       splitPane.sync1IfInScene {

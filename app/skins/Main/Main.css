@@ -2425,10 +2425,20 @@ TextFlow > * {
 .container-bi-ui > .split-pane {
     -fx-skin: "sp.it.pl.ui.objects.SpitSplitPaneContainerBiSkin"
 }
+.container-bi-ui:joined .split-pane .split-pane-divider {
+    -fx-padding: -1;
+}
 
-.container-seq-ui VBox,
-.container-seq-ui HBox {
+/**
+ * pseudoclasses: joined - the children should appear as one, i.e., the divider has little to no visibility
+ */
+.container-seq-ui > VBox,
+.container-seq-ui > HBox {
     -fx-spacing: 2;
+}
+.container-seq-ui:joined > VBox,
+.container-seq-ui:joined > HBox {
+    -fx-spacing: 0;
 }
 
 /*

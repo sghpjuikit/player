@@ -13,6 +13,7 @@ import sp.it.pl.main.set
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.ui.height
 import sp.it.util.ui.plus
+import sp.it.util.ui.xy
 
 interface ComponentUiControls
 
@@ -29,10 +30,14 @@ abstract class ComponentUiControlsBase: ComponentUiControls {
             icons.layoutY = height/2.0 - icons.layoutBounds.height/2.0
       }
 
+      override fun computeMinWidth(height: Double) = 0.0 // Prevent layout interference
       override fun computeMinHeight(width: Double) = 0.0 // Prevent layout interference
+      override fun computeMaxWidth(height: Double) = area.root.width // Prevent layout interference
+      override fun computeMaxHeight(width: Double) = area.root.height // Prevent layout interference
    }
 
    protected fun onDragDetected(e: MouseEvent, root: Node) {
+      println(e.xy)
       if (e.button==PRIMARY && !e.isAltDown && !e.isShiftDown) {
          if (e.isShortcutDown) {
             area.detach()

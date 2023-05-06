@@ -79,7 +79,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is SwitchContainerDb -> SwitchContainerDb(id.dd(), translate, loading, locked, children.mapValues { it.value?.dd() }, properties)
       is ContainerUniDb -> ContainerUniDb(id.dd(), loading, locked, child?.dd(), properties)
       is ContainerBiDb -> ContainerBiDb(id.dd(), orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd() }, properties)
-      is ContainerSeqDb -> ContainerSeqDb(id.dd(), orientation, fill, alignment, loading, locked, children.mapValues { it.value?.dd() }, properties)
+      is ContainerSeqDb -> ContainerSeqDb(id.dd(), orientation, fill, alignment, joined, loading, locked, children.mapValues { it.value?.dd() }, properties)
       is ContainerFreeFormDb -> ContainerFreeFormDb(id.dd(), loading, locked, showHeaders, children.mapValues { it.value?.dd() }, properties)
       is WidgetDb -> WidgetDb(id.dd(), factoryId, nameUi, loading, locked, properties, fields)
    }
@@ -90,7 +90,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is SwitchContainerDb -> SwitchContainerDb(id, translate, loading, locked, children.mapValues { it.value?.dd2() }, properties)
       is ContainerUniDb -> ContainerUniDb(id, loading, locked, child?.dd2(), properties)
       is ContainerBiDb -> ContainerBiDb(id, orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd2() }, properties)
-      is ContainerSeqDb -> ContainerSeqDb(id, orientation, fill, alignment, loading, locked, children.mapValues { it.value?.dd2() }, properties)
+      is ContainerSeqDb -> ContainerSeqDb(id, orientation, fill, alignment, joined, loading, locked, children.mapValues { it.value?.dd2() }, properties)
       is ContainerFreeFormDb -> ContainerFreeFormDb(id, loading, locked, showHeaders, children.mapValues { it.value?.dd2() }, properties)
       is WidgetDb -> WidgetDb(id, factoryId, nameUi, loading, locked, properties.dd(), fields)
    }
@@ -163,6 +163,7 @@ class ContainerSeqDb(
    val orientation: Orientation = Orientation.VERTICAL,
    val fill: Boolean = false,
    val alignment: Pos = Pos.CENTER,
+   val joined: Boolean = false,
    loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,
    locked: Boolean = false,
    val children: Map<Int, ComponentDb?> = mapOf(),

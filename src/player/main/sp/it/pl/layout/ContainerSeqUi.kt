@@ -8,6 +8,7 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
@@ -22,6 +23,8 @@ import sp.it.util.ui.anchorPane
 import sp.it.util.ui.hBox
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.minSize
+import sp.it.util.ui.pseudoClassChanged
+import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x2
 
@@ -30,6 +33,8 @@ class ContainerSeqUi(c: ContainerSeq): ContainerUi<ContainerSeq>(c) {
    private val uis = LinkedHashMap<Int, ComponentUi>()
    private lateinit var box: Pane
    private val disposer = Disposer()
+   private val block1 = stackPane { styleClass += "widget-ui"; HBox.setHgrow(this, Priority.ALWAYS); VBox.setVgrow(this, Priority.ALWAYS) }
+   private val block2 = stackPane { styleClass += "widget-ui"; HBox.setHgrow(this, Priority.ALWAYS); VBox.setVgrow(this, Priority.ALWAYS) }
 
    init {
       root.id += "container-seq-ui"
@@ -44,10 +49,11 @@ class ContainerSeqUi(c: ContainerSeq): ContainerUi<ContainerSeq>(c) {
          updateAlignment()
          root.children.clear()
          root.layFullArea += box
-         box.children setTo roots.values
+         updateChildren()
       }
       container.fill sync ::updateFill
       container.alignment sync ::updateAlignment
+      container.joined sync { root.pseudoClassChanged("joined", it) }
    }
 
    @Suppress("UNUSED_VARIABLE")
@@ -67,6 +73,10 @@ class ContainerSeqUi(c: ContainerSeq): ContainerUi<ContainerSeq>(c) {
       is HBox -> b.alignment = it
       is VBox -> b.alignment = it
       else -> {}
+   }
+
+   fun updateChildren() {
+      box.children setTo (listOf(block1) + roots.values + listOf(block2))
    }
 
    fun setComponent(i: Int, c: Component?) {
@@ -95,7 +105,7 @@ class ContainerSeqUi(c: ContainerSeq): ContainerUi<ContainerSeq>(c) {
          }
       }
 
-      box.children setTo roots.values
+      updateChildren()
    }
 
    override fun show() {

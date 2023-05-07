@@ -363,21 +363,17 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    }
 
    private fun selectionReStore() {
-      println("RESTORING")
       if (table.items.isEmpty()) {
          selIgnore = false
          return
       }
 
-      println("RESTORING $selLastRestored")
       // restore last selected from previous session, runs once
       if (!selLastRestored) {
-         println("RESTORING LAST")
          selIgnore = false
          selLastRestored = true
          table.items.forEachIndexed { i, mg ->
             if (mg.getValueS("")==selLast) {
-               println("RESTORING LAST $selLast")
                table.selectionModel.select(i)
                table.scrollTo(i)
             }

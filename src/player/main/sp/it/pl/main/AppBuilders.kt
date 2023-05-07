@@ -40,6 +40,7 @@ import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
 import javafx.util.Callback
 import javafx.util.Duration
+import javafx.util.Duration.ZERO
 import kotlin.math.sqrt
 import kotlin.reflect.KClass
 import kotlin.reflect.KTypeProjection.Companion.invariant
@@ -92,6 +93,7 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.ValueConfig
 import sp.it.util.conf.nonEmpty
 import sp.it.util.dev.Dsl
+import sp.it.util.dev.printIt
 import sp.it.util.file.FileType
 import sp.it.util.file.hasExtension
 import sp.it.util.file.toFileOrNull
@@ -732,6 +734,7 @@ abstract class AnimationBuilder {
    open fun closeAndDo(n: Node, action: (() -> Unit)?): Anim {
       val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
       if (!a.isPlaying()) a.applyAt(1.0)
+      a.delay(ZERO)
       a.playCloseDo(action)
       return a
    }
@@ -739,9 +742,12 @@ abstract class AnimationBuilder {
    open fun openAndDo(n: Node, action: (() -> Unit)?): Anim {
       val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
       if (!a.isPlaying()) a.applyAt(0.0)
+      a.delay(computeDelay())
       a.playOpenDo(action)
       return a
    }
+
+   open fun computeDelay(): Duration = ZERO
 
    protected abstract fun buildAnimation(n: Node): Anim
 
@@ -765,7 +771,7 @@ class DelayAnimator: AnimationBuilder() {
    private val animDelay = AtomicLong(0)
    private val animDelayResetter = EventReducer.toLast<Void>(200.0) { animDelay.set(0) }
 
-   private fun computeDelay(): Duration = (animDelay.get()*300.0).millis
+   override fun computeDelay(): Duration = (animDelay.get()*300.0).millis.printIt()
 
    override fun closeAndDo(n: Node, action: (() -> Unit)?): Anim {
       val a = super.closeAndDo(n, action)
@@ -780,5 +786,5 @@ class DelayAnimator: AnimationBuilder() {
       return a
    }
 
-   override fun buildAnimation(n: Node) = AppAnimator.buildAnimation(n).delay(computeDelay())
+   override fun buildAnimation(n: Node) = AppAnimator.buildAnimation(n)
 }

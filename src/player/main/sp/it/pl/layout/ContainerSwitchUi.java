@@ -51,7 +51,7 @@ import static kotlin.sequences.SequencesKt.any;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.animation.Anim.Interpolators.geomCircular;
-import static sp.it.util.animation.Anim.Interpolators.rev;
+import static sp.it.util.animation.Anim.Interpolators.inv;
 import static sp.it.util.animation.Anim.Interpolators.toInterpolator;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
@@ -184,7 +184,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
         });
 
         uiDrag = new XTransition(millis(400),ui);
-        uiDrag.setInterpolator(toInterpolator(rev(geomCircular)));
+        uiDrag.setInterpolator(toInterpolator(inv(geomCircular)));
 
         sync1IfInScene(root, runnable(() -> {
             // restore last position
@@ -385,7 +385,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
             double traveled = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;
             // simulate mass - the more traveled the longer ease out
             uiDrag.setToX(x + traveled * dragInertia.get());
-            uiDrag.setInterpolator(toInterpolator(rev(Interpolators.geomCircular)));
+            uiDrag.setInterpolator(toInterpolator(inv(Interpolators.geomCircular)));
             // snap at the end of animation
             uiDrag.setOnFinished(a -> snapTabs());
             uiDrag.play();
@@ -577,8 +577,8 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
 
     /** Animates zoom on when true, or off when false. */
     public void zoom(boolean v) {
-        z1.setInterpolator(toInterpolator(rev(geomCircular)));
-        z2.setInterpolator(toInterpolator(rev(geomCircular)));
+        z1.setInterpolator(toInterpolator(inv(geomCircular)));
+        z2.setInterpolator(toInterpolator(inv(geomCircular)));
         zoomNoAcc(v ? zoomScaleFactor.get() : 1);
     }
 

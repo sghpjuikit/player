@@ -78,6 +78,7 @@ import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.attach;
+import static sp.it.util.reactive.UtilKt.attach1If;
 import static sp.it.util.reactive.UtilKt.attachSize;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.reactive.UtilKt.syncSize;
@@ -241,9 +242,19 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 * working. The first replaces the table item list (instance of {@link FilteredList}),
 	 * which must not happen. The second would throw an exception as FilteredList
 	 * is not directly modifiable.
+	 * </p>
+	 * Because the sorting is asynchronous (on bgr thread),
+	 * the changes to {@link #getItems()} and the like may not be applied when this method returns,
+	 * see {@link #setItemsRaw(java.util.Collection, kotlin.jvm.functions.Function1)}.
 	 */
 	public void setItemsRaw(Collection<? extends T> items) {
 		allItems.setAll(items);
+	}
+
+	/** {@link #setItemsRaw} with callback called after items are applied */
+	public void setItemsRaw(Collection<? extends T> items, Function1<Unit, Unit> block) {
+		setItemsRaw(items);
+		attach1If(itemsSorting, it -> !it, it -> block.invoke(Unit.INSTANCE));
 	}
 
 	/**

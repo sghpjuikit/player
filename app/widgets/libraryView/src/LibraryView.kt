@@ -331,8 +331,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       } ui {
          if (it.isNotEmpty()) {
             selectionStore()
-            table.setItemsRaw(it)
-            selectionReStore()
+            table.setItemsRaw(it) { selectionReStore() }
          }
       }
    }
@@ -364,17 +363,21 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    }
 
    private fun selectionReStore() {
+      println("RESTORING")
       if (table.items.isEmpty()) {
          selIgnore = false
          return
       }
 
+      println("RESTORING $selLastRestored")
       // restore last selected from previous session, runs once
       if (!selLastRestored) {
+         println("RESTORING LAST")
          selIgnore = false
          selLastRestored = true
          table.items.forEachIndexed { i, mg ->
             if (mg.getValueS("")==selLast) {
+               println("RESTORING LAST $selLast")
                table.selectionModel.select(i)
                table.scrollTo(i)
             }
@@ -385,6 +388,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       // restore selection
       table.items.forEachIndexed { i, mg ->
          if (mg.value in selOld) {
+            println("RESTORING OLD $selOld")
             table.selectionModel.select(i)
          }
       }

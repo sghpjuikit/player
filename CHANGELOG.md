@@ -54,6 +54,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix widget manual loading not taking effect sometimes
 - Fix widget manual loading animation not animating closing previous content
 - Fix widget loading animation delay not computed correctly
+- Fix table selection restoring and initial table resizing not working properly sometimes
 
 ### Vlc playback
 It is now possible to change audio channels and audio output device used for playback through application settings.

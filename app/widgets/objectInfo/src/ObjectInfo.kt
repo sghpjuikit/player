@@ -198,11 +198,10 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
       }
       if (dataAsC!=null) {
          val type = dataAsC.getElementClass().kotlin.asIs<KClass<Any>>()
-         val t = tableViewForClass(type) {
+         dataRepTable = tableViewForClass(type) {
             setItemsRaw(dataAsC)
          }
-         dataRepTable = t
-         dataRepsPane.lay(SOMETIMES) += t.root
+         dataRepsPane.lay(SOMETIMES) += dataRepTable!!.root
       }
       dataRepsPane.lay(ALWAYS) += infoPane
 

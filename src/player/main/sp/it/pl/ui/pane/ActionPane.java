@@ -394,17 +394,15 @@ public class ActionPane extends OverlayPane<Object> {
 		var dataAsC = (Collection<?>) null;
 		if (data instanceof Collection<?> items && !items.isEmpty()) {
 			var itemType = (KClass<Object>) getKotlinClass(getElementClass(items));
-			var t = tableViewForClass(itemType, consumer(it -> {
-				it.setItemsRaw(items);
-				it.getSelectedItems().addListener((Change<?> c) -> {
+			dataTable = tableViewForClass(itemType, consumer(t -> {
+				t.getSelectedItems().addListener((Change<?> c) -> {
 					if (insteadIcons==null) {
-						dataInfo.setText(computeDataInfo(collectionUnwrap(it.getSelectedOrAllItemsCopy()), true));
+						dataInfo.setText(computeDataInfo(collectionUnwrap(t.getSelectedOrAllItemsCopy()), true));
 					}
 				});
-				runFX(millis(100), () -> autoResizeColumns(it)); // TODO: remove delay or invoke at required event
+				t.setItemsRaw(items, consumer(unit -> autoResizeColumns(t)));
 			}));
-			dataTablePane.getChildren().setAll(t.getRoot());
-			dataTable = t;
+			dataTablePane.getChildren().setAll(dataTable.getRoot());
 			gap = 70.0;
 			priority = SOMETIMES;
 		} else {

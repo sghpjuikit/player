@@ -83,7 +83,6 @@ import sp.it.util.conf.uiSingleton
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNotFxThread
-import sp.it.util.dev.printIt
 import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.child
@@ -982,7 +981,7 @@ sealed interface ComponentLoader {
          l.child = c
          c.focus()
 
-         p.show(WINDOW_ACTIVE(Pos.CENTER).copy(owner = window.printIt()))
+         p.show(WINDOW_ACTIVE(Pos.CENTER).copy(owner = window))
 
          // This helps certain cases, when pref size basically becomes min size
          p.onShown += {

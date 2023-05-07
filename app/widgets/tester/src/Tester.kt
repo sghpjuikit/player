@@ -154,7 +154,6 @@ import sp.it.util.conf.uiToggle
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
-import sp.it.util.dev.printIt
 import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
@@ -275,7 +274,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       }
       onContentChange()
       content.children setToOne fittingScrollPane {
-         content = form(c.toConfigurableFx().apply {getConfigs().map { it.nameUi }.joinToString { it }.printIt() })
+         content = form(c.toConfigurableFx().apply {getConfigs().map { it.nameUi }.joinToString { it } })
       }
    }
 

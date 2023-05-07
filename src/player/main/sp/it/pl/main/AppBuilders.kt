@@ -93,7 +93,6 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.ValueConfig
 import sp.it.util.conf.nonEmpty
 import sp.it.util.dev.Dsl
-import sp.it.util.dev.printIt
 import sp.it.util.file.FileType
 import sp.it.util.file.hasExtension
 import sp.it.util.file.toFileOrNull
@@ -771,7 +770,7 @@ class DelayAnimator: AnimationBuilder() {
    private val animDelay = AtomicLong(0)
    private val animDelayResetter = EventReducer.toLast<Void>(200.0) { animDelay.set(0) }
 
-   override fun computeDelay(): Duration = (animDelay.get()*300.0).millis.printIt()
+   override fun computeDelay(): Duration = (animDelay.get()*300.0).millis
 
    override fun closeAndDo(n: Node, action: (() -> Unit)?): Anim {
       val a = super.closeAndDo(n, action)

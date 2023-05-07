@@ -50,14 +50,12 @@ import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.runGet
 import sp.it.util.async.runVT
 import sp.it.util.collections.map.KClassListMap
-import sp.it.util.collections.toStringPretty
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyIf
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
 import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
@@ -234,7 +232,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconMD.FILE_FIND,
          BLOCK
       ) { fs ->
-         FileFlatter.ALL.flatten(fs).map { CachingFile(it) }.toList().apply { toStringPretty().printIt() }
+         FileFlatter.ALL.flatten(fs).map { CachingFile(it) }.toList()
       },
       actionAll<File>(
          "Add to library",

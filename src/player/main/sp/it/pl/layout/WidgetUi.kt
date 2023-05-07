@@ -108,11 +108,22 @@ class WidgetUi(container: Container<*>, index: Int, widget: Widget): ComponentUi
 
       when {
          widget.isLoaded || widget.forceLoading || widget.loadType.value==AUTOMATIC -> {
-            manualLoadPane?.hide()
-            manualLoadPane = null
+            fun closer(block: () -> Unit) {
+               if (widget.forceLoading)
+                  AppAnimator.closeAndDo(contentRoot) {
+                     block()
+                     manualLoadPane?.hide()
+                     manualLoadPane = null
+                  }
+               else {
+                  block()
+                  manualLoadPane?.hide()
+                  manualLoadPane = null
+               }
+            }
 
             // load widget
-            AppAnimator.closeAndDo(contentRoot) {
+            closer {
                content.children.clear()
                val anim = animation.openAndDo(contentRoot, null) on disposer
                val delay = anim.delay

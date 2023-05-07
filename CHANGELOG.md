@@ -52,6 +52,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix "Convert image" action closing prematurely
 - Fix recursive file search not returning top level files
 - Fix widget manual loading not taking effect sometimes
+- Fix widget manual loading animation not animating closing previous content
+- Fix widget loading animation delay not computed correctly
 
 ### Vlc playback
 It is now possible to change audio channels and audio output device used for playback through application settings.

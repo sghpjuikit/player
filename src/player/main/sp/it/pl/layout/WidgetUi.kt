@@ -112,15 +112,17 @@ class WidgetUi(container: Container<*>, index: Int, widget: Widget): ComponentUi
             manualLoadPane = null
 
             // load widget
-            val anim = animation.openAndDo(contentRoot, null) on disposer
-            val delay = anim.delay
-            val delayOffset = (1000/FPS*2).milliseconds // 2 frames
-            runSuspendingFx {
-               delay(delay.kt - delayOffset) // delay with animation, but invoke before animation starts loading
+            AppAnimator.closeAndDo(contentRoot) {
                content.children.clear()
-               content.layFullArea += widget.load()
-            } on disposer
-
+               val anim = animation.openAndDo(contentRoot, null) on disposer
+               val delay = anim.delay
+               val delayOffset = (1000/FPS*2).milliseconds // 2 frames
+               runSuspendingFx {
+                  delay(delay.kt - delayOffset) // delay with animation, but invoke before animation starts loading
+                  content.children.clear()
+                  content.layFullArea += widget.load()
+               } on disposer
+            }
 
             // put controls to new widget
             widget.padding sync { content.style = it?.net { "-fx-padding:${it.toS()};" } } on disposer

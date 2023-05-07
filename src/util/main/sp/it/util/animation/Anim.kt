@@ -276,12 +276,6 @@ open class Anim: Transition {
             }
          }
 
-         /** Returns reverse interpolator, which produces 1-interpolated_value. */
-         @S fun reverse(i: IF): IF = { 1 - i(it) }
-
-         /** Returns reverse interpolator, which produces 1-interpolated_value. */
-         @S fun reverse(i: Interpolator): IF = { 1 - i.interpolate(0.0, 1.0, it) }
-
          @S fun isAround(proximity: Double, vararg points: Double): IF = { at ->
             points.find { at>it - proximity && at<it + proximity }
                ?.let { 0.0 }
@@ -309,27 +303,37 @@ open class Anim: Transition {
                ?: 1.0
          }
 
-         @S fun interpolator(i: IF): IF = i
-
-
+         /** Interpolator [Interpolator.DISCRETE] */
          @F val fxDiscrete = Interpolator.DISCRETE!!
 
+         /** Interpolator [Interpolator.LINEAR] */
          @F val fxLinear = Interpolator.LINEAR!!
 
+         /** Interpolator [Interpolator.EASE_BOTH] */
          @F val fxEaseBoth = Interpolator.EASE_BOTH!!
 
+         /** Interpolator [Interpolator.EASE_IN] */
          @F val fxEaseIn = Interpolator.EASE_IN!!
 
+         /** Interpolator [Interpolator.EASE_OUT] */
          @F val fxEaseOut = Interpolator.EASE_OUT!!
 
+         /** Interpolator `1-x` */
+         @F val geomRev = interpolator { 1-it }
+
+         /** Interpolator `sin(PI/2*x)` */
          @F val geomSine = interpolator { sin(PI/2*it) }
 
+         /** Interpolator `-(sqrt(1 - x*x) - 1)` */
          @F val geomCircular = interpolator { -(sqrt(1 - it*it) - 1) }
 
+         /** Interpolator `2^(10*(it - 1))` */
          @F val geomExponential = interpolator { 2.0.pow(10*(it - 1)) }
 
+         /** Interpolator that jumps a little */
          @S fun geomBack(amplitude: Double = 1.70158) = interpolator { it*it*((amplitude + 1)*it - amplitude) }
 
+         /** Interpolator that oscillates, like a bouncy ball falling on the floor */
          @S fun geomElastic(amplitude: Double = 1.70158, oscillations: Int = 3) = interpolator {
             when (it) {
                0.0 -> 0.0
@@ -349,16 +353,22 @@ open class Anim: Transition {
             }
          }
 
+         /** Interpolator `x` */
          @F val math_x = interpolator { it }
 
+         /** Interpolator `x^2` */
          @F val math_xp2 = interpolator { it*it }
 
+         /** Interpolator `x^3` */
          @F val math_xp3 = interpolator { it*it*it }
 
+         /** Interpolator `x^4` */
          @F val math_xp4 = interpolator { it*it*it*it }
 
+         /** Interpolator `x^-2` */
          @F val math_xs2 = interpolator { sqrt(it) }
 
+         /** Interpolator `x^-4` */
          @F val math_xs4 = interpolator { sqrt(sqrt(it)) }
 
          @F val math_log2_N20 = interpolator { log2(1.0 + (it*1024*1024))/20.0 }
@@ -377,15 +387,42 @@ open class Anim: Transition {
 
          @F val math_exp2_N2 = interpolator { 2.0.pow(10*(it - 1)) }
 
-         @F val mathSin = interpolator { 1-cos(PI/2*it) }
+         /** Interpolator `1-cos(PI/2*it)` */
+         @F val mathSine = interpolator { 1-cos(PI/2*it) }
 
-         @S fun IF.rev() = interpolator { 1 - this(1 - it) }
+         /** @return composed interpolator that calls this and then the specified interpolator */
+         @S fun IF.then(interpolator: IF) = interpolator { interpolator(this(it)) }
 
+         /** @return composed interpolator that calls this and then the specified interpolator */
+         @S fun IF.then(interpolator: Interpolator) = interpolator { interpolator.interpolate(0.0, 1.0, this(it)) }
+
+         /** @return reversed interpolator (calling this method twice does not return the original interpolator object) */
+         @S fun IF.rev() = interpolator { 1.0 - this(it) }
+
+         /** @return reversed interpolator (calling this method twice does not return the original interpolator object) */
+         @S fun IF.inv() = interpolator { 1.0 - this(1.0 - it) }
+
+         /** @return symmetrically joined interpolator (may not be contiguous at 0.5) */
          @S fun IF.sym() = interpolator { if (it<=0.5) this(2*it)/2 else (2 - this(2*(1 - it)))/2 }
 
+         /** @return eased-in interpolator `then(fxEaseIn)` */
+         @S fun IF.easeIn() = then(fxEaseIn)
+
+         /** @return eased-out interpolator `then(fxEaseOut)` */
+         @S fun IF.easeOut() = then(fxEaseOut)
+
+         /** @return eased-both interpolator `then(fxEaseBoth)` */
+         @S fun IF.easeBoth() = then(fxEaseBoth)
+
+         /** @return this [Interpolator] as function` */
          @S fun Interpolator.toF(): IF = { this.interpolate(0.0, 1.0, it) }
 
+         /** @return this function as [Interpolator]` */
          @S fun IF.toInterpolator(): Interpolator = object: Interpolator() { override fun curve(t: Double) = this@toInterpolator(t) }
+
+         /** @return the specified function (use purely as a named builder) */
+         @S fun interpolator(i: IF): IF = i
+
       }
    }
 

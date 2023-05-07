@@ -29,8 +29,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
-import javafx.util.Duration;
 import kotlin.reflect.KClass;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.ui.item_node.FieldedPredicateChainItemNode;
 import sp.it.pl.ui.item_node.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.ui.nodeinfo.GridInfo;
@@ -41,6 +41,7 @@ import sp.it.pl.ui.objects.grid.GridView.Search;
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.util.access.fieldvalue.ObjectField;
+import sp.it.util.animation.Anim;
 import sp.it.util.reactive.Disposer;
 import sp.it.util.reactive.UtilKt;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
@@ -61,10 +62,12 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppExtensionsKt.toUi;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.grid.GridView.CELL_SIZE_UNBOUND;
 import static sp.it.util.Util.clip;
+import static sp.it.util.animation.Anim.Interpolators.easeOut;
 import static sp.it.util.animation.Anim.anim;
 import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.dev.FailKt.failIf;
@@ -449,6 +452,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		private boolean needsRebuildCells = true;
 		private final double scrollSpeedMultiplier = 3;
 		private boolean firstLayout = true;
+		private @Nullable Anim scrollAnim = null;
 
 		public Flow(GridViewSkin<T,F> skin) {
 			this.skin = skin;
@@ -766,12 +770,16 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		}
 
 		public void scrollTo(double to) {
+			scrollTo(to, false);
+		}
+
+		private void scrollTo(double to, boolean anim) {
 			double minY = 0;
 			double maxY = max(0, computeRowCount(getSkinnable().getItemsShown())*computeRowHeight() - getHeight());
 			double newY = clip(minY, to, maxY);
 			if (viewStart!=newY) {
 				viewStart = newY;
-				viewStartTo = newY;
+				if (!anim) viewStartTo = newY;
 				rebuildCellsNow();
 			}
 		}
@@ -784,7 +792,9 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			if (viewStart!=newY) {
 				viewStart = newY;
 				viewStartTo = newY;
-				anim(Duration.millis(250), consumer(it -> scrollTo(oldY + it*(newY-oldY)))).intpl(it -> sqrt(sqrt(it))).play();
+				if (scrollAnim!=null) scrollAnim.stop();
+				scrollAnim = anim(millis(250), consumer(it -> scrollTo(oldY + it*(newY-oldY), true))).intpl(easeOut(it -> sqrt(it)));
+				scrollAnim.play();
 			}
 		}
 

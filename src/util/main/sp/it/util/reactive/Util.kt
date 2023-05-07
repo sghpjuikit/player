@@ -27,6 +27,7 @@ import sp.it.util.async.runLater
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
+import sp.it.util.functional.Quadruple
 import sp.it.util.functional.asIs
 import sp.it.util.functional.kt
 import sp.it.util.functional.net
@@ -178,6 +179,12 @@ infix fun <T, O> ObservableValue<T>.zip(that: ObservableValue<O>): ObservableVal
 
    override fun getValue() = if (s.isSubscribed) mv else computeValue()
 }
+
+/** [zip] that flattens into a [Triple]. */
+infix fun <T1, T2, O> ObservableValue<Pair<T1, T2>>.zip2(that: ObservableValue<O>): ObservableValue<Triple<T1, T2, O>> = this zip that map { (x, e) -> Triple(x.first, x.second, e) }
+
+/** [zip] that flattens into a [Quadruple]. */
+infix fun <T1, T2, T3, O> ObservableValue<Triple<T1, T2, T3>>.zip3(that: ObservableValue<O>): ObservableValue<Quadruple<T1, T2, T3, O>> = this zip that map { (x, e) -> Quadruple(x.first, x.second, x.third, e) }
 
 /** Sets a block to be fired immediately and on every value change. */
 infix fun <O> ObservableValue<O>.sync(block: (O) -> Unit): Subscription {

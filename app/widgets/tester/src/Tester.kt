@@ -80,6 +80,7 @@ import sp.it.pl.main.listBox
 import sp.it.pl.main.listBoxRow
 import sp.it.pl.main.reportFor
 import sp.it.pl.main.withAppProgress
+import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.item_node.ValueToggleButtonGroupCE
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
@@ -91,6 +92,9 @@ import sp.it.util.access.vn
 import sp.it.util.access.vx
 import sp.it.util.action.ActionManager
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.animation.Anim.Interpolators.Companion.easeBoth
+import sp.it.util.animation.Anim.Interpolators.Companion.easeIn
+import sp.it.util.animation.Anim.Interpolators.Companion.easeOut
 import sp.it.util.animation.Anim.Interpolators.Companion.fxDiscrete
 import sp.it.util.animation.Anim.Interpolators.Companion.fxEaseBoth
 import sp.it.util.animation.Anim.Interpolators.Companion.fxEaseIn
@@ -100,7 +104,10 @@ import sp.it.util.animation.Anim.Interpolators.Companion.geomBack
 import sp.it.util.animation.Anim.Interpolators.Companion.geomCircular
 import sp.it.util.animation.Anim.Interpolators.Companion.geomElastic
 import sp.it.util.animation.Anim.Interpolators.Companion.geomExponential
+import sp.it.util.animation.Anim.Interpolators.Companion.geomRev
 import sp.it.util.animation.Anim.Interpolators.Companion.geomSine
+import sp.it.util.animation.Anim.Interpolators.Companion.inv
+import sp.it.util.animation.Anim.Interpolators.Companion.mathSine
 import sp.it.util.animation.Anim.Interpolators.Companion.math_exp2_N10
 import sp.it.util.animation.Anim.Interpolators.Companion.math_exp2_N2
 import sp.it.util.animation.Anim.Interpolators.Companion.math_exp2_N20
@@ -151,6 +158,7 @@ import sp.it.util.dev.printIt
 import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.flatMap
@@ -162,6 +170,8 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncWhile
 import sp.it.util.reactive.zip
+import sp.it.util.reactive.zip2
+import sp.it.util.reactive.zip3
 import sp.it.util.text.nameUi
 import sp.it.util.type.type
 import sp.it.util.ui.hBox
@@ -375,18 +385,22 @@ class Tester(widget: Widget): SimpleController(widget) {
    }
 
    fun testInterpolators() {
-      val type = v("Normal")
+      val easing = v("None")
+      val reverse = v(false)
+      val inverse = v(false)
+      val symmetric = v(false)
       val interpolators = mapOf<String, (Double) -> Double>(
          "javaFx: DISCRETE" to fxDiscrete.toF(),
          "javaFx: LINEAR" to fxLinear.toF(),
          "javaFx: EASE_IN" to fxEaseIn.toF(),
          "javaFx: EASE_OUT" to fxEaseOut.toF(),
          "javaFx: EASE_BOTH" to fxEaseBoth.toF(),
-         "spit: sine" to geomSine,
-         "spit: circular" to geomCircular,
-         "spit: exponential" to geomExponential,
-         "spit: back" to geomBack(),
-         "spit: elastic" to geomElastic(),
+         "geom: reverse" to geomRev,
+         "geom: sine" to geomSine,
+         "geom: circular" to geomCircular,
+         "geom: exponential" to geomExponential,
+         "geom: back" to geomBack(),
+         "geom: elastic" to geomElastic(),
          "math: x" to math_x,
          "math: x⁺²" to math_xp2,
          "math: x⁺³" to math_xp3,
@@ -401,12 +415,19 @@ class Tester(widget: Widget): SimpleController(widget) {
          "math: exp₂(10)" to math_exp2_N10,
          "math: exp₂(4)" to math_exp2_N4,
          "math: exp₂(2)" to math_exp2_N2,
+         "math: sine" to mathSine,
       )
       onContentChange()
       content.children setToOne vBox(1.em.emScaled) {
-         lay += stackPane {
+         lay += vBox(null, CENTER) {
             styleClass += "h2p"
-            lay += ValueToggleButtonGroupCE(PropertyConfig(type<String>(), "Type", ConfigDef(), setOf(ValueSealedToggle), type, "Normal", ""), listOf("Normal", "Reverted", "Symmetric"), {}).run {
+            lay += ConfigEditor.create(PropertyConfig(type<Boolean>(), "Reverse", ConfigDef(), setOf(), reverse, reverse.value, ""))
+               .net { c -> hBox(null, CENTER) { lay += c.buildLabel(); lay += c.editor } }
+            lay += ConfigEditor.create(PropertyConfig(type<Boolean>(), "Inverse", ConfigDef(), setOf(), inverse, inverse.value, ""))
+               .net { c -> hBox(null, CENTER) { lay += c.buildLabel(); lay += c.editor } }
+            lay += ConfigEditor.create(PropertyConfig(type<Boolean>(), "Symmetric", ConfigDef(), setOf(), symmetric, symmetric.value, ""))
+               .net { c -> hBox(null, CENTER) { lay += c.buildLabel(); lay += c.editor } }
+            lay += ValueToggleButtonGroupCE(PropertyConfig(type<String>(), "Ease", ConfigDef(), setOf(ValueSealedToggle), easing, easing.value, ""), listOf("None", "In", "Out", "Both"), {}).run {
                editor.alignment = CENTER
                editor
             }
@@ -435,9 +456,15 @@ class Tester(widget: Widget): SimpleController(widget) {
                            lookupChildAt<Icon>(2).setScaleXY(it)
                            lookupChildAt<Icon>(3).rotate = 180*it
                         }.apply {
-                           type sync {
+                           reverse zip inverse zip2 symmetric zip3 easing sync { (r, i, s, e) ->
                               stop()
-                              intpl(when (it) { "Normal" -> interpolator; "Reverted" -> interpolator.rev(); "Symmetric" -> interpolator.sym(); else -> failCase(it) })
+                              intpl(
+                                 interpolator
+                                    .net { if (r) it.rev() else it }
+                                    .net { if (i) it.inv() else it }
+                                    .net { if (s) it.sym() else it }
+                                    .net { when (e) { "None" -> it; "In" -> it.easeIn(); "Out" -> it.easeOut(); "Both" -> it.easeBoth(); else -> failCase(e) } }
+                              )
                               cycleCount = INDEFINITE
                               isAutoReverse = true
                               onContentChange += ::stop

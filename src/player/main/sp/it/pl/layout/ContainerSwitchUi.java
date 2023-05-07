@@ -9,6 +9,7 @@ import java.util.Spliterator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.DoubleProperty;
@@ -34,6 +35,7 @@ import static java.lang.Double.min;
 import static java.lang.Math.abs;
 import static java.lang.Math.rint;
 import static java.lang.Math.signum;
+import static java.lang.Math.sqrt;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.function.Predicate.not;
 import static java.util.stream.StreamSupport.stream;
@@ -50,6 +52,7 @@ import static javafx.util.Duration.millis;
 import static kotlin.sequences.SequencesKt.any;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
+import static sp.it.util.animation.Anim.Interpolators.easeOut;
 import static sp.it.util.animation.Anim.Interpolators.geomCircular;
 import static sp.it.util.animation.Anim.Interpolators.inv;
 import static sp.it.util.animation.Anim.Interpolators.toInterpolator;
@@ -178,7 +181,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
                 double fromCentre = e.getX()-uiWidth()/2;
                        fromCentre = fromCentre/zoom.getScaleX();
                 tox = signum(-1*e.getDeltaY())*(fromCentre);
-                zoom(i);
+                zoomNoAcc(i);
                 e.consume();
             }
         });
@@ -570,15 +573,15 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
     }
 
 /*********************************** ZOOMING **********************************/
-
-    private final ScaleTransition z1 = new ScaleTransition(Duration.ZERO, zoom);
-    private final TranslateTransition z2 = new TranslateTransition(Duration.ZERO, ui);
-    private final FadeTransition z3 = new FadeTransition(Duration.ZERO, zoom);
+    private final Interpolator uiZoom = toInterpolator(easeOut(it -> sqrt(it)));
+    private final ScaleTransition uiZoomAnim1 = new ScaleTransition(Duration.ZERO, zoom);
+    private final TranslateTransition uiZoomAnim2 = new TranslateTransition(Duration.ZERO, ui);
+    private final FadeTransition uiZoomAnim3 = new FadeTransition(Duration.ZERO, zoom);
 
     /** Animates zoom on when true, or off when false. */
     public void zoom(boolean v) {
-        z1.setInterpolator(toInterpolator(inv(geomCircular)));
-        z2.setInterpolator(toInterpolator(inv(geomCircular)));
+        uiZoomAnim1.setInterpolator(uiZoom);
+        uiZoomAnim2.setInterpolator(uiZoom);
         zoomNoAcc(v ? zoomScaleFactor.get() : 1);
     }
 
@@ -604,36 +607,33 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
     // this is called in animation with 0-1 as parameter
     private void zoom(double d) {
         if (d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");
-        // remember amount
-        // Design flaw. If we want to remember the value, use another property. This overwrites
-        // the 'proper' value by setting zoom to 1 - effectively disallowing zooming more than once
-        // if (d!=1) zoomScaleFactor.set(d);
-        // play
-        z1.stop();
-        z1.setDuration(APP.ui.getLayoutModeDuration());
-        z1.setToX(d);
-        z1.play();
-        z2.stop();
-        z2.setDuration(z1.getDuration());
-        z2.setByX(tox/5);
-        z2.play();
-        z3.stop();
-        z3.setDuration(z1.getDuration());
-        z3.setToValue(0.2+0.8*d);
-        z3.play();
+        uiZoomAnim1.stop();
+        uiZoomAnim1.setDuration(APP.ui.getLayoutModeDuration());
+        uiZoomAnim1.setToX(d);
+        uiZoomAnim1.play();
+        uiZoomAnim2.stop();
+        uiZoomAnim2.setDuration(uiZoomAnim1.getDuration());
+        uiZoomAnim2.setByX(tox/5);
+        uiZoomAnim2.play();
+        uiZoomAnim3.stop();
+        uiZoomAnim3.setDuration(uiZoomAnim1.getDuration());
+        uiZoomAnim3.setToValue(0.2+0.8*d);
+        uiZoomAnim3.play();
         byx = 0;
         tox = 0;
         APP.getActionStream().invoke("Zoom mode");
     }
+
     private void zoomNoAcc(double d) {
-        if (d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");
-        // calculate amount
-        double missed = Double.compare(NaN, z1.getToX())==0 ? 0 : z1.getToX() - zoom.getScaleX();
-               missed = signum(missed)==signum(d) ? missed : 0;
-        d += missed;
-        d = max(0.2,min(d,1));
-        // zoom normally
-        zoom(d);
+        if (d<0.0 || d>1.0) throw new IllegalStateException("zooming interpolation out of 0-1 range");
+
+        double diff = clip(0.2, d, 1.0) - zoom.getScaleX();
+        double at = Double.compare(NaN, uiZoomAnim1.getToX())==0 ? zoom.getScaleX() : (uiZoomAnim3.getToValue()-0.2)/0.8;
+
+        if (d<=0.2 && at==0.2) return;
+        if (d>=1.0 && at==1.0) return;
+
+        zoom(clip(0.2, at + diff, 1.0));
     }
 
 /******************************************************************************/

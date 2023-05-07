@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement widget ui controls icons to react on widget size [improves layout]
 - Improve **Tester** widget layout & initial size
 - Improve **StartScreen** styling (no border)
+- Improve various animation interpolators
 - Improve `Overlay` show animation transitions
 - Improve autocomplete show/hide UX
 - Improve filter negate icon styling

@@ -874,6 +874,7 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
             pseudoClassChanged("no-fixed-cell-size", true)
             nodeOrientation = RIGHT_TO_LEFT
             minPrefMaxWidth = 250.emScaled
+            fixedCellSize = 48.emScaled
             cellFactory = Callback {
                object: ListCell<PluginBox<*>>() {
                   val icon = Icon(null, 48.0).apply {
@@ -985,6 +986,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
             pseudoClassChanged("no-fixed-cell-size", true)
             minPrefMaxWidth = 250.emScaled
             nodeOrientation = RIGHT_TO_LEFT
+            fixedCellSize = 48.emScaled
             cellFactory = Callback {
                object: ListCell<ComponentFactory<*>>() {
                   val icon = Icon(null, 48.0).apply {

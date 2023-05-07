@@ -22,7 +22,7 @@
 }
 .tree-cell > .tree-disclosure-node,
 .tree-table-row-cell > .tree-disclosure-node {
-    -fx-padding: 1.25em 0.5em 0 0;
+    -fx-padding: 1.15em 0.5em 0 0;
 }
 .menu-item {
     -fx-pref-height: 2em;

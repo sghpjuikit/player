@@ -14,6 +14,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.Df
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
@@ -82,7 +83,7 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
                show(i, Side.BOTTOM, 0.0, 0.0)
             }
          }
-         lay += headerIcon(IconFA.TIMES, "Close widget") {
+         lay += headerIcon(ICON_CLOSE, "Close widget") {
             area.container.close()
             APP.actionStream("Close widget")
          }

@@ -1,25 +1,30 @@
 package sp.it.pl.layout
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.Node
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.TransferMode.ANY
 import javafx.scene.layout.AnchorPane
-import javafx.scene.layout.TilePane
 import sp.it.pl.main.Df
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.set
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.ui.height
 import sp.it.util.ui.plus
+import sp.it.util.ui.tilePane
 
 interface ComponentUiControls
 
 abstract class ComponentUiControlsBase: ComponentUiControls {
    abstract val area: ComponentUiBase<*>
 
-   val icons = TilePane(4.0, 4.0)
+   val icons = tilePane(4.0, 4.0) {
+      prefColumns = 1
+      prefRows = 1
+      orientation = VERTICAL
+   }
    val root: AnchorPane = object: AnchorPane() {
       override fun layoutChildren() {
          super.layoutChildren()

@@ -65,8 +65,6 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
       root.lay(0.0, 0.0, null, 0.0) += icons.apply {
          nodeOrientation = LEFT_TO_RIGHT
          alignment = CENTER_RIGHT
-         prefColumns = 10
-         prefHeight = 25.0
 
          lay += headerIcon(null, "Lock container's layout") {
             area.container.locked.toggle()

@@ -3,6 +3,7 @@ package sp.it.pl.layout
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LINK
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLINK
 import javafx.geometry.NodeOrientation.LEFT_TO_RIGHT
+import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Side
 import javafx.scene.Node
@@ -82,9 +83,6 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
       root.lay(0.0, 0.0, null, null) += icons.apply {
          nodeOrientation = LEFT_TO_RIGHT
          alignment = CENTER_RIGHT
-         prefRows = 1
-         prefColumns = 10
-         prefWidth = USE_COMPUTED_SIZE
 
          val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }.apply {
             root.insetsProperty() zip layoutBoundsProperty() attach { (p, l) -> lmActivateArea = (p.right x p.top) + l.size }

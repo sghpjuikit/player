@@ -150,7 +150,7 @@ inline fun stackPane(vararg children: Node, block: StackPane.() -> Unit = {}) = 
 inline fun anchorPane(block: AnchorPane.() -> Unit = {}) = AnchorPane().apply(block)
 inline fun tilePane(hgap: Double = 0.0, vgap: Double = 0.0, block: TilePane.() -> Unit = {}) = TilePane(hgap, vgap).apply(block)
 inline fun flowPane(hgap: Double = 0.0, vgap: Double = 0.0, block: FlowPane.() -> Unit = {}) = FlowPane(hgap, vgap).apply(block)
-inline fun gridPane(block: (GridPane).() -> Unit = {}) = GridPane().apply(block)
+inline fun gridPane(hgap: Double = 0.0, vgap: Double = 0.0, block: (GridPane).() -> Unit = {}) = GridPane(hgap, vgap).apply(block)
 inline fun gridPaneRow(block: (RowConstraints).() -> Unit = {}) = RowConstraints().apply(block)
 inline fun gridPaneColumn(block: (ColumnConstraints).() -> Unit = {}) = ColumnConstraints().apply(block)
 inline fun hBox(spacing: Number? = null, alignment: Pos? = null, block: HBox.() -> Unit = {}) = HBox().apply { if (spacing!=null) this.spacing = spacing.toDouble(); if (alignment!=null) this.alignment = alignment; block() }

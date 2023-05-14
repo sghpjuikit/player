@@ -5,7 +5,6 @@ import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTIUM
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
-
 plugins {
    kotlin("jvm") version "1.8.21"
    application
@@ -92,8 +91,8 @@ allprojects {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
          implementation(kotlin("compiler-embeddable"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.0")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.1")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.1")
          implementation("org.jetbrains", "annotations", "24.0.1")
       }
 
@@ -102,7 +101,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "21-ea+5"
+         val version = "21-ea+17"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -142,7 +141,7 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "5.3.1")
+         implementation("com.github.f4b6a3", "uuid-creator", "5.3.2")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.2")
          implementation("com.github.oshi", "oshi-core", "6.4.1")
@@ -185,8 +184,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.6.1")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.6.1")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.6.2")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.6.2")
       }
 
    }

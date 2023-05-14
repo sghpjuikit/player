@@ -158,11 +158,9 @@ class GpuNvidiaInfo: StackPane() {
 
    init {
       styleClass += "gpu-nvidia-info"
-      lay += gridPane {
+      lay += gridPane(25.0, 25.0) {
          minSize = 0 x 0
          maxSize = Double.MAX_VALUE.x2
-         vgap += 25
-         hgap += 25
 
          val baseRow = 6
 

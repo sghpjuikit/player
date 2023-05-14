@@ -121,40 +121,18 @@ class PlayerLoopMode(widget: Widget): SimpleController(widget), PlaybackFeature,
 
    companion object: WidgetCompanion, KLogging() {
       override val name = "Playback loop mode"
-      override val description = "Audio playback knob controls"
+      override val description = "Playback loop mode circular control"
       override val descriptionLong = "$description."
       override val icon = IconMD.MUSIC_CIRCLE
-      override val version = version(1, 1, 0)
+      override val version = version(1, 0, 0)
       override val isSupported = true
-      override val year = year(2021)
+      override val year = year(2023)
       override val author = "spit"
       override val contributor = ""
       override val tags = setOf(AUDIO)
       override val summaryActions = listOf(
-         Entry("Controls", "Play previous song", "BMB"),
-         Entry("Controls", "Play previous song", "back icon LMB"),
-         Entry("Controls", "Seek backward", "back icon RMB"),
-         Entry("Controls", "Play/pause", "play/pause icon LMB or RMB"),
-         Entry("Controls", "Seek forward", "forward icon RMB"),
-         Entry("Controls", "Play next song", "forward icon LMB"),
-         Entry("Controls", "Play next song", "FMB"),
-         Entry("Controls", "Toggle next song mode", "loop icon LMB or RMB"),
-         Entry("Controls", "Change volume", "Scroll"),
-         Entry("Controls", "Mute", "Mute icon LMB or RMB"),
-         Entry("View", "Toggle elapsed/remaining time", "current time label LBM"),
-         Entry("Playlist", "Add songs to active playlist", "Drag & drop songs"),
-         Entry("Seeker", "Seek playback", "LMB"),
-         Entry("Seeker", "Seek playback", "drag & release LMB"),
-         Entry("Seeker", "Cancel seeking playback", "drag LMB + RMB"),
-         Entry("Seeker > Chapter", "Add chapter", "seeker RMB"),
-         Entry("Seeker > Chapter mark", "Open chapter", "LMB"),
-         Entry("Seeker > Chapter popup", "Hide chapter", "LMB"),
-         Entry("Seeker > Chapter popup", "Hide chapter", "Escape"),
-         Entry("Seeker > Chapter popup", "Play from chapter", "2xLMB"),
-         Entry("Seeker > Chapter popup > Edit", "Start edit", "2xRMB"),
-         Entry("Seeker > Chapter popup > Edit", "Apply edit", "Enter"),
-         Entry("Seeker > Chapter popup > Edit", "Append new line", "Shift + Enter"),
-         Entry("Seeker > Chapter popup > Edit", "Cancel edit", "Escape"),
+         Entry("Controls", "Toggle next song mode", "Scroll"),
+         Entry("Controls", "Toggle next song mode", "Loop icon LMB | RMB"),
       )
 
       fun GlyphIcons.icon(size: Double, block: (Boolean) -> Unit) = Icon(this, size).apply {

@@ -3,12 +3,10 @@ package sp.it.pl.layout
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LINK
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLINK
 import javafx.geometry.NodeOrientation.LEFT_TO_RIGHT
-import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
-import javafx.scene.control.Label
 import javafx.scene.effect.BoxBlur
 import javafx.scene.input.DragEvent.DRAG_DONE
 import javafx.scene.input.MouseEvent
@@ -16,8 +14,7 @@ import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
-import javafx.scene.layout.Region
-import javafx.scene.layout.Region.USE_COMPUTED_SIZE
+import javafx.scene.text.TextAlignment
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
 import sp.it.pl.layout.WidgetUi.Companion.PSEUDOCLASS_DRAGGED
@@ -44,6 +41,7 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
 import sp.it.util.ui.centre
 import sp.it.util.ui.dsl
+import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.pseudoClassChanged
@@ -54,7 +52,7 @@ import sp.it.util.ui.x
 import sp.it.util.ui.x2
 
 class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
-   val title = Label()
+   val title = label { isWrapText = true; textAlignment = TextAlignment.CENTER }
    val menuB: Icon
    val absB: Icon
    val lockB: Icon

@@ -2368,6 +2368,13 @@ TextFlow > * {
     -fx-background-color: -skin-pane-color;
 }
 
+/* Standalone widgets */
+.pop-window .widget-ui,
+.window-dock .widget-ui,
+.window-slide .widget-ui {
+    -fx-background-color: transparent;
+}
+
 .widget-ui:active {
     -fx-border-radius: 5;
 }

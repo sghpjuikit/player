@@ -28,6 +28,7 @@ import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.objects.SpitText
+import sp.it.pl.ui.objects.form.Validated
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
@@ -50,15 +51,20 @@ import sp.it.util.action.IsAction
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.async.runIoParallel
+import sp.it.util.async.runVT
+import sp.it.util.conf.CheckList
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.ValueConfig
 import sp.it.util.conf.but
 import sp.it.util.conf.c
+import sp.it.util.conf.cCheckList
 import sp.it.util.conf.cn
 import sp.it.util.conf.def
 import sp.it.util.conf.noUi
+import sp.it.util.conf.nonNull
+import sp.it.util.conf.readOnly
 import sp.it.util.conf.values
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.stacktraceAsString
@@ -70,6 +76,9 @@ import sp.it.util.file.setCreated
 import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
+import sp.it.util.functional.Try
+import sp.it.util.functional.Try.Error
+import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
@@ -418,18 +427,29 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       "Restores creation/modification times. Useful after file or directory copy.\n" +
          "Sets times for destination files to those of source files. Runs for each directory and file, recursively. " +
          "Matches by path relative to source/destination directory.",
-      IconFA.FILES_ALT
+      IconFA.FILES_ALT,
    ) { file ->
-      ValueConfig(type(), "Destination file", File(""), "").configure("Synchronize file times") {
-         runIO {
-            val srcPath = file.absolutePath.trimEnd('\\')
-            val src = FileFlatter.ALL_WITH_DIR.flatten(listOf(file)).associateBy { it.absolutePath.substringAfter(srcPath) }
-            val dstPath = it.value.absolutePath.trimEnd('\\')
-            val dst = FileFlatter.ALL_WITH_DIR.flatten(listOf(it.value)).associateBy { it.absolutePath.substringAfter(dstPath) }
+      object: ConfigurableBase<File>(), Validated {
+         val srcFileC by c<File>(file).readOnly().def(name = "Source", info = "File or directory that will be used as source", editable = EditMode.NONE)
+         var dstFileC by c<File>(File("")).nonNull().def(name = "Destination", info = "File or directory that will have it's time restored")
+         val strategyC by c(FileFlatter.ALL_WITH_DIR).def(name = "Strategy", info = "Strategy to obtain files from the source/destination", editable = EditMode.NONE)
+         val restoreC by cCheckList(CheckList.nonNull(type<String>(), listOf("Created Time", "Modified Time"), listOf(true, true))).def(name = "Restore")
+         override fun isValid(): Try<*,String> = if (restoreC.selections.any { it }) Ok(null) else Error("At least one item must be selected")
+      }.configure("Synchronize file times") {
+         val srcFile = it.srcFileC
+         val dstFile = it.dstFileC
+         val strategy = it.strategyC
+         val restoreModified = it.restoreC.isSelected("Modified Time")
+         val restoreCreated = it.restoreC.isSelected("Created Time")
+         val srcPath = srcFile.absolutePath.trimEnd('\\')
+         val dstPath = dstFile.absolutePath.trimEnd('\\')
+         runVT {
+            val src = strategy.flatten(listOf(srcFile)).associateBy { it.absolutePath.substringAfter(srcPath) }
+            val dst = strategy.flatten(listOf(dstFile)).associateBy { it.absolutePath.substringAfter(dstPath) }
             runIoParallel(items = dst.entries) { (path, df) ->
                src[path].ifNotNull { sf ->
-                  df.setLastModified(sf.lastModified())
-                  df.setCreated(sf.creationTime().orNull()!!)
+                  if (restoreModified) df.setLastModified(sf.lastModified())
+                  if (restoreCreated) df.setCreated(sf.creationTime().orNull()!!)
                }
             }.block()
          }

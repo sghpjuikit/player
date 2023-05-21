@@ -297,7 +297,7 @@ public class Icon extends StackPane {
 				GlyphIcons g = getGlyph();
 				if (g!=null) {
 					Node icon = createIcon(g, 24.0);
-					setScaleXY(icon, 0.0);
+					icon.setOpacity(0.0);
 					t.setGraphic(icon);
 					t.setGraphicTextGap(15);
 				}
@@ -316,7 +316,7 @@ public class Icon extends StackPane {
 					var textInterpolator = typeText(text);
 					var anim = new Anim(millis(400), p -> {
 						txt.setText(textInterpolator.invoke(p));
-						setScaleXY(ico, mapTo01(p, 0.4, 1));
+						ico.setOpacity(mapTo01(p, 0.4, 1));
 					});
 					t.getProperties().put("text_animation", anim);
 					anim.applyAt(0.0);

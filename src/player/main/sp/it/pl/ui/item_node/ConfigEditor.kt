@@ -189,66 +189,67 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
             }
          }
 
-         root.addEventFilter(MOUSE_ENTERED) {
-               runFX(270.millis) {
-                  if (root.isHover) {
-                     configHover.value = true
-                     if (caretB==null) {
-                        caretB = Icon(null, -1.0).onClickDo { i ->
-                           ContextMenu().dsl {
-                              if (isEditable.value) {
-                                 item("Set to default") {
-                                    if (isEditable.value)
-                                       this@ConfigEditor.refreshDefaultValue()
-                                 }
-                                 if (config.type.isNullable) item("Set to ${null.toUi()}") {
-                                    if (isEditable.value)
-                                       this@ConfigEditor.config.asIs<Config<Nothing?>>().value = null
-                                 }
+         fun configHoverFalse() { configHover.value = root.isHover || root.isFocusWithin }
+         fun configHoverTrue() {
+            runFX(270.millis) {
+               if (root.isHover || root.isFocusWithin) {
+                  configHover.value = true
+                  if (caretB==null) {
+                     caretB = Icon(null, -1.0).onClickDo { i ->
+                        ContextMenu().dsl {
+                           if (isEditable.value) {
+                              item("Set to default") {
+                                 if (isEditable.value)
+                                    this@ConfigEditor.refreshDefaultValue()
                               }
-                              menu("Value") {
-                                 items {
-                                    CoreMenus.menuItemBuilders[value]
-                                 }
-                                 if (this@ConfigEditor is ComplexCE<*>) {
-                                    item("Copy as text", keys = "CTRL + C") { editor.copyValueAsText() }
-                                    item("Paste as text", keys = "CTRL + V") { editor.pasteValueAsText() }.apply { if (!editor.pasteValueAsTextPossible()) isDisable = true }
-                                 }
+                              if (config.type.isNullable) item("Set to ${null.toUi()}") {
+                                 if (isEditable.value)
+                                    this@ConfigEditor.config.asIs<Config<Nothing?>>().value = null
                               }
-                           }.apply {
-                              configMenuVisible.value = true
-                              onEventDown(WINDOW_HIDDEN) { configMenuVisible.value = false }
-                              show(i, Side.BOTTOM, 0.0, 0.0)
                            }
-                        }
-                        caretB!!.styleclass("config-editor-caret")
-                        caretB!!.isManaged = false
-                        caretB!!.opacity = 0.0
-
-                        val caretRoot = object: StackPane(caretB) {
-                           override fun layoutChildren() {
-                              caretB!!.relocate(
-                                 width/2.0 - caretB!!.layoutBounds.width/2,
-                                 height/2.0 - caretB!!.layoutBounds.height/2
-                              )
+                           menu("Value") {
+                              items {
+                                 CoreMenus.menuItemBuilders[value]
+                              }
+                              if (this@ConfigEditor is ComplexCE<*>) {
+                                 item("Copy as text", keys = "CTRL + C") { editor.copyValueAsText() }
+                                 item("Paste as text", keys = "CTRL + V") { editor.pasteValueAsText() }.apply { if (!editor.pasteValueAsTextPossible()) isDisable = true }
+                              }
                            }
-                        }
-                        caretRoot.setPrefSize(caretLayoutSize, caretLayoutSize)
-                        root.children.add(caretRoot)
-                        root.padding = paddingWithCaret
-
-                        caretA = anim(450.millis) {
-                           if (caretB!=null)
-                              caretB!!.opacity = it*it
+                        }.apply {
+                           configMenuVisible.value = true
+                           onEventDown(WINDOW_HIDDEN) { configMenuVisible.value = false }
+                           show(i, Side.BOTTOM, 0.0, 0.0)
                         }
                      }
-                     caretA?.playOpenDo(null)
+                     caretB!!.styleclass("config-editor-caret")
+                     caretB!!.isManaged = false
+                     caretB!!.opacity = 0.0
+
+                     val caretRoot = object: StackPane(caretB) {
+                        override fun layoutChildren() {
+                           caretB!!.relocate(
+                              width/2.0 - caretB!!.layoutBounds.width/2,
+                              height/2.0 - caretB!!.layoutBounds.height/2
+                           )
+                        }
+                     }
+                     caretRoot.setPrefSize(caretLayoutSize, caretLayoutSize)
+                     root.children.add(caretRoot)
+                     root.padding = paddingWithCaret
+
+                     caretA = anim(450.millis) {
+                        if (caretB!=null)
+                           caretB!!.opacity = it*it
+                     }
                   }
+                  caretA?.playOpenDo(null)
                }
+            }
          }
-         root.addEventFilter(MOUSE_EXITED) {
-            configHover.value = false
-         }
+         root.focusWithinProperty() attach { if (it) configHoverTrue() else configHoverFalse() }
+         root.addEventFilter(MOUSE_ENTERED) { configHoverTrue() }
+         root.addEventFilter(MOUSE_EXITED) { configHoverFalse() }
       }
 
       val isHardToAutoResize = editor is TextField

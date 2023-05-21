@@ -16,6 +16,7 @@ import kotlinx.coroutines.invoke
 import kotlinx.coroutines.javafx.awaitPulse
 import mu.KotlinLogging
 import sp.it.pl.audio.tagging.AudioFileFormat
+import sp.it.pl.core.InfoUi
 import sp.it.pl.core.Parse
 import sp.it.pl.core.Parser
 import sp.it.pl.core.ParserOr
@@ -266,61 +267,74 @@ object FileFilters {
    fun cvFileFilter() = cv(filterPrimary) { vFileFilter(it) }.but(parser.toUiStringHelper())
 }
 
-enum class FileFlatter(val flatten: (Collection<File>) -> Sequence<File>) {
-   NONE({
-      it.asSequence().distinct()
-   }),
-   DIRS({
-      it.asSequence().distinct()
-         .flatMap { it.asDirTree() }
-   }),
-   TOP_LVL({
-      it.asSequence().distinct()
-         .flatMap { it.asChildren() }
-   }),
-   TOP_LVL_AND_DIRS({
+enum class FileFlatter(override val infoUi: String, val flatten: (Collection<File>) -> Sequence<File>): InfoUi {
+   NONE(
+      "File/dir as is. For multiple sources, distinct is applied. " +
+      "For multiple sources, distinct is applied, then this operation and then results appended in sequence",
+      { it.asSequence().distinct()}
+   ),
+   ALL(
+      "File if file, otherwise recursively children. " +
+         "For multiple sources, distinct is applied, then this operation and then results appended in sequence",
+      {
+         it.asSequence().distinct()
+            .flatMap {
+               if (it.isDirectory) {
+                  val dirs = windowsCmdDir(it, DIRECTORY)
+                  val files = windowsCmdDir(it, FILE)
+                  (dirs + files).asSequence()
+               } else {
+                  sequenceOf(it)
+               }
+            }
+      }
+   ),
+   DIRS(
+      "Recursive directory tree. " +
+      "For multiple sources, distinct is applied, then this operation and then results appended in sequence",
+      { it.asSequence().distinct().flatMap { it.asDirTree() } }
+   ),
+   FILES(
+      "Recursive file tree. " +
+      "For multiple sources, distinct is applied, then this operation and then results appended in sequence",
+      { it.asSequence().distinct().flatMap { it.asFileTree() } }
+   ),
+   TOP_LVL(
+      "Empty if file, otherwise children. " +
+      "For multiple sources, distinct is applied, then this operation and then results appended in sequence",
+      { it.asSequence().distinct().flatMap { it.asChildren() }}
+   ),
+   TOP_LVL_AND_DIRS(
+      "Empty if file, otherwise children + recursively directories. " +
+      "For multiple sources, distinct is applied, then this operation and then results appended in sequence",
+      {
       it.asSequence().distinct()
          .flatMap { it.children() }
          .flatMap { (sequenceOf(it).filter { it.isFile } + it.walk().filter { it.isDirectory }) }
    }),
-   TOP_LVL_AND_DIRS_AND_WITH_COVER({
-
-      fun File.hasCover(cache: HashSet<FastFile>): Boolean {
-         val p = parentDirOrRoot
-         val n = nameWithoutExtension
-         return imageExtensionsRead.any { cache.contains(p/"$n.$it") }
-      }
-
-      fun File.walkDirsAndWithCover(): Sequence<File> {
-         return if (isDirectory) {
-            val dirs = windowsCmdDir(this, DIRECTORY)
-            val files = windowsCmdDir(this, FILE)
-            val cache = (dirs + files).toHashSet()
-            cache.asSequence().filter { it.isDirectory || it.hasCover(cache) }
-         } else {
-            sequenceOf(this)
+   TOP_LVL_AND_DIRS_AND_WITH_COVER(
+      "File if file, otherwise recursively children that are directory or image or file with a cover (sibling image with same name). " +
+      "For multiple sources, distinct is applied, then this operation and then results appended in sequence",
+      {
+         fun File.hasCover(cache: HashSet<FastFile>): Boolean {
+            val p = parentDirOrRoot
+            val n = nameWithoutExtension
+            return imageExtensionsRead.any { cache.contains(p/"$n.$it") }
          }
-      }
-
-      it.asSequence().distinct()
-         .flatMap { it.walkDirsAndWithCover() }
-   }),
-   ALL_WITH_DIR({
-      it.asSequence().distinct()
-         .flatMap {
-            if (it.isDirectory) {
-               val dirs = windowsCmdDir(it, DIRECTORY)
-               val files = windowsCmdDir(it, FILE)
-               (dirs + files).asSequence()
+         fun File.walkDirsAndWithCover(): Sequence<File> {
+            return if (isDirectory) {
+               val dirs = windowsCmdDir(this, DIRECTORY)
+               val files = windowsCmdDir(this, FILE)
+               val cache = (dirs + files).toHashSet()
+               cache.asSequence().filter { it.isDirectory || it.hasCover(cache) }
             } else {
-               sequenceOf(it)
+               sequenceOf(this)
             }
          }
-   }),
-   ALL({
-      it.asSequence().distinct()
-         .flatMap { it.asFileTree() }
-   });
+
+         it.asSequence().distinct().flatMap { it.walkDirsAndWithCover() }
+      }
+   );
 }
 
 private fun File.asDirTree(): Sequence<File> =

@@ -232,7 +232,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconMD.FILE_FIND,
          BLOCK
       ) { fs ->
-         FileFlatter.ALL.flatten(fs).map { CachingFile(it) }.toList()
+         FileFlatter.FILES.flatten(fs).map { CachingFile(it) }.toList()
       },
       actionAll<File>(
          "Add to library",

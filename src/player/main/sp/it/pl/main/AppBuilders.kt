@@ -224,7 +224,10 @@ fun windowPinIcon(autohide: Property<Boolean>) = CheckIcon(autohide).apply {
    icons(IconMD.PIN)
 }
 
-fun formEditorsUiToggleIcon(mode: Property<ConfigPane.Layout>) = Icon(IconMD.WRAP).onClickDo { mode.toggleNext() }.tooltip("Toggle editor layout. Initial value can be set globally.")
+fun formEditorsUiToggleIcon(mode: Property<ConfigPane.Layout>) = Icon(IconMD.WRAP).apply {
+   onClickDo { mode.toggleNext() }
+   tooltip("Editor layout\n\nChanges layout and visibility of descriptions. Has effect across application.")
+}
 
 data class BulletBuilder(val text: String, val descriptionLabel: Label, var isReadOnly: Boolean = false, var onClick: () -> Unit = {}, var description: String? = null)
 

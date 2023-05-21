@@ -32,8 +32,8 @@ val Node.scenePath: String get() = traverseParents().map { "${it.id.orEmpty()}:$
 /** @return sequence of this and all parents in bottom to top order */
 fun Node.traverseParents(): Sequence<Node> = traverse { it.parent }
 
-/** @return true iff this or any of [Parent.unmodifiableChildren] [Node.isFocused] */
-fun Node.hasFocus(): Boolean = scene?.focusOwner?.traverseParents().orEmpty().any { it==this }
+/** @return true iff this or any of [Parent.unmodifiableChildren] [Node.isFocused]. Equivalent to [Node.isFocusVisible] */
+fun Node.hasFocus(): Boolean = isFocusWithin
 
 /** @return true iff this is direct parent of the specified node */
 fun Node.isParentOf(child: Node) = child.parent===this

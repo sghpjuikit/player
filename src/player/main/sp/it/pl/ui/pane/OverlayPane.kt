@@ -28,6 +28,7 @@ import javafx.stage.WindowEvent.WINDOW_SHOWN
 import kotlin.math.sign
 import kotlin.math.sqrt
 import kotlinx.coroutines.invoke
+import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.main.APP
 import sp.it.pl.main.resizeIcon
@@ -441,7 +442,7 @@ abstract class OverlayPane<in T>: StackPane() {
    }
 }
 
-enum class ScreenBgrGetter(val stageStyle: StageStyle, val needsBlur: Boolean, val nameUi: String, val infoUi: String) {
+enum class ScreenBgrGetter(val stageStyle: StageStyle, val needsBlur: Boolean, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
    NONE(
       StageStyle.TRANSPARENT, false,
       "Content behind",

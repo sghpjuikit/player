@@ -58,6 +58,7 @@ import kotlin.math.sin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import mu.KLogging
+import sp.it.pl.core.InfoUi
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.appProperty
@@ -98,7 +99,6 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.lengthMax
 import sp.it.util.conf.uiConverterElement
-import sp.it.util.conf.uiInfoConverter
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.file.div
@@ -538,7 +538,7 @@ class Hue(widget: Widget): SimpleController(widget) {
             hueBridge.bulbs() ui { bulbsAll ->
                object: ConfigurableBase<Any?>(), Validated {
                   var name by c("")
-                  var type by c(Zone).uiInfoConverter { it.description }
+                  var type by c(Zone)
                   val bulbs by cCheckList(*bulbsAll.toTypedArray()).uiConverterElement { it.name }
 
                   fun materialize() = HueGroupCreate(name, type.value, this.bulbs.selected(true).map { it.id })
@@ -568,7 +568,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                   }
                   fun changePowerOn() {
                      object: ConfigurableBase<Any?>(), Validated {
-                        val powerOn by cv(hue.confPowerOn ?: unknown).uiInfoConverter { it.description }.def("Behavior")
+                        val powerOn by cv(hue.confPowerOn ?: unknown).def("Behavior")
                         override fun isValid() = when {
                            !hueBridge.apiVersion.isAtLeast(1, 28) -> Try.error("Unsupported before apiVersion 1.28. Please update bridge.")
                            powerOn.value == custom || powerOn.value == unknown -> Try.error("Value not supported")
@@ -824,7 +824,7 @@ data class HueSensor(val id: HueSensorId = "", val name: String, val type: Strin
    }
 }
 
-enum class HueBulbConfPowerOn(val value: String, val description: String) {
+enum class HueBulbConfPowerOn(val value: String, override val infoUi: String): InfoUi {
    custom("Custom", "Custom settings defined in custom settings. Will be automatically set when providing “customsettings”. Not available for “On/Off Light”."),
    lastonstate("Last on state", "Light keeps the setting when power failed. If light was off it returns to the last on state."),
    powerfail("Powerfail", "Light keeps the setting when power failed. If light was off it stays off."),
@@ -832,7 +832,7 @@ enum class HueBulbConfPowerOn(val value: String, val description: String) {
    unknown("Unknown", "Custom setting is not supported.")
 }
 enum class HueSceneType { LightScene, GroupScene }
-enum class HueGroupType(val value: String, val since: Double, val description: String) {
+enum class HueGroupType(val value: String, val since: Double, override val infoUi: String): InfoUi {
    Luminaire(
       "Luminaire",
       1.4,

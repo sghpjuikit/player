@@ -92,8 +92,6 @@ import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
-import sp.it.util.conf.uiConverter
-import sp.it.util.conf.uiInfoConverter
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.Util.isValidatedDirectory
@@ -163,12 +161,12 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       info = "Required by skins that want to use transparent backgrounds. May degrade performance. A window may override this setting. Changing globally requires application restart."
    )
    /** Global overridable value for [Window.transparency]. */
-   val windowTransparency by cv(Transparency.OFF).uiConverter { it.nameUi }.uiInfoConverter { it.infoUi }.def(
+   val windowTransparency by cv(Transparency.OFF).def(
       name = "Window transparency",
       info = "Whether content decoration is forcefully transparent. Useful together with 'On top' window settings to get overlay windows."
    )
    /** Global overridable value for [Window.transparency]. */
-   val windowEffect by cv(BgrEffect.OFF).uiConverter { it.nameUi }.uiInfoConverter { it.infoUi }.def(
+   val windowEffect by cv(BgrEffect.OFF).def(
       name = "Window effect",
       info = "Global overridable value for window effect"
    )

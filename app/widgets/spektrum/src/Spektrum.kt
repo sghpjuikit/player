@@ -38,6 +38,7 @@ import kotlin.math.sqrt
 import mu.KLogging
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator
+import sp.it.pl.core.InfoUi
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -59,7 +60,6 @@ import sp.it.util.conf.min
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.noUi
 import sp.it.util.conf.readOnly
-import sp.it.util.conf.uiInfoConverter
 import sp.it.util.conf.uiNoCustomUnsealedValue
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
@@ -112,7 +112,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       .def(name = "Audio buffer size (ms)", info = "Audio buffer for the FFT. Buffer is necessary and bigger size improves accuracy, but introduces delay")
    val maxLevel by cv("RMS").values(listOf("RMS", "Peak"))
       .def(name = "Signal max level", info = "How amplitude of the bar representing frequency range is computed. Peak takes maximum value, RMS (root mean square) average")
-   var weight by c(dBZ).uiInfoConverter { it.infoUi }
+   var weight by c(dBZ)
       .def(name = "Signal weighting", info = "Sound signal weighting involves adjusting the amplitude of different frequency components of a sound signal to reflect the sensitivity of the human ear to different frequencies")
    val signalAmplification by cv(100).between(0, 250)
       .def(name = "Signal amplification (%)", info = "")
@@ -890,7 +890,7 @@ class BarsHeightCalculator(settings: Spektrum) {
 }
 
 @Suppress("EnumEntryName")
-enum class WeightWindow(val infoUi: String, val calculateAmplitudeWight: (Double) -> Double) {
+enum class WeightWindow(override val infoUi: String, val calculateAmplitudeWight: (Double) -> Double): InfoUi {
    dBA(
    "A-weighted scale, which is most commonly used for assessing environmental and occupational noise exposure, as well as assessing sound levels from audio equipment and consumer products like headphones and speakers",
    { f ->

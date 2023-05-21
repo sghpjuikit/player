@@ -64,7 +64,6 @@ import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyIf
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiConverter
-import sp.it.util.conf.uiInfoConverter
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesIn
 import sp.it.util.file.FileMonitor
@@ -156,11 +155,9 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    }
 
    /** [overlayArea] */
-   val viewDisplay by cv(Display.SCREEN_OF_MOUSE)
-      .uiConverter { it.nameUi }.uiInfoConverter { it.infoUi } def overlayArea
+   val viewDisplay by cv(Display.SCREEN_OF_MOUSE) def overlayArea
    /** [overlayBackground] */
    val viewDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR)
-      .uiConverter { it.nameUi }.uiInfoConverter { it.infoUi }
       .readOnlyIf(viewDisplay.map { it==Display.WINDOW }) def overlayBackground
    /** [closeWhenActionEnds] */
    val viewCloseOnDone by cv(true) def closeWhenActionEnds

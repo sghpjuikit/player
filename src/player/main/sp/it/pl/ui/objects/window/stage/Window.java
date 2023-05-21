@@ -30,6 +30,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import oshi.SystemInfo;
+import sp.it.pl.core.InfoUi;
+import sp.it.pl.core.NameUi;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.ContainerSwitch;
 import sp.it.pl.layout.ContainerSwitchUi;
@@ -900,7 +902,7 @@ public class Window extends WindowBase {
 		e.consume();
 	}
 
-	public enum Transparency {
+	public enum Transparency implements NameUi, InfoUi {
 		OFF(
 			"None",
 			"No forced window decoration transparency"
@@ -921,8 +923,11 @@ public class Window extends WindowBase {
 
 		public final String nameUi;
 		public final String infoUi;
+
+		@NotNull @Override public String getNameUi() { return nameUi; }
+		@NotNull @Override public String getInfoUi() { return infoUi; }
 	}
-	public enum BgrEffect {
+	public enum BgrEffect implements NameUi, InfoUi {
 		OFF(
 			"None",
 			"No background effect"
@@ -943,5 +948,8 @@ public class Window extends WindowBase {
 
 		public final String nameUi;
 		public final String infoUi;
+
+		@NotNull @Override public String getNameUi() { return nameUi; }
+		@NotNull @Override public String getInfoUi() { return infoUi; }
 	}
 }

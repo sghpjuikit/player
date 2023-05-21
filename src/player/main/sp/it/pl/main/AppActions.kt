@@ -61,9 +61,9 @@ import sp.it.util.conf.but
 import sp.it.util.conf.c
 import sp.it.util.conf.cCheckList
 import sp.it.util.conf.cn
+import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.noUi
-import sp.it.util.conf.nonNull
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.values
 import sp.it.util.dev.ThreadSafe
@@ -430,14 +430,24 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       IconFA.FILES_ALT,
    ) { file ->
       object: ConfigurableBase<File>(), Validated {
-         val srcFileC by c<File>(file).readOnly().def(name = "Source", info = "File or directory that will be used as source", editable = EditMode.NONE)
-         var dstFileC by c<File>(File("")).nonNull().def(name = "Destination", info = "File or directory that will have it's time restored")
-         val strategyC by c(FileFlatter.ALL_WITH_DIR).def(name = "Strategy", info = "Strategy to obtain files from the source/destination", editable = EditMode.NONE)
-         val restoreC by cCheckList(CheckList.nonNull(type<String>(), listOf("Created Time", "Modified Time"), listOf(true, true))).def(name = "Restore")
-         override fun isValid(): Try<*,String> = if (restoreC.selections.any { it }) Ok(null) else Error("At least one item must be selected")
+
+         val srcFileC by c<File>(file).readOnly()
+            .def(name = "Source", info = "File or directory that will be used as source", editable = EditMode.NONE)
+         val dstFileC by cvn<File>(null)
+            .def(name = "Destination", info = "File or directory that will have it's time restored")
+         val strategyC by c(FileFlatter.ALL)
+            .def(name = "Strategy", info = "Strategy to obtain files from the source/destination", editable = EditMode.NONE)
+         val restoreC by cCheckList(CheckList.nonNull(type<String>(), listOf("Created Time", "Modified Time"), listOf(true, true)))
+            .def(name = "Restore")
+
+         override fun isValid(): Try<*,String> = when {
+            dstFileC.value==null -> Error("Destination must not be null")
+            restoreC.selections.none { it } -> Error("At least one item must be selected")
+            else -> Ok(null)
+         }
       }.configure("Synchronize file times") {
          val srcFile = it.srcFileC
-         val dstFile = it.dstFileC
+         val dstFile = it.dstFileC.value!!
          val strategy = it.strategyC
          val restoreModified = it.restoreC.isSelected("Modified Time")
          val restoreCreated = it.restoreC.isSelected("Created Time")
@@ -457,7 +467,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    }.preventClosing()
 
    val fileFlatten = actionAll<File>("Flatten tree", "Flattens file hierarchy", IconFA.FILES_ALT, BLOCK) { files ->
-      ValueConfig(type(), "Strategy", FileFlatter.ALL_WITH_DIR, "").configure("Flatten tree") {
+      ValueConfig(type(), "Strategy", FileFlatter.ALL, "").configure("Flatten tree") {
          runIO {
             it.value.flatten(files).toList()
          } ui {

@@ -454,6 +454,12 @@ interface NameUi {
    val nameUi: String
 }
 
+/** Denotes how the object shows as human-readable description in UI. */
+interface InfoUi {
+   /** Human-readable description of this object displayed in user interface. */
+   val infoUi: String
+}
+
 class UiStringHelper<T>(val parse: ParserOr<T>): Constraint.MarkerConstraint()
 
 /** parser into a value. Can be used as [Constraint] as well. */

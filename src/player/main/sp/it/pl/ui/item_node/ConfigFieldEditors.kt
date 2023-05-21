@@ -71,6 +71,7 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sign
 import kotlin.reflect.KClass
+import sp.it.pl.core.InfoUi
 import sp.it.pl.core.UiStringHelper
 import sp.it.pl.layout.ComponentFactory
 import sp.it.pl.layout.DeserializingFactory
@@ -381,6 +382,8 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
    val isSortable = c.constraints.none { it is PreserveOrder }
    private val uiConverter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: { it.toUi() }
    private val uiInfoConverter: ((T) -> String)? = c.findConstraint<UiInfoConverter<T>>()?.converter
+      ?: if (c.type.raw.isSubclassOf<InfoUi>()) { it -> it.asIs<InfoUi>().infoUi } else null
+
    final override val editor = SpitComboBox(uiConverter)
    private var suppressChanges = false
 

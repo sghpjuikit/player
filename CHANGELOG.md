@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `list-box` - a `VBox` emulation of `list-view` and provide consistent styling where used
 - Implement widgets **PlayerSeeker**, **PlayerVolume**, **PlayerLoop** instead of one **PlayerControlsCircle**
 - Implement widget ui controls icons to react on widget size [improves layout]
+- Implement config editor caret shown on focus
 - Improve **Tester** widget layout & initial size
 - Improve **StartScreen** styling (no border)
 - Improve various animation interpolators
@@ -28,6 +29,8 @@ All notable changes to this project will be documented in this file. Format base
 - Improve **Flow** skin bgr opacity styling
 - Improve showing song rating change notification [show only when rating not showing in other notification]
 - Improve performance in various situations
+- Improve settings layout icon tooltip
+- Improve restore file times action [new configuration and descriptions]
 - Fix **CommandBar** widget shortcuts ignoring CTRL
 - Fix **GridView** widget exception on item selected after deserialization sometimes
 - Fix **GridView** widget checking `File.isHidden` causing stutter
@@ -43,6 +46,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix inconsistent disabled menu styling
 - Fix inconsistent context menu item height styling
 - Fix inconsistent grid cell styling
+- Fix inconsistent window transparency styling
 - Fix grid cell uses unnecessary ui objects
 - Fix `Node.containsScene` errors in some cases
 - Fix css errors due to missing colors
@@ -56,6 +60,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix widget manual loading animation not animating closing previous content
 - Fix widget loading animation delay not computed correctly
 - Fix table selection restoring and initial table resizing not working properly sometimes
+- Fix read-only combobox allows edit
 
 ### Vlc playback
 It is now possible to change audio channels and audio output device used for playback through application settings.

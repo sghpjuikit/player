@@ -313,7 +313,7 @@ public class Icon extends StackPane {
 					t.setContentDisplay(ContentDisplay.LEFT);
 					s.setAlignment(Pos.TOP_CENTER);
 					txt.setTextOrigin(VPos.TOP);
-					var textInterpolator = typeText(text);
+					var textInterpolator = typeText(text, ' ');
 					var anim = new Anim(millis(400), p -> {
 						txt.setText(textInterpolator.invoke(p));
 						ico.setOpacity(mapTo01(p, 0.4, 1));

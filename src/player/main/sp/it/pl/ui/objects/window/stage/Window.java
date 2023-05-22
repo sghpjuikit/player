@@ -140,6 +140,7 @@ import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.syncTo;
+import static sp.it.util.reactive.UtilKt.zip;
 import static sp.it.util.text.StringExtensionsKt.keys;
 import static sp.it.util.ui.NodeExtensionsKt.pseudoClassToggle;
 import static sp.it.util.ui.Util.setAnchors;
@@ -167,6 +168,10 @@ public class Window extends WindowBase {
 	public static final PseudoClass pcMoved = pseudoclass("moved");
 	/** Pseudoclass active when this window is fullscreen. Applied on {@link #scWindow}. */
 	public static final PseudoClass pcFullscreen = pseudoclass("fullscreen");
+	/** Pseudoclass active when this window {@link javafx.stage.StageStyle} is {@link javafx.stage.StageStyle#TRANSPARENT} and {@link #effect} is {@link sp.it.pl.ui.objects.window.stage.Window.BgrEffect#OFF}. */
+	public static final String pcTransparentOn = "transparent-on";
+	/** Pseudoclass active when this window {@link javafx.stage.StageStyle} is {@link javafx.stage.StageStyle#TRANSPARENT} and {@link #effect} is not {@link sp.it.pl.ui.objects.window.stage.Window.BgrEffect#OFF}. */
+	public static final String pcTransparentBlur = "transparent-blur";
 	/** Pseudoclass active when this window {@link #transparency} is {@link sp.it.pl.ui.objects.window.stage.Window.Transparency#ON}. */
 	public static final String pcTransparent = "transparent";
 	/** Pseudoclass active when this window {@link #transparency} is {@link sp.it.pl.ui.objects.window.stage.Window.Transparency#ON_CLICK_THROUGH}. */
@@ -219,8 +224,17 @@ public class Window extends WindowBase {
 		attach(fullscreen, consumer(v -> applyHeaderVisible(!v && _headerVisible)));
 
 		// transparent
-		attach(transparency, consumer(it -> pseudoClassToggle(root, pcTransparent, it==Transparency.ON)));
-		attach(transparency, consumer(it -> pseudoClassToggle(root, pcTransparentCt, it==Transparency.ON_CLICK_THROUGH)));
+		if (getStage().getStyle()==StageStyle.TRANSPARENT) {
+			sync(zip(effect, transparency), consumer(it -> {
+				var e = it.getFirst();
+				var t = it.getSecond();
+
+				pseudoClassToggle(root, pcTransparentOn, e==BgrEffect.OFF && t==Transparency.OFF);
+				pseudoClassToggle(root, pcTransparentBlur, e!=BgrEffect.OFF && t==Transparency.OFF);
+				pseudoClassToggle(root, pcTransparent, t==Transparency.ON);
+				pseudoClassToggle(root, pcTransparentCt, t==Transparency.ON_CLICK_THROUGH);
+			}));
+		}
 
 		syncTo(opacity, getStage().opacityProperty());
 

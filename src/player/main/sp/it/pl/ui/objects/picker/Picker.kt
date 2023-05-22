@@ -29,6 +29,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.ui.Util.getScrollBar
+import sp.it.util.ui.height
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.minPrefMaxHeight
@@ -40,6 +41,7 @@ import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
+import sp.it.util.ui.width
 import sp.it.util.ui.x
 import sp.it.util.units.em
 import sp.it.util.units.millis
@@ -76,6 +78,7 @@ open class Picker<E> {
    private val cellFactory: (E) -> Pane = { item ->
       stackPane {
          styleClass += CELL_STYLE_CLASS
+         pseudoClassChanged("filled", true)
          padding = Insets(20.0)
 
          val contentIcon = iconConverter(item)
@@ -144,7 +147,7 @@ open class Picker<E> {
          }
       tiles.children += pane {
          styleClass += CELL_STYLE_CLASS
-         pseudoClassChanged("empty", true)
+         pseudoClassChanged("filled", false)
          properties[KEY_EMPTY_CELL] = null
          isManaged = false
       }
@@ -159,8 +162,8 @@ open class Picker<E> {
          val cells = getCells()
          val padding = root.padding
          val gap = 1.0
-         val width = root.width - padding.left - padding.right
-         val height = root.height - padding.top - padding.bottom
+         val width = root.width - padding.width
+         val height = root.height - padding.height
 
          if (cells.isEmpty()) return
 
@@ -213,8 +216,8 @@ open class Picker<E> {
          }
       }
 
-      private val Double.snapX: Double get() = this //snapPositionX(this)
-      private val Double.snapY: Double get() = this //snapPositionY(this)
+      private val Double.snapX: Double get() = snapPositionX(this)
+      private val Double.snapY: Double get() = snapPositionY(this)
    }
 
    companion object {

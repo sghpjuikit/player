@@ -77,9 +77,10 @@
     -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
     -skin-color-darker: rgba(0,0,0,0.2);
     -skin-color-lighter: rgba(180,200,255,0.08);
-    -skin-pane-color: rgba(100,130,180,0.1); /* Default color for panels such as header or widget area or other areas. */
+    -skin-pane-color: rgba(20,25,50,0.7); /* Default color for panels such as header or widget area or other areas. */
     -skin-pane-color-dragged: rgba(10,15,25,0.8); /* Darker version of pane color. By default used for :dragged pseudoclass */
     -skin-window-bgr-color: rgb(10, 10, 10); /* Window bgr color for application windows with layout content. */
+    -skin-window-bgr-blur-color: rgba(11,11,22,0.6); /* Window bgr color for windows without layout content: tooltips and popup, .etc. */
     -skin-window-bgr-color-content-free: rgba(15,25,45,0.95); /* Window bgr color for windows without layout content: tooltips and popup, .etc. */
     -skin-value-font-color: rgb(75, 175, 105);
     -skin-row-fixed-size: 2em; /* size for fixed row size; affects .tree-cell > .tree-disclosure-node, .tree-table-row-cell > .tree-disclosure-node */
@@ -2151,6 +2152,8 @@ TextFlow > * {
  *  resized: the window is being resized
  *  moved: the window is being moved
  *  fullscreen: the window is in fullscreen mode
+ *  transparent-on: the window has StageStyle.TRANSPARENT and is not `transparent` or `transparent-ct`
+ *  transparent-blur: same as transparent-on, but window has blured bgr effect enabled
  *  transparent: the window has forcefully disabled certain decorations to show transparency effects
  *  transparent-ct: same as transparent, but window is click-through
  */
@@ -2168,17 +2171,13 @@ TextFlow > * {
 .window:moved {}
 .window:fullscreen {}
 
-/* Inherits .window */
-.window-slide {
-    -fx-background-color: -skin-window-bgr-color-content-free;
-}
-
-/* Inherits .window */
-.window-dock {
-    -fx-background-color: -skin-window-bgr-color-content-free;
-}
-
 /* window transparency */
+.window:transparent-on {
+    -fx-background-color: -skin-window-bgr-color-content-free;
+}
+.window:transparent-blur {
+    -fx-background-color: -skin-window-bgr-blur-color;
+}
 .window:transparent-ct {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -2227,7 +2226,11 @@ TextFlow > * {
  * Hence, certain effects (like border) may not be visible.
  * Use .window for static background.
  */
-.window .bgr-image {}
+.window:transparent-on > #back > .bgr-image {}
+.window:transparent-on > #back > .bgr-image {
+    -fx-background-color: rgb(0, 0, 20);
+    -fx-opacity: 0;
+}
 
 /*
  * Contains #headerContainer and #content.
@@ -2268,6 +2271,16 @@ TextFlow > * {
  * Inherits: .check-icon
  */
 .window-pin-icon {}
+
+/* Inherits .window */
+.window-slide {
+    -fx-background-color: -skin-window-bgr-color-content-free;
+}
+
+/* Inherits .window */
+.window-dock {
+    -fx-background-color: -skin-window-bgr-color-content-free;
+}
 
 /********************************* POP-WINDOW **************************************************************************
  * Custom popup window.
@@ -3141,13 +3154,9 @@ TextFlow > * {
     -fx-pref-height: 2em;
 }
 
-.item-picker-element:hover {
+.item-picker-element:filled:hover {
     -fx-background-color: -skin-pane-color;
     -fx-background-insets: 2;
-    -fx-effect: dropshadow(three-pass-box, -skin-pane-color, 2, 0.0, 0, 1);
-}
-.item-picker-element:empty:hover {
-    -fx-background-insets: 0;
 }
 
 /********************************* AUTOCOMPLETE POPUP ******************************************************************

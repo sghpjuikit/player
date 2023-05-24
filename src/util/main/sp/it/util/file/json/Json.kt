@@ -60,6 +60,7 @@ import sp.it.util.text.escapeJson
 import sp.it.util.type.VType
 import sp.it.util.type.argOf
 import sp.it.util.type.dataComponentProperties
+import sp.it.util.type.isDataClass
 import sp.it.util.type.isEnum
 import sp.it.util.type.isEnumClass
 import sp.it.util.type.isObject
@@ -271,7 +272,7 @@ class Json: JsonAst() {
                            toJsonValue(p.returnType, v).withAmbiguity()
                         }
 
-                        type.isData -> {
+                        type.isDataClass -> {
                            val typeParams = type.typeParameters.withIndex().associate { (i, p) -> i to p.name }
                            val typeArgs = typeAs.arguments.withIndex().associate { (i, a) -> typeParams[i] to a.typeOrAny }
                            val values = type.dataComponentProperties()

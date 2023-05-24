@@ -193,7 +193,7 @@ class SpeechRecognition: PluginBase() {
    /** Speech event */
    sealed interface Speak {
       /** Speech started after silence */
-      object Start: Speak
+      data object Start: Speak
       /** Speech progressed and currently has [text] value */
       data class Active(val text: String): Speak
       /** Speech ended with silence break and with the [text] as the final value */

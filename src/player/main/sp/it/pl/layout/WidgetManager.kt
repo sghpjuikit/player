@@ -256,7 +256,7 @@ class WidgetManager {
       if (factory is WidgetFactory<*>) factory.dispose()
    }
 
-   private inner class WidgetMonitor constructor(val widgetDir: File) {
+   private inner class WidgetMonitor(val widgetDir: File) {
       val widgetName = widgetDir.name.capital()
       val packageName  = widgetName.decapital()
       val skinFile = widgetDir/"skin.css"
@@ -746,7 +746,7 @@ class WidgetManager {
    }
 
    /** Widget factory projection - lazy reified reference to a factory of widget with a feature, enabling convenient use of its feature */
-   data class FactoryRef<out FEATURE: Any> constructor(val name: String, val id: String, private val feature: KClass<FEATURE>): NameUi {
+   data class FactoryRef<out FEATURE: Any>(val name: String, val id: String, private val feature: KClass<FEATURE>): NameUi {
       override val nameUi = name
 
       fun toFactory(): WidgetFactory<*>? = APP.widgetManager.factoriesW[id]
@@ -870,22 +870,22 @@ sealed interface ComponentLoader {
    }
 
    /** Does not load component and leaves it upon the consumer to load and manage it appropriately. */
-   object CUSTOM: ComponentLoader {
+   data object CUSTOM: ComponentLoader {
       override operator fun Ctx.invoke(c: Component) = Unit
    }
 
    /** Loads the component in a layout of a new window. */
-   object WINDOW: ComponentLoader {
+   data object WINDOW: ComponentLoader {
       override operator fun Ctx.invoke(c: Component): Window = APP.windowManager.showWindow(c)
    }
 
    /** Loads the component in a layout of a new window. */
-   object DOCK: ComponentLoader {
+   data object DOCK: ComponentLoader {
       override operator fun Ctx.invoke(c: Component): Window = APP.windowManager.slideWindow(c)
    }
 
    /** Loads the component as a standalone in a simplified layout of a new always on top fullscreen window on active screen. */
-   object WINDOW_FULLSCREEN_ACTIVE: ComponentLoader {
+   data object WINDOW_FULLSCREEN_ACTIVE: ComponentLoader {
       override operator fun Ctx.invoke(c: Component): Stage = WINDOW_FULLSCREEN(getScreenForMouse())(c)
    }
 
@@ -918,7 +918,7 @@ sealed interface ComponentLoader {
    }
 
    /** Loads the component as a standalone in a new [OverlayPane]. */
-   object OVERLAY: ComponentLoader {
+   data object OVERLAY: ComponentLoader {
       override operator fun Ctx.invoke(c: Component): OverlayPane<Unit> {
 
          val op = object: OverlayPane<Unit>() {
@@ -966,7 +966,7 @@ sealed interface ComponentLoader {
    }
 
    /** Loads the component as a standalone widget in a simplified layout of a new popup. */
-   object POPUP: ComponentLoader {
+   data object POPUP: ComponentLoader {
       override operator fun Ctx.invoke(c: Component): PopWindow {
          val l = Layout.openStandalone(anchorPane())
          val p = popWindow {
@@ -1000,30 +1000,30 @@ sealed interface ComponentLoader {
 @Suppress("ClassName")
 sealed class WidgetUse(val widgetFinder: WidgetSource) {
    /** Use open widget as per [WidgetSource.OPEN_LAYOUT] or do nothing if none available. */
-   object OPEN_LAYOUT: WidgetUse(WidgetSource.OPEN_LAYOUT)
+   data object OPEN_LAYOUT: WidgetUse(WidgetSource.OPEN_LAYOUT)
 
    /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or do nothing if none available. */
-   object OPEN_STANDALONE: WidgetUse(WidgetSource.OPEN_STANDALONE)
+   data object OPEN_STANDALONE: WidgetUse(WidgetSource.OPEN_STANDALONE)
 
    /** Use open widget as per [WidgetSource.OPEN] or do nothing if none available. */
-   object OPEN: WidgetUse(WidgetSource.OPEN)
+   data object OPEN: WidgetUse(WidgetSource.OPEN)
 
    /** Use newly created widget. */
-   object NEW: NewAnd(NONE, Ctx(null), {
+   data object NEW: NewAnd(NONE, Ctx(null), {
       val id = if (it is Widget) it.factory.id else it.factoryDeserializing?.name
       val s = id?.let { APP.widgetManager.widgets.componentLastOpenStrategiesMap[id] } ?: ComponentLoaderStrategy.POPUP
       s.loader(this)(it)
    })
 
    /** Use open widget as per [WidgetSource.OPEN] or use newly created widget. */
-   object ANY: NewAnd(WidgetSource.OPEN, Ctx(null), {
+   data object ANY: NewAnd(WidgetSource.OPEN, Ctx(null), {
       val id = if (it is Widget) it.factory.id else it.factoryDeserializing?.name
       val s = id?.let { APP.widgetManager.widgets.componentLastOpenStrategiesMap[id] } ?: ComponentLoaderStrategy.POPUP
       s.loader(this)(it)
    })
 
    /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or use newly created widget. */
-   object NO_LAYOUT: NewAnd(WidgetSource.OPEN_STANDALONE, Ctx(null), { ComponentLoader.POPUP(this)(it) })
+   data object NO_LAYOUT: NewAnd(WidgetSource.OPEN_STANDALONE, Ctx(null), { ComponentLoader.POPUP(this)(it) })
 
    open class NewAnd(widgetFinder: WidgetSource, val ctx: Ctx, private val layouter: Ctx.(Component) -> Any): WidgetUse(widgetFinder) {
       /** @return copy of this object with different [ctx] */

@@ -74,7 +74,7 @@ class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
                id = "legend"
                padding = Insets(0.0, 20.emScaled, 0.0, 0.0)
 
-               lay += (MouseButton.values().toList() - MouseButton.NONE).map { legendRow(it) }
+               lay += (MouseButton.entries - MouseButton.NONE).map { legendRow(it) }
                lay += label()
                lay += legendRow(ALT)
                lay += legendRow(ALT)

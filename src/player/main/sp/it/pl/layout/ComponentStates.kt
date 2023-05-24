@@ -107,7 +107,7 @@ sealed class ComponentDb(
    abstract fun toDomain(): Component?
 }
 
-object NoComponentDb: ComponentDb() {
+data object NoComponentDb: ComponentDb() {
    override fun toDomain() = null
 }
 

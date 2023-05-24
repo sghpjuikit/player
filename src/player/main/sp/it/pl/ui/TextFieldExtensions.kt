@@ -55,7 +55,7 @@ fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> 
             }
             menu("Align text") {
                items {
-                  MenuItemBoolean.buildSingleSelectionMenu(TextAlignment.values().toList(), tf.textAlignment, { it.toUi() }) { tf.textAlignment = it }.asSequence()
+                  MenuItemBoolean.buildSingleSelectionMenu(TextAlignment.entries, tf.textAlignment, { it.toUi() }) { tf.textAlignment = it }.asSequence()
                }
             }
          }

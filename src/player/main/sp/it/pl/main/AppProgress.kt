@@ -18,11 +18,11 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
-import sp.it.pl.main.AppTask.State.ACTIVE
-import sp.it.pl.main.AppTask.State.DONE_CANCEL
-import sp.it.pl.main.AppTask.State.DONE_ERROR
-import sp.it.pl.main.AppTask.State.DONE_OK
-import sp.it.pl.main.AppTask.State.SCHEDULED
+import sp.it.pl.main.AppTask.State.Active
+import sp.it.pl.main.AppTask.State.DoneCancel
+import sp.it.pl.main.AppTask.State.DoneError
+import sp.it.pl.main.AppTask.State.DoneOk
+import sp.it.pl.main.AppTask.State.Scheduled
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.RIGHT_UP
 import sp.it.pl.ui.objects.window.popup.PopWindow
@@ -87,7 +87,7 @@ object AppProgress {
    ).start()
 
    /**
-    * The task starts as [SCHEDULED], immediately transitions to [ACTIVE] and completes on
+    * The task starts as [Scheduled], immediately transitions to [Active] and completes on
     * [reportDone][StartAppTaskHandle.reportDone].
     *
     * @return handle to control the created task
@@ -95,7 +95,7 @@ object AppProgress {
    fun start(name: String): StartAppTaskHandle = start(AppTask(name, null, null)).apply { reportActive() }
 
    /**
-    * The task starts as [SCHEDULED], transitions to [ACTIVE] on [reportActive][ScheduleAppTaskHandle.reportActive]
+    * The task starts as [Scheduled], transitions to [Active] on [reportActive][ScheduleAppTaskHandle.reportActive]
     * and completes on [reportDone][StartAppTaskHandle.reportDone].
     *
     * @return handle to control the created task
@@ -202,7 +202,7 @@ object AppProgress {
                         }
                         right = hBox(10, CENTER_RIGHT) {
                            lay += label {
-                              state sync { isVisible = it!=SCHEDULED }
+                              state sync { isVisible = it!=Scheduled }
                               timeActive sync { text = it.formatToSmallestUnit() }
                            }
                            lay += Icon().apply {
@@ -211,13 +211,13 @@ object AppProgress {
 
                               fun updateIcon() {
                                  icon(when (state.value) {
-                                    is SCHEDULED -> IconMD.ROTATE_RIGHT
-                                    is ACTIVE -> IconFA.REPEAT
-                                    is DONE_OK -> IconFA.CHECK
-                                    is DONE_ERROR<*> -> IconFA.WARNING
-                                    is DONE_CANCEL -> IconFA.BAN
+                                    is Scheduled -> IconMD.ROTATE_RIGHT
+                                    is Active -> IconFA.REPEAT
+                                    is DoneOk -> IconFA.CHECK
+                                    is DoneError<*> -> IconFA.WARNING
+                                    is DoneCancel -> IconFA.BAN
                                  })
-                                 state.value.asIf<DONE_ERROR<*>>()?.value.ifNotNull { error ->
+                                 state.value.asIf<DoneError<*>>()?.value.ifNotNull { error ->
                                     cursor = HAND
                                     isMouseTransparent = false
                                     onClickDo { APP.ui.actionPane.orBuild.showAndDetect(error, true) }
@@ -227,8 +227,8 @@ object AppProgress {
                               val ar = anim { rotate = 360*it }.dur(1000.millis).intpl(LINEAR).apply { cycleCount = INDEFINITE }
                               val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(geomElastic())
                               updateIcon()
-                              state sync { if (it is ACTIVE) ar.play() } on disposer
-                              state attach { if (it is DONE_OK || it is DONE_ERROR<*> || it is DONE_CANCEL) { ar.stop(); ar.applyAt(0.0) } } on disposer
+                              state sync { if (it is Active) ar.play() } on disposer
+                              state attach { if (it is DoneOk || it is DoneError<*> || it is DoneCancel) { ar.stop(); ar.applyAt(0.0) } } on disposer
                               state attach { a.playCloseDoOpen(::updateIcon) } on disposer
                            }
                         }
@@ -249,7 +249,7 @@ object AppProgress {
                            }
                            lay += Icon(IconFA.BAN).apply {
                               isVisible = cancel!=null
-                              if (cancel!=null) state.sync1If({ it!=ACTIVE }) { isVisible = false } on disposer
+                              if (cancel!=null) state.sync1If({ it!=Active }) { isVisible = false } on disposer
                               onClickDo { cancel?.invoke() }
                            }
                         }
@@ -299,19 +299,19 @@ inline fun <TASK: StartAppTaskHandle, T> TASK.reportFor(block: (TASK) -> T): T {
 }
 
 private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, val cancel: (() -> Unit)?) {
-   val state = v<State>(SCHEDULED)
+   val state = v<State>(Scheduled)
    val progress = v<Double01>(-1.0)
    val timeActive = v(0.millis)
    private var timeStart = 0L
 
    fun updateTimeActive() {
-      if (state.value==ACTIVE)
+      if (state.value==Active)
          timeActive.value = (System.currentTimeMillis() - timeStart).millis
    }
 
    fun activate() {
       timeStart = System.currentTimeMillis()
-      state.value = ACTIVE
+      state.value = Active
       updateTimeActive()
    }
 
@@ -319,27 +319,26 @@ private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, 
 
       fun computeState(result: Result<*>): State = when (result) {
          is ResultOk<*> -> when (val resultValue = result.value) {
-            is Try.Error<*> -> DONE_ERROR(resultValue.value)
-            is FutList<*> -> if (resultValue.all { it.isOk() }) DONE_OK else DONE_ERROR(resultValue.map { it.getDone().toTry() })
-            is TryList<*,*> -> if (resultValue.all { it.isOk }) DONE_OK else DONE_ERROR(resultValue)
+            is Try.Error<*> -> DoneError(resultValue.value)
+            is FutList<*> -> if (resultValue.all { it.isOk() }) DoneOk else DoneError(resultValue.map { it.getDone().toTry() })
+            is TryList<*,*> -> if (resultValue.all { it.isOk }) DoneOk else DoneError(resultValue)
             is Fut<*> -> computeState(resultValue.getDone())
-            else -> DONE_OK
+            else -> DoneOk
          }
-         is ResultInterrupted -> DONE_CANCEL
-         is ResultFail -> DONE_ERROR(result.error)
+         is ResultInterrupted -> DoneCancel
+         is ResultFail -> DoneError(result.error)
       }
 
       updateTimeActive()
       state.value = computeState(result)
    }
 
-   @Suppress("ClassName")
    sealed interface State {
-      object SCHEDULED: State
-      object ACTIVE: State
-      object DONE_OK: State
-      object DONE_CANCEL: State
-      data class DONE_ERROR<T>(val value: T): State
+      data object Scheduled: State
+      data object Active: State
+      data object DoneOk: State
+      data object DoneCancel: State
+      data class DoneError<T>(val value: T): State
    }
 }
 
@@ -349,7 +348,7 @@ private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, 
  * Calls [AppProgress.start] immediately and [StartAppTaskHandle.reportDone] when this future finishes.
  * If this future is already completed, this method is a noop.
  *
- * Note that the task will immediately become [ACTIVE], if scheduling should be reported, use [Fut.thenWithAppProgress].
+ * Note that the task will immediately become [Active], if scheduling should be reported, use [Fut.thenWithAppProgress].
  */
 fun <T> Fut<T>.withAppProgress(name: String) = apply {
    var t: StartAppTaskHandle? = null

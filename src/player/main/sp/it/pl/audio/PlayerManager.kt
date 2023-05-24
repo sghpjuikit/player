@@ -319,8 +319,8 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       data class PlaybackSongUpdated(override val song: Metadata): PlaybackSongDiff { override fun toString() = "PlaybackSongUpdated(song=${song.uri})" }
       data class PlaybackStatusChanged(val status: MediaPlayer.Status)
       data class PlaybackRestoreAborted(val reason: String)
-      object PlaybackActivated { override fun toString() = "PlaybackActivated" }
-      object PlaybackSuspended { override fun toString() = "PlaybackSuspended" }
+      data object PlaybackActivated
+      data object PlaybackSuspended
    }
 
    inner class CurrentItem {
@@ -334,10 +334,10 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       private var valNext = Metadata.EMPTY
       private val valNextLoader = fxTimer(400.millis, 1) { preloadNext() }
 
-      private fun setValue(change: Boolean, new_metadata: Metadata) {
+      private fun setValue(change: Boolean, newMetadata: Metadata) {
          failIfNotFxThread()
 
-         value = new_metadata
+         value = newMetadata
 
          // There is a small problem
          // During tagging it is possible the playback needs to be suspended and activated
@@ -350,11 +350,11 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
          // this will cause infinite loop!
          if (isSuspended && !isSuspendedBecauseStartedPaused) return
 
-         if (change) APP.actionStream(PlaybackSongChanged(new_metadata))
-         else APP.actionStream(PlaybackSongUpdated(new_metadata))
+         if (change) APP.actionStream(PlaybackSongChanged(newMetadata))
+         else APP.actionStream(PlaybackSongUpdated(newMetadata))
 
-         if (change) changedImpl.value = new_metadata
-         updatedImpl.value = new_metadata
+         if (change) changedImpl.value = newMetadata
+         updatedImpl.value = newMetadata
       }
 
       /**

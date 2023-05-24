@@ -226,7 +226,7 @@ object CoreConverter: Core {
          else -> when {
             o::class.isEnum -> enumToHuman(o as Enum<*>)
             o::class.isObject -> enumToHuman(o::class.simpleName)
-            o::class.isData -> runTry { APP.serializerJson.json.toJsonValue(VType<Any?>(o::class.createTypeStar()), o).toPrettyS() }.orMessage().getAny()
+            o::class.isDataClass -> runTry { APP.serializerJson.json.toJsonValue(VType<Any?>(o::class.createTypeStar()), o).toPrettyS() }.orMessage().getAny()
             // TODO: good idea but probably reduces performance, put the converters in MapByKClass first
             // o::class.companionObjectInstance is ConverterToUiString<*> -> o::class.companionObjectInstance.asIs<ConverterToUiString<Any>>().toUiS(o, APP.locale.value)
             else -> general.toS(o)
@@ -239,7 +239,6 @@ object CoreConverter: Core {
       FileField.toSConverter = ui
    }
 
-   @Suppress("RemoveExplicitTypeArguments")
    private fun ConverterDefault.init() = apply {
 
       fun <A, B, R> memoized(f: ((B) -> (A) -> R)): BiFunction<B, A, R> {

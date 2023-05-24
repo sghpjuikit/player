@@ -194,7 +194,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          search.field = FileField.PATH
          filterPrimaryField = FileField.NAME_FULL
          cellFactory.value = { Cell() }
-         selectOn setTo GridView.SelectionOn.values()
+         selectOn setTo GridView.SelectionOn.entries
          grid.skinProperty() attach {
             it?.asIs<GridViewSkin<*, *>>()?.menuOrder?.dsl {
                item("Refresh", keys = keys("F5")) {

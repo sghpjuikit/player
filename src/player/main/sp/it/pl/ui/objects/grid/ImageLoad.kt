@@ -14,11 +14,11 @@ sealed interface ImageLoad {
    val file: File? get() = null
 
    /** Image loading state - initial */
-   object NotStarted: ImageLoad
+   data object NotStarted: ImageLoad
    /** Image loading state - loading in progress */
    data class Loading(val loading: Fut<ImageLoad>): ImageLoad
    /** Image loading state - loading finished with error */
-   object DoneErr: ImageLoad
+   data object DoneErr: ImageLoad
    /** Image loading state - loading finished with result */
    data class DoneOk(override val image: Image?, override val file: File?): ImageLoad
    /** Image loading state - loading interrupted as no longer necessary */

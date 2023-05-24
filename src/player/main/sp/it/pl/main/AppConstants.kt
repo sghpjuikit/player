@@ -104,36 +104,36 @@ object Events {
    sealed interface AppEvent {
       sealed interface AppXGroundEvent: AppEvent {
          /** [java.awt.desktop.AppForegroundListener.appRaisedToForeground]. Raised on FX thread. */
-         object AppMovedToForeground: AppXGroundEvent
+         data object AppMovedToForeground: AppXGroundEvent
          /** [java.awt.desktop.AppForegroundListener.appMovedToBackground]. Raised on FX thread. */
-         object AppMovedToBackground: AppXGroundEvent
+         data object AppMovedToBackground: AppXGroundEvent
       }
       sealed interface AppHidingEvent: AppEvent {
          /** [java.awt.desktop.AppHiddenListener.appHidden]. Raised on FX thread. */
-         object AppHidden: AppHidingEvent
+         data object AppHidden: AppHidingEvent
          /** [java.awt.desktop.AppHiddenListener.appUnhidden]. Raised on FX thread. */
-         object AppUnHidden: AppHidingEvent
+         data object AppUnHidden: AppHidingEvent
       }
       sealed interface SystemSleepEvent: AppEvent {
          /** [java.awt.desktop.SystemSleepListener.systemAboutToSleep]. Raised on FX thread. */
-         object Start: SystemSleepEvent
+         data object Start: SystemSleepEvent
          /** [java.awt.desktop.SystemSleepListener.systemAwoke]. Raised on FX thread. */
-         object Stop: SystemSleepEvent
+         data object Stop: SystemSleepEvent
       }
       sealed interface ScreenSleepEvent: AppEvent {
          /** [java.awt.desktop.ScreenSleepListener.screenAboutToSleep]. Raised on FX thread. */
-         object Start: ScreenSleepEvent
+         data object Start: ScreenSleepEvent
          /** [java.awt.desktop.ScreenSleepListener.screenAwoke]. Raised on FX thread. */
-         object Stop: ScreenSleepEvent
+         data object Stop: ScreenSleepEvent
       }
       sealed interface UserSessionEvent: AppEvent {
          /** [java.awt.desktop.UserSessionListener.userSessionActivated]. Raised on FX thread. */
-         object Start: UserSessionEvent
+         data object Start: UserSessionEvent
          /** [java.awt.desktop.UserSessionListener.userSessionDeactivated]. Raised on FX thread. */
-         object Stop: UserSessionEvent
+         data object Stop: UserSessionEvent
       }
       /** [java.awt.desktop.AppReopenedListener.appReopened]. Raised on FX thread. */
-      object AppReopenedEvent: AppEvent
+      data object AppReopenedEvent: AppEvent
    }
 }
 
@@ -149,7 +149,7 @@ object HelpEntries {
        Entry("Table", "Scroll horizontally", keys("Scroll+SHIFT")),
        Entry("Table columns", "Show column context menu", SECONDARY.toUi()),
        Entry("Table columns", "Swap columns", "Column drag"),
-       Entry("Table columns", "Sort ${Sort.values().joinToString(" | ") { it.toUi() }}", PRIMARY.nameUi),
+       Entry("Table columns", "Sort ${Sort.entries.joinToString(" | ") { it.toUi() }}", PRIMARY.nameUi),
        Entry("Table columns", "Sorts by multiple columns", keys("SHIFT+${PRIMARY.nameUi})")),
        Entry("Table row", "Selects item", PRIMARY.nameUi),
        Entry("Table row", "Show context menu", SECONDARY.nameUi),

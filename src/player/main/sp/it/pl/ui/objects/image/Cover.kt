@@ -46,7 +46,7 @@ sealed interface Cover {
 }
 
 /** Empty cover. */
-object EmptyCover: Cover {
+data object EmptyCover: Cover {
    override fun getFile() = null
    override fun isEmpty(): Boolean = true
    override fun getImage(size: ImageSize, fit: FitFrom) = null

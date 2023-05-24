@@ -71,7 +71,7 @@ class ConfigPane<T: Any?>: VBox {
    constructor(): super(5.0) {
       styleClass += "form-config-pane"
       // maintain css
-      ui sync { Layout.values().forEach { l -> pseudoClassChanged(l.name.lowercase(), l == it) } }
+      ui sync { Layout.entries.forEach { l -> pseudoClassChanged(l.name.lowercase(), l == it) } }
       // maintain layout
       ui attach { buildUi(true) }
       // maintain label wrapping widths

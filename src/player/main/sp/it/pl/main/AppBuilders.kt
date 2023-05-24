@@ -132,6 +132,7 @@ import sp.it.util.text.lengthInGraphemes
 import sp.it.util.text.toChar32
 import sp.it.util.type.createTypeStar
 import sp.it.util.type.dataComponentProperties
+import sp.it.util.type.isDataClass
 import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.kTypeNothingNonNull
 import sp.it.util.type.raw
@@ -470,7 +471,7 @@ fun <T: Any> tableViewForClass(type: KClass<T>, block: FilteredTable<T>.() -> Un
    override fun computeMainField(field: ObjectField<T, *>?) = field ?: fields.first { it.type.isSubtypeOf<String>() } ?: fields.firstOrNull()
    override fun computeFieldsAll() = computeFieldsAllRecursively(type)?.plus(INDEX)?.apply { toStringPretty() } ?: APP.classFields[type].toList().plus(INDEX)
    private fun <T: Any> computeFieldsAllRecursively(type: KClass<T>): List<ObjectField<T, *>>? =
-      if (type.isData)
+      if (type.isDataClass)
          type.dataComponentProperties()
             .map { ObjectFieldOfDataClass(it) { it.toUi() } }
             .flatMap { f -> computeFieldsAllRecursively(f.type.raw)?.map { f.flatMap(it.asIs()) } ?: listOf(f) }

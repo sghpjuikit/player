@@ -47,12 +47,12 @@ sealed interface BoolL {
 }
 
 /** Represents `true` */
-object TRUE: Bool2, Bool3, BoolL
+data object TRUE: Bool2, Bool3, BoolL
 
 /** Represents `false` */
-object FALSE: Bool2, Bool3, BoolL
+data object FALSE: Bool2, Bool3, BoolL
 
 /** Represents possible `true` or `false` */
-object UNKNOWN: Bool3
+data object UNKNOWN: Bool3
 
 private data class BoolLValue(val value: Double): BoolL

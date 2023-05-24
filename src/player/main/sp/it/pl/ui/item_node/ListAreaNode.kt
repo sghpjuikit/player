@@ -102,7 +102,6 @@ import sp.it.util.ui.vBox
  *  * list of strings [getVal]. Each string element represents a single line in the text area. [getVal]
  *  * list of objects [output]
  */
-@Suppress("RemoveExplicitTypeArguments")
 open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
    private val root = vBox()
@@ -249,7 +248,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
       abstract val linkTypeOut: VType<*>?
       abstract operator fun invoke(data: List<Any?>): List<Any?>
 
-      object AsIs: Transformation() {
+      data object AsIs: Transformation() {
          override val name = "As is"
          override val linkTypeIn = null
          override val linkTypeOut = null
@@ -306,7 +305,6 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 /** [ FChainItemNode] adjusted for [ListAreaNode] */
 class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTransformationNode, List<Transformation>> {
 
-   @Suppress("RemoveExplicitTypeArguments")
    constructor(transformsValues: MutableList<List<Any?>>, functions: FunctorPool): super(listOf()) {
       chainedFactory = Callback { i ->
          val typeFunctionOut = typeOut

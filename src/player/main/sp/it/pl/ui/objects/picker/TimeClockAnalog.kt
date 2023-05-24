@@ -106,7 +106,7 @@ class TimeClockAnalog: StackPane() {
       editable sync { pseudoClassToggle("readonly", !editable.value) }
       unit attach { update(value.value) }
       unit sync {
-         Unit.values().forEach { u -> arrow.pseudoClassChanged(u.nameCss, u==it) }
+         Unit.entries.forEach { u -> arrow.pseudoClassChanged(u.nameCss, u==it) }
       }
 
       lay += circle

@@ -47,11 +47,11 @@ object Glyphs: ConverterString<GlyphIcons> {
 
    fun <ICON: GlyphIcons> valuesOf(type: KClass<ICON>): Sequence<ICON> = when (type) {
       UnicodeIcon::class -> UnicodeIcon.values().asIs()
-      FontAwesomeIcon::class -> FontAwesomeIcon.values().asSequence().asIs()
-      WeatherIcon::class -> WeatherIcon.values().asSequence().asIs()
-      MaterialDesignIcon::class -> MaterialDesignIcon.values().asSequence().asIs()
-      MaterialIcon::class -> MaterialIcon.values().asSequence().asIs()
-      OctIcon::class -> OctIcon.values().asSequence().asIs()
+      FontAwesomeIcon::class -> FontAwesomeIcon.entries.asSequence().asIs()
+      WeatherIcon::class -> WeatherIcon.entries.asSequence().asIs()
+      MaterialDesignIcon::class -> MaterialDesignIcon.entries.asSequence().asIs()
+      MaterialIcon::class -> MaterialIcon.entries.asSequence().asIs()
+      OctIcon::class -> OctIcon.entries.asSequence().asIs()
       else -> fail { "Unsupported glyph: $this" }
    }
 

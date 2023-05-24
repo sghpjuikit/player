@@ -21,7 +21,7 @@ enum class AudioFileFormat {
 
    companion object {
 
-      private val formats = values().associateBy { it.name.lowercase() }
+      private val formats = entries.associateBy { it.name.lowercase() }
 
       fun of(uri: URI): AudioFileFormat = of(uri.path)
 

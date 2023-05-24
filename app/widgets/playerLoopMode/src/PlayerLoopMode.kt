@@ -73,8 +73,8 @@ class PlayerLoopMode(widget: Widget): SimpleController(widget), PlaybackFeature,
       )
 
       root.lay += SliderCircular(size).apply {
-         val valueCount = LoopMode.values().size.toDouble() - 1.0
-         val mapping = LoopMode.values().associateWith {
+         val valueCount = LoopMode.entries.size.toDouble() - 1.0
+         val mapping = LoopMode.entries.associateWith {
             when (it) {
                OFF -> 0.0
                SONG -> 1/valueCount

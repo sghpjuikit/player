@@ -16,7 +16,7 @@ sealed interface Option<out R> {
    /** @return true iff this is [Some] */
    val isSome: Boolean
 
-   object None: Option<Nothing> {
+   data object None: Option<Nothing> {
       override val isNone get() = true
       override val isSome get() = false
       override fun toString() = "None"

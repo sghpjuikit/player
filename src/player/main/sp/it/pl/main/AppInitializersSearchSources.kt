@@ -184,11 +184,11 @@ fun AppSearch.initApp() = APP.apply {
    } by { "Open widget ${it.name}" } toSource { c ->
       val id = if (c is WidgetFactory<*>) c.id else c.name
       val strategyCB = SpitComboBox<ComponentLoaderStrategy>({ it.toUi() }).apply {
-         items setTo ComponentLoaderStrategy.values()
+         items setTo ComponentLoaderStrategy.entries
          value = widgetManager.widgets.componentLastOpenStrategiesMap[id] ?: ComponentLoaderStrategy.DOCK
       }
       val processCB = SpitComboBox<ComponentLoaderProcess>({ it.toUi() }).apply {
-         items setTo ComponentLoaderProcess.values()
+         items setTo ComponentLoaderProcess.entries
          value = ComponentLoaderProcess.NORMAL
       }
       Entry.of(

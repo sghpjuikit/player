@@ -43,7 +43,11 @@ val <T: Any> KClass<T>.enumValues: Array<T>
 val KClass<*>.isObject: Boolean
    get() = !java.isAnonymousClass && runTry { objectInstance!=null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
 
-/** Equivalent to [KClass.isData]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
+/** True iff this class is [KClass.isData] and is [KClass.isObject]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
+val KClass<*>.isDataObject: Boolean
+   get() = !java.isAnonymousClass && runTry { isObject && isData }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+
+/** True iff this class is [KClass.isData] and is not [KClass.isObject]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
 val KClass<*>.isDataClass: Boolean
    get() = !java.isAnonymousClass && runTry { isData }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
 

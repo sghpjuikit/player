@@ -86,7 +86,7 @@ class GpuNvidiaInfo: StackPane() {
    private val gpuMem = Num01Ui("Memory", "gpu-mem", " MiB")
 
    val monitor = Subscribed {
-      var oldTicks by atomic(LongArray(CentralProcessor.TickType.values().size))
+      var oldTicks by atomic(LongArray(CentralProcessor.TickType.entries.size))
       val s1 = launch(VT) {
          flowTimer(0, 5000).map {
             val mem = sysInfo.hardware.memory

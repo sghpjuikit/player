@@ -109,7 +109,6 @@ import sp.it.pl.ui.objects.image.ThumbnailWithAdd
 import sp.it.pl.ui.objects.spinner.Spinner
 import sp.it.pl.ui.objects.window.NodeShow.LEFT_CENTER
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
-import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
 import sp.it.util.access.vn
@@ -1209,13 +1208,13 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
    sealed class ReadState<out T> {
       /** Initial state */
-      object Init: ReadState<Nothing>()
+      data object Init: ReadState<Nothing>()
       /** No value in all songs */
-      object None: ReadState<Nothing>()
+      data object None: ReadState<Nothing>()
       /** Same value in all songs */
       data class Same<T>(val value: T): ReadState<T>()
       /** Multiple value in all songs */
-      object Multi: ReadState<Nothing?>()
+      data object Multi: ReadState<Nothing?>()
    }
 
    class Validation(val field: TextInputControl, val condition: Predicate, val text: String) {

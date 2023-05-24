@@ -496,11 +496,10 @@ class WidgetManager {
             val command = listOf(
                "-d", compileDir.absolutePath,
                "-jdk-home", APP.location.child("java").absolutePath,
-               "-api-version", "1.8",
+               "-api-version", "1.9",
                "-jvm-target", "19",
                "-no-stdlib",
-               "-progressive",
-               "-language-version", "1.8",
+               "-language-version", "1.9",
                "-Xno-call-assertions",
                "-Xno-param-assertions",
                "-Xjvm-default=all",

@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "1.8.21"
+   kotlin("jvm") version "1.9.0-Beta"
    application
    id("com.github.ben-manes.versions") version "0.46.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.2"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
@@ -60,12 +60,11 @@ allprojects {
    }
 
    tasks.withType<KotlinCompile> {
-      kotlinOptions.apiVersion = "1.8"
-      kotlinOptions.languageVersion = "1.8"
+      kotlinOptions.apiVersion = "1.9"
+      kotlinOptions.languageVersion = "1.9"
       kotlinOptions.suppressWarnings = false
       kotlinOptions.verbose = true
       kotlinOptions.freeCompilerArgs += listOf(
-         "-progressive",
          "-Xno-call-assertions",
          "-Xno-param-assertions",
          "-Xjvm-default=all",

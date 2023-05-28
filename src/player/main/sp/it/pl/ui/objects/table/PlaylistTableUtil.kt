@@ -2,6 +2,7 @@ package sp.it.pl.ui.objects.table
 
 import javafx.scene.media.MediaPlayer.Status.PAUSED as STATE_PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING as STATE_PLAYING
+import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos.CENTER
 import javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
 import javafx.scene.control.TableCell
@@ -58,7 +59,6 @@ fun PlaylistTable.buildPlayingFieldColumn(): TableColumn<PlaylistSong, Any> = ta
 }
 
 fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>): TableCell<PlaylistSong, Any> {
-   fun computeIcon() = if (APP.audio.state.playback.status.value==STATE_PLAYING && playlist.isPlaying) IconMA.PAUSE_CIRCLE_FILLED else IconMA.PLAY_CIRCLE_FILLED
    val icon by lazy {
       val pt = this
       val ic = pt.properties["playing_icon"]?.asIf<Icon>() ?: Icon().apply {
@@ -85,14 +85,26 @@ fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>):
             }
          }
       }
-      APP.audio.state.playback.status sync { ic.icon(computeIcon()) } on disposer
-      playlist.playingSong sync { it ->
-         ic.icon(computeIcon())
+
+      fun computeIcon(): GlyphIcons {
+         return if (APP.audio.state.playback.status.value==STATE_PLAYING && playlist.isPlaying) IconMA.PAUSE_CIRCLE_FILLED else IconMA.PLAY_CIRCLE_FILLED
+      }
+      fun cellUninstallIcon() {
+         ic.traverseParents().filterIsInstance<TableCell<*,*>>().firstOrNull()?.graphic = null
+      }
+      fun cellInstallIcon(it: PlaylistSong) {
          val cellIndexV = column.tableView.items?.indexOf(it)
          val cellRow = cellIndexV?.let { i -> column.tableView.rows().find { it.index==i } }
          val cellIndexH = column.tableView.columns.indexOf(column).takeIf { it>=0 }
          val cell = if (cellIndexH==null || cellRow==null) null else cellRow.childrenUnmodifiable.find { it.asIf<TableCell<Any?,Any?>>()?.tableColumn==column }?.asIs<TableCell<Any?,Any?>>()
          cell?.graphic = if (it==cellRow!!.item) ic else null
+      }
+
+      APP.audio.state.playback.status sync { ic.icon(computeIcon()) } on disposer
+      playlist.playingSong sync {
+         cellUninstallIcon()
+         ic.icon(computeIcon())
+         cellInstallIcon(it)
       } on disposer
       ic
    }

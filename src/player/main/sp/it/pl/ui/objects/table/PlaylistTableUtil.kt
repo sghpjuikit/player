@@ -8,6 +8,7 @@ import javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableRow
+import javafx.scene.control.TableView
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.util.Callback
@@ -15,11 +16,13 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.PlaylistSong.Field.LENGTH
 import sp.it.pl.audio.playlist.PlaylistSong.Field.NAME
+import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.layout.ComponentLoader.POPUP
 import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
+import sp.it.pl.main.isPlaying
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.fieldvalue.MetaField
 import sp.it.util.access.fieldvalue.ObjectField
@@ -31,13 +34,14 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.type
+import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.tableColumn
 import sp.it.util.ui.traverseParents
 
-object PLAYING: ObjectFieldBase<Song, String>(type(), { "" }, "Playing", "An UI column providing pause/resume icon for playing song row", { _, _ -> "" }), MetaField
+object PLAYING: ObjectFieldBase<Any?, String>(type(), { "" }, "Playing", "An UI column providing pause/resume icon for playing song row", { _, _ -> "" }), MetaField
 
 fun PlaylistTable.buildColumn(f: ObjectField<PlaylistSong, Any?>): TableColumn<PlaylistSong,Any> = when (f) {
-   PLAYING -> buildPlayingFieldColumn()
+   PLAYING -> buildPlayingFieldColumn().asIs()
    else -> tableColumn {
       text = f.cName()
       isResizable = true
@@ -51,14 +55,37 @@ fun PlaylistTable.buildColumn(f: ObjectField<PlaylistSong, Any?>): TableColumn<P
    }
 }
 
-fun PlaylistTable.buildPlayingFieldColumn(): TableColumn<PlaylistSong, Any> = tableColumn {
+fun TableView<*>.buildPlayingFieldColumn(): TableColumn<*, Any> = tableColumn {
    isSortable = false
    isResizable = true
    cellValueFactory = Callback { vAlways(Unit) }
    cellFactory = Callback { buildPlayingFieldCell(it) }
 }
 
-fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>): TableCell<PlaylistSong, Any> {
+fun TableView<*>.buildPlayingFieldCell(column: TableColumn<*, Any>): TableCell<*, Any> {
+   val table = this
+   val tableDisposer = if (table is PlaylistTable) table.disposer else table.onNodeDispose
+
+   fun TableCell<*,*>.cellRowIsPlaying(): Boolean {
+      return if (table is PlaylistTable) {
+         table.playlist.playing==tableRow?.item
+      } else {
+         val rowItem = tableRow?.item
+         when(rowItem) {
+            is Song -> rowItem.isPlaying()
+            is MetadataGroup -> rowItem.isPlaying()
+            else -> false
+         }
+      }
+   }
+   fun cellComputeIcon(): GlyphIcons {
+      return if (table is PlaylistTable) {
+         if (APP.audio.state.playback.status.value==STATE_PLAYING && table.playlist.isPlaying) IconMA.PAUSE_CIRCLE_FILLED else IconMA.PLAY_CIRCLE_FILLED
+      } else {
+         if (APP.audio.state.playback.status.value==STATE_PLAYING) IconMA.PAUSE_CIRCLE_FILLED else IconMA.PLAY_CIRCLE_FILLED
+      }
+   }
+
    val icon by lazy {
       val pt = this
       val ic = pt.properties["playing_icon"]?.asIf<Icon>() ?: Icon().apply {
@@ -71,10 +98,15 @@ fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>):
             if (e==null) return@onClickDo
             // play/pause on LMB
             if (e.button==PRIMARY) {
-               val song = traverseParents().filterIsInstance<TableRow<*>>().firstOrNull()?.item?.asIf<PlaylistSong>()
-               if (APP.audio.state.playback.status.value==STATE_PLAYING && playlist.isPlaying) APP.audio.pause()
-               else if (APP.audio.state.playback.status.value==STATE_PAUSED && playlist.isPlaying) APP.audio.resume()
-               else playlist.playTransformedItem(song)
+               if (table is PlaylistTable) {
+                  val song = traverseParents().filterIsInstance<TableRow<*>>().firstOrNull()?.item?.asIf<PlaylistSong>()
+                  if (APP.audio.state.playback.status.value==STATE_PLAYING && table.playlist.isPlaying) APP.audio.pause()
+                  else if (APP.audio.state.playback.status.value==STATE_PAUSED && table.playlist.isPlaying) APP.audio.resume()
+                  else table.playlist.playTransformedItem(song)
+               } else {
+                  if (APP.audio.state.playback.status.value==STATE_PLAYING) APP.audio.pause()
+                  else if (APP.audio.state.playback.status.value==STATE_PAUSED) APP.audio.resume()
+               }
             }
             if (e.button==SECONDARY) {
                // open playback controls on RMB
@@ -86,26 +118,26 @@ fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>):
          }
       }
 
-      fun computeIcon(): GlyphIcons {
-         return if (APP.audio.state.playback.status.value==STATE_PLAYING && playlist.isPlaying) IconMA.PAUSE_CIRCLE_FILLED else IconMA.PLAY_CIRCLE_FILLED
-      }
       fun cellUninstallIcon() {
          ic.traverseParents().filterIsInstance<TableCell<*,*>>().firstOrNull()?.graphic = null
       }
-      fun cellInstallIcon(it: PlaylistSong) {
-         val cellIndexV = column.tableView.items?.indexOf(it)
+      fun cellInstallIcon(played: Any?) {
+         val cellIndexV = column.tableView.items?.indexOfFirst(if (table is PlaylistTable) {{ it===played }} else {{ when (it) { is Song -> it.isPlaying(); is MetadataGroup -> it.isPlaying(); else -> false }}})
          val cellRow = cellIndexV?.let { i -> column.tableView.rows().find { it.index==i } }
          val cellIndexH = column.tableView.columns.indexOf(column).takeIf { it>=0 }
          val cell = if (cellIndexH==null || cellRow==null) null else cellRow.childrenUnmodifiable.find { it.asIf<TableCell<Any?,Any?>>()?.tableColumn==column }?.asIs<TableCell<Any?,Any?>>()
-         cell?.graphic = if (it==cellRow!!.item) ic else null
+         cell?.graphic = if (cellIndexV==cellRow!!.index) ic else null
       }
 
-      APP.audio.state.playback.status sync { ic.icon(computeIcon()) } on disposer
-      playlist.playingSong sync {
+      // keep changing icon glyph
+      APP.audio.state.playback.status sync { ic.icon(cellComputeIcon()) } on tableDisposer
+      // keep changing icon row
+      (if (table is PlaylistTable) table.playlist.playingSong else APP.audio.playingSong.changed) sync {
          cellUninstallIcon()
-         ic.icon(computeIcon())
+         ic.icon(cellComputeIcon())
          cellInstallIcon(it)
-      } on disposer
+      } on tableDisposer
+
       ic
    }
    val cell = object: TableCell<PlaylistSong, Any>() {
@@ -113,7 +145,7 @@ fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>):
          super.updateItem(item, empty)
          alignment = CENTER
          contentDisplay = GRAPHIC_ONLY
-         graphic = if (!empty && playlist.playing==tableRow?.item) icon else null
+         graphic = if (!empty && cellRowIsPlaying()) icon else null
       }
    }
    return cell

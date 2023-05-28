@@ -68,6 +68,8 @@ import sp.it.pl.main.Widgets.SONG_TABLE_NAME
 import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.installDrag
 import sp.it.pl.ui.objects.table.FieldedTable.UNCONSTRAINED_RESIZE_POLICY_FIELDED
+import sp.it.pl.ui.objects.table.PLAYING
+import sp.it.pl.ui.objects.table.buildPlayingFieldColumn
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
@@ -83,7 +85,9 @@ import sp.it.util.units.year
 
 class Library(widget: Widget): SimpleController(widget), SongReader {
 
-   private val table = FilteredTable(Metadata::class.java, Metadata.EMPTY.getMainField())
+   private val table = object: FilteredTable<Metadata>(Metadata::class.java, Metadata.EMPTY.getMainField()) {
+      override fun computeFieldsAll() = super.computeFieldsAll() + PLAYING
+   }
    private val outputSelected = io.o.create<Metadata?>("Selected", null)
    private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
@@ -130,6 +134,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       // set up table columns
       table.setColumnFactory { f ->
          when (f) {
+            PLAYING -> table.buildPlayingFieldColumn().asIs()
             RATING -> table.columnFactoryDefault(RATING).apply { asIs<TableColumn<Metadata,Double?>>().cellFactory = RatingCellFactory }
             else -> table.columnFactoryDefault(f)
          }

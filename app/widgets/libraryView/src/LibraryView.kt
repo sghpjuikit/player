@@ -55,12 +55,14 @@ import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean.Companion.buildSingleSele
 import sp.it.pl.ui.objects.rating.RatingCellFactory
 import sp.it.pl.ui.objects.table.FieldedTable.UNCONSTRAINED_RESIZE_POLICY_FIELDED
 import sp.it.pl.ui.objects.table.FilteredTable
+import sp.it.pl.ui.objects.table.PLAYING
 import sp.it.pl.ui.objects.table.buildFieldedCell
+import sp.it.pl.ui.objects.table.buildPlayingFieldColumn
 import sp.it.pl.ui.objects.tablerow.SpitTableRow
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Sort.DESCENDING
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
-import sp.it.util.access.fieldvalue.ColumnField
+import sp.it.util.access.fieldvalue.ColumnField.INDEX
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.vAlways
 import sp.it.util.async.executor.EventReducer
@@ -112,7 +114,9 @@ private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, Table
 
 class LibraryView(widget: Widget): SimpleController(widget) {
 
-   private val table = FilteredTable(MetadataGroup::class.java, VALUE)
+   private val table = object: FilteredTable<MetadataGroup>(MetadataGroup::class.java, VALUE) {
+      override fun computeFieldsAll() = super.computeFieldsAll() + PLAYING
+   }
    private val inputItems = io.i.create("To display", listOf<Metadata>()) { setItems(it) }
    private val outputSelectedGroup = io.o.create("Selected", listOf<MetadataGroup>())
    private val outputSelectedSongs = io.io.mapped(outputSelectedGroup, "As Songs") { filterList(inputItems.value, true) }
@@ -164,42 +168,53 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
 
       // set up table columns
-      table.columnIdMapper = F1 { id -> if (ColumnField.INDEX.name()==id) id else MgField.valueOf(id).name() }
+      table.columnIdMapper = F1 { id ->
+         when (id) {
+            INDEX.name() -> id
+            PLAYING.name() -> id
+            else -> MgField.valueOf(id).name()
+         }
+      }
       table.setColumnFactory { f ->
-         if (f is MgField<*>) {
-            val mf = fieldFilter.value
-            tableColumn<MetadataGroup, Any?> {
-               text = f.toString(mf)
-               isResizable = f!=VALUE
-               styleClass += when (f) {
-                  AVG_RATING, W_RATING -> "column-header-align-right"
-                  else -> if (f.getMFType(mf).isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"
-               }
-               cellValueFactory = Callback { it.value?.let { vAlways(f.getOf(it)) } }
-               cellFactory = when (f) {
-                  AVG_RATING -> RatingCellFactory.asIs()
-                  W_RATING ->
-                     CellFactory {
-                        object: TableCell<MetadataGroup, Double?>() {
-                           init {
-                              alignment = CENTER_RIGHT
-                           }
+         when (f) {
+            PLAYING -> table.buildPlayingFieldColumn().asIs()
+            is MgField<*> -> {
+               val mf = fieldFilter.value
+               tableColumn<MetadataGroup, Any?> {
+                  text = f.toString(mf)
+                  isResizable = f!=VALUE
+                  styleClass += when (f) {
+                     AVG_RATING, W_RATING -> "column-header-align-right"
+                     else -> if (f.getMFType(mf).isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"
+                  }
+                  cellValueFactory = Callback { it.value?.let { vAlways(f.getOf(it)) } }
+                  cellFactory = when (f) {
+                     AVG_RATING -> RatingCellFactory.asIs()
+                     W_RATING ->
+                        CellFactory {
+                           object: TableCell<MetadataGroup, Double?>() {
+                              init {
+                                 alignment = CENTER_RIGHT
+                              }
 
-                           override fun updateItem(item: Double?, empty: Boolean) {
-                              super.updateItem(item, empty)
-                              text = if (empty) null else "%.2f".format(item)
-                           }
-                        }.asIs()
-                     }
-                  else -> CellFactory {
-                     f.buildFieldedCell().apply {
-                        alignment = if (f.getMFType(mf).isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
+                              override fun updateItem(item: Double?, empty: Boolean) {
+                                 super.updateItem(item, empty)
+                                 text = if (empty) null else "%.2f".format(item)
+                              }
+                           }.asIs()
+                        }
+
+                     else -> CellFactory {
+                        f.buildFieldedCell().apply {
+                           alignment = if (f.getMFType(mf).isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
+                        }
                      }
                   }
                }
             }
-         } else {
-            table.columnFactoryDefault.apply(f)
+            else -> {
+               table.columnFactoryDefault.apply(f)
+            }
          }
       }
       table.rowFactory = Callback { t ->

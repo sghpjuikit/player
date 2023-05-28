@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement widgets **PlayerSeeker**, **PlayerVolume**, **PlayerLoop** instead of one **PlayerControlsCircle**
 - Implement widget ui controls icons to react on widget size [improves layout]
 - Implement config editor caret shown on focus
+- Implement **Song Table** widget table row playing icon column
+- Implement **Song Group Table** widget table row playing icon column
 - Improve **Tester** widget layout & initial size
 - Improve **StartScreen** styling (no border)
 - Improve various animation interpolators
@@ -61,6 +63,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix widget loading animation delay not computed correctly
 - Fix table selection restoring and initial table resizing not working properly sometimes
 - Fix read-only combobox allows edit
+- Fix playlist table playing column icon not refreshing properly
 
 ### Vlc playback
 It is now possible to change audio channels and audio output device used for playback through application settings.

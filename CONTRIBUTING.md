@@ -20,6 +20,7 @@
 
 #### IDE: Intellij IDEA
 
+0. Make sure IDE supports required Kotlin version (see [build](/gradle/project.gradle.kts))
 1. Import Project -> Select project folder  
 2. Import from external model -> Gradle 
 3. Check "Use auto-import"  

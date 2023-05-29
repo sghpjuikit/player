@@ -117,8 +117,8 @@ class AccessConfig<T>: ConfigBase<T>, WritableValue<T> {
     * @param getter defines [getValue]
     */
    constructor(
-      type: VType<T>, name: String, gui_name: String, setter: (T) -> Unit, getter: () -> T, group: String, info: String, editable: EditMode
-   ): super(type, name, gui_name, getter(), group, info, editable) {
+      type: VType<T>, name: String, nameUi: String, setter: (T) -> Unit, getter: () -> T, group: String, info: String, editable: EditMode
+   ): super(type, name, nameUi, getter(), group, info, editable) {
       this.getter = getter
       this.setter = setter
    }

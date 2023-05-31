@@ -28,7 +28,6 @@ import sp.it.util.type.kType
 import sp.it.util.type.raw
 import sp.it.util.type.type
 
-@Suppress("RemoveExplicitTypeArguments")
 class JsonTest: FreeSpec({
    val j = Json()
    val nf = "\n"
@@ -125,7 +124,6 @@ class JsonTest: FreeSpec({
             class Data
 
             val json = JsNull
-
             j.fromJsonValue<Any>(json) shouldBeTry Error("null is not kotlin.Any")
             j.fromJsonValue<Any?>(json) shouldBe Ok(null)
             j.fromJsonValue<String>(json) shouldBeTry Error("null is not kotlin.String")
@@ -322,7 +320,7 @@ class JsonTest: FreeSpec({
             valueIn shouldBe valueOut6
             valueIn::class shouldBe valueOut6::class
 
-            // exact type -> unknown type (this case loses exact type because 1 numbers do not know their type and 2 due to unsigned types being converted to a number)
+            // exact type -> unknown type (this case loses exact type because 1 - numbers do not know their type and 2 - due to unsigned types being converted to a number)
             val valueOut7 = j.toJsonValue(type, valueIn).net { j.fromJsonValue(type<Any>(), it) }.orThrow
             valueIn.toString().toDouble() shouldBe valueOut7.toString().toDouble()
             valueOut7 shouldBeInstance Number::class

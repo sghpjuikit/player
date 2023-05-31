@@ -435,7 +435,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
             .def(name = "Source", info = "File or directory that will be used as source", editable = EditMode.NONE)
          val dstFileC by cvn<File>(null)
             .def(name = "Destination", info = "File or directory that will have it's time restored")
-         val strategyC by c(FileFlatter.ALL)
+         var strategyC by c(FileFlatter.ALL)
             .def(name = "Strategy", info = "Strategy to obtain files from the source/destination")
          val restoreC by cCheckList(CheckList.nonNull(type<String>(), listOf("Created Time", "Modified Time"), listOf(true, true)))
             .def(name = "Restore")

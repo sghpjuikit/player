@@ -292,7 +292,7 @@ private val ffmpeg by lazy {
             ffmpegBinary
          }
       }
-   }.withAppProgress("Obtaining ffmpeg").onDone {
+   }.onDone {
       it.toTry().ifErrorNotify {
          AppError(
             "Failed to obtain ffmpeg",

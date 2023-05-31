@@ -46,6 +46,7 @@ import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
 import sp.it.util.functional.TryList
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.supplyIfNotNull
@@ -292,15 +293,12 @@ interface ScheduleAppTaskHandle: StartAppTaskHandle {
 }
 
 /** Task handle to update the state of the [AppTask]. */
-inline fun <TASK: StartAppTaskHandle, T> TASK.reportFor(block: (TASK) -> T): T {
-   val result = runTry { block(this) }
-   reportDone(result)
-   return result.orThrow
-}
+inline fun <TASK: StartAppTaskHandle, T> TASK.reportFor(block: (TASK) -> T): T =
+   runTry { block(this) }.ifAny(::reportDone).orThrow
 
 private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, val cancel: (() -> Unit)?) {
    val state = v<State>(Scheduled)
-   val progress = v<Double01>(-1.0)
+   val progress = v((-1.0).asIs<Double01>())
    val timeActive = v(0.millis)
    private var timeStart = 0L
 

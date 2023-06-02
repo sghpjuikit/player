@@ -1,5 +1,7 @@
 package sp.it.util.file.json
 
+import kotlin.Int.Companion.MAX_VALUE as MAX_INT
+import com.fasterxml.jackson.core.StreamReadConstraints
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
@@ -117,6 +119,9 @@ open class JsonAst {
    protected val om = JsonMapper().apply {
       // less lenient parsing so "1 2" is invalid json, see https://github.com/FasterXML/jackson-core/issues/808
       enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+      factory.setStreamReadConstraints(
+         StreamReadConstraints.builder().maxNestingDepth(MAX_INT).maxNumberLength(MAX_INT).maxStringLength(MAX_INT).build()
+      )
    }
 
    fun ast(json: String): Try<JsValue, Throwable> = runTry { fromJacksonAST(om.readTree(json)) }

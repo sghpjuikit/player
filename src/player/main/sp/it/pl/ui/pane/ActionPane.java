@@ -503,16 +503,13 @@ public class ActionPane extends OverlayPane<Object> {
 
 	private void runAction(ActionData<?,?> action, Object data) {
 		var context = new ActContext(this);
-		if (action.isLong) actionProgress.setProgress(-1);
 		action.invokeFut(context, data)
 			.thenFlatten(CURR)
-			.thenWait(millis(action.isLong ? 0 : 150))  // very short actions 'pretend' to be busy for a while
-			.onDone(FX, consumer(rt -> {
-				if (action.isLong) actionProgress.setProgress(1);
+			.onDone(FX, consumer(rt ->
 				rt.toTryRaw()
 					.ifOk(consumer(r -> doneHide(action, r)))
-					.ifError(consumer(e -> show(e)));
-			}));
+					.ifError(consumer(e -> show(e)))
+			));
 	}
 
 	private void hideCustomActionUi() {

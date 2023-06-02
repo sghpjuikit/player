@@ -1,11 +1,13 @@
 package sp.it.pl.ui.pane
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.beans.value.WritableValue
 import javafx.event.ActionEvent
 import javafx.event.Event
 import javafx.scene.Node
 import javafx.stage.Window
 import kotlin.reflect.KClass
+import org.jetbrains.annotations.Blocking
 import sp.it.pl.main.APP
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.pane.ActionData.GroupApply
@@ -17,13 +19,13 @@ import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.ActionData.Threading.UI
 import sp.it.util.action.Action
 import sp.it.util.async.FX
+import sp.it.util.async.VT
 import sp.it.util.async.future.Fut
+import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.Fut.Companion.futOfBlock
-import sp.it.util.async.runIO
 import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementClass
 import sp.it.util.conf.Constraint
-import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.failIfNotFxThread
@@ -36,6 +38,7 @@ import sp.it.util.type.type
 import sp.it.util.ui.sourceMenuItem
 import sp.it.util.ui.traverseToPopupOwnerNode
 import sp.it.util.ui.traverseToPopupOwnerWindow
+import sp.it.util.units.millis
 
 inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class, *actions)
 
@@ -74,13 +77,13 @@ fun futureUnwrapOrThrow(o: Any?): Any? = when (o) {
 private typealias Test<T> = (T) -> Boolean
 private typealias Act<T> = ActContext.(T) -> Any?
 
-data class ActContext(val window: Window?, val a: ActionPane?,  val node: Node?, val event: Event?) {
-   constructor(window: Window): this(window, null, null, null)
-   constructor(node: Node): this(node.scene?.window, null, node, null)
-   constructor(event: ActionEvent): this(event.sourceMenuItem()?.traverseToPopupOwnerWindow(), null, event.sourceMenuItem()?.traverseToPopupOwnerNode(), event)
+data class ActContext(val window: Window?, val a: ActionPane?,  val node: Node?, val event: Event?, val progress: WritableValue<Number>?) {
+   constructor(window: Window): this(window, null, null, null, null)
+   constructor(node: Node): this(node.scene?.window, null, node, null, null)
+   constructor(node: ActionPane): this(node.scene?.window, null, node, null, node.actionProgress.progressProperty())
+   constructor(event: ActionEvent): this(event.sourceMenuItem()?.traverseToPopupOwnerWindow(), null, event.sourceMenuItem()?.traverseToPopupOwnerNode(), event, null)
 
    val apOrApp: ActionPane get() = a ?: APP.ui.actionPane.orBuild
-
 }
 
 class ComplexActionData<R, T> {
@@ -161,8 +164,15 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
    fun invokeFut(context: ActContext, data: Any?): Fut<*> {
       failIfNotFxThread()
 
-      return if (isLong) runIO { invokeTry(context, data).orThrow }
-      else futOfBlock { invokeTry(context, data).orThrow }
+      return if (isLong)
+         fut()
+            .ui { context.progress?.value = -1.0 }
+            .then(VT) { invokeTry(context, data).orThrow }
+            .thenWait(150.millis)  // very short actions 'pretend' to be busy for a while
+            .ui { context.progress?.value = +1.0; it }
+      else
+         futOfBlock { invokeTry(context, data).orThrow }
+            .thenWait(150.millis)  // very short actions 'pretend' to be busy for a while
    }
 
    fun invokeFutAndProcess(context: ActContext, data: Any?) {

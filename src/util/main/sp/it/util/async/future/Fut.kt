@@ -121,7 +121,7 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
       @JvmStatic
       fun <T> futFailed(value: Throwable) = Fut<T>(CompletableFuture.failedFuture(value))
 
-      /** @return future completed successfully or failed with the value supplied by the specified block */
+      /** @return future completed successfully with the value supplied by the specified block or failed */
       @JvmStatic
       fun <T> futOfBlock(block: () -> T): Fut<T> = runTry { fut(block.logging()()) }.mapError<Fut<T>> { futFailed(it) }.getAny()
 

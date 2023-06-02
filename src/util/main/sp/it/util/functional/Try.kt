@@ -124,6 +124,7 @@ sealed class Try<out R, out E> {
  *
  * @return the specified block's return value or any caught exception.
  */
+@Suppress("removal", "DEPRECATION")
 inline fun <R> runTry(block: () -> R): Try<R, Throwable> = try {
    Try.ok(block())
 } catch (e: Throwable) {

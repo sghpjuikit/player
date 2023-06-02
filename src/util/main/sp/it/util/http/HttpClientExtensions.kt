@@ -10,7 +10,7 @@ import io.ktor.http.isSuccess
 import io.ktor.util.cio.use
 import io.ktor.util.cio.writeChannel
 import java.io.File
-import java.net.URL
+import java.net.URI
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -23,7 +23,7 @@ typealias DownloadState = Double?
 
 suspend fun HttpClient.downloadFile(srcUrl: String, file: File): Flow<DownloadState> = flow {
    val dir = file.parentFile ?: fail { "File $file has no parent directory" }
-   val url = URL(srcUrl)
+   val url = URI(srcUrl).toURL()
 
    withContext(VT) {
       if (file.exists()) file.tryDeleteIfExists { "Deleting file $file failed" }.orThrow

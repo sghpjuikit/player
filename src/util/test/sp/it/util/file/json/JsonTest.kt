@@ -24,6 +24,8 @@ import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.getAny
 import sp.it.util.functional.net
+import sp.it.util.type.isDataClass
+import sp.it.util.type.isDataObject
 import sp.it.util.type.kType
 import sp.it.util.type.raw
 import sp.it.util.type.type
@@ -261,6 +263,10 @@ class JsonTest: FreeSpec({
       }
    }
    "Write-read" - {
+      "object" {
+         j.toJsonValue(JsonTestObject).net { j.fromJsonValue<Any>(it) }.orThrow
+         j.toJsonValue(JsonTestDataObject).net { j.fromJsonValue<Any>(it) }.orThrow
+      }
       "numbers" {
          forAll(
             argIns(Byte.MIN_VALUE),
@@ -426,6 +432,8 @@ class JsonTest: FreeSpec({
    }
 })
 
+private object JsonTestObject
+private data object JsonTestDataObject
 private data class Gen          (val genDat: GenDat<Int>, val genCls: GenCls<Int>)
 private data class GenDat<out T>(val value: T)
 private      class GenCls<out T>(val value: T) {

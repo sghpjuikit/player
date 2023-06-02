@@ -143,8 +143,8 @@ allprojects {
          implementation("com.github.f4b6a3", "uuid-creator", "5.3.2")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.2")
-         implementation("com.github.oshi", "oshi-core", "6.4.1")
-         implementation("com.vladsch.flexmark", "flexmark-all", "0.64.4") {
+         implementation("com.github.oshi", "oshi-core", "6.4.2")
+         implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
          implementation("org.apache.pdfbox", "pdfbox", "3.0.0-RC1")
@@ -178,8 +178,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.3.0")
-         implementation("io.ktor", "ktor-client-cio", "2.3.0")
+         implementation("io.ktor", "ktor-server-core", "2.3.1")
+         implementation("io.ktor", "ktor-client-cio", "2.3.1")
       }
 
       "Test" group {
@@ -216,7 +216,6 @@ javaToolchains.compilerFor {
    vendor.set(ADOPTIUM)
 }
 
-@Suppress("UNUSED_VARIABLE")
 tasks {
 
    val copyLibs by creating(Sync::class) {
@@ -252,6 +251,12 @@ tasks {
       settings = appSetting
    }
 
+   val cleanAppData by creating(CleanAppDataTask::class) {
+      group = "application"
+      description = "Deletes app data including user data"
+      appDir = dirApp
+   }
+
    val jar by getting(Jar::class) {
       dependsOn(copyLibs)
       group = "build"
@@ -267,16 +272,6 @@ tasks {
 
    "build" {
       dependsOn(":widgets:build")
-   }
-
-   "clean"(Delete::class) {
-      description = "Cleans up built dir, lib dir, user tmp dir and widget compilation output"
-      delete(
-         buildDir,
-         dirApp/"lib",
-         dirApp/"user"/"tmp",
-         dirApp.resolve("widgets").listFiles().orEmpty().map { it/"out" }
-      )
    }
 
 }

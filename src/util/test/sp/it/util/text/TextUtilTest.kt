@@ -56,7 +56,7 @@ class TextUtilTest: FreeSpec({
       "AaaBbbCCC".camelToDotCase() shouldBe "AaaBbbCCC".camelToDotCase().lowercase()
    }
 
-   "characters" - {
+   "comprehensive" - {
 
       // https://engineering.linecorp.com/en/blog/the-7-ways-of-counting-characters/
 
@@ -122,6 +122,9 @@ class TextUtilTest: FreeSpec({
       "A𝔊क्तु🅱🅱️".graphemeAt(2) shouldBe "क्तु"
       "A𝔊क्तु🅱🅱️".graphemeAt(3) shouldBe "🅱"
       "A𝔊क्तु🅱🅱️".graphemeAt(4) shouldBe "🅱️"
+
+      // TODO: broken in JDK<20
+      // "🇺🇸👨‍👩‍👧‍👦".graphemes().toList() shouldBe listOf("🇺🇸", "👨‍👩‍👧‍👦")
    }
 
    String::capital.name - {

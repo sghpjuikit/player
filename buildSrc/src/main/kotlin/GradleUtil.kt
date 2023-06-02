@@ -35,7 +35,19 @@ val String.sysProp: String?
 
    private fun String.decapital() = replaceFirstChar { it.lowercase() }
 
-abstract class LinkJDK : DefaultTask {
+open class CleanAppDataTask: DefaultTask() {
+
+   @Input lateinit var appDir: File
+
+   @TaskAction
+   fun greet() {
+      (appDir/"lib").delete()
+      (appDir/"user"/"tmp").delete()
+      (appDir/"widgets").listFiles().orEmpty().map { it/"out" }.forEach { it.delete() }
+   }
+}
+
+abstract class LinkJDK: DefaultTask {
    /** Location of the link to the JDK. */
    @Internal lateinit var linkLocation: File
    /** Java toolchain.launcher. */

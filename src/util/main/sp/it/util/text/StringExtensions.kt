@@ -331,7 +331,7 @@ fun String.splitNoEmpty(delimiter: String, ignoreCase: Boolean = false): Sequenc
 /** @return URL this string is denoting or null if [MalformedURLException] is thrown */
 fun String.toURLOrNull(): URL? =
    try {
-      URL(this)
+      URI(this).toURL()
    } catch (e: MalformedURLException) {
       null
    }

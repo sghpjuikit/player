@@ -51,6 +51,8 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
+import sp.it.util.reactive.sync1If
+import sp.it.util.ui.displayed
 import sp.it.util.ui.findParent
 import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.onNodeDispose
@@ -325,9 +327,9 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    }
 
    override fun focus() {
-      if (isLoaded) {
-         controller!!.focus()
-      }
+      if (isClosed) return
+      if (isLoaded) graphics!!.displayed.sync1If({ it }) { controller?.focus() } on onClose
+      else onLoad.attach1 { focus() }
    }
 
    fun focusAndTraverse() {

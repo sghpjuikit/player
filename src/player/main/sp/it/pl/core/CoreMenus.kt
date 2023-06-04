@@ -499,7 +499,7 @@ object CoreMenus: Core {
          add<Input<*>> {
             menuFor("Value", value.value)
             menu("Link") {
-               item("From value...", IconUN(0x21a6).toCmUi { tooltip("Pick a value to feed once into this input.") }) { input ->
+               item("From value...", IconUN(0x21a6).toCmUi { tooltip("Pick a value to feed once into this input") }) { input ->
                   Config.forProperty(input.type, "Value", vn(input.value).asIs()).configure("Set ${input.name} value") { c ->
                      fun Input<Any?>.setValue() { this.value = c.value }
                      input.asIs<Input<Any?>>().setValue()
@@ -537,7 +537,7 @@ object CoreMenus: Core {
          add<Output<*>> {
             menuFor("Value", value.value)
             menu("Link") {
-               item("To...") { output ->
+               item("To...", IconUN(0x2190).toCmUi { tooltip("Pick an input to feed into") }) { output ->
                   Config.forProperty(type<InputRef?>(), "Input", vn(null)).constrain {
                      nonNull()
                      uiConverter { it?.name ?: textNoVal }
@@ -548,10 +548,10 @@ object CoreMenus: Core {
                }
             }
             menu("Unlink") {
-               menu("One") {
+               menu("One", IconUN(0x21f8).toCmUi { scaleX = -1.0; tooltip("Unlink single input") }) {
                   items(value.boundInputs(), { it.name }) { value.unbind(it) }
                }
-               item("All") { it.unbindAll() }
+               item("All", IconUN(0x21fb).toCmUi { scaleX = -1.0; tooltip("Unlink all inputs") }) { it.unbindAll() }
             }
          }
          add<InOutput<*>> {
@@ -560,9 +560,9 @@ object CoreMenus: Core {
                item("From all identical") { it.i.bindAllIdentical() }
             }
             menu("Unlink") {
-               item("All") { it.i.unbindAll(); it.o.unbindAll() }
-               item("All inbound") { it.i.unbindAll() }
-               item("All outbound") { it.o.unbindAll() }
+               item("All",          IconUN(0x21f9).toCmUi()) { it.i.unbindAll(); it.o.unbindAll() }
+               item("All inbound",  IconUN(0x21f8).toCmUi()) { it.i.unbindAll() }
+               item("All outbound", IconUN(0x21f7).toCmUi()) { it.o.unbindAll() }
             }
          }
       }

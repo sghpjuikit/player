@@ -40,7 +40,6 @@ import sp.it.util.units.year
 import java.util.Base64
 import java.util.concurrent.atomic.AtomicInteger
 import javafx.scene.control.ContextMenu
-import javafx.scene.input.ContextMenuEvent.CONTEXT_MENU_REQUESTED
 import javafx.scene.input.MouseButton.SECONDARY
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
@@ -82,7 +81,6 @@ import sp.it.util.text.splitNoEmpty
 import sp.it.util.type.superKClassesInc
 import sp.it.util.ui.dsl
 import sp.it.util.ui.prefSize
-import sp.it.util.ui.show
 import sp.it.util.ui.x
 
 /** Controller for [Widget] with no [sp.it.pl.layout.WidgetFactory]. */
@@ -244,9 +242,6 @@ class ControllerNode(widget: Widget): SimpleController(widget) {
       root.prefSize = 500.emScaled x 500.emScaled
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
-
-      root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (it.isPrimaryButtonDown && it.isStillSincePress) { buildContextMenu().show(root, it); it.consume() } }
-      root.onEventDown(CONTEXT_MENU_REQUESTED) { if (it.isKeyboardTrigger) { buildContextMenu().show(root, it); it.consume() } }
       root.onEventDown(MOUSE_CLICKED, PRIMARY) { if (nodeInstance.value.node==null) APP.windowManager.showSettings(widget, root) }
 
       nodeInstance sync { node ->

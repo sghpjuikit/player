@@ -81,7 +81,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
 
       // switch to container/normal layout mode using right/left click
       root.onEventDown(MOUSE_CLICKED, SECONDARY, false) {
-         if (isLayoutMode && (!isContainerMode)) {
+         if (!it.isPrimaryButtonDown && isLayoutMode && (!isContainerMode)) {
             if (container.children.isEmpty()) {
                AppAnimator.closeAndDo(root) { container.close() }
             } else {
@@ -92,7 +92,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
       }
       root.onEventDown(MOUSE_CLICKED, SECONDARY, false) {
          // always consume setContainerMode event when it is not possible to go any higher
-         if (isLayoutMode && container.parent is Layout)
+         if (!it.isPrimaryButtonDown && isLayoutMode && container.parent is Layout)
             it.consume()
       }
    }

@@ -1,8 +1,6 @@
 ## Potential future work
 - implement plus icon for custom widget custom inputs in layout mode
 - implement custom outputs for custom widgets
-- implement icons for output menu items
-- widget context menu in layout mode
 - Improve **Tagger** widget
   - tagging non audio file with audio extension causes exception and corrupted application state
   - editable song check list not refreshing content properly

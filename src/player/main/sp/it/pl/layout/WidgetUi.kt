@@ -2,17 +2,15 @@ package sp.it.pl.layout
 
 import javafx.geometry.HPos
 import javafx.geometry.VPos
-import javafx.scene.input.ContextMenuEvent
 import javafx.scene.input.ContextMenuEvent.CONTEXT_MENU_REQUESTED
-import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseButton.SECONDARY
-import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import sp.it.pl.layout.Widget.LoadType.AUTOMATIC
 import sp.it.pl.layout.Widget.LoadType.MANUAL
+import sp.it.pl.layout.controller.ControllerNode
 import sp.it.pl.layout.controller.io.IOLayer
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
@@ -102,8 +100,21 @@ class WidgetUi(container: Container<*>, index: Int, widget: Widget): ComponentUi
          { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }
       )
 
-      root.onEventUp(MOUSE_CLICKED, SECONDARY, false) { if (it.isPrimaryButtonDown && it.isStillSincePress) { contextMenuFor(widget).show(root, it); it.consume() } }
-      root.onEventDown(CONTEXT_MENU_REQUESTED) { if (it.isKeyboardTrigger) { contextMenuFor(widget).show(root, it); it.consume() } }
+      // context menu
+      root.onEventUp(MOUSE_CLICKED, SECONDARY, false) {
+         if (it.isPrimaryButtonDown && it.isStillSincePress) {
+            val c = widget.controller
+            val cm = if (c is ControllerNode) c.buildContextMenu() else contextMenuFor(widget)
+                cm.show(root, it)
+            it.consume()
+         }
+      }
+      root.onEventDown(CONTEXT_MENU_REQUESTED) {
+         if (it.isKeyboardTrigger) {
+            contextMenuFor(widget).show(root, it)
+            it.consume()
+         }
+      }
 
       // report component graphics changes
       root.parentProperty() sync { IOLayer.requestLayoutFor(widget) }

@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `list-box` - a `VBox` emulation of `list-view` and provide consistent styling where used
 - Implement widgets **PlayerSeeker**, **PlayerVolume**, **PlayerLoop** instead of one **PlayerControlsCircle**
 - Implement widget ui controls icons to react on widget size [improves layout]
+- Implement widget context menu to trigger in layout mode
 - Implement config editor caret shown on focus
 - Implement **Song Table** widget table row playing icon column
 - Implement **Song Group Table** widget table row playing icon column

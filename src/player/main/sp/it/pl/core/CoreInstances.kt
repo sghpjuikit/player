@@ -57,7 +57,6 @@ object CoreInstances: InstanceMap(), Core {
    /** [Node] classes recommended to user for use as widgets. */
    val recommendedNodeClassesAsWidgets = observableSet<NodeFactory<*>>()
 
-   @Suppress("RemoveExplicitTypeArguments")
    override fun init() {
       recommendedNodeClassesAsWidgets += listOf(
          NodeFactory(uuid("399dfa7b-dda1-4698-acaf-77c2297114d2"), UuidGeneratorNode::class, "UUID Generator") { UuidGeneratorNode() },

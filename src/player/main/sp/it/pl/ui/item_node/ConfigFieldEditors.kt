@@ -1399,8 +1399,6 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    }
 
    companion object {
-
-      @Suppress("RemoveExplicitTypeArguments")
       fun onNumberScrolledHandler(editor: ConfigEditor<*>) = editor.run {
          when (config.type.raw) {
             Byte::class -> onNumberScrolled<Byte>(Byte.MIN_VALUE, Byte.MAX_VALUE, { a,b -> (a+b).toByte() }) { it.toByte() }

@@ -47,8 +47,8 @@ import sp.it.util.reactive.attach
  * within the container. How the indexes are interpreted is left up on the container's
  * implementation logic. The children collection is implemented as `Map<Integer,Component>`.
  *
- * Container is called pure, if it can contain only containers.
- * Container is called leaf, if it can contain only non-containers.
+ * Container is pure, if it can contain only containers.
+ * Container is leaf, if it can contain only non-containers.
  * Note the difference between containing and able to contain! The pure and leaf
  * containers can have their own class implementation.
  *

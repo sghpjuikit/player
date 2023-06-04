@@ -30,7 +30,6 @@ import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.reportFor
 import sp.it.pl.main.runAsAppProgram
-import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.util.Util.filenamizeString
 import sp.it.util.async.coroutine.VT

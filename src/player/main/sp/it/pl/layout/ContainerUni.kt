@@ -22,6 +22,7 @@ open class ContainerUni: Container<ComponentUi> {
       get() = children[1]
       set(w) = addChild(1, w)
 
+   @JvmOverloads
    constructor(state: ContainerUniDb = ContainerUniDb()): super(state) {
       children[1] = state.child?.toDomain()
       setChildrenParents()

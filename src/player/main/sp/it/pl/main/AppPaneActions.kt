@@ -123,7 +123,6 @@ fun ActionPane.initGenericActions(): ActionPane = also { ap ->
    ActionsPaneGenericActions.actionsAll.forEach { (kClass, actions) -> actions.forEach { ap.register<Any>(kClass.asIs(), it.asIs()) } }
 }
 
-@Suppress("RemoveExplicitTypeArguments")
 fun ActionPane.initActionPane(): ActionPane = also { ap ->
    ap.initGenericActions()
 
@@ -258,13 +257,13 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Opens image in an image viewer widget.",
          IconFA.IMAGE,
          constriction = { it.isImage() },
-      ) { img_file -> APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(img_file) } },
+      ) { imgFile -> APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(imgFile) } },
       actionAll(
          "View image",
          "Opens images in an image browser widget.",
          IconFA.IMAGE,
          constriction = { it.isImage() },
-      ) { img_files -> APP.widgetManager.widgets.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(img_files) } },
+      ) { imgFiles -> APP.widgetManager.widgets.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(imgFiles) } },
       action(
          "Open widget",
          "Opens exported widget.",

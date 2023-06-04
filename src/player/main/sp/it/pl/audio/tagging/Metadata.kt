@@ -725,9 +725,9 @@ class Metadata: Song, Serializable {
 
    private fun <T> getField(field: Field<T>): T = field.getOf(this)
 
-   fun <T> getFieldS(f: Field<T>, no_val: String): String {
+   fun <T> getFieldS(f: Field<T>, noVal: String): String {
       val o = getField(f)
-      return if (f.getOf(EMPTY)==o) no_val else f.toS(o, no_val)
+      return if (f.getOf(EMPTY)==o) noVal else f.toS(o, noVal)
    }
 
    override fun toString() = "${Metadata::class} $uri"

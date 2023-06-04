@@ -37,6 +37,8 @@ class MenuItemBoolean(text: String? = "", selectedInitial: Property<Boolean> = v
       graphic = icon
       icon.styleclass(STYLECLASS_ICON)
       icon.gap(0)
+      icon.isMouseTransparent = true
+      icon.isFocusTraversable = false
       installOnMouseClick { selected.toggle() }
    }
 
@@ -51,7 +53,7 @@ class MenuItemBoolean(text: String? = "", selectedInitial: Property<Boolean> = v
     */
    private fun installOnMouseClick(block: () -> Unit) {
       mouseClicking?.unsubscribe()
-      mouseClicking = onEventDown(ACTION) { if (!icon.isHover) block() }
+      mouseClicking = onEventDown(ACTION) { block() }
       icon.onClickDo { block() }
    }
 

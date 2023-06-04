@@ -35,7 +35,7 @@ import sp.it.pl.layout.ContainerFreeFormUi
 import sp.it.pl.layout.ContainerFreeFormDb
 import sp.it.pl.layout.NoComponentDb
 import sp.it.pl.layout.ContainerRootDb
-import sp.it.pl.layout.SwitchContainerDb
+import sp.it.pl.layout.ContainerSwitchDb
 import sp.it.pl.layout.ContainerUniDb
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetDb
@@ -87,7 +87,7 @@ class CoreSerializerJson: Core {
            "seq-container" alias ContainerSeqDb::class
           "free-container" alias ContainerFreeFormDb::class
    "free-container-window" alias ContainerFreeFormUi.WindowPosition::class
-        "switch-container" alias SwitchContainerDb::class
+        "switch-container" alias ContainerSwitchDb::class
                   "widget" alias WidgetDb::class
                   "window" alias WindowDb::class
        "component-loading" alias Widget.LoadType::class

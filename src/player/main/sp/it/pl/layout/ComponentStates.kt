@@ -76,7 +76,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
    fun ComponentDb.dd(): ComponentDb = when (this) {
       is NoComponentDb -> this
       is ContainerRootDb -> ContainerRootDb(id.dd(), loading, locked, child?.dd(), properties)
-      is SwitchContainerDb -> SwitchContainerDb(id.dd(), translate, loading, locked, children.mapValues { it.value?.dd() }, properties)
+      is ContainerSwitchDb -> ContainerSwitchDb(id.dd(), translate, loading, locked, children.mapValues { it.value?.dd() }, properties)
       is ContainerUniDb -> ContainerUniDb(id.dd(), loading, locked, child?.dd(), properties)
       is ContainerBiDb -> ContainerBiDb(id.dd(), orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd() }, properties)
       is ContainerSeqDb -> ContainerSeqDb(id.dd(), orientation, fill, alignment, joined, loading, locked, children.mapValues { it.value?.dd() }, properties)
@@ -87,7 +87,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
    fun ComponentDb.dd2(): ComponentDb = when (this) {
       is NoComponentDb -> this
       is ContainerRootDb -> ContainerRootDb(id, loading, locked, child?.dd2(), properties)
-      is SwitchContainerDb -> SwitchContainerDb(id, translate, loading, locked, children.mapValues { it.value?.dd2() }, properties)
+      is ContainerSwitchDb -> ContainerSwitchDb(id, translate, loading, locked, children.mapValues { it.value?.dd2() }, properties)
       is ContainerUniDb -> ContainerUniDb(id, loading, locked, child?.dd2(), properties)
       is ContainerBiDb -> ContainerBiDb(id, orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd2() }, properties)
       is ContainerSeqDb -> ContainerSeqDb(id, orientation, fill, alignment, joined, loading, locked, children.mapValues { it.value?.dd2() }, properties)
@@ -124,7 +124,7 @@ class ContainerRootDb(
    override fun toDomain() = Layout(this)
 }
 
-class SwitchContainerDb(
+class ContainerSwitchDb(
    id: UUID = UUID.randomUUID(),
    val translate: Double = 0.0,
    loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,

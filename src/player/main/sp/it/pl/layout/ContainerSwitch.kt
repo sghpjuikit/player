@@ -31,7 +31,7 @@ class ContainerSwitch: Container<ContainerSwitchUi> {
    private val onClose = Disposer()
 
    @JvmOverloads
-   constructor(state: SwitchContainerDb = SwitchContainerDb()): super(state) {
+   constructor(state: ContainerSwitchDb = ContainerSwitchDb()): super(state) {
       translate.value = state.translate
       children += state.children.mapValues { it.value?.toDomain() }.filterNotNullValues()
       setChildrenParents()
@@ -81,7 +81,7 @@ class ContainerSwitch: Container<ContainerSwitchUi> {
       onClose()
    }
 
-   override fun toDb() = SwitchContainerDb(id, translate.value, loadType.value, locked.value, children.mapValues { it.value?.toDb() }, properties)
+   override fun toDb() = ContainerSwitchDb(id, translate.value, loadType.value, locked.value, children.mapValues { it.value?.toDb() }, properties)
 
    companion object: GlobalSubConfigDelegator(conf.name) {
       private val align by cv(false).def(conf.`discreteMode(D)`)

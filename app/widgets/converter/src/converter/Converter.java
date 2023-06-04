@@ -287,6 +287,12 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     }
 
     @Override
+    public void focus() {
+        if (!root.isFocusWithin())
+            tas.stream().findFirst().ifPresentOrElse(it -> it.requestFocus(), () -> super.focus());
+    }
+
+    @Override
     public void close() {
         applierHidePopup();
         super.close();
@@ -442,6 +448,10 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             });
 
             setData(name, list(Unit.INSTANCE));
+        }
+
+        public void requestFocus() {
+            textArea.requestFocus();
         }
 
         // Weird reasons for needing this method, just call it bad design. Not worth 'fixing'.

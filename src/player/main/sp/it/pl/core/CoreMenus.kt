@@ -22,8 +22,12 @@ import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentFactory
 import sp.it.pl.layout.ComponentLoader.Ctx
+import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.layout.ComponentUiBase
 import sp.it.pl.layout.Container
+import sp.it.pl.layout.ContainerSwitch
+import sp.it.pl.layout.ContainerUni
+import sp.it.pl.layout.Layout
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetSource
 import sp.it.pl.layout.WidgetUi
@@ -72,6 +76,7 @@ import sp.it.pl.main.toMetadata
 import sp.it.pl.main.toUi
 import sp.it.pl.main.writeImage
 import sp.it.pl.plugin.PluginBox
+import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.item_node.WidgetsCE.WidgetInfoPane
 import sp.it.pl.ui.objects.contextmenu.MenuItemBoolean.Companion.buildSingleSelectionMenu
 import sp.it.pl.ui.objects.icon.Icon
@@ -423,10 +428,53 @@ object CoreMenus: Core {
                }
             }
             item("Close") { it.close() }
-            item("Detach") {
-               when(it) {
-                  is Container<*> -> it.ui?.asIf<ComponentUiBase<*>>()?.detach()
-                  is Widget -> it.ui?.asIf<ComponentUiBase<*>>()?.detach()
+            menu("Mode (Layout)") {
+               val layout = value.rootParent.asIf<Layout>()
+               val c = layout?.child
+               val isInfinity = c is ContainerSwitch
+               val singleChild = if (!isInfinity) c else c.asIs<ContainerSwitch>().children.values.filterNotNull().firstOrNull()
+
+               if (c!=null) {
+                  item("Simple", if (isInfinity) null else IconFA.CHECK.toCmUi()) {
+                     if (isInfinity) {
+                        if (singleChild==null) {
+                           APP.plugins.use<Notifier> {
+                              it.showTextNotification("Content", "Window must have single component. Close other components first.", true)
+                           }
+                        } else {
+                           layout.child = ContainerUni().apply {
+                              child = singleChild
+                           }
+                        }
+                     }
+                  }
+                  item("Infinity", if (isInfinity) IconFA.CHECK.toCmUi() else null) {
+                     if (!isInfinity) {
+                        layout.child = ContainerSwitch().apply {
+                           addChild(0, singleChild)
+                        }
+                     }
+                  }
+               }
+            }
+            menu("Mode (Window)") {
+               item("Popup") {
+                  val p = it.parent
+                  p?.addChild(it.indexInParent(), null)
+                  ComponentLoaderStrategy.POPUP.loader(Ctx(this))(it)
+                  p?.rootParent?.takeIf { it.getAllWidgets().count()==0 }?.window?.hide()
+               }
+               item("Overlay") {
+                  val p = it.parent
+                  p?.addChild(it.indexInParent(), null)
+                  ComponentLoaderStrategy.OVERLAY.loader(Ctx(this))(it)
+                  p?.rootParent?.takeIf { it.getAllWidgets().count()==0 }?.window?.hide()
+               }
+               item("Window") {
+                  when(it) {
+                     is Container<*> -> it.ui?.asIf<ComponentUiBase<*>>()?.detach()
+                     is Widget -> it.ui?.asIf<ComponentUiBase<*>>()?.detach()
+                  }
                }
             }
          }

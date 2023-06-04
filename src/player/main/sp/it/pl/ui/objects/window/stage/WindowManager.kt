@@ -621,7 +621,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    fun showWindow(c: Component): Window {
       return create().apply {
-         initLayoutWithContainerSwitchWith(c)
+         initLayoutWithContainerUniWith(c)
          show()
 
          val screen = getScreenForMouse()

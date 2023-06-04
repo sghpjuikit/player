@@ -35,6 +35,7 @@ import sp.it.pl.core.NameUi;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.ContainerSwitch;
 import sp.it.pl.layout.ContainerSwitchUi;
+import sp.it.pl.layout.ContainerUni;
 import sp.it.pl.layout.Layout;
 import sp.it.pl.main.AppEventLog;
 import sp.it.pl.main.Df;
@@ -569,6 +570,15 @@ public class Window extends WindowBase {
 	}
 
 	/** Can only be called if {@link #getLayout()} is null */
+	public void initLayoutWithContainerUniWith(@NotNull Component c) {
+		initLayout(new Layout());
+		var cs = new ContainerUni();
+		layout.setChild(cs);
+		cs.addChild(cs.getEmptySpot(), c);
+		c.focus();
+	}
+
+	/** Can only be called if {@link #getLayout()} is null */
 	public void initLayoutWithContainerSwitchWith(@NotNull Component c) {
 		var cs = initLayoutWithContainerSwitch();
 			cs.addChild(cs.getEmptySpot(), c);
@@ -578,7 +588,6 @@ public class Window extends WindowBase {
 	/** Can only be called if {@link #getLayout()} is null */
 	public ContainerSwitch initLayoutWithContainerSwitch() {
 		initLayout(new Layout());
-		layout.load(content);
 		var cs = new ContainerSwitch();
 		layout.setChild(cs);
 		return cs;

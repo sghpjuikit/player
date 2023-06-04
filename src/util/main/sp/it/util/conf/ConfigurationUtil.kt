@@ -56,7 +56,7 @@ fun ConfigDefinition?.computeConfigGroup(declaringRef: Any): String {
    } else if (groupPrefix!=null) {
       groupPrefix
    } else {
-      declaringRef::class.net { it.simpleName ?: it.jvmName }
+      ""
    }
 }
 

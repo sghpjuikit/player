@@ -278,7 +278,7 @@ open class ListConfig<T>(
                         configs.first().apply { valueAsJson = s }.value as T
                      } else {
                         val values = s.asJsObject().value
-                        configs.forEach { it.valueAsJson = values[Configuration.configToRawKeyMapperDefault(it)]!! }
+                        configs.forEach { it.valueAsJson = values[Configuration.configToRawKeyMapperDefault(it)] ?: fail { "Unknown value path " + Configuration.configToRawKeyMapperDefault(it) } }
                         item
                      }
                   }

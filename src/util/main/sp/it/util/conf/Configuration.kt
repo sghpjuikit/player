@@ -24,7 +24,7 @@ import sp.it.util.type.isSubclassOf
 open class Configuration(nameMapper: ((Config<*>) -> String) = nameMapperDefault): Configurable<Any?> {
 
    companion object: KLogging() {
-      val nameMapperDefault: ((Config<*>) -> String) = { "${it.group}.${it.name}" }
+      val nameMapperDefault: ((Config<*>) -> String) = { if (it.group.isBlank()) it.name else "${it.group}.${it.name}" }
       val namePostMapperDefault: (String) -> String = { s -> s.replace(' ', '_').lowercase() }
       val configToRawKeyMapperDefault = nameMapperDefault compose namePostMapperDefault
    }

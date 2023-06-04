@@ -154,6 +154,7 @@ import sp.it.util.conf.uiToggle
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
+import sp.it.util.dev.printIt
 import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
@@ -214,13 +215,12 @@ class Tester(widget: Widget): SimpleController(widget) {
       Group(IconOC.CODE, "Test Tasks") { testTasks() },
       Group(IconOC.CODE, "Test Mouse events") { testMouseEvents() }
    )
-   val groupSelected by cv("").noUi()
+   val groupSelected by cv(groups.first().name).noUi()
 
    init {
       root.prefSize = 500.emScaled x 700.emScaled
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
-      groupSelected.sync { s -> groups.forEach { it.select(it.name==s) } }
 
       root.prefSize = 800.emScaled x 400.emScaled
       root.lay += hBox(20.emScaled, CENTER) {
@@ -257,6 +257,11 @@ class Tester(widget: Widget): SimpleController(widget) {
       content.children.clear()
    }
 
+   override fun focus() {
+      if (!root.isFocusWithin)
+         groupSelected.sync { s -> groups.forEach { it.select(it.name==s) } }
+   }
+
    fun testInputs() {
       val c = Icon(IconFA.PLAY)
          .onClickDo { APP.ui.toggleLayoutMode() }
@@ -274,7 +279,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       }
       onContentChange()
       content.children setToOne fittingScrollPane {
-         content = form(c.toConfigurableFx().apply {getConfigs().map { it.nameUi }.joinToString { it } })
+         content = form(c.toConfigurableFx().apply {getConfigs().map { it.nameUi }.joinToString { it }.printIt() })
       }
    }
 
@@ -445,9 +450,9 @@ class Tester(widget: Widget): SimpleController(widget) {
                            min = 0.0
                            max = 1.0
                         }
-                        lay += Icon(IconFA.STICKY_NOTE, 25.0)
-                        lay += Icon(IconFA.STICKY_NOTE, 25.0)
-                        lay += Icon(IconFA.STICKY_NOTE, 25.0)
+                        lay += Icon(IconFA.STICKY_NOTE, 25.0).apply { isFocusTraversable = false; isMouseTransparent = true }
+                        lay += Icon(IconFA.STICKY_NOTE, 25.0).apply { isFocusTraversable = false; isMouseTransparent = true }
+                        lay += Icon(IconFA.STICKY_NOTE, 25.0).apply { isFocusTraversable = false; isMouseTransparent = true }
 
                         anim(1.seconds) {
                            lookupChildAt<Slider>(0).value = it

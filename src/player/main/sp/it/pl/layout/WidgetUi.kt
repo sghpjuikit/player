@@ -2,6 +2,12 @@ package sp.it.pl.layout
 
 import javafx.geometry.HPos
 import javafx.geometry.VPos
+import javafx.scene.input.ContextMenuEvent
+import javafx.scene.input.ContextMenuEvent.CONTEXT_MENU_REQUESTED
+import javafx.scene.input.MouseButton
+import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
@@ -16,6 +22,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.Ui.FPS
 import sp.it.pl.main.contains
+import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.toS
@@ -26,6 +33,8 @@ import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.nullify
@@ -33,6 +42,7 @@ import sp.it.util.ui.anchorPane
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.pseudoclass
 import sp.it.util.ui.removeFromParent
+import sp.it.util.ui.show
 import sp.it.util.ui.styleclassToggle
 import sp.it.util.units.kt
 
@@ -91,6 +101,9 @@ class WidgetUi(container: Container<*>, index: Int, widget: Widget): ComponentUi
          { e -> e.dragboard[Df.COMPONENT].let { it==this.container || it==widget } },
          { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }
       )
+
+      root.onEventUp(MOUSE_CLICKED, SECONDARY, false) { if (it.isPrimaryButtonDown && it.isStillSincePress) { contextMenuFor(widget).show(root, it); it.consume() } }
+      root.onEventDown(CONTEXT_MENU_REQUESTED) { if (it.isKeyboardTrigger) { contextMenuFor(widget).show(root, it); it.consume() } }
 
       // report component graphics changes
       root.parentProperty() sync { IOLayer.requestLayoutFor(widget) }

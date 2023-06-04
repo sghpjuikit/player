@@ -1,29 +1,10 @@
 package sp.it.pl.layout.controller
 
-import javafx.geometry.Pos.CENTER
-import javafx.scene.Node
-import javafx.scene.input.MouseButton.PRIMARY
-import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.controller.io.IO
-import sp.it.pl.layout.isCompiling
-import sp.it.pl.main.APP
-import sp.it.pl.main.appProgressIndicator
 import sp.it.util.Locatable
-import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.animation.Anim.Interpolators.Companion.geomElastic
 import sp.it.util.conf.Configurable
-import sp.it.util.reactive.on
-import sp.it.util.reactive.onEventDown
-import sp.it.util.reactive.sync
-import sp.it.util.ui.hBox
-import sp.it.util.ui.hyperlink
-import sp.it.util.ui.label
-import sp.it.util.ui.lay
-import sp.it.util.ui.setScaleXY
-import sp.it.util.ui.vBox
-import sp.it.util.units.millis
 
 /**
  * Defines behavior and ui of [Widget].
@@ -72,40 +53,4 @@ abstract class Controller(widget: Widget): Configurable<Any?>, Locatable by widg
     */
    abstract fun close()
 
-}
-
-/** Controller for [Widget] with no [sp.it.pl.layout.WidgetFactory]. */
-class NoFactoryController(widget: Widget): SimpleController(widget) {
-   init {
-      root.lay += vBox(5, CENTER) {
-         lay += label("Widget ${widget.name} is not recognized")
-         lay += compileInfoUi()
-      }
-   }
-}
-
-/** Controller for [Widget] that fails to instantiate its controller. */
-class LoadErrorController(widget: Widget): SimpleController(widget) {
-   init {
-      root.lay += vBox(5, CENTER) {
-         lay += label("Widget ${widget.name} failed to load properly")
-         lay += compileInfoUi()
-         lay += hyperlink("Reload") {
-            onEventDown(MOUSE_CLICKED, PRIMARY) { APP.widgetManager.factories.recompile(widget.factory) }
-         }
-      }
-   }
-}
-
-private fun SimpleController.compileInfoUi(): Node {
-   val isCompiling = widget.factory.isCompiling(onClose)
-   return hBox(10, CENTER) {
-      lay += label("Compiling...").apply {
-         val a = anim { setScaleXY(it*it) }.delay(500.millis).dur(500.millis).intpl(geomElastic()).applyNow()
-         isCompiling sync { if (it) a.playOpen() else a.playClose() } on onClose
-      }
-      lay += appProgressIndicator().apply {
-         isCompiling sync { progress = if (it) -1.0 else 1.0 } on onClose
-      }
-   }
 }

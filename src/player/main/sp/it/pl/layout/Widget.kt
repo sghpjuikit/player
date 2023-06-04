@@ -15,8 +15,8 @@ import mu.KLogging
 import sp.it.pl.layout.WidgetIoManager.requestWidgetIOUpdate
 import sp.it.pl.layout.controller.Controller
 import sp.it.pl.layout.controller.LegacyController
-import sp.it.pl.layout.controller.LoadErrorController
-import sp.it.pl.layout.controller.NoFactoryController
+import sp.it.pl.layout.controller.ControllerLoadError
+import sp.it.pl.layout.controller.ControllerNoFactory
 import sp.it.pl.layout.controller.io.IOLayer
 import sp.it.pl.layout.controller.io.Input
 import sp.it.pl.main.APP
@@ -91,8 +91,8 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
     * Null controller means that either the [load] hasn't been called yet, or [close] has already been called.
     *
     * The controller is provided by the [factory], specifically its [WidgetFactory.create] method. However:
-    * * If [load] encounters an error, an instance of [LoadErrorController] is used.
-    * * If [factory] is not available (e.g., when deserializing widget), an instance of [NoFactoryController] is used.
+    * * If [load] encounters an error, an instance of [ControllerLoadError] is used.
+    * * If [factory] is not available (e.g., when deserializing widget), an instance of [ControllerNoFactory] is used.
     */
    var controller: Controller? = null
       private set
@@ -242,7 +242,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       if (graphics==null) {
          controller = controller ?: instantiateController()
          if (controller==null) {
-            val c = LoadErrorController(this)
+            val c = ControllerLoadError(this)
             graphics = c.uiRoot()
             controller = c
             onLoad()
@@ -254,7 +254,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
                graphics!!.sceneProperty() attach { IOLayer.componentSceneChanged(this) } on onClose
                updateIO()
             } catch (e: Throwable) {
-               val c = LoadErrorController(this)
+               val c = ControllerLoadError(this)
                graphics = c.uiRoot()
                controller = c
                logger.error(e) { "$logName graphics creation failed" }

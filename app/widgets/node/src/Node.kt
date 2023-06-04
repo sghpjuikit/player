@@ -112,7 +112,7 @@ class Node(widget: Widget): SimpleController(widget) {
 
       root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (it.isPrimaryButtonDown && it.isStillSincePress) { buildContextMenu().show(root, it); it.consume() } }
       root.onEventDown(CONTEXT_MENU_REQUESTED) { if (it.isKeyboardTrigger) { buildContextMenu().show(root, it); it.consume() } }
-      root.onEventDown(MOUSE_CLICKED, PRIMARY) {if (nodeInstance.value.node==null) APP.windowManager.showSettings(widget, root) }
+      root.onEventDown(MOUSE_CLICKED, PRIMARY) { if (nodeInstance.value.node==null) APP.windowManager.showSettings(widget, root) }
 
       nodeInstance sync { node ->
          io.i.removeAll()

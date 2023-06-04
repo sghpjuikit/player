@@ -11,7 +11,7 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.jvm.jvmName
 import sp.it.pl.layout.controller.Controller
-import sp.it.pl.layout.controller.NoFactoryController
+import sp.it.pl.layout.controller.ControllerNoFactory
 import sp.it.pl.main.APP
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.Locatable
@@ -141,14 +141,14 @@ class NodeFactory<T: Node>(val id: UUID, val type: KClass<out T>, override val n
    private fun Widget.withType() = apply { fieldsRaw["node"] = JsString(type.jvmName) }
 }
 
-class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/factoryId.decapital()) {
+class NoFactoryFactory(val factoryId: String): WidgetFactory<ControllerNoFactory>(ControllerNoFactory::class, APP.location.widgets/factoryId.decapital()) {
    override val id = factoryId
    override val name = factoryId
    override val summaryActions = listOf<ShortcutPane.Entry>()
 
    override fun toString() = "${javaClass.simpleName} $factoryId"
 
-   fun createController(widget: Widget) = NoFactoryController(widget)
+   fun createController(widget: Widget) = ControllerNoFactory(widget)
 }
 
 /** Marks [Controller]/[Widget] as unfit for production use. */

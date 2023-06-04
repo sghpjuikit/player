@@ -99,9 +99,11 @@ import sp.it.util.dev.fail
 import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.net
 import sp.it.util.functional.recurseBF
 import sp.it.util.functional.recurseDF
+import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
 import sp.it.util.text.decapital
 import sp.it.util.type.JavafxPropertyType.JavafxDoublePropertyType
@@ -215,10 +217,11 @@ fun KClass<*>.superKClasses(): Sequence<KClass<*>> = superKClassesInc().drop(1)
  * * Interfaces, [Nothing], [Unit] still inherit from [Any] and will return it also
  * * May contain duplicates, if interface is inherited multiple times within the hierarchy or if the type is erased in Kotlin (such as [MutableList] erases to [List]).
  */
-fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when(this) {
-   Any::class -> sequenceOf(Any::class)
-   Nothing::class -> sequenceOf(Nothing::class, Any::class)
-   Unit::class -> sequenceOf(Unit::class, Any::class)
+fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when {
+   this==Any::class -> sequenceOf(Any::class)
+   this==Nothing::class -> sequenceOf(Nothing::class, Any::class)
+   this==Unit::class -> sequenceOf(Unit::class, Any::class)
+   this.isObject -> sequenceOf(this, Any::class)
    else -> java.recurseBF { listOfNotNull(it.superclass) + it.interfaces }.map { it.kotlin }.filter { it != Any::class } + Any::class
    // recurse { it.superclasses }   // TODO: KClass.superclasses is bugged for anonymous Java classes
 }
@@ -380,8 +383,11 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
       else -> this
    }
 
-   val instanceClass = o::class.resolveAnonymous()
+   val instanceClass = o::class
+      // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+      .net { c -> runTry { c.objectInstance }.map { c }.getOrSupply { c.resolveAnonymous() } }
    instanceClass.superKClassesInc().filter { !it.java.isInterface }.forEach { declaringClass ->
+      println(declaringClass)
       declaringClass.declaredMemberFunctions.forEach { method ->
          val methodName = method.name
          val isPublished = method.visibility==PUBLIC && !methodName.startsWith("impl")
@@ -423,14 +429,20 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
 
       declaringClass.declaredMemberProperties.forEach { field ->
          val fieldName = field.name
+         println(fieldName)
          val isPublished = field.visibility==PUBLIC && !fieldName.startsWith("impl")
+         println(isPublished)
          if (isPublished) {
             val returnType = field.returnType
+            println(returnType)
             if (returnType.isSubtypeOf<Observable>()) {
+               println("observable")
                try {
                   field.isAccessible = true
                   val propertyType = returnType.javaFxPropertyType.resolveNullability(fieldName)
+                  println(propertyType)
                   val observableRaw = field.getter.call(o) as Observable?
+                  println(observableRaw)
                   if (observableRaw!=null) {
                      val observable = {
                         if (observableRaw is Property<*> && observableRaw.isBound) {

@@ -61,9 +61,9 @@ val <T: Any> KClass<T>.sealedSubObjects: List<T>
 
 /** @return this class or if anonymous, the superclass or superinterface or [Any] */
 fun KClass<*>.resolveAnonymous(): KClass<*> {
-   val cj = java
-   return if (cj.isAnonymousClass) cj.superclass?.kotlin ?: cj.interfaces.firstOrNull()?.kotlin ?: Any::class
-   else this
+         val cj = java
+         return if (cj.isAnonymousClass) cj.superclass?.kotlin ?: cj.interfaces.firstOrNull()?.kotlin ?: Any::class
+         else this
 }
 
 /** @return data class component properties in declaration order (unlike [KClass.declaredMemberProperties]). Fails for non data class. */

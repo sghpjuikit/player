@@ -188,6 +188,15 @@ class TypeUtilTest: FreeSpec({
          type<Invariant<in Int>>() isSubtypeOf type<Invariant<*>>() shouldBe true
       }
 
+      KClass<*>::resolveAnonymous.name {
+         object {}::class.resolveAnonymous() shouldBe Any::class
+         object: Any() {}::class.resolveAnonymous() shouldBe Any::class
+         Any::class.resolveAnonymous() shouldBe Any::class
+         Nothing::class.resolveAnonymous() shouldBe Nothing::class
+         Unit::class.resolveAnonymous() shouldBe Unit::class
+         TypeTestObject::class.resolveAnonymous() shouldBe TypeTestObject::class
+         TypeTestDataObject::class.resolveAnonymous() shouldBe TypeTestDataObject::class
+      }
       KClass<*>::superKClassesInc.name {
          open class A: Ia
          open class B: A(), Ib
@@ -201,6 +210,8 @@ class TypeUtilTest: FreeSpec({
          Any::class.superKClassesInc().toList() shouldBe listOf(Any::class)
          Nothing::class.superKClassesInc().toList() shouldBe listOf(Nothing::class, Any::class)
          Unit::class.superKClassesInc().toList() shouldBe listOf(Unit::class, Any::class)
+         TypeTestObject::class.superKClassesInc().toList() shouldBe listOf(TypeTestObject::class, Any::class)
+         TypeTestDataObject::class.superKClassesInc().toList() shouldBe listOf(TypeTestDataObject::class, Any::class)
          // simple cases
          Ia::class.superKClassesInc().toList() shouldBe listOf(Ia::class, Any::class)
          A::class.superKClassesInc().toList() shouldBe listOf(A::class, Ia::class, Any::class)
@@ -523,6 +534,10 @@ class TypeUtilTest: FreeSpec({
       }
    }
 })
+
+
+object TypeTestObject
+data object TypeTestDataObject
 
 interface Ia
 interface Ib

@@ -387,7 +387,6 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
       // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
       .net { c -> runTry { c.objectInstance }.map { c }.getOrSupply { c.resolveAnonymous() } }
    instanceClass.superKClassesInc().filter { !it.java.isInterface }.forEach { declaringClass ->
-      println(declaringClass)
       declaringClass.declaredMemberFunctions.forEach { method ->
          val methodName = method.name
          val isPublished = method.visibility==PUBLIC && !methodName.startsWith("impl")
@@ -429,20 +428,14 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
 
       declaringClass.declaredMemberProperties.forEach { field ->
          val fieldName = field.name
-         println(fieldName)
          val isPublished = field.visibility==PUBLIC && !fieldName.startsWith("impl")
-         println(isPublished)
          if (isPublished) {
             val returnType = field.returnType
-            println(returnType)
             if (returnType.isSubtypeOf<Observable>()) {
-               println("observable")
                try {
                   field.isAccessible = true
                   val propertyType = returnType.javaFxPropertyType.resolveNullability(fieldName)
-                  println(propertyType)
                   val observableRaw = field.getter.call(o) as Observable?
-                  println(observableRaw)
                   if (observableRaw!=null) {
                      val observable = {
                         if (observableRaw is Property<*> && observableRaw.isBound) {

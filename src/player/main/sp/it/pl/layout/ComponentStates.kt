@@ -111,6 +111,8 @@ data object NoComponentDb: ComponentDb() {
    override fun toDomain() = null
 }
 
+typealias LayoutDb = ContainerRootDb
+
 class ContainerRootDb(
    id: UUID = UUID.randomUUID(),
    loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,

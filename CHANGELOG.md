@@ -2,10 +2,13 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+- Update Kotlin to 1.9.0-Beta
 - Implement audio channel settings for vlc playback
 - Implement audio device settings for vlc playback
 - Implement `ContainerSeq` - sequential container based on HBox/VBox
 - Implement correct window owners for content in popups launched through actions
+- Implement simple/infinite layout switching
+- Implement window/popup/overlay switching
 - Implement **FunctionViewer** widget derivation
 - Implement **DirViewer** widget smooth scrolling
 - Implement **Git projects** widget project directory refresh on delete
@@ -39,6 +42,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Spektrum** widget stops working if another instance closes
 - Fix **Spektrum** widget audio capture device selection
 - Fix **Spektrum** widget efficiency when drawing same content
+- Fix **Converter** widget initial focus
+- Fix **Tester** widget initial focus
 - Fix `Form` layout broken in some cases
 - Fix tree view cell arrow styling broken
 - Fix inconsistent row border styling
@@ -49,6 +54,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix inconsistent context menu item height styling
 - Fix inconsistent grid cell styling
 - Fix inconsistent window transparency styling
+- Fix focused text field styling
 - Fix grid cell uses unnecessary ui objects
 - Fix `Node.containsScene` errors in some cases
 - Fix css errors due to missing colors
@@ -64,9 +70,15 @@ All notable changes to this project will be documented in this file. Format base
 - Fix table selection restoring and initial table resizing not working properly sometimes
 - Fix read-only combobox allows edit
 - Fix playlist table playing column icon not refreshing properly
+- Fix adding songs to library not handling errors
+- Fix widget & container config groups
 
 ### Vlc playback
 It is now possible to change audio channels and audio output device used for playback through application settings.
+These and other vlc settings can still be set through the underlying **VLC** player.
+
+### Window mode switching
+User can now switch between types of window as well as types of layout for the content using the caret menus.
 
 ### Window owners
 When launching certain content, it is expected that the new window will stay on top of the window it was launched from.
@@ -76,9 +88,6 @@ This makes it more pleasant, intuitive and efficient for the user to spawn and u
 ### Toggle editors
 Config editors that are `Enumerable` or of `Boolean` type can now optionally use toggle and radio button groups instead.
 This improves UX in some scenarios.
-
-### Kotlin K2 compiler
-This version will use the new K2 compiler, which improves compilation time 2.5 times.
 
 ### Widget kotlin compiling
 Until now the Kotlin compiler has been downloaded from GitHub.
@@ -727,7 +736,7 @@ This opens up the possibility for 2 improvements:
    I don't like creating useless directories, but this has 2 advantages for widget developers
    1. The widget source code would be consistent with ordinary projects
    2. The widget could have arbitrary package, relaxing arbitrary restrictions
-2. **Gradle** integration  
+2. `Gradle` integration  
    The widgets could have their gradle definitions in their directory instead of sharing common template. This has 3 advantages:
    1. widgets become ordinary projects, which is easier to understand
    2. widgets may be compiled with a gradle daemon, which would lead to large compilation speed improvements
@@ -834,7 +843,7 @@ Hence, `ActionData` will continue to declare whether it is blocking or not.
 
 Synchronous and asynchronous `ActionData.invoke` have been unified into single `Fut` returning method.
 
-Ultimately, making the action lambda suspending could get rid of this parameter, but that will be considered afterwards.
+Ultimately, making the action lambda suspending could get rid of this parameter, but that will be considered afterward.
 
 ##### Actions - result
 Actions now support returning values.
@@ -1553,7 +1562,7 @@ What's next? Well, as is, the application is very polished and has a lot of powe
     - Implement `Object Info` widget
     - Implement `Favourite Locations` widget
     - Implement `File Explorer` composed widget (exported layout)
-    - Implement `Hue` widget to control Phillips Hue light system
+    - Implement `Hue` widget to control **Philips Hue** light system
     - Implement `Dir Viewer` icon cell & option to toggle thumbnails/icons
     - Improve `Dir Viewer` cell size change performance
     - Improve `Tagger` widget UX

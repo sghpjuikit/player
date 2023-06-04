@@ -167,6 +167,7 @@ class WidgetManager {
 
       // internal factories
       registerFactory(emptyWidgetFactory)
+      registerFactory(nodeWidgetFactory)
       registerFactory(introWidgetFactory)
       registerFactory(initialTemplateFactory)
 
@@ -397,7 +398,7 @@ class WidgetManager {
                   logger.warn { "Widget $widgetName failed to register factory, class $type in $widgetDir does not implement ${Controller::class}" }
                } else {
                   val widgetType = (type as Class<Controller>).kotlin
-                  val widgetFactory = WidgetFactory(widgetType, widgetDir)
+                  val widgetFactory = WidgetFactory(null, widgetType, widgetDir)
                   val widgetFactoryOld = factoriesW.find { it.id==widgetFactory.id }
                   if (widgetFactoryOld!=null) unregisterFactory(widgetFactory, true)
                   registerFactory(widgetFactory)

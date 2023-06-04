@@ -106,7 +106,7 @@ class AppSearchPlugin: PluginBase() {
    private val cacheUpdate = AtomicLong(0)
 
    /** Application launcher widget factory. Registered only when this plugin is running. */
-   val widgetFactory = WidgetFactory(AppLauncher::class, APP.location.widgets/"AppLauncher")
+   val widgetFactory = WidgetFactory(null, AppLauncher::class, APP.location.widgets/"AppLauncher")
 
    override fun start() {
       APP.search.sources += searchSource

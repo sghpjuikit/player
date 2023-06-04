@@ -64,7 +64,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
     * @param location parent directory of the widget
     */
    @Suppress("LeakingThis")
-   constructor(controllerType: KClass<C>, location: File) {
+   constructor(id: String?, controllerType: KClass<C>, location: File) {
       val companionObject = try { controllerType.companionObjectInstance } catch (t: Throwable) { null } // this can happen in dev environment due to binary incompatibility
       val info = companionObject?.asIf<WidgetInfo>()
       val i: Widget.Info = null ?: controllerType.findAnnotation() ?: WidgetFactory::class.findAnnotation()!!
@@ -73,8 +73,8 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
       this.controllerType = controllerType
       this.location = location
       this.userLocation = APP.location.user.widgets/location.nameOrRoot
-      this.id = controllerType.simpleName ?: controllerType.jvmName
-      this.name = info?.name ?: i.name.nullIfBlank() ?: id
+      this.id = id ?: controllerType.simpleName ?: controllerType.jvmName
+      this.name = info?.name ?: i.name.nullIfBlank() ?: this.id
       this.icon = info?.icon
       this.description = info?.description ?: i.description
       this.descriptionLong = (info?.descriptionLong ?: i.howto) + "\n" + i.notes
@@ -133,15 +133,15 @@ class DeserializingFactory(val launcher: File): ComponentFactory<Component> {
 
 class NodeFactory<T: Node>(val id: UUID, val type: KClass<out T>, override val name: String, val constructor: () -> T): ComponentFactory<Component>, Locatable {
             val info: WidgetInfo? = type.companionObjectInstance?.asIf<WidgetInfo>()
-   override val location = APP.widgetManager.factories.getFactory("Node").orNone().location
+   override val location = nodeWidgetFactory.location
    override val userLocation = APP.location.user.widgets/type.jvmName
-   override suspend fun create() = APP.widgetManager.factories.getFactory("Node").orNone().create().withType()
+   override suspend fun create() = nodeWidgetFactory.create().withType()
    override fun toString() = "${javaClass.simpleName} $name $type"
 
    private fun Widget.withType() = apply { fieldsRaw["node"] = JsString(type.jvmName) }
 }
 
-class NoFactoryFactory(val factoryId: String): WidgetFactory<ControllerNoFactory>(ControllerNoFactory::class, APP.location.widgets/factoryId.decapital()) {
+class NoFactoryFactory(val factoryId: String): WidgetFactory<ControllerNoFactory>("NoFactory", ControllerNoFactory::class, APP.location.widgets/factoryId.decapital()) {
    override val id = factoryId
    override val name = factoryId
    override val summaryActions = listOf<ShortcutPane.Entry>()

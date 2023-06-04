@@ -26,7 +26,6 @@ import sp.it.util.units.version
 import sp.it.util.units.year
 
 /** Empty widget. Useful for certain layout operations and as a fill in for null. */
-@ExperimentalController("Has no use for user")
 class EmptyWidget(widget: Widget): Controller(widget) {
 
    private val root = Pane()
@@ -102,6 +101,7 @@ class IntroWidget(widget: Widget): Controller(widget) {
 }
 
 val emptyWidgetFactory = WidgetFactory(EmptyWidget::class, APP.location.widgets/"emptyWidget")
+
 val introWidgetFactory = WidgetFactory(IntroWidget::class, APP.location.widgets/"introWidget")
 
 val initialTemplateFactory = TemplateFactory("Playback + Playlist") {

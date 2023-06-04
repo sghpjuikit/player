@@ -59,7 +59,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.javafx.awaitPulse
 import sp.it.pl.conf.Command
 import sp.it.pl.conf.Command.DoNothing
-import sp.it.pl.layout.ExperimentalController
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -199,7 +198,6 @@ import sp.it.util.units.version
 import sp.it.util.units.year
 
 @Suppress("RemoveExplicitTypeArguments", "RemoveRedundantBackticks", "RemoveExplicitTypeArguments")
-@ExperimentalController("For development")
 class Tester(widget: Widget): SimpleController(widget) {
    val content = stackPane()
    val onContentChange = Disposer()

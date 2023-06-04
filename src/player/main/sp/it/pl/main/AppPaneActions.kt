@@ -7,6 +7,7 @@ import javafx.concurrent.Worker.State.READY
 import javafx.concurrent.Worker.State.SCHEDULED
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
+import javafx.scene.Node
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
 import kotlin.reflect.KProperty1
@@ -28,6 +29,7 @@ import sp.it.pl.layout.feature.Opener
 import sp.it.pl.layout.feature.PlaylistFeature
 import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.layout.loadComponentFxwlJson
+import sp.it.pl.layout.orNone
 import sp.it.pl.main.FileExtensions.fxwl
 import sp.it.pl.main.Widgets.SONG_TAGGER
 import sp.it.pl.plugin.impl.WallpaperChanger
@@ -60,11 +62,11 @@ import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.setCreated
+import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
-import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
@@ -360,29 +362,39 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                   content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(2)?.opacity = (1 - it)*(1 - it)
                }.play()
 
+               fun loadContent(block: () -> Node) {
+                  anim(500.millis) {
+                     content.children[0].opacity = it*it
+                     content.children[1].opacity = it*it
+                  }.apply {
+                     playAgainIfFinished = false
+                  }.playCloseDoOpen {
+                     content.children[1].asIs<Pane>().lay += block()
+                  }
+               }
 
                runVT {
-                  if (conf.makeWritable.value) audioFiles.forEach { it.setWritable(true) }
-                  task.runGet().toTry().orNull()
+                  if (conf.makeWritable.value) {
+                     val failed = audioFiles.filter { !it.setWritable(true) }
+                     if (failed.isNotEmpty()) return@runVT Try.error(failed)
+                  }
+                  task.runGet().toTry()
                }.ui { result ->
-                  if (result!=null) {
-                     if (conf.editInTagger.value) {
-                        val tagger = runBlocking { APP.widgetManager.factories.getFactory(SONG_TAGGER.id).orNull()?.create() }
-                        val songs = if (conf.editOnlyAdded.value) result.converted else result.all
-                        if (tagger!=null) {
-                           anim(500.millis) {
-                              content.children[0].opacity = it*it
-                              content.children[1].opacity = it*it
-                           }.apply {
-                              playAgainIfFinished = false
-                           }.playCloseDoOpen {
-                              content.children[1].asIs<Pane>().lay += tagger.load()
-                              (tagger.controller as SongReader).read(songs)
+                  when (result) {
+                     is Try.Error -> actionPane.show(result)
+                     is Try.Ok -> {
+                        if (conf.editInTagger.value) {
+                           val tagger = runBlocking { APP.widgetManager.factories.getFactory(SONG_TAGGER.id).orNone().create() }
+                           val songs = if (conf.editOnlyAdded.value) result.value.converted else result.value.all
+                           loadContent {
+                              tagger.load().apply {
+                                 tagger.controller.asIf<SongReader>()?.read(songs)
+                              }
                            }
                         }
-                     }
-                     if (conf.enqueue.value && result.all.isNotEmpty()) {
-                        APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
+                        if (conf.enqueue.value && result.value.all.isNotEmpty()) {
+                           APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.value.all) }
+                        }
                      }
                   }
                }.withProgress(actionPane.actionProgress)

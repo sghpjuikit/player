@@ -759,7 +759,7 @@ TextFlow > * {
 .combo-box-base:showing:hover,
 .choice-box:hover,
 .choice-box:showing:hover,
-.text-input:readonly:focused,
+.text-input:focused,
 .text-input:hover {
     -fx-background-color: rgba(0,0,0,0.2);
     -fx-background-insets: 0;

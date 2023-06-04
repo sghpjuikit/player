@@ -221,7 +221,6 @@ fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when {
    this==Any::class -> sequenceOf(Any::class)
    this==Nothing::class -> sequenceOf(Nothing::class, Any::class)
    this==Unit::class -> sequenceOf(Unit::class, Any::class)
-   this.isObject -> sequenceOf(this, Any::class)
    else -> java.recurseBF { listOfNotNull(it.superclass) + it.interfaces }.map { it.kotlin }.filter { it != Any::class } + Any::class
    // recurse { it.superclasses }   // TODO: KClass.superclasses is bugged for anonymous Java classes
 }

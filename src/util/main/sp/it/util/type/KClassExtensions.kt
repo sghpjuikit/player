@@ -41,19 +41,24 @@ val <T: Any> KClass<T>.enumValues: Array<T>
 
 /** True iff this class is a singleton, i.e., [KClass.objectInstance] is not null. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
 val KClass<*>.isObject: Boolean
-   get() = !java.isAnonymousClass && runTry { objectInstance!=null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+   get() = runTry { objectInstance!=null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
 
 /** True iff this class is [KClass.isData] and is [KClass.isObject]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
 val KClass<*>.isDataObject: Boolean
-   get() = !java.isAnonymousClass && runTry { isData && objectInstance!=null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+   get() = runTry { isData && objectInstance!=null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+
+/** True iff this class is [KClass.isValue] and is not [KClass.isObject]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
+val KClass<*>.isValueClass: Boolean
+   get() = runTry { isValue && objectInstance==null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+
 
 /** True iff this class is [KClass.isData] and is not [KClass.isObject]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
 val KClass<*>.isDataClass: Boolean
-   get() = !java.isAnonymousClass && runTry { isData && objectInstance==null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+   get() = runTry { isData && objectInstance==null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
 
 /** Equivalent to [KClass.companionObject]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
 val KClass<*>.companionObj: Any?
-   get() = if (java.isAnonymousClass) null else runTry { companionObject }.orNull() // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+   get() = runTry { companionObject }.orNull() // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
 
 /** Singletons (objects) subclassing the specified class as sealed class. */
 val <T: Any> KClass<T>.sealedSubObjects: List<T>

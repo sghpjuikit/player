@@ -110,21 +110,3 @@ val initialTemplateFactory = TemplateFactory("Playback + Playlist") {
       children += 2 to APP.widgetManager.factories.getFactory(PLAYLIST.id).orNone().create()
    }
 }
-
-suspend fun testControlContainer() = ContainerBi(HORIZONTAL).apply {
-   children += 1 to ContainerBi(VERTICAL).apply {
-      children += 1 to emptyWidgetFactory.create()
-      children += 2 to emptyWidgetFactory.create()
-   }
-   children += 2 to ContainerBi(VERTICAL).apply {
-      children += 1 to ContainerBi(HORIZONTAL).apply {
-         children += 1 to emptyWidgetFactory.create()
-         children += 2 to emptyWidgetFactory.create()
-      }
-      children += 2 to ContainerBi(HORIZONTAL).apply {
-         children += 1 to emptyWidgetFactory.create()
-         children += 2 to emptyWidgetFactory.create()
-      }
-   }
-
-}

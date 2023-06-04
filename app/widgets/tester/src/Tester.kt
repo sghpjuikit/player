@@ -59,9 +59,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.javafx.awaitPulse
 import sp.it.pl.conf.Command
 import sp.it.pl.conf.Command.DoNothing
+import sp.it.pl.layout.ContainerBi
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.emptyWidgetFactory
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.main.Double01
@@ -205,6 +207,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       Group(IconOC.CODE, "Test widget inputs") { testInputs() },
       Group(IconOC.CODE, "Test Fx Configs") { testFxConfigs() },
       Group(IconOC.CODE, "Test observing values") { testValueObserving() },
+      Group(IconOC.CODE, "Test Containers") { testContainers() },
       Group(IconOC.CODE, "Test Config Editors") { testEditors() },
       Group(IconOC.CODE, "Animation Interpolators") { testInterpolators() },
       Group(IconOC.CODE, "Path/ShapeAnimations") { testPathShapeTransitions() },
@@ -732,6 +735,34 @@ class Tester(widget: Widget): SimpleController(widget) {
                }
             }
          }
+      }
+   }
+
+   fun testContainers() {
+      suspend fun testControlContainer() = ContainerBi(Orientation.HORIZONTAL).apply {
+         children += 1 to ContainerBi(VERTICAL).apply {
+            children += 1 to emptyWidgetFactory.create()
+            children += 2 to emptyWidgetFactory.create()
+         }
+         children += 2 to ContainerBi(VERTICAL).apply {
+            children += 1 to ContainerBi(Orientation.HORIZONTAL).apply {
+               children += 1 to emptyWidgetFactory.create()
+               children += 2 to emptyWidgetFactory.create()
+            }
+            children += 2 to ContainerBi(Orientation.HORIZONTAL).apply {
+               children += 1 to emptyWidgetFactory.create()
+               children += 2 to emptyWidgetFactory.create()
+            }
+         }
+      }
+      onContentChange()
+      content.children setToOne Icon(IconFA.PLAY).run {
+         onClickDo {
+            runSuspendingFx {
+               APP.windowManager.showWindow(testControlContainer())
+            }
+         }
+         withText(RIGHT, CENTER_LEFT, "Show new window with nested containers")
       }
    }
 

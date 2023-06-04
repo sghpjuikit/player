@@ -63,12 +63,12 @@ import sp.it.util.type.VType
 import sp.it.util.type.argOf
 import sp.it.util.type.dataComponentProperties
 import sp.it.util.type.isDataClass
-import sp.it.util.type.isDataObject
 import sp.it.util.type.isEnum
 import sp.it.util.type.isEnumClass
 import sp.it.util.type.isObject
 import sp.it.util.type.isPlatformType
 import sp.it.util.type.isSubclassOf
+import sp.it.util.type.isValueClass
 import sp.it.util.type.kType
 import sp.it.util.type.kTypeAnyNullable
 import sp.it.util.type.raw
@@ -240,6 +240,7 @@ class Json: JsonAst() {
             when {
                converter!=null -> converter.toJson(value).withAmbiguity(typeAsRaw==Any::class)
                typeAsRaw.isSealed && isObject -> JsString(type.jvmName)
+               isObject -> JsObject(mapOf(typeWitness()))
                else -> when (value) {
                   is Number -> JsNumber(value).withAmbiguity()
                   is UByte -> JsNumber(value.toShort()).withAmbiguity()
@@ -272,7 +273,7 @@ class Json: JsonAst() {
 
                   else -> {
                      when {
-                        type.isValue -> {
+                        type.isValueClass -> {
                            val p = type.declaredMemberProperties.first()
                            val v = p.getter.call(value)
                            toJsonValue(p.returnType, v).withAmbiguity()

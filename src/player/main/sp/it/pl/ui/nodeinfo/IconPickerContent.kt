@@ -4,6 +4,7 @@ import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos.CENTER
+import javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.input.MouseButton.PRIMARY
@@ -45,7 +46,6 @@ import sp.it.util.access.readOnly
 import sp.it.util.access.toWritable
 import sp.it.util.access.vn
 import sp.it.util.collections.setTo
-import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.reactive.attach
@@ -80,25 +80,27 @@ class IconPickerContent: StackPane() {
       selectOn setTo listOf(MOUSE_CLICK, KEY_PRESS)
       cellFactory.value = {
          object: GridCell<GlyphIcons, GlyphIcons>() {
-
+            val g = IconCellGraphics(null, iconSize)
             init {
                styleClass += "icon-grid-cell"
                isPickOnBounds = true
+               contentDisplay = GRAPHIC_ONLY
+               children += g
             }
 
             public override fun updateItem(item: GlyphIcons?, empty: Boolean) {
                super.updateItem(item, empty)
-               graphic = when {
-                  empty || item==null -> null
-                  else -> graphic.asIf<IconCellGraphics>()?.apply { setGlyph(item) } ?: IconCellGraphics(item, iconSize)
-               }
+               g.setGlyph(item)
             }
 
             override fun updateSelected(selected: Boolean) {
                super.updateSelected(selected)
-               graphic.asIf<IconCellGraphics>()?.select(selected)
+               g.select(selected)
             }
 
+            override fun layoutChildren() {
+               g.resizeRelocate(0.0, 0.0, width, height)
+            }
          }
       }
       skinProperty() attach {
@@ -205,6 +207,7 @@ class IconPickerContent: StackPane() {
          styleClass += "icon-grid-cell-graphics"
          graphics = Icon(glyph?.raw, iconSize).apply {
             isMouseTransparent = true
+            isFocusTraversable = false
          }
          onEventDown(MOUSE_CLICKED, PRIMARY, false) {
             sysClipboard[PLAIN_TEXT] = glyph?.id()

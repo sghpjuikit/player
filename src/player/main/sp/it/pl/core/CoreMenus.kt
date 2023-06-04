@@ -85,6 +85,7 @@ import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized
 import sp.it.pl.ui.objects.window.stage.asAppWindow
 import sp.it.pl.ui.objects.window.stage.clone
+import sp.it.pl.ui.objects.window.stage.isMainWindow
 import sp.it.pl.ui.objects.window.stage.openWindowSettings
 import sp.it.pl.ui.pane.ActContext
 import sp.it.pl.web.SearchUriBuilder
@@ -462,13 +463,13 @@ object CoreMenus: Core {
                   val p = it.parent
                   p?.addChild(it.indexInParent(), null)
                   ComponentLoaderStrategy.POPUP.loader(Ctx(this))(it)
-                  p?.rootParent?.takeIf { it.getAllWidgets().count()==0 }?.window?.hide()
+                  p?.rootParent?.takeIf { it.getAllWidgets().count()==0 }?.window?.takeIf { !it.isMainWindow() }?.hide()
                }
                item("Overlay") {
                   val p = it.parent
                   p?.addChild(it.indexInParent(), null)
                   ComponentLoaderStrategy.OVERLAY.loader(Ctx(this))(it)
-                  p?.rootParent?.takeIf { it.getAllWidgets().count()==0 }?.window?.hide()
+                  p?.rootParent?.takeIf { it.getAllWidgets().count()==0 }?.window?.takeIf { !it.isMainWindow() }?.hide()
                }
                item("Window") {
                   when(it) {

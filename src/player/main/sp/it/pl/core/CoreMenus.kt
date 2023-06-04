@@ -60,6 +60,7 @@ import sp.it.pl.main.Df.PLAIN_TEXT
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.IconUN
 import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.pl.main.Ui.ICON_CONF
 import sp.it.pl.main.WidgetDefaultMenu
@@ -498,13 +499,13 @@ object CoreMenus: Core {
          add<Input<*>> {
             menuFor("Value", value.value)
             menu("Link") {
-               item("From value...") { input ->
+               item("From value...", IconUN(0x21a6).toCmUi { tooltip("Pick a value to feed once into this input.") }) { input ->
                   Config.forProperty(input.type, "Value", vn(input.value).asIs()).configure("Set ${input.name} value") { c ->
                      fun Input<Any?>.setValue() { this.value = c.value }
                      input.asIs<Input<Any?>>().setValue()
                   }
                }
-               item("From output...") { input ->
+               item("From output...", IconUN(0x2192).toCmUi { tooltip("Pick an output to feed this input. Same as drag & drop through UI.") }) { input ->
                   Config.forProperty(type<OutputRef?>(), "Output", vn(null)).constrain {
                      nonNull()
                      uiConverter { it?.name ?: textNoVal }
@@ -513,7 +514,7 @@ object CoreMenus: Core {
                      c.value.ifNotNull { input.bindAny(it.output) }
                   }
                }
-               item("From generator...") { input ->
+               item("From generator...", IconUN(0x21dd).toCmUi { tooltip("Pick a generator to feed this input") }) { input ->
                   Config.forProperty(type<GeneratingOutputRef<*>?>(), "Generator", vn(null)).constrain {
                      nonNull()
                      uiConverter { it?.name ?: textNoVal }
@@ -522,13 +523,15 @@ object CoreMenus: Core {
                      c.value.ifNotNull(input::bind)
                   }
                }
-               item("From all identical") { it.bindAllIdentical() }
+               item("From all identical", IconUN(0x21a3).toCmUi { tooltip("Take outputs fed into this input and feed into it all outputs of all open widgets which are the same") }) {
+                  it.bindAllIdentical()
+               }
             }
             menu("Unlink") {
-               menu("One") {
+               menu("One", IconUN(0x21f8).toCmUi { tooltip("Unlink single output.") }) {
                   items(value.boundOutputs(), { it.name }) { value.unbind(it) }
                }
-               item("All") { it.unbindAll() }
+               item("All", IconUN(0x21fb).toCmUi { tooltip("Unlink all outputs.") }) { it.unbindAll() }
             }
          }
          add<Output<*>> {

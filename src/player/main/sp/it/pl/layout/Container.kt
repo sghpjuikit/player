@@ -95,7 +95,7 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
    override fun getConfigs() = configs.values.toList()
 
    /** Content padding or null if left up on skin to decide. */
-   val padding by cvn<Insets>(null).def(name = "Padding", group = "widget",  info = "Content padding or null if left up on skin to decide`. ")
+   val padding by cvn<Insets>(null).def(name = "Padding", info = "Content padding or null if left up on skin to decide`. ")
 
    /** Whether this container loads eagerly or lazily by user. */
    val loadTypeCfg by cv(loadType).noPersist().def(name = "Load type", info = "Whether this container loads eagerly or lazily by user")

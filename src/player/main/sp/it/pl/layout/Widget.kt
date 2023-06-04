@@ -146,25 +146,25 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    }
 
    /** Content padding or null if left up on skin to decide. */
-   val padding by cvn<Insets>(null).def(name = "Padding", group = "widget",  info = "Content padding or null if left up on skin to decide`. ")
+   val padding by cvn<Insets>(null).def(name = "Padding", group = "Widget", info = "Content padding or null if left up on skin to decide`. ")
 
    /** Whether this container loads eagerly or lazily by user. */
-   val loadTypeCfg by cv(loadType).noPersist().def(name = "Load type", info = "Whether this container loads eagerly or lazily by user")
+   val loadTypeCfg by cv(loadType).noPersist().def(name = "Load type", group = "Widget", info = "Whether this container loads eagerly or lazily by user")
 
    /** Whether this container or any parent is locked. */
-   val lockedCfg by cv(locked).noPersist().def(name = "Locked", info = "Whether this widget is locked")
+   val lockedCfg by cv(locked).noPersist().def(name = "Locked", group = "Widget", info = "Whether this widget is locked")
 
    /** Whether this container or any parent is locked. */
-   val lockedUnderCfg by cvro(lockedUnder).noPersist().def(name = "Locked (under)", info = "Whether this widget or any parent is locked", editable = EditMode.APP)
+   val lockedUnderCfg by cvro(lockedUnder).noPersist().def(name = "Locked (under)", group = "Widget", info = "Whether this widget or any parent is locked", editable = EditMode.APP)
 
    /** Whether this factory will be preferred on widget `find and create` requests. */
-   val preferred by cv(false).def(name = "Is preferred", group = "widget",  info = "Prefer this widget on `find and create`. ")
+   val preferred by cv(false).def(name = "Is preferred", group = "Widget",  info = "Prefer this widget on `find and create`. ")
 
    /** Whether this factory will be ignored on widget `find and create` requests. */
-   val forbidUse by cv(false).def(name = "Is ignored", group = "widget", info = "Ignore this widget on `find and create`.")
+   val forbidUse by cv(false).def(name = "Is ignored", group = "Widget", info = "Ignore this widget on `find and create`.")
 
    /** Name displayed in gui. Customizable. Default is component type name. */
-   val customName by cv("").def(name = "Custom name", group = "widget", info = "Name displayed in gui. User can set his own. By default component type name.")
+   val customName by cv("").def(name = "Custom name", group = "Widget", info = "Name displayed in gui. User can set his own. By default component type name.")
 
    override val location: File
       get() = factory.location

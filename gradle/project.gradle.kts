@@ -1,4 +1,3 @@
-
 import kotlin.text.Charsets.UTF_8
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTIUM
@@ -216,6 +215,7 @@ javaToolchains.compilerFor {
    vendor.set(ADOPTIUM)
 }
 
+
 tasks {
 
    val copyLibs by creating(Sync::class) {
@@ -226,12 +226,14 @@ tasks {
       duplicatesStrategy = EXCLUDE
    }
 
+   @Suppress("UNUSED_VARIABLE")
    val linkJdk by creating(LinkJDK::class) {
       group = "build setup"
       description = "Links JDK to project relative directory"
       linkLocation = dirJdk
    }
 
+   @Suppress("UNUSED_VARIABLE")
    val generateFileHierarchy by creating(GenerateKtFileHierarchy::class) {
       group = "build setup"
       description = "Generates file hierarchy class and documentation"
@@ -242,6 +244,7 @@ tasks {
       outRootPath = """File("").absolutePath"""
    }
 
+   @Suppress("UNUSED_VARIABLE")
    val generateSettings by creating(GenerateKtSettings::class) {
       group = "build setup"
       description = "Generates application settings class"
@@ -251,6 +254,7 @@ tasks {
       settings = appSetting
    }
 
+   @Suppress("UNUSED_VARIABLE")
    val cleanAppData by creating(CleanAppDataTask::class) {
       group = "application"
       description = "Deletes app data including user data"

@@ -235,7 +235,7 @@ The application in its self-contained form:
 The Interface is minimalistic but powerful and fully modular.<br>
 Modules (widgets) are part of layout hierarchy, which can be manipulated, saved or even loaded as standalone application. 
 
-- minimalistic - shows only what is important, no endless headers and borders taking up important space. With headerless and borderless window mode 100% of the space is given to the widgets.
+- minimalistic - shows only what is important, no endless headers and borders taking up important space. With headless and borderless window mode 100% of the space is given to the widgets.
 - powerful - infinite virtual space, horizontally scrollable, zoom-able
 - layout mode - temporary 2nd ui layer allowing user to edit and configure the layout, widgets and more, alleviating normal user interface from all this
 - completely skinnable (css)(skin discovery + change + refresh does not require application restart)

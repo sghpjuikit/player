@@ -2,6 +2,7 @@
   <dictionary name="project_dictionary">
     <words>
       <w>Gamepad4j</w>
+      <w>Xlint</w>
       <w>adoptopenjdk</w>
       <w>ajalt</w>
       <w>anim</w>
@@ -138,6 +139,7 @@
       <w>photoshop</w>
       <w>phyllotaxis</w>
       <w>pixelaccessor</w>
+      <w>playcount</w>
       <w>playerc</w>
       <w>powrprof</w>
       <w>printscreen</w>

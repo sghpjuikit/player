@@ -284,7 +284,7 @@ class App: Application(), GlobalConfigDelegator {
    /** Manages persistence and in-memory storage. */
    @JvmField val db = SongDb()
    /** Manages audio playback. */
-   @JvmField val audio = PlayerManager()
+   @JvmField val audio = runTry { PlayerManager() }.ifError { it.printStackTrace() }.orThrow
    /** Manages widgets. */
    @JvmField val widgetManager = WidgetManager()
    /** Manages windows. */

@@ -278,11 +278,12 @@ open class ListConfig<T>(
                         configs.first().apply { valueAsJson = s }.value as T
                      } else {
                         val values = s.asJsObject().value
-                        configs.forEach { it.valueAsJson = values[Configuration.configToRawKeyMapperDefault(it)] ?: fail { "Unknown value path " + Configuration.configToRawKeyMapperDefault(it) } }
+                        configs.forEach { it.valueAsJson = Configuration.configToRawKeyMapperDefault(it).let { values[it] ?: fail { "Unknown value path=$it" } } }
                         item
                      }
                   }
                   .filter(if (a.itemType.isNullable) { _ -> true } else { it -> it!=null })
+                  .toList()
             }
             .ifOk { a.list setTo it }
             .ifError { logger.warn(it) { "Unable to set config=$name value from json=$property" } }

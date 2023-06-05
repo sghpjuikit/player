@@ -15,7 +15,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Tester** widget interpolators easing settings
 - Implement **Tester** widget more editor tests
 - Implement **Spektrum** widget user configurable effect
-- Implement **GameView** widget PCGamingWiki link
+- Implement **GameView** widget `PCGamingWiki` link
+- Implement **You Search** widget for `you.com` AI
 - Implement enumerable editor with toggle button
 - Implement enumerable editor with radio button
 - Implement `list-box` - a `VBox` emulation of `list-view` and provide consistent styling where used

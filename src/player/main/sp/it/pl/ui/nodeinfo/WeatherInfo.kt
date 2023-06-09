@@ -42,7 +42,7 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.dev.fail
-import sp.it.util.file.json.JsString
+import sp.it.util.file.json.JsValue
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
@@ -84,9 +84,9 @@ class WeatherInfo: HBox(15.0) {
    private val visL = label()
    private val http by lazy { HttpClient(CIO).config { expectSuccess = true } }
    private val dataKey = "widgets.weather.data.last"
-   private var dataPersistable: String?
-      get() = APP.configuration.rawGet(dataKey)?.asJsStringValue()
-      set(value) = APP.configuration.rawAdd(dataKey, JsString(value!!)).toUnit()
+   private var dataPersistable: JsValue?
+      get() = APP.configuration.rawGet(dataKey)
+      set(value) = APP.configuration.rawAdd(dataKey, value!!).toUnit()
 
    val latitude = vn<Double>(null)
    val longitude = vn<Double>(null)
@@ -152,7 +152,8 @@ class WeatherInfo: HBox(15.0) {
             else -> {
                val link = "https://api.openweathermap.org/data/2.5/onecall?lat=${latitude.value}&lon=${longitude.value}&units=${units.value.name.lowercase()}&exclude=minutely,alerts&appid=${apiKey.value}"
                val dataRaw = http.get(link).bodyAsText()
-                   dataRaw.asJson<Data>()?.also { dataPersistable = dataRaw }
+               dataPersistable = dataRaw.asJsonTree()
+               dataPersistable?.asJson<Data>()
             }
          }
          FX {
@@ -227,7 +228,7 @@ class WeatherInfo: HBox(15.0) {
             it.dt.toInstant().atZone(data.value?.timezone),
             it.temp,
             it.feels_like,
-            it.clouds, it.rain, it.snow, it.wind_speed, it.wind_gust, it.wind_deg,
+            it.clouds, it.rain?.`1h`, it.snow?.`1h`, it.wind_speed, it.wind_gust, it.wind_deg,
             it.weather.firstOrNull()?.icon(it.dt.dt in data.value!!.current.sunrise..data.value!!.current.sunset),
          )
       }
@@ -266,6 +267,7 @@ class WeatherInfo: HBox(15.0) {
    enum class Units(val d: String, val s: String) { METRIC("°C", "m/s"), IMPERIAL("°F", "mph") }
 
    /** https://openweathermap.org/api/one-call-api */
+   @Suppress("PropertyName", "SpellCheckingInspection")
    data class Data(
       val lat: Double,
       val lon: Double,
@@ -308,10 +310,14 @@ class WeatherInfo: HBox(15.0) {
          val wind_speed: Double,
          val wind_gust: Double?,
          val wind_deg: WindDir,
-         val rain: Double?,
-         val snow: Double?,
+         val rain: Hourly1h?,
+         val snow: Hourly1h?,
          val weather: List<WeatherGroup>,
-      )
+      ) {
+         data class Hourly1h(
+            val `1h`: Double?
+         )
+      }
       data class Daily(
          val dt: Dt,
          val sunrise: Long,
@@ -421,7 +427,8 @@ class WeatherInfo: HBox(15.0) {
       override val tags = setOf(UTILITY)
       override val summaryActions = listOf<ShortcutPane.Entry>()
 
-      inline fun <reified T> String.asJson(): T? = APP.serializerJson.json.fromJson<T>(this).orNull()
+      fun String.asJsonTree(): JsValue? = APP.serializerJson.json.fromJson<JsValue>(this).orNull()
+      inline fun <reified T> JsValue.asJson(): T? = APP.serializerJson.json.fromJsonValue<T>(this).orNull()
 
       fun Instant.isOlderThan1Hour() = Instant.now().isBefore(plusSeconds(3500))
 

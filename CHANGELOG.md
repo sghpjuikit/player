@@ -46,6 +46,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Spektrum** widget efficiency when drawing same content
 - Fix **Converter** widget initial focus
 - Fix **Tester** widget initial focus
+- Fix **Weather Info** widget not reading hourly rain/snow
 - Fix `Form` layout broken in some cases
 - Fix tree view cell arrow styling broken
 - Fix inconsistent row border styling

@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "1.9.0-Beta"
+   kotlin("jvm") version "1.9.0-RC"
    application
    id("com.github.ben-manes.versions") version "0.47.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.2"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
@@ -25,14 +25,14 @@ fun Project.tests(configuration: Test.() -> Unit) {
 /** Working directory of the application */
 val dirApp = file("app")
 val dirJdk = dirApp/"java"
-val javaVersionSupported = JavaVersion.VERSION_19
+val javaVersionSupported = JavaVersion.VERSION_20
 
 allprojects {
    apply(plugin = "kotlin")
 
    kotlin {
       jvmToolchain {
-         languageVersion.set(JavaLanguageVersion.of(19))
+         languageVersion.set(JavaLanguageVersion.of(20))
          vendor.set(ADOPTIUM)
       }
       sourceSets.all {
@@ -71,7 +71,7 @@ allprojects {
          "-Xstring-concat=indy-with-constants",
       )
       kotlinOptions.javaParameters = true
-      kotlinOptions.jvmTarget = "19"
+      kotlinOptions.jvmTarget = "20"
    }
 
    repositories {
@@ -99,7 +99,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "21-ea+17"
+         val version = "21-ea+21"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -116,7 +116,7 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.7")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.7")
-         implementation("ch.qos.logback", "logback-classic", "1.4.7")
+         implementation("ch.qos.logback", "logback-classic", "1.4.8")
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
@@ -141,7 +141,7 @@ allprojects {
       "Misc" group {
          implementation("com.github.f4b6a3", "uuid-creator", "5.3.2")
          implementation("org.atteo", "evo-inflector", "1.3")
-         implementation("com.github.ajalt.clikt", "clikt", "3.5.2")
+         implementation("com.github.ajalt.clikt", "clikt", "3.5.3")
          implementation("com.github.oshi", "oshi-core", "6.4.3")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
@@ -211,7 +211,7 @@ dependencies {
 }
 
 javaToolchains.compilerFor {
-   languageVersion.set(JavaLanguageVersion.of(19))
+   languageVersion.set(JavaLanguageVersion.of(20))
    vendor.set(ADOPTIUM)
 }
 
@@ -226,14 +226,14 @@ tasks {
       duplicatesStrategy = EXCLUDE
    }
 
-   @Suppress("UNUSED_VARIABLE")
+   @Suppress("UNUSED_VARIABLE", "KotlinRedundantDiagnosticSuppress")
    val linkJdk by creating(LinkJDK::class) {
       group = "build setup"
       description = "Links JDK to project relative directory"
       linkLocation = dirJdk
    }
 
-   @Suppress("UNUSED_VARIABLE")
+   @Suppress("UNUSED_VARIABLE", "KotlinRedundantDiagnosticSuppress")
    val generateFileHierarchy by creating(GenerateKtFileHierarchy::class) {
       group = "build setup"
       description = "Generates file hierarchy class and documentation"
@@ -244,7 +244,7 @@ tasks {
       outRootPath = """File("").absolutePath"""
    }
 
-   @Suppress("UNUSED_VARIABLE")
+   @Suppress("UNUSED_VARIABLE", "KotlinRedundantDiagnosticSuppress")
    val generateSettings by creating(GenerateKtSettings::class) {
       group = "build setup"
       description = "Generates application settings class"
@@ -254,7 +254,7 @@ tasks {
       settings = appSetting
    }
 
-   @Suppress("UNUSED_VARIABLE")
+   @Suppress("UNUSED_VARIABLE", "KotlinRedundantDiagnosticSuppress")
    val cleanAppData by creating(CleanAppDataTask::class) {
       group = "application"
       description = "Deletes app data including user data"

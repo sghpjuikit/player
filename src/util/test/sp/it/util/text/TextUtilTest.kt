@@ -92,15 +92,16 @@ class TextUtilTest: FreeSpec({
       "क्तु".chars16().toList() shouldBe listOf(0x0915, 0x094D, 0x0924, 0x0941).map { it.toChar16() }
       "क्तु".codePoints().toList() shouldBe listOf(0x0915, 0x094D, 0x0924, 0x0941)
       "क्तु".chars32().toList() shouldBe listOf(0x0915, 0x094D, 0x0924, 0x0941).map { it.toChar32() }
-      "क्तु".graphemes().toList() shouldBe listOf("क्तु")
+      "क्तु".graphemes().toList() shouldBe listOf("क्", "तु")
       "क्तु".lengthInChars shouldBe 4
       "क्तु".lengthInCodePoints shouldBe 4
-      "क्तु".lengthInGraphemes shouldBe 1
+      "क्तु".lengthInGraphemes shouldBe 2
       "क्तु"[0] shouldBe 0x0915.toChar()
       "क्तु".char16At(0) shouldBe 0x0915.toChar16()
       "क्तु".codePointAt(0) shouldBe 0x0915
       "क्तु".char32At(0) shouldBe 0x0915.toChar32()
-      "क्तु".graphemeAt(0) shouldBe "क्तु"
+      "क्तु".graphemeAt(0) shouldBe "क्"
+      "क्तु".graphemeAt(1) shouldBe "तु"
 
       "🅱️".chars().toList() shouldBe listOf(0xD83C, 0xDD71, 0xFE0F)
       "🅱️".chars16().toList() shouldBe listOf(0xD83C, 0xDD71, 0xFE0F).map { it.toChar16() }
@@ -116,15 +117,15 @@ class TextUtilTest: FreeSpec({
       "🅱️".char32At(0) shouldBe 0x1f171.toChar32()
       "🅱️".graphemeAt(0) shouldBe "🅱️"
 
-      "A𝔊क्तु🅱🅱️".graphemes().toList() shouldBe listOf("A", "𝔊", "क्तु", "🅱", "🅱️")
+      "A𝔊क्तु🅱🅱️".graphemes().toList() shouldBe listOf("A", "𝔊", "क्", "तु", "🅱", "🅱️")
       "A𝔊क्तु🅱🅱️".graphemeAt(0) shouldBe "A"
       "A𝔊क्तु🅱🅱️".graphemeAt(1) shouldBe "𝔊"
-      "A𝔊क्तु🅱🅱️".graphemeAt(2) shouldBe "क्तु"
-      "A𝔊क्तु🅱🅱️".graphemeAt(3) shouldBe "🅱"
-      "A𝔊क्तु🅱🅱️".graphemeAt(4) shouldBe "🅱️"
+      "A𝔊क्तु🅱🅱️".graphemeAt(2) shouldBe "क्"
+      "A𝔊क्तु🅱🅱️".graphemeAt(3) shouldBe "तु"
+      "A𝔊क्तु🅱🅱️".graphemeAt(4) shouldBe "🅱"
+      "A𝔊क्तु🅱🅱️".graphemeAt(5) shouldBe "🅱️"
 
-      // TODO: broken in JDK<20
-      // "🇺🇸👨‍👩‍👧‍👦".graphemes().toList() shouldBe listOf("🇺🇸", "👨‍👩‍👧‍👦")
+       "🇺🇸👨‍👩‍👧‍👦".graphemes().toList() shouldBe listOf("🇺🇸", "👨‍👩‍👧‍👦")
    }
 
    String::capital.name - {

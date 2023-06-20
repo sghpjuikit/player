@@ -2,7 +2,8 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
-- Update Kotlin to 1.9.0-Beta
+- Update Java to 20
+- Update Kotlin to 1.9.0-RC
 - Implement audio channel settings for vlc playback
 - Implement audio device settings for vlc playback
 - Implement `ContainerSeq` - sequential container based on HBox/VBox
@@ -75,6 +76,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix playlist table playing column icon not refreshing properly
 - Fix adding songs to library not handling errors
 - Fix widget & container config groups
+- Fix text grapheme inspection & splitting text to graphemes
 
 ### Vlc playback
 It is now possible to change audio channels and audio output device used for playback through application settings.

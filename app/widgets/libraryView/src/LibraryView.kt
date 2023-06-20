@@ -3,6 +3,7 @@ package libraryView
 import sp.it.pl.audio.tagging.Metadata.Field as MField
 import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import java.io.File
 import java.util.Comparator.comparing
 import java.util.function.Supplier
 import javafx.geometry.Pos.CENTER_LEFT
@@ -42,6 +43,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.Widgets.SONG_GROUP_TABLE_NAME
+import sp.it.pl.main.audioExtensionFilter
 import sp.it.pl.main.contains
 import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
@@ -74,11 +76,15 @@ import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.c
 import sp.it.util.conf.cOr
+import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.defInherit
 import sp.it.util.conf.noUi
+import sp.it.util.conf.only
 import sp.it.util.conf.values
+import sp.it.util.file.FileType
+import sp.it.util.file.Util
 import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.Functors.F3
 import sp.it.util.functional.Util.SAME
@@ -94,6 +100,8 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync1IfInScene
+import sp.it.util.system.chooseFile
+import sp.it.util.system.chooseFiles
 import sp.it.util.text.*
 import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.dsl
@@ -135,6 +143,10 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       .def(name = "Field", info = "Field by which the table groups the songs") attach {
          applyData()
       }
+   private var lastAddFilesLocation by cn<File>(APP.location.user).noUi()
+      .def(name = "Last add songs browse location", editable = EditMode.APP)
+   private var lastAddDirLocation by cn<File>(APP.location.user).only(FileType.DIRECTORY).noUi()
+      .def(name = "Last add directory browse location", editable = EditMode.APP)
 
    // restoring selection if table items change, we want to preserve as many selected items as possible - when selection
    // changes, we select all items (previously selected) that are still in the table
@@ -165,6 +177,12 @@ class LibraryView(widget: Widget): SimpleController(widget) {
          DEFAULT_TEXT_FACTORY(all, list) + " " +
             "song".pluralUnit(allItem?.itemCount?.toInt() ?: list.sumOf { it.itemCount }.toInt())  + " - " +
             (allItem?.lengthInMs ?: list.sumOf { it.lengthInMs }).millis.toHMSMs()
+      }
+
+      // add menu items
+      table.menuAdd.dsl {
+         item("Add files") { addFiles() }
+         item("Add directory") { addDirectory() }
       }
 
       // set up table columns
@@ -419,6 +437,16 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    }
 
    override fun focus() = table.requestFocus()
+
+   private fun addDirectory() = chooseFile("Add folder to library", FileType.DIRECTORY, lastAddDirLocation, root.scene.window).ifOk {
+      APP.ui.actionPane.orBuild.show(it)
+      lastAddDirLocation = it.parentFile
+   }
+
+   private fun addFiles() = chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, audioExtensionFilter()).ifOk {
+      APP.ui.actionPane.orBuild.show(it)
+      lastAddFilesLocation = Util.getCommonRoot(it)
+   }
 
    companion object: WidgetCompanion, KLogging() {
       override val name = SONG_GROUP_TABLE_NAME

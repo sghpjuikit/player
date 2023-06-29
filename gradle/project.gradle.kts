@@ -8,7 +8,7 @@ plugins {
    kotlin("jvm") version "1.9.0-RC"
    application
    id("com.github.ben-manes.versions") version "0.47.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
-   id("com.jaredsburrows.license") version "0.9.2"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
+   id("com.jaredsburrows.license") version "0.9.3"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
 }
 
 // ----- util block; defined first to help IDE with syntax checking for erroneous code
@@ -89,8 +89,8 @@ allprojects {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
          implementation(kotlin("compiler-embeddable"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.1")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.1")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.2")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.2")
          implementation("org.jetbrains", "annotations", "24.0.1")
       }
 
@@ -99,7 +99,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "21-ea+21"
+         val version = "21-ea+23"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -141,7 +141,7 @@ allprojects {
       "Misc" group {
          implementation("com.github.f4b6a3", "uuid-creator", "5.3.2")
          implementation("org.atteo", "evo-inflector", "1.3")
-         implementation("com.github.ajalt.clikt", "clikt", "3.5.3")
+         implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
          implementation("com.github.oshi", "oshi-core", "6.4.3")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
@@ -177,8 +177,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.3.1")
-         implementation("io.ktor", "ktor-client-cio", "2.3.1")
+         implementation("io.ktor", "ktor-server-core", "2.3.2")
+         implementation("io.ktor", "ktor-client-cio", "2.3.2")
       }
 
       "Test" group {

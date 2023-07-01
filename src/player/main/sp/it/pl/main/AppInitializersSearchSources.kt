@@ -115,41 +115,6 @@ fun AppSearch.initApp() = APP.apply {
          icon = it.icon,
          graphics = null
       ) {
-
-         fun <T1, TN> ActionData<T1, TN>.invokeWithForm() {
-            val context = ActContext(null, null, null, null, null)
-            when {
-               type.raw.isObject && !type.isNullable -> invokeFutAndProcess(context, type.raw.objectInstance.asIs())
-               type.raw==App::class && !type.isNullable -> invokeFutAndProcess(context, APP.asIs())
-               type.raw == Unit::class -> invokeFutAndProcess(context, Unit.asIs())
-               type == typeNothingNullable() -> invokeFutAndProcess(context, null.asIs())
-               else -> {
-                  val receiver = when {
-                     type1!=typeN -> {
-                        val t1: VType<T1> = when (type1.raw) {
-                           Any::class -> VType(String::class.java, type1.isNullable).asIs()  // Any::class does not have an editor, but String editor is still plenty useful
-                           else -> type1
-                        }
-                        val confList = ConfList(t1, null, { Config.forValue(t1, "Item", it).constrain { but(buildConstraint1()); but(Constraint.ObjectNonNull) } })
-                        ListConfig("Input", ConfigDef("Input", "Input", "", EditMode.USER), confList, "", setOf(), setOf()).constrain {
-                           addConstraint(buildConstraintN().asIs())
-                           addConstraint(Constraint.CollectionSize(1, null))
-                           but()
-                        }
-                     }
-                     else -> {
-                        val tn: VType<TN> = when (type.raw) {
-                           Any::class -> VType(String::class.java, type.isNullable).asIs()  // Any::class does not have an editor, but String editor is still plenty useful
-                           else -> type
-                        }
-                        ValueConfig(tn, "Input", "Input", null, "", description, EditMode.USER).constrain { but(buildConstraintN()) }
-                     }
-                  }
-
-                  receiver.configure(it.nameWithDots) { invokeFutAndProcess(context, it.value.asIs()) }
-               }
-            }
-         }
          it.invokeWithForm()
       }
    }

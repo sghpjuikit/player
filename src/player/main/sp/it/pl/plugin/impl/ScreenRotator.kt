@@ -18,7 +18,6 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
-import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.util.access.Values.previous
 import sp.it.util.action.IsAction

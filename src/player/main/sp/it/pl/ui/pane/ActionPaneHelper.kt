@@ -9,6 +9,8 @@ import javafx.stage.Window
 import kotlin.reflect.KClass
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.main.APP
+import sp.it.pl.main.App
+import sp.it.pl.main.configure
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.pane.ActionData.GroupApply
 import sp.it.pl.ui.pane.ActionData.GroupApply.FOR_ALL
@@ -25,16 +27,26 @@ import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.Fut.Companion.futOfBlock
 import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementClass
+import sp.it.util.conf.ConfList
+import sp.it.util.conf.Config
+import sp.it.util.conf.ConfigDef
 import sp.it.util.conf.Constraint
+import sp.it.util.conf.EditMode
+import sp.it.util.conf.ListConfig
+import sp.it.util.conf.ValueConfig
+import sp.it.util.conf.but
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util.IS
+import sp.it.util.functional.asIs
 import sp.it.util.functional.runTry
 import sp.it.util.type.VType
+import sp.it.util.type.isObject
 import sp.it.util.type.raw
 import sp.it.util.type.type
+import sp.it.util.type.typeNothingNullable
 import sp.it.util.ui.sourceMenuItem
 import sp.it.util.ui.traverseToPopupOwnerNode
 import sp.it.util.ui.traverseToPopupOwnerWindow
@@ -182,6 +194,41 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
          it.toTryRaw()
             .ifError { context.apOrApp.show(it) }
             .ifOk { if (!isResultUnit(it)) context.apOrApp.show(it) }
+      }
+   }
+
+   fun invokeWithForm() {
+      val context = ActContext(null, null, null, null, null)
+      when {
+         type.raw.isObject && !type.isNullable -> invokeFutAndProcess(context, type.raw.objectInstance.asIs())
+         type.raw==App::class && !type.isNullable -> invokeFutAndProcess(context, APP.asIs())
+         type.raw == Unit::class -> invokeFutAndProcess(context, Unit.asIs())
+         type == typeNothingNullable() -> invokeFutAndProcess(context, null.asIs())
+         else -> {
+            val receiver = when {
+               type1!=typeN -> {
+                  val t1: VType<T1> = when (type1.raw) {
+                     Any::class -> VType(String::class.java, type1.isNullable).asIs()  // Any::class does not have an editor, but String editor is still plenty useful
+                     else -> type1
+                  }
+                  val confList = ConfList(t1, null, { Config.forValue(t1, "Item", it).constrain { but(buildConstraint1()); but(Constraint.ObjectNonNull) } })
+                  ListConfig("Input", ConfigDef("Input", "Input", "", EditMode.USER), confList, "", setOf(), setOf()).constrain {
+                     addConstraint(buildConstraintN().asIs())
+                     addConstraint(Constraint.CollectionSize(1, null))
+                     but()
+                  }
+               }
+               else -> {
+                  val tn: VType<TN> = when (type.raw) {
+                     Any::class -> VType(String::class.java, type.isNullable).asIs()  // Any::class does not have an editor, but String editor is still plenty useful
+                     else -> type
+                  }
+                  ValueConfig(tn, "Input", "Input", null, "", description, EditMode.USER).constrain { but(buildConstraintN()) }
+               }
+            }
+
+            receiver.configure(nameWithDots) { invokeFutAndProcess(context, it.value.asIs()) }
+         }
       }
    }
 

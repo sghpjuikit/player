@@ -240,7 +240,6 @@ class ControllerNode(widget: Widget): SimpleController(widget) {
 
    init {
       root.prefSize = 500.emScaled x 500.emScaled
-      root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
       root.onEventDown(MOUSE_CLICKED, PRIMARY) { if (nodeInstance.value.node==null) APP.windowManager.showSettings(widget, root) }
 

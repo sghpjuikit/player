@@ -1,0 +1,16 @@
+/*
+ * Document : Spit Player skin
+ * Author : spit
+ * Year: 2023
+ */
+
+@import url("../FlowBlack/FlowBlack.css");
+
+* {
+    -fx-faint-focus-color: rgba(80,80,200);
+    -fx-focus-color: rgba(80,80,200);
+    -skin-def-font-color-hover: rgba(80,80,200);
+    -skin-def-font-color-transparent: rgba(80,80,255,0.2);
+    -skin-value-font-color: rgba(80,80,200);
+    -skin-window-bgr-blur-color: rgba(0,0,55,0.3);
+}

@@ -7,26 +7,25 @@
 @import url("../Main/Main.css");
 
 * {
-    -skin-def-font-color: rgb(210, 220, 230);
-    -skin-def-font-color-hover: rgb(255,0,0);
-    -skin-sel-font-color: rgb(225, 225, 226);
+    -fx-faint-focus-color: red;
+    -fx-focus-color: red;
     -fx-text-base-color: -skin-def-font-color;
-    -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
+    -skin-bgr-color: rgb(0, 0, 0);
     -skin-color-darker: rgba(0,0,0, 0.2);
     -skin-color-lighter: rgba(180,200,255, 0.08);
-    -skin-pane-color: rgba(100,130,180, 0.9); /* Default color for panels such as header or widget area or other areas. */
+    -skin-def-font-color-hover: red;
+    -skin-def-font-color-transparent: rgba(255,0,0,0.2);
+    -skin-def-font-color: rgb(210, 220, 230);
+    -skin-def-icon-border-color: rgba(200,200,200, 0.2);
     -skin-pane-color-dragged: rgba(10,15,25, 0.8); /* Darker version of pane color. By default used for :dragged pseudoclass */
-    -skin-window-bgr-color: rgba(20, 20, 20, 1);
+    -skin-pane-color: rgba(100,130,180, 0.9); /* Default color for panels such as header or widget area or other areas. */
+    -skin-pane-color: rgba(5, 5, 5, 0.5);
+    -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
+    -skin-sel-font-color: rgb(225, 225, 226);
+    -skin-value-font-color: red;
     -skin-window-bgr-blur-color: rgba(0,0,222,0.2);
     -skin-window-bgr-color-content-free: rgba(10,10,10, 0.74); /* Default bgr color for tooltips and popups. */
-    -skin-value-font-color: red;
-
-    -fx-focus-color: red;
-    -fx-faint-focus-color: red;
-
-    -skin-bgr-color: rgb(0, 0, 0);
-    -skin-pane-color: rgba(5, 5, 5, 0.5);
-    -skin-def-icon-border-color: rgba(200,200,200, 0.2);
+    -skin-window-bgr-color: rgba(20, 20, 20, 1);
 }
 
 /* Row height */
@@ -93,15 +92,15 @@
 .icon:selected:hover,
 .icon:focused:hover {
     // square style
-    // -fx-background-color: linear-gradient(from 100% 0% to 0% 100%, rgba(255,0,0,0.2) 0%, transparent 30%, transparent 70%, rgba(255,0,0,0.2) 100%);
+    // -fx-background-color: linear-gradient(from 100% 0% to 0% 100%, -skin-def-font-color-transparent 0%, transparent 30%, transparent 70%, -skin-def-font-color-transparent 100%);
     // -fx-background-insets: -5;
     // -fx-border-width: 1;
     // -fx-border-insets: -5;
     // -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, red 50%, transparent 100%);
 
-    -fx-background-color: linear-gradient(from 0% 100% to 0% 0%, transparent 20%, rgba(255,0,0,0.2) 50%, transparent 80%);
+    -fx-background-color: linear-gradient(from 0% 100% to 0% 0%, transparent 20%, -skin-def-font-color-transparent 50%, transparent 80%);
     -fx-border-width: 1;
-    -fx-border-color: linear-gradient(from 0% 100% to 0% 0%, transparent 20%, red 50%, transparent 80%);
+    -fx-border-color: linear-gradient(from 0% 100% to 0% 0%, transparent 20%, -skin-def-font-color-hover 50%, transparent 80%);
 }
 .chain-link {
     -fx-spacing: 0;
@@ -137,8 +136,8 @@
 .menu-item:focused > * > LabeledText,
 .menu-item:focused > * > .icon Text,
 .menu-item:focused > .label {
-    -fx-fill: red;
-    -fx-text-fill: red;
+    -fx-fill: -skin-def-font-color-hover;
+    -fx-text-fill: -skin-def-font-color-hover;
 }
 
 /* Add focus glow effect */
@@ -212,7 +211,7 @@
 /* Icon in rows effect */
 .cell:selected .icon {
     -fx-fill: -skin-def-font-color;
-    -fx-effect: dropshadow(gaussian, red, 24,0 , 0,0);
+    -fx-effect: dropshadow(gaussian, -skin-def-font-color-hover, 24,0 , 0,0);
 }
 
 /* Played row */
@@ -249,8 +248,8 @@
 .tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
 .table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected,
 .tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected {
-    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(255,0,0,0.2) 25%, transparent 70%);
-    -fx-border-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(255,0,0,1.0) 50%, transparent 100%);
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -skin-def-font-color-transparent 25%, transparent 70%);
+    -fx-border-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -skin-value-font-color 50%, transparent 100%);
     -fx-border-width: 2 0 2 0;
 }
 .combo-box > .list-cell,

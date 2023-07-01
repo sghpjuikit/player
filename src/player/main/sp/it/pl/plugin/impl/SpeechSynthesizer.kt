@@ -5,9 +5,13 @@ import marytts.exceptions.MaryConfigurationException
 import marytts.util.data.audio.AudioPlayer
 import mu.KLogging
 import sp.it.pl.main.AppError
+import sp.it.pl.main.IconMA
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
+import sp.it.pl.ui.pane.action
+import sp.it.util.action.IsAction
 import sp.it.util.async.runVT
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.runTry
@@ -38,6 +42,11 @@ class SpeechSynthesizer: PluginBase() {
 
    override fun stop() {
       mary = null
+   }
+
+   @IsAction
+   fun speak() {
+      action<String>("Narrate", "Narrates the specified text using synthesized voice", IconMA.RECORD_VOICE_OVER, BLOCK) { speak(it) }.invokeWithForm()
    }
 
    fun speak(text: String) {

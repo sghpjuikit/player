@@ -181,7 +181,7 @@ class App: Application(), GlobalConfigDelegator {
    /** Various actions for the application */
    val actions = AppActions()
    /** Observable [System.out]. */
-   val systemout = SystemOutListener()
+   val systemOut = SystemOutListener()
 
    /** Configuration core. */
    val configuration = MainConfiguration.apply {

@@ -65,6 +65,7 @@ import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.objects.window.stage.Window.BgrEffect
 import sp.it.pl.ui.objects.window.stage.Window.Transparency
+import sp.it.pl.ui.objects.window.stage.Window.pcTransparentBlur
 import sp.it.pl.ui.objects.window.stage.Windows10WindowBlur.ACCENT_DISABLED
 import sp.it.pl.ui.objects.window.stage.Windows10WindowBlur.ACCENT_ENABLE_ACRYLICBLURBEHIND
 import sp.it.pl.ui.objects.window.stage.Windows10WindowBlur.ACCENT_ENABLE_BLURBEHIND
@@ -134,6 +135,7 @@ import sp.it.util.ui.flowPane
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
@@ -265,6 +267,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                            }
                         )
                         it.alpha(w.opacity.toFloat()) // restore opacity
+                        w.asPopWindow()?.root?.pseudoClassChanged(pcTransparentBlur, effect!=BgrEffect.OFF && transparency==Transparency.OFF)
                      }
                   }
                }

@@ -76,7 +76,7 @@ import static sp.it.util.ui.UtilKt.pseudoclass;
 /**
  * Playlist table GUI component.
  * <p/>
- * Introduces two additional TableCell css pseudoclasses: {@link #STYLE_PLAYED} and {@link #STYLE_CORRUPT} for cells
+ * Introduces two additional TableCell css pseudoClasses: {@link #STYLE_PLAYED} and {@link #STYLE_CORRUPT} for cells
  * containing played item and corrupted item respectively.
  * <p/>
  * Always call {@link #dispose()}

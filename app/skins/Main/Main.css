@@ -80,8 +80,9 @@
     -skin-pane-color: rgba(20,25,50,0.7); /* Default color for panels such as header or widget area or other areas. */
     -skin-pane-color-dragged: rgba(10,15,25,0.8); /* Darker version of pane color. By default used for :dragged pseudoclass */
     -skin-window-bgr-color: rgb(10, 10, 10); /* Window bgr color for application windows with layout content. */
-    -skin-window-bgr-blur-color: rgba(11,11,22,0.6); /* Window bgr color for windows without layout content: tooltips and popup, .etc. */
+    -skin-window-bgr-blur-color: rgba(11,11,22,0.6); /* -skin-window-bgr-color when blur is applied. */
     -skin-window-bgr-color-content-free: rgba(15,25,45,0.95); /* Window bgr color for windows without layout content: tooltips and popup, .etc. */
+    -skin-window-bgr-color-content-free-blur: rgba(15,25,45, 0.90); /* -skin-window-bgr-color-content-free when blur effect is applied */
     -skin-value-font-color: rgb(75, 175, 105);
     -skin-row-fixed-size: 2em; /* size for fixed row size; affects .tree-cell > .tree-disclosure-node, .tree-table-row-cell > .tree-disclosure-node */
     -skin-row-icon-size: 1.25em; /* -glyph-size for .icon in tables, affected by -skin-row-fixed-size */
@@ -467,7 +468,7 @@ TextFlow > * {
 
 /********************************** Slider *************************************
  *
- * pseudoclasses: vertical
+ * pseudoClasses: vertical
  */
 .slider {
     -fx-skin: "sp.it.pl.ui.objects.SpitSliderSkin";
@@ -2039,7 +2040,7 @@ TextFlow > * {
  * Icon
  * Text using glyph to make icon.
  * inherits: nothing
- * pseudoclasses: focused - when focusTraversable is true (default false) and if focused
+ * pseudoClasses: focused - when focusTraversable is true (default false) and if focused
  *                selected - when selected is true
  * properties:
  *   -glyph-name: String = id of the glyph
@@ -2076,7 +2077,7 @@ TextFlow > * {
 /**
  * Toggle icon - checkbox
  * inherits: .icon
- * pseudoclasses: selected, readonly
+ * pseudoClasses: selected, readonly
  */
 .check-icon {
    -glyph-name: "MaterialDesignIcon.TOGGLE_SWITCH_OFF";
@@ -2103,7 +2104,7 @@ TextFlow > * {
 /**
  * Toggle icon - indeterminate checkbox
  * inherits: .icon
- * pseudoclasses: selected, null
+ * pseudoClasses: selected, null
  */
 .null-check-icon {
    -glyph-name: "MaterialDesignIcon.TOGGLE_SWITCH_OFF";
@@ -2146,14 +2147,14 @@ TextFlow > * {
 /************************************ WINDOW ***************************************************************************
  * Window. More specifically its root pane.
  * inherits: .root
- * pseudoclasses:
+ * pseudoClasses:
  *  focused: window is focused, only one window can be focused
  *  hover: mouse hovers over the window
  *  resized: the window is being resized
  *  moved: the window is being moved
  *  fullscreen: the window is in fullscreen mode
  *  transparent-on: the window has StageStyle.TRANSPARENT and is not `transparent` or `transparent-ct`
- *  transparent-blur: same as transparent-on, but window has blured bgr effect enabled
+ *  transparent-blur: same as transparent-on, but window has blurred bgr effect enabled
  *  transparent: the window has forcefully disabled certain decorations to show transparency effects
  *  transparent-ct: same as transparent, but window is click-through
  */
@@ -2287,6 +2288,8 @@ TextFlow > * {
  *
  * inherits: StackPane
  * attributes: -fx-window-padding - gap from edge considered during positioning of this popup in some positions
+ * pseudoClasses:
+ *  transparent-blur: the window has blurred bgr effect enabled
  */
 .pop-window {
     -fx-background-color: -skin-window-bgr-color-content-free;
@@ -2295,6 +2298,10 @@ TextFlow > * {
     -fx-border-width: 1;
     -fx-border-radius: 0;
     -fx-window-padding: 0;
+}
+
+.pop-window:transparent-blur {
+    -fx-background-color: -skin-window-bgr-color-content-free-blur;
 }
 
 .pop-window:focus-within {
@@ -2373,7 +2380,7 @@ TextFlow > * {
 
 /*
  * Widget area
- * pseudoclasses: dragged - when component is being dragged
+ * pseudoClasses: dragged - when component is being dragged
  *                active - when component has focus (1 per window)
  *                layout-mode - when layout mode is active
  */
@@ -2419,7 +2426,7 @@ TextFlow > * {
 
 /*
  * Container area
- * pseudoclasses: layout-mode - when layout mode is active
+ * pseudoClasses: layout-mode - when layout mode is active
  */
 .container-ui {}
 
@@ -2437,7 +2444,7 @@ TextFlow > * {
 }
 
 /**
- * pseudoclasses: collapsed - child is hidden so the other covers the entire space
+ * pseudoClasses: collapsed - child is hidden so the other covers the entire space
  *                joined - the children should appear as one, i.e., the divider has little to no visibility
  */
 .container-bi-ui {}
@@ -2450,7 +2457,7 @@ TextFlow > * {
 }
 
 /**
- * pseudoclasses: joined - the children should appear as one, i.e., the divider has little to no visibility
+ * pseudoClasses: joined - the children should appear as one, i.e., the divider has little to no visibility
  */
 .container-seq-ui > VBox,
 .container-seq-ui > HBox {
@@ -2463,7 +2470,7 @@ TextFlow > * {
 
 /*
  * ContainerFreeForm ui
- * pseudoclasses: window-resizing - when any window is being resized
+ * pseudoClasses: window-resizing - when any window is being resized
  *                window-moving - when any window is being moved
  */
 .container-freeform-ui {}
@@ -2490,7 +2497,7 @@ TextFlow > * {
 
 /*
  * inherits: AnchorPane
- * pseudoclasses: left, center, right: for index < 0, 0, > 0
+ * pseudoClasses: left, center, right: for index < 0, 0, > 0
 */
 .switch-pane-tab {}
 .switch-pane-tab .switch-pane-tab-bgr {}
@@ -2570,7 +2577,7 @@ TextFlow > * {
 
 /*
  * inherits: .text-field
- * pseudoclasses: no-visible, left-visible, right-visible
+ * pseudoClasses: no-visible, left-visible, right-visible
  */
 .decorated-text-field {}
 /* inherits: HBox */
@@ -2699,7 +2706,7 @@ TextFlow > * {
 
 /*
  * inherits: FlowPane
- * pseudoclasses: readonly, has-focus
+ * pseudoClasses: readonly, has-focus
  * attributes: -fx-editable-by: [PLUS_NODE | TEXT_FIELD]
  */
 .tag-text-field {
@@ -2727,7 +2734,7 @@ TextFlow > * {
 
 /*
  * inherits: .label
- * pseudoclasses: readonly
+ * pseudoClasses: readonly
  */
 .tag-text-field .tag-text-field-tag {
     -fx-content-display: right;
@@ -2750,7 +2757,7 @@ TextFlow > * {
 
 /*
  * inherits: FlowPane
- * pseudoclasses: readonly, focused
+ * pseudoClasses: readonly, focused
  */
 .complex-text-field {
     -fx-padding: 0;
@@ -2770,7 +2777,7 @@ TextFlow > * {
 
 /*
  * inherits: .label
- * pseudoclasses: readonly
+ * pseudoClasses: readonly
  */
 .complex-text-field .complex-text-field-tag {
     -fx-content-display: right;
@@ -2796,7 +2803,7 @@ TextFlow > * {
 /******************************* pc-controls ***************************************************************************
  * Extends StackPane
  * properties: -fx-orientation = [HORIZONTAL | VERTICAL]
- * pseudoclasses: horizontal, vertical
+ * pseudoClasses: horizontal, vertical
  */
 .pc-controls {
     -fx-font-size: 1em;
@@ -2847,7 +2854,7 @@ TextFlow > * {
 
 /******************************* TIME-CLOCK-ANALOG *********************************************************************
  * inherits: StackPane
- * pseudoclasses: readonly
+ * pseudoClasses: readonly
  */
 .time-clock-analog {}
 /* inherits: StackPane */
@@ -2873,7 +2880,7 @@ TextFlow > * {
 }
 /*
  * inherits: StackPane
- * pseudoclasses: hour, minute, second
+ * pseudoClasses: hour, minute, second
  */
 .time-clock-analog-arrow {
     -fx-background-insets: 0 0 0 0.5em;
@@ -2906,7 +2913,7 @@ TextFlow > * {
 
 /******************************* TIME-CLOCK-DIGITAL ********************************************************************
  * Extends StackPane
- * pseudoclasses: readonly
+ * pseudoClasses: readonly
  */
 .time-clock-digital {
     -fx-padding: 1em;
@@ -2923,7 +2930,7 @@ TextFlow > * {
 
 /******************************* TIME-CLOCK-DIGITAL-IOS ****************************************************************
  * Extends VBox
- * pseudoclasses: readonly
+ * pseudoClasses: readonly
  * properties:
  *  -fx-precision-min [YEAR | MONTH | WEEK | DAY | HOUR | MINUTE | SECOND | MILLI | MICRO | NANO]
  *  -fx-precision-max [YEAR | MONTH | WEEK | DAY | HOUR | MINUTE | SECOND | MILLI | MICRO | NANO]
@@ -2958,7 +2965,7 @@ TextFlow > * {
 
 /******************************* DATE-CLOCK-DIGITAL-IOS ****************************************************************
  * Extends VBox
- * pseudoclasses: readonly
+ * pseudoClasses: readonly
  * properties:
  *  -fx-precision-min [YEAR | MONTH | WEEK | DAY | HOUR | MINUTE | SECOND | MILLI | MICRO | NANO]
  *  -fx-precision-max [YEAR | MONTH | WEEK | DAY | HOUR | MINUTE | SECOND | MILLI | MICRO | NANO]
@@ -3013,7 +3020,7 @@ TextFlow > * {
 
 /******************************* TIME-PICKER-CONTENT *******************************************************************
  * inherits: VBox
- * pseudoclasses: readonly
+ * pseudoClasses: readonly
  */
 .time-picker-content {
     -fx-alignment: CENTER;
@@ -3027,7 +3034,7 @@ TextFlow > * {
 
 /******************************* DATE-PICKER-CONTENT *******************************************************************
  * extends: VBox
- * pseudoclasses: readonly
+ * pseudoClasses: readonly
  */
 .date-picker-content {
     -fx-alignment: center;
@@ -3059,7 +3066,7 @@ TextFlow > * {
 }
 /*
  * extends: TitlePane
- * pseudoclasses: weekday - day of the day header cell
+ * pseudoClasses: weekday - day of the day header cell
  *                other - day cell for other month than the currently displayed
  */
 .date-picker-content-cells {
@@ -3091,7 +3098,7 @@ TextFlow > * {
 
 /******************************* DATETIME-PICKER-CONTENT ***************************************************************
  * extends: HBox
- * pseudoclasses: readonly
+ * pseudoClasses: readonly
  */
 .datetime-picker-content {}
 .datetime-picker-content .date-picker-content {}
@@ -3214,7 +3221,7 @@ TextFlow > * {
 /*
  * Chapter marker on the seeker. Marks specific time point.
  * inherits: Rectangle (Shape)
- * pseudoclasses: .newly-created - when user creates new chapter until he writes
+ * pseudoClasses: .newly-created - when user creates new chapter until he writes
  *                                 it to tag
  */
 .seeker-marker {
@@ -3403,7 +3410,7 @@ TextFlow > * {
 /*
  * Layout for .config-editor. Inherently LEFT aligned.
  * inherits: VBox
- * pseudoclasses: mini, normal, extensive
+ * pseudoClasses: mini, normal, extensive
  * attributes: -fx-ui [MINI | NORMAL | EXTENSIVE]
  */
 .form-config-pane {
@@ -3429,7 +3436,7 @@ TextFlow > * {
 /*
  * Config description text in .form-config-pane
  * inherits: TextFlow, .description
- * pseudoclasses: single: when one config is displayed and requests to use entire space
+ * pseudoClasses: single: when one config is displayed and requests to use entire space
  *                nested: when nested config is unpacked into this config
  */
 .form-config-pane .form-config-pane-config-description {
@@ -3495,7 +3502,7 @@ TextFlow > * {
  * on individual icons are impossible
  * should inherit .glyph, but does not due to possible problems
  *
- * pseudoclasses: empty - rating is at null value
+ * pseudoClasses: empty - rating is at null value
  *                min - rating is at min value
  *                max - rating is at max value
  * the 'empty' rating button
@@ -3552,7 +3559,7 @@ TextFlow > * {
 /********************************** slider-circular ********************************************************************
  * Circular slider control.
  * inherits: Arc, Shape
- * pseudoclasses: focused, readonly
+ * pseudoClasses: focused, readonly
  */
 .slider-circular {
     -fx-padding: -11; // must be same as -fx-stroke-width if -fx-stroke-type = outside, or half if = center, or 0 if = inside
@@ -3633,7 +3640,7 @@ TextFlow > * {
  * input node icon, output node icon, input/output node icon
  * all three behave the same with same properties, etc.
  * inherits: .icon
- * pseudoclasses: drag-over  - when user's drag&drop hovers on this icon
+ * pseudoClasses: drag-over  - when user's drag&drop hovers on this icon
  *                highlighted - when line (including input/output) is hovered or edited
  *                selected - when node is clicked
  */
@@ -3683,7 +3690,7 @@ TextFlow > * {
 /*
  * Text labelling .inode, .onode, .ionode
  * inherits: Text
- * pseudoclasses: node-drag-over - when .inode/.onode/.ionode has pseudoclass 'drag-over'
+ * pseudoClasses: node-drag-over - when .inode/.onode/.ionode has pseudoclass 'drag-over'
  *                node-highlighted - when .inode/.onode/.ionode has pseudoclass 'highlighted'
  *                node-selected - when .inode/.onode/.ionode has pseudoclass 'selected'
  *                node-hover - when .inode/.onode/.ionode has pseudoclass 'hover'
@@ -3709,7 +3716,7 @@ TextFlow > * {
 /*
  * Output -> Input connection line.
  * inherits: Path
- * pseudoclasses: highlighted - when line (including input/output) is hovered or edited
+ * pseudoClasses: highlighted - when line (including input/output) is hovered or edited
  * attributes:
  *  -fx-data-connection [LINE | BEZIER | ELECTRONIC]
  *  -fx-data-effect [NONE | DOT | PATH]
@@ -3737,7 +3744,7 @@ TextFlow > * {
 /*
  * Line visible during edit, when user links two i/o nodes
  * inherits: .iolink
- * pseudoclasses: value-only - when only value is transferred instead of nodes permanently connected
+ * pseudoClasses: value-only - when only value is transferred instead of nodes permanently connected
  */
 .iolink-edit {}
 .iolink-edit:value-only {
@@ -3784,7 +3791,7 @@ TextFlow > * {
 /*
  * Pane for content, does not cover all space, sort of inner box.
  * inherits: .stack-pane
- * pseudoclasses: full-size - when content is supposed to use entire space
+ * pseudoClasses: full-size - when content is supposed to use entire space
  */
 .overlay-pane-content {
     -fx-background-color: rgba(0,20,30,0.1);
@@ -3946,14 +3953,14 @@ TextFlow > * {
 /**
  * Cell in a grid view.
  * inherits: .indexed-cell
- * pseudoclasses: selected - when any cell in the row is selected
+ * pseudoClasses: selected - when any cell in the row is selected
  */
 .grid-row {}
 
 /**
  * Cell in a grid view row.
  * inherits: .indexed-cell
- * pseudoclasses:
+ * pseudoClasses:
  *  full-width: when cell spans entire row and grid effectively becomes a list
  *  selected: when cell is selected
  *  searchmatch: when search is active and cell matches search term
@@ -4049,7 +4056,7 @@ TextFlow > * {
 
 /***************************** GRID FILE THUMB CELL ***************************
  * inherits: .grid-cell
- * pseudoclasses: file-hidden
+ * pseudoClasses: file-hidden
  */
 .thumb-file-grid-cell {}
 .thumb-file-grid-cell:file-hidden .thumbnail {
@@ -4058,7 +4065,7 @@ TextFlow > * {
 
 /***************************** GRID FILE ICON CELL ****************************
  * inherits: .grid-cell
- * pseudoclasses: file-hidden
+ * pseudoClasses: file-hidden
  */
 .icon-file-grid-cell,
 .icon-file-grid-cell:hover,
@@ -4132,7 +4139,7 @@ TextFlow > * {
 }
 
 /* Inherits: VBox
- * pseudoclasses: first-hour-of-day, last-hour-of-day
+ * pseudoClasses: first-hour-of-day, last-hour-of-day
  */
 .weather-info-forecast-hourly .weather-info-forecast-hourly-cell {
     -fx-alignment: CENTER;
@@ -4167,7 +4174,7 @@ TextFlow > * {
 }
 
 /* Inherits: VBox
- * pseudoclasses: first-day-of-month, last-day-of-month
+ * pseudoClasses: first-day-of-month, last-day-of-month
  */
 .weather-info-forecast-daily .weather-info-forecast-daily-cell {
     -fx-alignment: CENTER;

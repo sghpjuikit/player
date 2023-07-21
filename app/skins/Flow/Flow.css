@@ -9,7 +9,8 @@
 * {
     -skin-bgr-color: rgb(0, 0, 35);
     -skin-window-bgr-color: rgba(30, 30, 45, 1);
-    -skin-window-bgr-color-content-free: rgba(12, 12, 30, 0.64);
+    -skin-window-bgr-color-content-free: rgba(12, 12, 30, 0.85);
+    -skin-window-bgr-color-content-free-blur: rgba(12, 12, 30, 0.80);
     -skin-pane-color: rgba(22, 15, 30, 0.6);
     -skin-def-icon-border-color: rgba(130,180,240, 1);
     -skin-row-fixed-size: 2em;

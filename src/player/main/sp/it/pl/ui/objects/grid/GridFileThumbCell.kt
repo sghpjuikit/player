@@ -173,11 +173,11 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       if (gridView.value?.cellWidth?.value == CELL_SIZE_UNBOUND) {
          name.resizeRelocate(h + lp.left, y, (w - h - lp.width) max 0.0, h)
          thumb!!.pane.resizeRelocate(x, y, h, h)
-         stroke.x = x; stroke.y = y; stroke.width = h; stroke.height = h
+         stroke.x = -1.0; stroke.y = snapPositionY(y); stroke.width = w + 1.0; stroke.height = h
       } else {
          name.resizeRelocate(x + lp.left, h - th, (w - lp.width) max 0.0, th)
          thumb!!.pane.resizeRelocate(x, y, w, h - th)
-         stroke.x = x; stroke.y = y; stroke.width = w; stroke.height = h
+         stroke.x = -1.0; stroke.y = snapPositionY(y); stroke.width = w + 1.0; stroke.height = h
       }
       onLayoutChildren(x, y, w, h)
    }

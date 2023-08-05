@@ -118,6 +118,7 @@ class WeatherInfoForecastHourly(units: Units, value: List<Cell.Data>): HBox() {
          styleClass += "weather-info-forecast-hourly-cell"
       }
 
+      @Suppress("PropertyName")
       data class Data(
          val at: ZonedDateTime,
          val temp: Double,

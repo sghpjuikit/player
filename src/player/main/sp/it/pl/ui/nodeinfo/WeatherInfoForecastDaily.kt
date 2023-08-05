@@ -58,7 +58,7 @@ class WeatherInfoForecastDaily(units: Units, value: List<Daily>): HBox() {
       init {
          styleClass += "weather-info-forecast-daily-names"
          lay += label("Date") { minWidth = USE_PREF_SIZE }
-         lay += Icon(TextIcon(""))
+         lay += Icon(TextIcon("")).apply { isFocusTraversable = false }
          lay += label("Temperature") { minWidth = USE_PREF_SIZE }
          lay += label("Clouds") { minWidth = USE_PREF_SIZE }
          lay += label("Rain") { minWidth = USE_PREF_SIZE }
@@ -71,7 +71,7 @@ class WeatherInfoForecastDaily(units: Units, value: List<Daily>): HBox() {
 
    class CellUnits(units: Units): VBox() {
       val dayL = label("d") { lay += this }
-      val icon = Icon(TextIcon("")).apply { this@CellUnits.lay += this }
+      val icon = Icon(TextIcon("")).apply { this@CellUnits.lay += this; isFocusTraversable = false }
       val tempL = label(units.d) { lay += this }
       val cloudsL = label("%") { lay += this }
       val rainL = label("mm") { lay += this }
@@ -95,7 +95,7 @@ class WeatherInfoForecastDaily(units: Units, value: List<Daily>): HBox() {
 
    class Cell(value: Daily): VBox() {
       val dayL = label { lay += this }
-      val icon = Icon().apply { this@Cell.lay += this }
+      val icon = Icon().apply { this@Cell.lay += this; isFocusTraversable = false }
       val tempL = label { lay += this }
       val cloudsL = label { lay += this }
       val rainL = label { lay += this }

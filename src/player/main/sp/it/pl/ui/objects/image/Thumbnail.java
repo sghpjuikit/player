@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import sp.it.pl.image.ImageStandardLoader;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
+import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.future.Fut;
 import sp.it.util.dev.Dependency;
 import sp.it.util.file.type.MimeTypesKt;
@@ -237,8 +238,13 @@ public class Thumbnail {
 		setBackgroundVisible(true);
 		setDragEnabled(true);
 		setContextMenuOn(true);
-		root.addEventFilter(MOUSE_ENTERED, e -> animationPlay());
-		root.addEventFilter(MOUSE_EXITED, e -> animationPause());
+
+		var hoverState = new V<>(false);
+            hoverState.attachC(it -> animationPlayPause(it));
+		var hoverRaw = EventReducer.toLast(150.0, hoverState::setValue);
+		root.addEventFilter(MOUSE_ENTERED, e -> hoverRaw.push(true));
+		root.addEventFilter(MOUSE_EXITED, e -> hoverRaw.push(false));
+		root.addEventFilter(MOUSE_EXITED, e -> hoverState.setValue(false));
 	}
 
 	public final ObservableList<String> getStyleClass() {
@@ -464,6 +470,7 @@ public class Thumbnail {
 		else animImages.ui(consumer(it -> animCommand.run()));
 	}
 
+
 	private void animInitializeImpl() {
 		if (animInitialized!=null && animInitialized) return;
 		animInitialized = true;
@@ -478,13 +485,15 @@ public class Thumbnail {
 				if (isAnim) {
 					var p = new Params(f, new ImageSize(image.getValue().getWidth(), image.getValue().getHeight()), fitFrom.getValue(), fMime, false);
 					animImages = runVT(() -> imgImplLoadFX(p.getFile(), p.getSize(), p.getScaleExact())).then(CURR, it -> it==null ? null : List.of(new ImageFrame(0, 0, it)));
-					animImages.ui(consumer(it -> {
+					animImages = animImages.ui(it -> {
 						if (it!=null) {
 							var img = it.stream().findFirst().orElseThrow().getImg();
 							setImgFrame(img);
 							animation = img==null ? null : getFieldValue(getFieldValue(img, "animation"), "timeline");
+							if (animation != null) animation.pause();
 						}
-					}));
+						return it;
+					});
 				}
 			} catch (Throwable t) {
 				logger.error("Failed to load image={} animation", f, t);
@@ -496,12 +505,13 @@ public class Thumbnail {
 				if (isAnim) {
 					var p = new Params(f, new ImageSize(image.getValue().getWidth(), image.getValue().getHeight()), fitFrom.getValue(), fMime, false);
 					animImages = runVT(() -> loadImageFrames(p));
-					animImages.ui(consumer(images -> {
+					animImages = animImages.ui(images -> {
 						animation = new Timeline(
 							images.stream().map(it -> new KeyFrame(new Duration(it.getDelayMs()), e -> setImgFrame(it.getImg()))).toArray(KeyFrame[]::new)
 						);
 						animation.setCycleCount(INDEFINITE);
-					}));
+						return images;
+					});
 				}
 			} catch (Throwable t) {
 				logger.error("Failed to load image={} animation", f, t);

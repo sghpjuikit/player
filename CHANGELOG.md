@@ -2,10 +2,14 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+
+## [7.8.0] 2023 08 06
 - Update Java to 20
-- Update Kotlin to 1.9.0-RC
+- Update Kotlin to 1.9.0
 - Implement audio channel settings for vlc playback
 - Implement audio device settings for vlc playback
+- Implement **FlowBlackBlue** skin
+- Implement **FlowBlackGreen** skin
 - Implement `ContainerSeq` - sequential container based on HBox/VBox
 - Implement correct window owners for content in popups launched through actions
 - Implement simple/infinite layout switching
@@ -24,6 +28,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement widgets **PlayerSeeker**, **PlayerVolume**, **PlayerLoop** instead of one **PlayerControlsCircle**
 - Implement widget ui controls icons to react on widget size [improves layout]
 - Implement widget context menu to trigger in layout mode
+- Implement **Narrate** action for voice synthesising
 - Implement config editor caret shown on focus
 - Implement **Song Table** widget table row playing icon column
 - Implement **Song Group Table** widget table row playing icon column
@@ -77,6 +82,11 @@ All notable changes to this project will be documented in this file. Format base
 - Fix adding songs to library not handling errors
 - Fix widget & container config groups
 - Fix text grapheme inspection & splitting text to graphemes
+- Fix window bgr blur color/transparency inconsistencies
+- Fix `GridFileThumbCell` hover stroke effect off by 1px
+- Fix `Thumbnail` not properly pausing animation on mouse hover
+- Fix non-interactive weather icons being interactive
+- Fix slow song/playlist deserialization speed (improve 200 times)
 
 ### Vlc playback
 It is now possible to change audio channels and audio output device used for playback through application settings.

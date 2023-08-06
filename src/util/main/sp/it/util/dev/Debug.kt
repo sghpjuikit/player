@@ -4,6 +4,8 @@ import javafx.beans.value.ObservableValue
 import kotlin.reflect.KClass
 import mu.KotlinLogging
 import sp.it.util.reactive.attach
+import sp.it.util.units.formatToSmallestUnit
+import sp.it.util.units.millis
 
 /** @return [org.slf4j.Logger] for the class. */
 fun KClass<*>.logger() = java.logger()
@@ -24,11 +26,14 @@ fun printThreads() = activeThreads().forEach { println("${it.isDaemon} ${it.stat
 fun <T> ObservableValue<T>.printOnChange(name: String = "") = attach { println("Value $name changed to=$it") }
 
 /** Prints the time it takes to execute specified block in milliseconds. */
-fun <T> printExecutionTime(block: () -> T): T {
+fun <T> printExecutionTime(name: String? = null, block: () -> T): T {
    val time = System.currentTimeMillis()
-   val t = block()
-   println(System.currentTimeMillis() - time)
-   return t
+   try {
+      val t = block()
+      return t
+   } finally {
+      println("${if (name==null) "" else "$name "}${(System.currentTimeMillis() - time).millis.formatToSmallestUnit()}")
+   }
 }
 
 /** Prints the current thread's stacktrace. */

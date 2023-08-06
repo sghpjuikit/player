@@ -89,8 +89,8 @@ allprojects {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
          implementation(kotlin("compiler-embeddable"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.2")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.2")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.3")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.3")
          implementation("org.jetbrains", "annotations", "24.0.1")
       }
 
@@ -177,8 +177,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.3.2")
-         implementation("io.ktor", "ktor-client-cio", "2.3.2")
+         implementation("io.ktor", "ktor-server-core", "2.3.3")
+         implementation("io.ktor", "ktor-client-cio", "2.3.3")
       }
 
       "Test" group {

@@ -72,13 +72,8 @@ object CoreSerializer: Core {
       }
 
       fun write(f: File, o: Any?) {
-         println("k1")
          f.outputStream().use {
-            println("k2")
             fury.serialize(it, o)
-            println("k3")
-//            it.flush()
-            println("k4")
          }
       }
    }

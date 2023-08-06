@@ -50,25 +50,25 @@ fun Dur.formatToSmallestUnit(): String {
  */
 @Dependency("sp.it.util.units.durationOfHMSMs")
 @JvmOverloads
-fun Dur.toHMSMs(include_zeros: Boolean = true): String {
+fun Dur.toHMSMs(includeZeros: Boolean = true): String {
    val secondsTotal = toMillis()/1000
    val seconds = secondsTotal.toInt()%60
    val minutes = ((secondsTotal - seconds)/60).toInt()%60
    val hours = (secondsTotal - seconds.toDouble() - (60*minutes).toDouble()).toInt()/3600
-   return if (include_zeros) {
+   return if (includeZeros) {
       when {
-         hours>99 -> String.format("%d:%02d:%02d", hours, minutes, seconds)
-         hours>0 -> String.format("%02d:%02d:%02d", hours, minutes, seconds)
-         minutes>0 -> String.format("%02d:%02d", minutes, seconds)
-         else -> String.format("00:%02d", seconds)
+         hours>99 -> "%d:%02d:%02d".format(hours, minutes, seconds)
+         hours>0 -> "%02d:%02d:%02d".format(hours, minutes, seconds)
+         minutes>0 -> "%02d:%02d".format(minutes, seconds)
+         else -> "00:%02d".format(seconds)
       }
    } else {
       when {
-         hours>99 -> String.format("%d:%2d:%2d", hours, minutes, seconds)
-         hours>0 -> String.format("%2d:%02d:%02d", hours, minutes, seconds)
-         minutes>9 -> String.format("%2d:%02d", minutes, seconds)
-         minutes>0 -> String.format("%1d:%02d", minutes, seconds)
-         else -> String.format("0:%02d", seconds)
+         hours>99 -> "%d:%2d:%2d".format(hours, minutes, seconds)
+         hours>0 -> "%2d:%02d:%02d".format(hours, minutes, seconds)
+         minutes>9 -> "%2d:%02d".format(minutes, seconds)
+         minutes>0 -> "%1d:%02d".format(minutes, seconds)
+         else -> "0:%02d".format(seconds)
       }
    }
 }

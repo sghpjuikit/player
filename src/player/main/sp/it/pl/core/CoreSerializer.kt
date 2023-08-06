@@ -1,21 +1,28 @@
 package sp.it.pl.core
 
+import io.fury.Fury
+import io.fury.Language.JAVA
+import io.fury.serializer.CompatibleMode.SCHEMA_CONSISTENT
+import java.io.File
 import java.io.FileNotFoundException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
 import kotlin.reflect.jvm.jvmName
 import mu.KotlinLogging
+import org.jetbrains.annotations.Blocking
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.util.async.threadFactory
-import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.div
 import sp.it.util.file.writeSafely
 import sp.it.util.functional.Try
+import sp.it.util.functional.net
 import sp.it.util.functional.orAlso
 import sp.it.util.functional.runTry
 
@@ -23,7 +30,58 @@ val logger = KotlinLogging.logger { }
 
 object CoreSerializer: Core {
 
+   private val serializer = SerializerFury()
    private lateinit var executor: ExecutorService
+
+   class SerializerJava {
+      fun read(f: File): Any? =
+         ObjectInputStream(f.inputStream().buffered()).use {
+            it.readObject()
+         }
+
+      fun write(f: File, o: Any?) =
+         ObjectOutputStream(f.outputStream().buffered()).use {
+            it.writeObject(o)
+         }
+   }
+
+   private val fury = Fury.builder()
+      // set java only
+      // gives performance for no loss
+      .withLanguage(JAVA)
+      // disable codegen
+      // codegen causes large (6ms -> 200ms) startup cost for little effect
+      .withCodegen(false)
+      // allow unknown types
+      // but may be insecure if the classes contains malicious code
+      .requireClassRegistration(false)
+      // disable reference tracking for shared/circular reference
+      // gives performance for no loss
+      .withRefTracking(false)
+      // enable strict schema validation
+      // gives better reasoning about state
+      .withCompatibleMode(SCHEMA_CONSISTENT)
+      .build()!!
+
+   class SerializerFury {
+
+      fun read(f: File): Any? {
+       return  f.inputStream().use {
+            fury.deserialize(it)
+         }
+      }
+
+      fun write(f: File, o: Any?) {
+         println("k1")
+         f.outputStream().use {
+            println("k2")
+            fury.serialize(it, o)
+            println("k3")
+//            it.flush()
+            println("k4")
+         }
+      }
+   }
 
    override fun init() {
       if (!::executor.isInitialized)
@@ -46,13 +104,14 @@ object CoreSerializer: Core {
     * @return deserialized object or null if none existed or error
     */
    @Blocking
-   inline fun <reified T: Serializable> readSingleStorage(): Try<T?,Throwable> {
-      val f = APP.location.user.library/(T::class.simpleName ?: T::class.jvmName)
+   inline fun <reified T: Serializable> readSingleStorage(): Try<T?, Throwable> = readSingleStorage(T::class)
 
+   /** [readSingleStorage] */
+   @Blocking
+   fun <T: Serializable> readSingleStorage(c: KClass<T>): Try<T?, Throwable> {
+      val f = APP.location.user.library/(c.simpleName ?: c.jvmName)
       return runTry {
-         ObjectInputStream(f.inputStream()).use {
-            it.readObject() as T?
-         }
+         serializer.read(f)?.net(c::cast)
       }.orAlso {
          if (it is FileNotFoundException) Try.ok(null)
          else Try.error(it)
@@ -65,16 +124,18 @@ object CoreSerializer: Core {
     * * any previously stored object is overwritten
     */
    @Blocking
-   inline fun <reified T: Serializable> writeSingleStorage(o: T): Try<Nothing?, Throwable> {
+   inline fun <reified T: Serializable> writeSingleStorage(o: T): Try<Nothing?, Throwable> = writeSingleStorage(o, T::class)
+
+   /** [writeSingleStorage] */
+   @Blocking
+   fun <T: Serializable> writeSingleStorage(o: T, c: KClass<T>): Try<Nothing?, Throwable> {
       if (APP.rank==SLAVE) return Try.ok()
 
-      val f = APP.location.user.library/(T::class.simpleName ?: T::class.jvmName)
+      val f = APP.location.user.library/(c.simpleName ?: c.jvmName)
+
       return f.writeSafely {
          runTry {
-            APP.location.user.library.mkdirs()
-            ObjectOutputStream(it.outputStream()).use {
-               it.writeObject(o)
-            }
+            serializer.write(it, o)
          }
       }.ifError {
          logger.error(it) { "Failed to serialize object=${o::class} to file=$f" }

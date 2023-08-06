@@ -186,6 +186,10 @@ allprojects {
          testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.6.2")
       }
 
+      "Db" group {
+         implementation("org.furyio", "fury-core", "0.1.0")
+      }
+
    }
 
    tests {

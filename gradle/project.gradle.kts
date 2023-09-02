@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "1.9.0"
+   kotlin("jvm") version "1.9.10"
    application
    id("com.github.ben-manes.versions") version "0.47.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.3"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
@@ -116,7 +116,7 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.7")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.7")
-         implementation("ch.qos.logback", "logback-classic", "1.4.8")
+         implementation("ch.qos.logback", "logback-classic", "1.4.8") // https://logback.qos.ch/news.html
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
@@ -142,11 +142,11 @@ allprojects {
          implementation("com.github.f4b6a3", "uuid-creator", "5.3.2")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
-         implementation("com.github.oshi", "oshi-core", "6.4.3")
+         implementation("com.github.oshi", "oshi-core", "6.4.5")  // https://github.com/oshi/oshi/releases
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
-         implementation("org.apache.pdfbox", "pdfbox", "3.0.0-RC1")
+         implementation("org.apache.pdfbox", "pdfbox", "3.0.0") // https://pdfbox.apache.org
          implementation("com.ezylang", "EvalEx", "3.0.5")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
          implementation("ch.obermuhlner", "big-math", "2.3.2")
@@ -177,17 +177,17 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.3.3")
-         implementation("io.ktor", "ktor-client-cio", "2.3.3")
+         implementation("io.ktor", "ktor-server-core", "2.3.4")
+         implementation("io.ktor", "ktor-client-cio", "2.3.4")
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.6.2")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.6.2")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.7.0")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.7.0")
       }
 
       "Db" group {
-         implementation("org.furyio", "fury-core", "0.1.0")
+         implementation("org.furyio", "fury-core", "0.1.1")
       }
 
    }

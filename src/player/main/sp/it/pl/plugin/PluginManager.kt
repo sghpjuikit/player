@@ -78,13 +78,13 @@ class PluginManager: GlobalConfigDelegator {
    /** @return running plugin of the type specified by the argument or null if no such instance */
    fun <P: PluginBase> get(type: KClass<P>): P? = getRaw(type)?.plugin
 
-   /** @return running plugin of the type specified by the generic type argument if no such instance */
+   /** @return running plugin of the type specified by the generic type argument or null if no such instance */
    inline fun <reified P: PluginBase> get(): P? = get(P::class)
 
    /** @return plugin of the type specified by the argument or null if no such instance */
    fun <P: PluginBase> getRaw(type: KClass<P>): PluginBox<P>? = pluginsObservableImpl.find { it.type==type }.asIs()
 
-   /** @return plugin of the type specified by the generic type argument if no such instance */
+   /** @return plugin of the type specified by the generic type argument or null if no such instance */
    inline fun <reified P: PluginBase> getRaw(): PluginBox<P>? = getRaw(P::class)
 
    inline fun <reified P: PluginBase> getOrStart(): P? = getRaw<P>().ifNotNull { it.start() }?.plugin

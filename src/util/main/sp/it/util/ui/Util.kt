@@ -362,6 +362,26 @@ infix fun Node.install(tooltip: Tooltip) = Tooltip.install(this, tooltip)
 /** Equivalent to [Tooltip.uninstall]. */
 infix fun Node.uninstall(tooltip: Tooltip) = Tooltip.uninstall(this, tooltip)
 
+/* ---------- AREA -------------------------------------------------------------------------------------------------- */
+
+/** @return area (width * height) */
+val Bounds.area: Double get() = width * height
+
+/** @return area (width * height) */
+val Region.area: Double get() = width * height
+
+/** @return area (width * height) */
+val Rectangle.area: Double get() = width * height
+
+/** @return area (width * height) */
+val Rectangle2D.area: Double get() = width * height
+
+/** @return area (width * height) */
+val java.awt.geom.Rectangle2D.area: Double get() = width * height
+
+/** @return area (width * height) */
+val Window.area: Double get() = width * height
+
 /* ---------- POINT ------------------------------------------------------------------------------------------------- */
 
 /** @return point `[this,y]` in [Double] */

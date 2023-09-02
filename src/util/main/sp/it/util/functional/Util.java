@@ -284,27 +284,25 @@ public interface Util {
 		void accept(double d1, double d2);
 	}
 
-	/** Loops over cartesian product C x C of a collection C. */
-	static <E> void forEachPair(Collection<E> c, BiConsumer<? super E,? super E> action) {
-		forEachPair(c, c, action);
-	}
-
 	/** Loops over cartesian product C x C of a collection C, ignoring symmetric elements (i,j) (j;i). */
 	static <E> void forEachCartesianHalf(Collection<E> c, BiConsumer<? super E,? super E> action) {
-//        for (int i=0; i<c.size(); i++)
-//            for (int j=i; j<c.size(); j++)
-//                action.accept(c.get(i), c.get(j));
-
-//        int j = 0;
-//        for (E e : c) {
-//            c.stream().skip(j).forEach(t -> action.accept(e,t));
-//            j++;
-//        }
-
 		int j = 1;
 		for (E e : c) {
 			int i = j;
 			for (E t : c) {
+				if (i>0) i--;
+				if (i==0) action.accept(e, t);
+			}
+			j++;
+		}
+	}
+
+	/** Loops over cartesian product C x C of a collection C, ignoring symmetric elements (i,j) (j;i). */
+	static <E1, E2> void forEachCartesianHalf(Collection<E1> c, Collection<E2> d, BiConsumer<? super E1,? super E2> action) {
+		int j = 1;
+		for (E1 e : c) {
+			int i = j;
+			for (E2 t : d) {
 				if (i>0) i--;
 				if (i==0) action.accept(e, t);
 			}
@@ -317,16 +315,6 @@ public interface Util {
 	 * self elements (i,i).
 	 */
 	static <E> void forEachCartesianHalfNoSelf(Collection<E> c, BiConsumer<? super E,? super E> action) {
-//        for (int i=0; i<c.size(); i++)
-//            for (int j=i+1; j<c.size(); j++)
-//                action.accept(c.get(i), c.get(j));
-
-//        int j = 1;
-//        for (E e : c) {
-//            c.stream().skip(j).forEach(t -> action.accept(e,t));
-//            j++;
-//        }
-
 		int j = 1;
 		for (E e : c) {
 			int i = j;
@@ -336,6 +324,27 @@ public interface Util {
 			}
 			j++;
 		}
+	}
+
+	/**
+	 * Loops over cartesian product C x C of a collection C, ignoring symmetric elements (i,j)(j;i) and
+	 * self elements (i,i).
+	 */
+	static <E1, E2> void forEachCartesianHalfNoSelf(Collection<E1> c, Collection<E2> d, BiConsumer<? super E1, ? super E2> action) {
+		int j = 1;
+		for (E1 e : c) {
+			int i = j;
+			for (E2 t : d) {
+				if (i==0) action.accept(e, t);
+				if (i>0) i--;
+			}
+			j++;
+		}
+	}
+
+	/** Loops over cartesian product C x C of a collection C. */
+	static <E> void forEachPair(Collection<E> c, BiConsumer<? super E,? super E> action) {
+		forEachPair(c, c, action);
 	}
 
 	/**

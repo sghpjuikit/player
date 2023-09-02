@@ -44,10 +44,14 @@ class SpeechSynthesizer: PluginBase() {
       mary = null
    }
 
+   @IsAction(name = "Narrate text", info = "Identical to \"Narrate text\"")
+   fun narrate() = speak()
+
+   @IsAction(name = "Synthesize voice", info = "Identical to \"Narrate text\"")
+   fun synthesize() = speak()
+
    @IsAction
-   fun speak() {
-      action<String>("Narrate", "Narrates the specified text using synthesized voice", IconMA.RECORD_VOICE_OVER, BLOCK) { speak(it) }.invokeWithForm()
-   }
+   fun speak() = action<String>("Narrate text", "Narrates the specified text using synthesized voice", IconMA.RECORD_VOICE_OVER, BLOCK) { speak(it) }.invokeWithForm()
 
    fun speak(text: String) {
       runTry { mary!!.generateAudio(text) }

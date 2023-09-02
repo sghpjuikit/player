@@ -44,19 +44,19 @@ import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.toggle
 import sp.it.util.access.vAlways
 import sp.it.util.async.runFX
-import sp.it.util.collections.keyOf
 import sp.it.util.collections.observableSet
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
-import sp.it.util.functional.Util
+import sp.it.util.functional.Util.findFirstEmptyKey
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
-import sp.it.util.functional.orNull
 import sp.it.util.functional.runnable
+import sp.it.util.math.P
+import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
@@ -119,7 +119,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          { Df.COMPONENT in it.dragboard },
          { it.dragboard[Df.COMPONENT]===container },
          { it.dragboard[Df.COMPONENT].swapWith(container, addEmptyWindowAt(it.x, it.y)) },
-         { bestRec(it.x, it.y, getWindow(container.children.keyOf(it.dragboard[Df.COMPONENT]).orNull())).absolute }
+         { bestRec(P(it.x, it.y), null).absolute }
       )
 
       content.widthProperty() attach {
@@ -262,43 +262,82 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
       }
    }
 
-   /** Optimal size/position strategy returning greatest empty square.  */
-   private fun bestRec(x: Double, y: Double, newW: Window?): BestRec {
-      val b = TupleM4(0.0, content.width, 0.0, content.height)
-      for (w in windows.values) {
-         if (w===newW) continue  // ignore self
-         val wl = w.x.get() + w.w.get()
-         if (wl<x && wl>b.a) b.a = wl
-         val wr = w.x.get()
-         if (wr>x && wr<b.b) b.b = wr
-         val ht = w.y.get() + w.h.get()
-         if (ht<y && ht>b.c) b.c = ht
-         val hb = w.y.get()
-         if (hb>y && hb<b.d) b.d = hb
-      }
-      b.a = 0.0
-      b.b = content.width
-      for (w in windows.values) {
-         if (w===newW) continue  // ignore self
-         val wl = w.x.get() + w.w.get()
-         val wr = w.x.get()
-         val ht = w.y.get() + w.h.get()
-         val hb = w.y.get()
-         val inTheWay = !(ht<y && ht<=b.c || hb>y && hb>=b.d)
-         if (inTheWay) {
-            if (wl<x && wl>b.a) b.a = wl
-            if (wr>x && wr<b.b) b.b = wr
+   /** Optimal size/position strategy returning greatest empty square. */
+   private fun bestRec(at: P, newW: Window?): BestRec {
+      if (windows.isEmpty())
+         return BestRec(TupleM4(0.0, 0.0, 1.0, 1.0), BoundingBox(0.0, 0.0, content.width, content.height))
+
+      // compute cells
+      // cell is a unique rectangle in a grid defined by unique x and y axes of total area and all window edges
+      data class I(val x: Int, val y: Int)
+      data class Cell(val i: I, val lt: P, val c: P, val rb: P, var freeRecSize: I)
+      val cells = hashMapOf<I, Cell>()
+      val ws = windows.values - listOfNotNull(newW)
+      val xs = (listOf(0.0) + ws.flatMap { listOf(it.x.value, it.x.value + it.w.value) } + listOf(content.width)).distinct().sorted().windowed(2, 1, false).map { it[0] to it[1] }
+      val ys = (listOf(0.0) + ws.flatMap { listOf(it.y.value, it.y.value + it.h.value) } + listOf(content.height)).distinct().sorted().windowed(2, 1, false).map { it[0] to it[1] }
+      xs.forEachIndexed { xi, x ->
+         ys.forEachIndexed { yi, y ->
+            val i = I(xi, yi)
+            val lt = x.first x y.first
+            val c = (x.first + x.second)/2 x (y.first + y.second)/2
+            val rb = x.second x y.second
+            cells[i] = Cell(i, lt, c, rb, I(1,1))
          }
       }
-      return BestRec(
-         TupleM4(b.a/content.width, b.c/content.height, (b.b - b.a)/content.width, (b.d - b.c)/content.height),
-         BoundingBox(b.a, b.c, b.b - b.a, b.d - b.c)
-      )
+
+      // initialize empty/full state
+      // cell is full if it is covered by any window
+      cells.values.forEach {
+         val full = windows.values.any { w -> w.x.value + w.w.value>it.lt.x && w.y.value + w.h.value>it.lt.y && w.x.value<it.rb.x && w.y.value<it.rb.y }
+         it.freeRecSize = if (full) I(0, 0) else I(1, 1) // full cells have freeRecSize=0
+      }
+
+      // area is rectangle of cells defined by left top cell and size in cell count
+      data class Area(val i: I, val size: I) {
+         val ltCell by lazy { cells[I(i.x, i.y)]!! }
+         val rbCell by lazy { cells[I(i.x+size.x, i.y+size.y)]!! }
+         val width by lazy { rbCell.rb.x - ltCell.lt.x }
+         val height by lazy { rbCell.rb.y - ltCell.lt.y }
+         val area by lazy { width * height }
+         fun contains(p: P) = ltCell.lt.x<=p.x && p.x<=rbCell.rb.x && ltCell.lt.y<=p.y && p.y<=rbCell.rb.y
+         fun best() = BestRec(
+            TupleM4(ltCell.lt.x/content.width, ltCell.lt.y/content.height, width/content.width, height/content.height),
+            BoundingBox(ltCell.lt.x, ltCell.lt.y, width, height)
+         )
+         override fun toString() = "Area $i $size $width x $height"
+      }
+
+      // iterate cells from right to left, bottom to top
+      var areaMax: Area? = null
+      for (ix in xs.indices.reversed()) {
+         for (iy in ys.indices.reversed()) {
+            val i = I(ix, iy)
+            val cell = cells[i]!!
+            val cellRight = cells[I(ix+1, iy)]
+            val cellBottom = cells[I(ix, iy+1)]
+            if (cell.freeRecSize.x!=0) {
+               // compute cell freeRecSize - how many cells to right and down are empty (this determines the direction of the algorithm)
+               cell.freeRecSize = I(1 + (cellRight?.freeRecSize?.x ?: 0), 1 + (cellBottom?.freeRecSize?.y ?: 0))
+               // compute the greatest area starting at current cell
+               // at this point all cells to the right and down are updated
+               // thus the largest are a for given row is minimum freeRecSize of any row above
+               // thus single iteration is enough to check all N^2 areas starting at current cell
+               var max: Int = cell.freeRecSize.x
+               (iy..ys.lastIndex).forEach { maxY ->
+                  max = max min (cells[I(ix, maxY)]?.freeRecSize?.x ?: 0)
+                  val area = Area(i, I(max-1, maxY-iy))
+                  if (area.contains(at) && (areaMax?.area ?: 0.0) < area.area) areaMax = area
+               }
+            }
+         }
+      }
+      return if (areaMax==null) BestRec(TupleM4(0.0, 0.0, 1.0, 1.0), BoundingBox(0.0, 0.0, content.width, content.height))
+      else areaMax!!.best()
    }
 
    /** Initializes position & size for i-th window, ignoring self w if passed as param.  */
    private fun storeBestRec(i: Int, x: Double, y: Double) {
-      val (rel, abs) = bestRec(x, y, null)
+      val (rel, abs) = bestRec(P(x, y), null)
       // add empty window at index
       // the method call eventually invokes load() method below, with
       // component/child == null (3rd case)
@@ -323,7 +362,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
    }
 
    private fun addEmptyWindowAt(x: Double, y: Double): Int {
-      val i = Util.findFirstEmptyKey(container.children, 1)
+      val i = findFirstEmptyKey(container.children, 1)
       storeBestRec(i, x, y)
       // add empty window at index (into viable area)
       // the method call eventually invokes load() method below, with
@@ -437,7 +476,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
 
 
       fun autoLayout() {
-         val p = bestRec(w.value + w.value/2, y.value + h.value/2, this).absolute
+         val p = bestRec(centre, this).absolute
          x.value = p.minX
          y.value = p.minY
          w.value = p.width

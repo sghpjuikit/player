@@ -17,6 +17,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.window.Resize
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized
 import sp.it.util.access.v
+import sp.it.util.math.P
 import sp.it.util.math.dist
 import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.sceneXy
@@ -68,6 +69,9 @@ open class WindowPane(val owner: AnchorPane) {
 
    /** This window's [Node.prefHeight] */
    val h = root.prefHeightProperty()!!
+
+   /** This window's centre based on [x], [y], [w], [h] */
+   val centre: P get() = P(x.value + w.value/2, y.value + h.value/2)
 
    /** This window's [Node.visible] */
    val visible = root.visibleProperty()!!
@@ -188,9 +192,9 @@ open class WindowPane(val owner: AnchorPane) {
       else -> d
    }
 
-   private fun mapSnap(x: Double, right: Double, w: Double, owner_width: Double): Double = when {
+   private fun mapSnap(x: Double, right: Double, w: Double, ownerWidth: Double): Double = when {
       abs(x)<snapDist -> 0.0
-      right dist owner_width < snapDist -> owner_width - w
+      right dist ownerWidth < snapDist -> ownerWidth - w
       else -> x
    }
 

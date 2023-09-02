@@ -4,12 +4,14 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.function.Consumer
+import java.util.function.Function
 import javafx.util.Duration
 import mu.KLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.util.async.CURR
 import sp.it.util.async.FX
 import sp.it.util.async.IO
+import sp.it.util.async.VT
 import sp.it.util.async.future.Fut.Result.ResultFail
 import sp.it.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.util.async.future.Fut.Result.ResultOk
@@ -124,6 +126,13 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
       /** @return future completed successfully with the value supplied by the specified block or failed */
       @JvmStatic
       fun <T> futOfBlock(block: () -> T): Fut<T> = runTry { fut(block.logging()()) }.mapError<Fut<T>> { futFailed(it) }.getAny()
+
+      /** @return future completed with [Unit]] */
+      @JvmStatic
+      infix fun <T, R> Fut<T>.zip(f: Fut<R>): Fut<Pair<T, R>> = Fut(
+         CompletableFuture.allOf(asCompletableFuture(), f.asCompletableFuture())
+            .thenApplyAsync({ asCompletableFuture().get() to f.asCompletableFuture().get() }, VT)
+      )
 
       private fun <R> (() -> R).logging(): () -> R = {
          try {

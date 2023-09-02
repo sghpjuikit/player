@@ -92,6 +92,9 @@ fun <T> Fut<T>.asDeferred(): Deferred<T> = asCompletableFuture().asDeferred()
 suspend fun <T> Fut<T>.await(): T = asDeferred().await()
 
 /** @return this job as [Fut] - see [Job.asCompletableFuture] */
+fun <T> Deferred<T>.asFut(): Fut<T> = Fut(asCompletableFuture())
+
+/** @return this job as [Fut] - see [Job.asCompletableFuture] */
 fun Job.asFut(): Fut<Unit> = Fut(asCompletableFuture())
 
 /** @return this job as [Subscription] that [Job.cancel] this job */

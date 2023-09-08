@@ -27,12 +27,12 @@ fun <T> ObservableValue<T>.printOnChange(name: String = "") = attach { println("
 
 /** Prints the time it takes to execute specified block in milliseconds. */
 fun <T> printExecutionTime(name: String? = null, block: () -> T): T {
-   val time = System.currentTimeMillis()
+   val time = System.nanoTime()
    try {
       val t = block()
       return t
    } finally {
-      println("${if (name==null) "" else "$name "}${(System.currentTimeMillis() - time).millis.formatToSmallestUnit()}")
+      println("${if (name==null) "" else "$name "}${((System.nanoTime() - time)/1000000).millis.formatToSmallestUnit()}")
    }
 }
 

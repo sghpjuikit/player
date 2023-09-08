@@ -142,6 +142,7 @@ import sp.it.util.units.uri
 import kotlin.NumberFormatException as NFE
 import kotlin.IllegalArgumentException as IAE
 import kotlin.IndexOutOfBoundsException as OBE
+import sp.it.pl.audio.PlayerManager
 import sp.it.pl.plugin.PluginInfo
 
 private typealias FromS<T> = (String) -> Try<T, String>
@@ -215,6 +216,9 @@ object CoreConverter: Core {
          is File -> o.path
          is URI -> URLDecoder.decode(o.toASCIIString(), UTF_8)
          is URL -> URLDecoder.decode(o.toExternalForm(), UTF_8)
+         is Song -> o.uri.toString()
+         is PlayerManager.Events.PlaybackSongChanged -> o.toString()
+         is PlayerManager.Events.PlaybackSongUpdated -> o.toString()
          is Feature -> o.name
          is JsValue -> o.toCompactS()
          is Jwt -> Jwt.toUiS(o, APP.locale.value)
@@ -226,9 +230,9 @@ object CoreConverter: Core {
          is Error<*> -> "Error(${o.value.toUi()})"
          else -> when {
             o::class.isEnum -> enumToHuman(o as Enum<*>)
-            o::class.isObject -> enumToHuman(o::class.simpleName)
+            o::class.isObject -> o::class.simpleName.orEmpty().replace('_', ' ')
             o::class.isDataClass -> runTry {
-               o::class.jvmName + " " + APP.serializerJson.json.toJsonValue(VType<Any?>(o::class.createTypeStar()), o).toPrettyS() }.orMessage().getAny()
+               (o::class.simpleName ?: o::class.jvmName) + " " + APP.serializerJson.json.toJsonValue(VType<Any?>(o::class.createTypeStar()), o).toPrettyS() }.orMessage().getAny()
             // TODO: good idea but probably reduces performance, put the converters in MapByKClass first
             // o::class.companionObjectInstance is ConverterToUiString<*> -> o::class.companionObjectInstance.asIs<ConverterToUiString<Any>>().toUiS(o, APP.locale.value)
             else -> general.toS(o)

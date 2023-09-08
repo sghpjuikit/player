@@ -17,7 +17,7 @@ class KClassExtensionsTest: FreeSpec({
          TEnumSimple.C1::class.java.isEnum shouldBe true
          // enums with class method body
          TEnumWithMethodBody::class.java.isEnum shouldBe true
-         TEnumWithMethodBody.C1::class.java.isEnum shouldBe false  //  does not work, because each constant is own class
+         TEnumWithMethodBody.C1::class.java.isEnum shouldBe false  //  does not work, because each constant its own class
       }
 
       "${Class::class.simpleName}.${Class<*>::isEnumClass.name}" {
@@ -75,11 +75,18 @@ class KClassExtensionsTest: FreeSpec({
          TEnumWithMethodBody.C1::class.enumValues shouldBe arrayOf(TEnumWithMethodBody.C1, TEnumWithMethodBody.C2)
       }
 
-      "${KClass::class.simpleName}.${KClass<*>::isObject.name}" {
+      "-${KClass::class.simpleName}.${KClass<*>::isObject.name}" {
          TObject::class.isObject shouldBe true
          TClass::class.isObject shouldBe false
       }
 
+   }
+
+   "Kotlin bug" - {
+      // https://youtrack.jetbrains.com/issue/KT-41373/KotlinReflectionInternalError-Unresolved-class-when-inspecting-anonymous-Java-class
+      "KT-41373".config(enabled = false) {
+         println(KClassExtensionsKT41373.method()::class.annotations)
+      }
    }
 
 })
@@ -91,12 +98,7 @@ class TClass
 object TObject
 enum class TEnumSimple { C1, C2 }
 enum class TEnumWithMethodBody {
-   C1 {
-      override fun doX() = Unit
-   },
-   C2 {
-      override fun doX() = Unit
-   };
-
+   C1 { override fun doX() = Unit },
+   C2 { override fun doX() = Unit };
    abstract fun doX()
 }

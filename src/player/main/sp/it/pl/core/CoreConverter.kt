@@ -142,6 +142,7 @@ import sp.it.util.units.uri
 import kotlin.NumberFormatException as NFE
 import kotlin.IllegalArgumentException as IAE
 import kotlin.IndexOutOfBoundsException as OBE
+import sp.it.pl.plugin.PluginInfo
 
 private typealias FromS<T> = (String) -> Try<T, String>
 
@@ -226,7 +227,8 @@ object CoreConverter: Core {
          else -> when {
             o::class.isEnum -> enumToHuman(o as Enum<*>)
             o::class.isObject -> enumToHuman(o::class.simpleName)
-            o::class.isDataClass -> runTry { APP.serializerJson.json.toJsonValue(VType<Any?>(o::class.createTypeStar()), o).toPrettyS() }.orMessage().getAny()
+            o::class.isDataClass -> runTry {
+               o::class.jvmName + " " + APP.serializerJson.json.toJsonValue(VType<Any?>(o::class.createTypeStar()), o).toPrettyS() }.orMessage().getAny()
             // TODO: good idea but probably reduces performance, put the converters in MapByKClass first
             // o::class.companionObjectInstance is ConverterToUiString<*> -> o::class.companionObjectInstance.asIs<ConverterToUiString<Any>>().toUiS(o, APP.locale.value)
             else -> general.toS(o)
@@ -360,6 +362,8 @@ object CoreConverter: Core {
       addP<FileSize>(FileSize)
       addP<StrExF>(StrExF)
       addP<NofX>(NofX)
+      addT<PluginInfo>({ it.name }, tryF(AssertionError::class) { throw AssertionError("") })
+      addT<PluginBox<*>>({ it.info.name }, tryF(AssertionError::class) { throw AssertionError("") })
       addP<MimeGroup>(MimeGroup)
       addP<MimeType>(MimeType)
       addP<MimeExt>(MimeExt)

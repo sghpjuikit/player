@@ -50,6 +50,8 @@ import sp.it.util.access.fieldvalue.IconField
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.layout.ContainerSeqDb
 import sp.it.pl.layout.WidgetNodeInstance
+import sp.it.pl.plugin.PluginBox
+import sp.it.pl.plugin.PluginInfo
 import sp.it.util.conf.Config
 import sp.it.util.file.json.JsConverter
 import sp.it.util.file.json.JsString
@@ -119,6 +121,8 @@ class CoreSerializerJson: Core {
             FileSize::class,
             StrExF::class,
             NofX::class,
+            PluginBox::class,
+            PluginInfo::class,
             MimeGroup::class,
             MimeType::class,
             MimeExt::class,

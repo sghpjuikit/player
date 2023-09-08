@@ -13,6 +13,7 @@ import sp.it.util.dev.ThreadSafe
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 
 data class AppError(val textShort: String, val textFull: String, val action: AppErrorAction? = null)
 
@@ -53,9 +54,9 @@ object AppEventLog {
    @ThreadSafe
    fun showNotificationForLastError() {
       runFX {
-         history.lastOrNull { it is Throwable || it is AppError }.ifNotNull {
-            APP.plugins.use<Notifier> { n -> n.showTextNotification(it.asIs()) }
-         }
+         history.lastOrNull { it is Throwable || it is AppError }
+            .ifNotNull { APP.plugins.use<Notifier> { n -> n.showTextNotification(it.asIs()) } }
+            .ifNull { APP.ui.errorPane.orBuild.show(Unit) }
       }
    }
 
@@ -63,7 +64,9 @@ object AppEventLog {
    @ThreadSafe
    fun showDetailForLastError() {
       runFX {
-         history.lastOrNull { it is Throwable || it is AppError }.ifNotNull { APP.ui.errorPane.orBuild.show(it) }
+         history.lastOrNull { it is Throwable || it is AppError }
+            .ifNotNull { APP.ui.errorPane.orBuild.show(it) }
+            .ifNull { APP.ui.errorPane.orBuild.show(Unit) }
       }
    }
 
@@ -71,7 +74,9 @@ object AppEventLog {
    @ThreadSafe
    fun showDetailForLast() {
       runFX {
-         history.lastOrNull().ifNotNull { APP.ui.errorPane.orBuild.show(it) }
+         history.lastOrNull()
+            .ifNotNull { APP.ui.errorPane.orBuild.show(it) }
+            .ifNull { APP.ui.errorPane.orBuild.show(Unit) }
       }
    }
 

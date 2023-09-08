@@ -24,8 +24,6 @@ import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.getAny
 import sp.it.util.functional.net
-import sp.it.util.type.isDataClass
-import sp.it.util.type.isDataObject
 import sp.it.util.type.kType
 import sp.it.util.type.raw
 import sp.it.util.type.type

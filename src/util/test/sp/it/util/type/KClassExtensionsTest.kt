@@ -88,7 +88,7 @@ class KClassExtensionsTest: FreeSpec({
          KClassExtensionsKT41373.method()::class.annotations
       }
       // https://youtrack.jetbrains.com/issue/KT-22792/IllegalAccessException-calling-objectInstance-on-a-private-object#focus=Comments-27-8073638.0-0
-      "-KT-22792" {
+      "KT-22792".config(enabled = false) {
          TestObject::class.isObject shouldBe true
          TestDataObject::class.isObject shouldBe true
       }

@@ -287,23 +287,24 @@ inline fun Boolean.ifFalse(block: () -> Unit) = apply { if (!this) block() }
 fun <T: Any> T.traverse(next: (T) -> T?) = generateSequence(this, next)
 
 /** @return lazy sequence yielded recursively in in-order depth-first order starting with this as first element */
-fun <T> T.recurse(children: (T) -> Iterable<T>) = recurseDF(children)
+fun <T> T.recurse(topDown: Boolean = true, children: (T) -> Iterable<T>) = recurseDF(topDown, children)
 
 /** @return lazy sequence yielded recursively in in-order depth-first order starting with this as first element */
-fun <T> T.recurseDF(children: (T) -> Iterable<T>): Sequence<T> = sequence {
-   yield(this@recurseDF)
-   children(this@recurseDF).forEach { it.recurseDF(children).forEach { yield(it) } }
+fun <T> T.recurseDF(topDown: Boolean = true, children: (T) -> Iterable<T>): Sequence<T> = sequence {
+   if (topDown) yield(this@recurseDF)
+   children(this@recurseDF).forEach { it.recurseDF(topDown, children).forEach { yield(it) } }
+   if (!topDown) yield(this@recurseDF)
 }
 
 /** @return lazy sequence yielded recursively in left breadth-first order starting with this as first element */
-fun <T> T.recurseBF(children: (T) -> Iterable<T>): Sequence<T> = sequence {
+fun <T> T.recurseBF(topDown: Boolean = true, children: (T) -> Iterable<T>): Sequence<T> = sequence {
    val queue = LinkedList<T>()
    queue += this@recurseBF
    while (!queue.isEmpty()) {
       val node = queue.remove()
-      yield(node)
+      if (topDown) yield(node)
       queue += children(node)
-
+      if (!topDown) yield(node)
    }
 }
 

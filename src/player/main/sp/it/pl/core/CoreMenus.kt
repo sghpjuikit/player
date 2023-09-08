@@ -3,6 +3,7 @@ package sp.it.pl.core
 import javafx.stage.Window as WindowFX
 import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
+import javafx.geometry.Orientation
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
@@ -25,6 +26,9 @@ import sp.it.pl.layout.ComponentLoader.Ctx
 import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.layout.ComponentUiBase
 import sp.it.pl.layout.Container
+import sp.it.pl.layout.ContainerBi
+import sp.it.pl.layout.ContainerFreeForm
+import sp.it.pl.layout.ContainerSeq
 import sp.it.pl.layout.ContainerSwitch
 import sp.it.pl.layout.ContainerUni
 import sp.it.pl.layout.Layout
@@ -430,6 +434,45 @@ object CoreMenus: Core {
                }
             }
             item("Close") { it.close() }
+
+            when (val c = value) {
+               is ContainerBi -> menu("Layout") {
+                  menu("Orientation") {
+                     items {
+                        buildSingleSelectionMenu(Orientation.entries, c.orientation.value, { it.toUi() }) { c.orientation.value = it }.asSequence()
+                     }
+                  }
+                  item("Swap children") {
+                     c.swapChildren()
+                  }
+               }
+               is ContainerFreeForm -> menu("Layout") {
+                  menu("Show window headers") {
+                     items {
+                        buildSingleSelectionMenu(listOf(true, false), c.showHeaders.value, { it.toUi() }) { c.showHeaders.value = it }.asSequence()
+                     }
+                  }
+                  item("Align all") {
+                     c.ui?.autoLayoutAll()
+                  }
+               }
+               is ContainerSeq -> {}
+               is ContainerSwitch -> {}
+               is ContainerUni -> {}
+               is Widget -> {}
+            }
+            when (val p = value.parent) {
+               is ContainerBi -> {}
+               is ContainerFreeForm -> menu("Layout") {
+                  item("Align") {
+                     p.ui?.autoLayout(this@add.value)
+                  }
+               }
+               is ContainerSeq -> {}
+               is ContainerSwitch -> {}
+               is ContainerUni -> {}
+               null -> {}
+            }
             menu("Mode (Layout)") {
                val layout = value.rootParent.asIf<Layout>()
                val c = layout?.child

@@ -1,6 +1,8 @@
 package sp.it.util.reactive
 
 import javafx.beans.value.ObservableValue
+import javafx.util.Duration
+import sp.it.util.async.executor.EventReducer
 import sp.it.util.functional.orNull
 
 /** JavaFX channel, i.e., [javafx.beans.value.ObservableValue] without [javafx.beans.value.ObservableValue.getValue] method. */
@@ -29,6 +31,16 @@ fun <T> ObservableValue<T>.chan(): ChanValue<T> = object: MappedChanValue<T>() {
    private val s = Subscribed {
       listeners.orNull()?.invoke(this@chan.value)
       this@chan attach { nv -> listeners.orNull()?.invoke(nv) }
+   }
+
+   override fun updateListening() = s.subscribe(listeners.orNull()?.isNotEmpty()==true)
+}
+
+/** @return chan value that holds last value of this chan value the specified time period after it changes */
+infix fun <T> ChanValue<T>.throttleToLast(period: Duration): ChanValue<T> = object: MappedChanValue<T>() {
+   private val r = EventReducer.toLast<T>(period.toMillis()) { listeners.orNull()?.invoke(it) }
+   private val s = Subscribed {
+      this@throttleToLast subscribe r::push
    }
 
    override fun updateListening() = s.subscribe(listeners.orNull()?.isNotEmpty()==true)

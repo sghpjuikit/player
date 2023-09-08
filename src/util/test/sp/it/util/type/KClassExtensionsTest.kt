@@ -50,7 +50,7 @@ class KClassExtensionsTest: FreeSpec({
          TEnumSimple.C1::class.java.enumConstants shouldBe arrayOf(TEnumSimple.C1, TEnumSimple.C2)
          // enums with class method body
          TEnumWithMethodBody::class.java.enumConstants shouldBe arrayOf(TEnumWithMethodBody.C1, TEnumWithMethodBody.C2)
-         TEnumWithMethodBody.C1::class.java.enumConstants shouldBe null  //  does not work, because each constant is own class
+         TEnumWithMethodBody.C1::class.java.enumConstants shouldBe null  //  does not work, because each constant is its own class
       }
 
       "${Class::class.simpleName}.${Class<Any>::enumValues.name}" {
@@ -75,7 +75,7 @@ class KClassExtensionsTest: FreeSpec({
          TEnumWithMethodBody.C1::class.enumValues shouldBe arrayOf(TEnumWithMethodBody.C1, TEnumWithMethodBody.C2)
       }
 
-      "-${KClass::class.simpleName}.${KClass<*>::isObject.name}" {
+      "${KClass::class.simpleName}.${KClass<*>::isObject.name}" {
          TObject::class.isObject shouldBe true
          TClass::class.isObject shouldBe false
       }
@@ -84,8 +84,13 @@ class KClassExtensionsTest: FreeSpec({
 
    "Kotlin bug" - {
       // https://youtrack.jetbrains.com/issue/KT-41373/KotlinReflectionInternalError-Unresolved-class-when-inspecting-anonymous-Java-class
-      "KT-41373".config(enabled = false) {
-         println(KClassExtensionsKT41373.method()::class.annotations)
+      "KT-41373" {
+         KClassExtensionsKT41373.method()::class.annotations
+      }
+      // https://youtrack.jetbrains.com/issue/KT-22792/IllegalAccessException-calling-objectInstance-on-a-private-object#focus=Comments-27-8073638.0-0
+      "KT-22792" {
+         TestObject::class.isObject shouldBe true
+         TestDataObject::class.isObject shouldBe true
       }
    }
 
@@ -93,6 +98,9 @@ class KClassExtensionsTest: FreeSpec({
 
 
 inline fun <reified T: Any> test(c: (KClass<T>) -> KCallable<*>): String = "${T::class.simpleName}.${c(T::class).name}"
+
+private object TestObject
+private data object TestDataObject
 
 class TClass
 object TObject

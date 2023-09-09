@@ -416,10 +416,8 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
       // restore selection
       table.items.forEachIndexed { i, mg ->
-         if (mg.value in selOld) {
-            println("RESTORING OLD $selOld")
+         if (mg.value in selOld)
             table.selectionModel.select(i)
-         }
       }
 
       selIgnore = false

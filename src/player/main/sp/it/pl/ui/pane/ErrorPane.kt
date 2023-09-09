@@ -20,10 +20,12 @@ import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.icon.TextIcon
 import sp.it.util.access.textAlign
 import sp.it.util.access.toggleNext
 import sp.it.util.access.v
 import sp.it.util.dev.stacktraceAsString
+import sp.it.util.functional.net
 import sp.it.util.functional.supplyIf
 import sp.it.util.math.max
 import sp.it.util.math.min
@@ -81,8 +83,8 @@ class ErrorPane: OverlayPane<Any>() {
                isPickOnBounds = false
                isFillHeight = false
 
-               lay += label("Event Log")
-               lay += CheckIcon(uiErrorsOnly)
+               lay += CheckIcon(uiErrorsOnly).icons(TextIcon("Error"), TextIcon("Event"))
+               lay += label("Log")
                lay += Icon(IconFA.ANGLE_LEFT, -1.0, "Previous message").onClickDo { visitLeft() }
                lay += label("0/0") {
                   historyAtText = textProperty()
@@ -129,31 +131,47 @@ class ErrorPane: OverlayPane<Any>() {
    }
 
    private fun visitLeft() = visit(
-      if (!uiErrorsOnly.value) (uiAt max 1) - 1
-      else AppEventLog.history.asSequence().withIndex().take(uiAt max 1).filter { (_, o) -> isError(o) }.lastOrNull()?.index
-         ?: uiAt
+      when (uiErrorsOnly.value) {
+         false -> (uiAt max 1) - 1
+         true -> AppEventLog.history.asSequence().withIndex().take(uiAt max 1).filter { (_, o) -> isError(o) }.lastOrNull()?.index
+            ?: uiAt
+      }
    )
 
    private fun visitRight() = visit(
-      if (!uiErrorsOnly.value) (uiAt min AppEventLog.history.size - 2) + 1
-      else AppEventLog.history.asSequence().withIndex().drop(uiAt).filter { (_, o) -> isError(o) }.take(2).lastOrNull()?.index
-         ?: uiAt
+      when (uiErrorsOnly.value) {
+         false -> (uiAt min AppEventLog.history.size - 2) + 1
+         true -> AppEventLog.history.asSequence().withIndex().drop(uiAt max 0).filter { (_, o) -> isError(o) }.take(2).lastOrNull()?.index
+            ?: uiAt
+      }
    )
 
-   private fun visit(at: Int) = update(at, AppEventLog.history[at])
-
-   private fun updateIndexes() {
-      historyAtText.value =
-         if (!uiErrorsOnly.value) "${uiAt + 1}/${AppEventLog.history.size}"
-         else "${AppEventLog.history.asSequence().take(uiAt).count(::isError) + 1}/${AppEventLog.history.count(::isError)}"
+   private fun visit(at: Int) {
+      if (AppEventLog.history.isEmpty())
+         update(0, null)
+      else if (at in 0..AppEventLog.history.lastIndex)
+         update(at, AppEventLog.history[at])
+      else
+         update(AppEventLog.history.lastIndex, AppEventLog.history.lastOrNull())
    }
 
-   private fun update(at: Int, error: Any) {
+   private fun updateIndexes() {
+      historyAtText.value = when (uiErrorsOnly.value) {
+         false -> (uiAt to AppEventLog.history.size)
+         true -> (AppEventLog.history.asSequence().take(uiAt).count(::isError) to AppEventLog.history.count(::isError))
+      }.net { (at, total) ->
+         "${if (at<=0 && total==0) 0 else (at + 1)}/$total"
+      }
+   }
+
+   private fun update(at: Int, error: Any?) {
       uiAt = at
-      uiText.text = when (error) {
-         is AppError -> error.textShort + "\n\n" + error.textFull
-         is Throwable -> "Unspecified error: ${error.stacktraceAsString}"
-         else -> error.toUi()
+      uiText.text = error?.let {
+         when (error) {
+            is AppError -> error.textShort + "\n\n" + error.textFull
+            is Throwable -> "Unspecified error: ${error.stacktraceAsString}"
+            else -> error.toUi()
+         }
       }
       updateIndexes()
    }

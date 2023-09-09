@@ -143,6 +143,7 @@ import kotlin.NumberFormatException as NFE
 import kotlin.IllegalArgumentException as IAE
 import kotlin.IndexOutOfBoundsException as OBE
 import sp.it.pl.audio.PlayerManager
+import sp.it.pl.main.Events
 import sp.it.pl.plugin.PluginInfo
 
 private typealias FromS<T> = (String) -> Try<T, String>
@@ -217,6 +218,7 @@ object CoreConverter: Core {
          is URI -> URLDecoder.decode(o.toASCIIString(), UTF_8)
          is URL -> URLDecoder.decode(o.toExternalForm(), UTF_8)
          is Song -> o.uri.toString()
+         is Events.ActionEvent -> o.toString()
          is PlayerManager.Events.PlaybackSongChanged -> o.toString()
          is PlayerManager.Events.PlaybackSongUpdated -> o.toString()
          is Feature -> o.name

@@ -2,7 +2,46 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+- Update Kotlin to 1.9.20-Beta
+- Update dependencies
 - Fix **ContainerFreeForm** the largest empty area computation
+- Fix `PluginInstalledEvent.toUi` freezing application
+- Fix `Action Log` opening only if errors are present
+- Improve `Action log` to support showing in case of 0 errors
+- Improve `Action log` error filter
+- Improve menus of Components (add layout actions)
+- Improve ui text representation for several types
+- Implement **VoiceRecognition** plugin using WhisperAI (improves accuracy, needs manual installation)
+- Implement **VoiceRecognition** plugin wake word
+- Implement **VoiceRecognition** plugin to be interactive (gives voice feedback)
+- Implement open widget voice actions
+- Implement **SpeechSynthesizer** plugin speak action name variations for better UX
+
+## Voice recognition plugin
+Voice recognition now uses locally running OpenAI Whisper Python program.
+- It gives voice feedback and uses configurable wake word.
+- Provides state-of-the-art speech recognition quality and the increased accuracy helps a lot for shorter commands
+- Decouples AI from the application, which makes things more stable, performant and deterministic
+
+This implementation also has voice feedback (using OS voices like e.g. Windows Narrator) to provide comfortable
+UX when speaking to the application. The application tells user
+- when it has voice recognition starting & activated & closing
+- when it is listening to wake word
+
+Installation requires user to install `python` and run couple `pip install` commands.
+Requirements for this plugin alone are 3GB of RAM.
+
+The older implementation used pure Java solution - `alphacephei`'s vosk AI models, and it has been removed.
+
+## Voice synthesis plugin
+The implementation uses pure Java solution - somewhat outdated MaryTTS (Java library).
+Ideally, this will be removed in favor of system voice used for voice recognition plugin.
+In the future, when good local AI will be available, it may be used instead.
+
+## AI direction
+It is obvious that doing pure Java AI solutions is not an optimal way.
+Python, on the other hand already allows easy voice synthesis, voice recognition as well as LLM, all offline and state-of-the-art.
+In fact, after improving speech area, LLM integration (most likely using `Gpt4All`) is on the menu as well.
 
 ## [7.8.0] 2023 08 06
 - Update Java to 20
@@ -37,7 +76,7 @@ All notable changes to this project will be documented in this file. Format base
 - Improve **StartScreen** styling (no border)
 - Improve various animation interpolators
 - Improve `Overlay` show animation transitions
-- Improve autocomplete show/hide UX
+- Improve autocomplete show/hide UX[replay_[replay_pid8236.log](app%2Freplay_pid8236.log)pid8236.log](app%2Freplay_pid8236.log)
 - Improve filter negate icon styling
 - Improve nested config editors styling
 - Improve **Flow** skin bgr opacity styling

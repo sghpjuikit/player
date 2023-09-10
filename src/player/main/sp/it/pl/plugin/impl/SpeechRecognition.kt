@@ -19,7 +19,7 @@ import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvnro
 import sp.it.util.conf.def
-import sp.it.util.conf.multiline
+import sp.it.util.conf.multilineToBottom
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
@@ -120,7 +120,7 @@ class SpeechRecognition: PluginBase() {
 
    /** Console output */
    val speakingStdout by cvnro(speakingStdoutW)
-      .multiline()
+      .multilineToBottom()
       .noPersist()
       .def(name = "Speech recognition output", info = "Shows console output of the speech recognition Whisper AI process", editable = EditMode.APP)
 

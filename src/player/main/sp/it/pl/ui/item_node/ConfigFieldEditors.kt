@@ -1229,6 +1229,7 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
 class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    val isCollection = c.type.raw.isSubclassOf<Collection<*>>() || c.type.raw.isSubclassOf<Map<*,*>>()
    val isMultiline = c.hasConstraint<Constraint.Multiline>() || isCollection
+   val isMultilineScrollToBottom = isMultiline && c.hasConstraint<Constraint.MultilineScrollToBottom>()
    val obv = getObservableValue(c)
    override val editor = if (isMultiline) TextArea() else SpitTextField()
    private val converterRaw: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: ::toS
@@ -1363,7 +1364,16 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       isValueRefreshing.suppressingAlways {
          if (isSealed) editor.userData = config.value
          isNull = config.value==null
-         editor.text = if (isValueRefreshingRaw) converterRaw(config.value) else converter(config.value)
+         val text = if (isValueRefreshingRaw) converterRaw(config.value) else converter(config.value)
+         editor.text = text
+         editor.asIf<TextArea>().ifNotNull {
+            if (it.text != text) {
+               it.clear()
+               it.appendText(text)
+               if (isMultilineScrollToBottom) it.scrollTop = Double.MAX_VALUE
+            }
+         }
+
          showWarnButton(validate(config.value))
       }
    }

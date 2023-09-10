@@ -90,6 +90,9 @@ interface Constraint<in T> {
    /** Use multi-line text area instead of text field as editor. Allowed for non-[String] values. [Collection] and [Map] is multiline by default. */
    object Multiline: MarkerConstraint()
 
+   /** When using [Multiline], scroll text area to the bottom when text is appended. */
+   object MultilineScrollToBottom: MarkerConstraint()
+
    object DurationNonNegative: Constraint<Duration> {
       override fun isValid(value: Duration?): Boolean {
          return value==null || value.greaterThanOrEqualTo(Duration.ZERO)

@@ -83,13 +83,13 @@ class ErrorPane: OverlayPane<Any>() {
                isPickOnBounds = false
                isFillHeight = false
 
-               lay += CheckIcon(uiErrorsOnly).icons(TextIcon("Error"), TextIcon("Event"))
-               lay += label("Log")
                lay += Icon(IconFA.ANGLE_LEFT, -1.0, "Previous message").onClickDo { visitLeft() }
                lay += label("0/0") {
                   historyAtText = textProperty()
                }
                lay += Icon(IconFA.ANGLE_RIGHT, -1.0, "Next message").onClickDo { visitRight() }
+               lay += CheckIcon(uiErrorsOnly).icons(TextIcon("Error"), TextIcon("Event"))
+               lay += label("Log")
                lay += Icon(null, -1.0, "Toggle text alignment").apply {
                   uiErrorsOnly zip uiTextAlignment sync { (isErrOnly, txtAlign) ->
                      uiText.textAlign.value = if (isErrOnly) TextAlignment.LEFT else txtAlign

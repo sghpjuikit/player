@@ -60,7 +60,9 @@ import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.access.Values
 import sp.it.util.access.v
 import sp.it.util.async.FX
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.executor.EventReducer
+import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.limitParallelism
 import sp.it.util.async.runLater
@@ -750,7 +752,8 @@ class WidgetManager {
    data class FactoryRef<out FEATURE: Any>(val name: String, val id: String, private val feature: KClass<FEATURE>): NameUi {
       override val nameUi = name
 
-      fun toFactory(): WidgetFactory<*>? = APP.widgetManager.factoriesW[id]
+      /** @return widget factory this ref is referencing or error with the factory id. Also see [Try.orNone] */
+      fun toFactory(): Try<WidgetFactory<*>, String> = Option(APP.widgetManager.factoriesW[id]).toTry { id }
 
       fun use(source: WidgetUse, action: (FEATURE) -> Unit) {
          APP.widgetManager.widgets
@@ -863,6 +866,8 @@ sealed interface ComponentLoader {
 
    operator fun invoke(ctx: Ctx): (Component) -> Any = { ctx(it) }
    operator fun invoke(c: Component): Any = Ctx(null)(c)
+   operator fun invoke(c: ComponentFactory<*>): Fut<Any> = runSuspendingFx { invoke(c.create()) }
+   operator fun invoke(c: WidgetManager.FactoryRef<*>): Fut<Any> = invoke(c.toFactory().orNone())
    operator fun Ctx.invoke(c: Component): Any
 
    data class Ctx(val window: WindowFX?) {

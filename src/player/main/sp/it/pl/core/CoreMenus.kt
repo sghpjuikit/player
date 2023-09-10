@@ -111,6 +111,7 @@ import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.orNull
 import sp.it.util.reactive.into
 import sp.it.util.reactive.sync1IfNonNull
 import sp.it.util.reactive.syncNonNullWhile
@@ -615,7 +616,7 @@ object CoreMenus: Core {
    private inline fun <reified W: Any> MenuBuilder<*, *>.widgetItems(crossinline action: (W) -> Unit) = items(
       source = APP.widgetManager.factories.getFactoriesWith<W>(),
       text = { it.name },
-      graphics = { it.toFactory()?.icon?.toCmUi() },
+      graphics = { it.toFactory().orNull()?.icon?.toCmUi() },
       action = { it.use(NO_LAYOUT(Ctx(this))) { action(it) } }
    )
 

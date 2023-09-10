@@ -1,14 +1,5 @@
-from os import system
-import atexit
-import signal
-import speech_recognition as sr
-import sys
-import whisper
-import warnings
-import time
-import os
-import psutil
 
+import sys
 
 # util: print with flush (avoids no console output)
 def write(text):
@@ -35,6 +26,26 @@ wake_word = arg('wake-word', 'mimi')
 name = wake_word[0].upper() + wake_word[1:]
 listening_for_wake_word = True
 
+
+if __name__ == '__main__' and showHelp:
+    write("This is a speech recognition python script using OpenAI Whisper.")
+    write("Prints recognized user speech in format `USER: $speech` and system log in format`SYS: $message`.")
+    write("")
+    write("Args:")
+    write("  wake-word=$wake-word")
+    write("    Optional wake word to interact with this script")
+    write("  parent-process=$pid")
+    write("    Optional parent process pid. This script terminates when the specified process terminates")
+    quit()
+
+import atexit
+import signal
+import speech_recognition as sr
+import whisper
+import warnings
+import time
+import os
+import psutil
 
 class _TTS:
     engine = None
@@ -67,7 +78,7 @@ if __name__ == '__main__':
     write('SYS: ' + name + ' initializing.')
     speak(name + " initializing.")
 
-modelDir = os.path.join(os.path.dirname(os.path.abspath(__file__), "models"))
+modelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
 modelTiny = whisper.load_model(os.path.join(modelDir, 'tiny.en.pt'))
 modelBase = whisper.load_model(os.path.join(modelDir, 'base.en.pt'))
 r = sr.Recognizer()
@@ -143,16 +154,6 @@ def installExitHandler():
 
 
 if __name__ == '__main__':
-    if showHelp:
-        write("This is a speech recognition python script using OpenAI Whisper.")
-        write("Prints recognized user speech in format `USER: $speech` and system log in format`SYS: $message`.")
-        write("")
-        write("Args:")
-        write("  wake-word=$wake-word")
-        write("    Optional wake word to interact with this script")
-        write("  parent-process=$pid")
-        write("    Optional parent process pid. This script terminates when the specified process terminates")
-    else:
-        installExitHandler()
-        start_listening()
-        exit_handler()
+    installExitHandler()
+    start_listening()
+    exit_handler()

@@ -9,8 +9,8 @@ app/SpitPlayer.jar
 app/user
 app/vlc/
 app/widgets/**/out
-app/speech-recognition-whisper/user-wake.wav
-app/speech-recognition-whisper/user-prompt.wav
+app/speech-recognition-whisper/user_wake.wav
+app/speech-recognition-whisper/user_prompt.wav
 app/speech-recognition-whisper/models/**.pt
 private/
 *.log

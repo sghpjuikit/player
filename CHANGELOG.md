@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. Format base
 - Improve `Action log` error filter
 - Improve menus of Components (add layout actions)
 - Improve ui text representation for several types
+- Improve **Logger** widget UX
 - Implement **VoiceRecognition** plugin using WhisperAI (improves accuracy, needs manual installation)
 - Implement **VoiceRecognition** plugin wake word
 - Implement **VoiceRecognition** plugin to be interactive (gives voice feedback)

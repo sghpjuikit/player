@@ -77,7 +77,7 @@ In fact, after improving speech area, LLM integration (most likely using `Gpt4Al
 - Improve **StartScreen** styling (no border)
 - Improve various animation interpolators
 - Improve `Overlay` show animation transitions
-- Improve autocomplete show/hide UX[replay_[replay_pid8236.log](app%2Freplay_pid8236.log)pid8236.log](app%2Freplay_pid8236.log)
+- Improve autocomplete show/hide UX
 - Improve filter negate icon styling
 - Improve nested config editors styling
 - Improve **Flow** skin bgr opacity styling

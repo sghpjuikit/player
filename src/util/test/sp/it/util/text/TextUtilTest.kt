@@ -56,6 +56,11 @@ class TextUtilTest: FreeSpec({
       "AaaBbbCCC".camelToDotCase() shouldBe "AaaBbbCCC".camelToDotCase().lowercase()
    }
 
+   String::camelToSpaceCase.name - {
+      "AaaBbbCCC".camelToSpaceCase() shouldBe "aaa bbb c c c"
+      "AaaBbbCCC".camelToSpaceCase() shouldBe "AaaBbbCCC".camelToSpaceCase().lowercase()
+   }
+
    "comprehensive" - {
 
       // https://engineering.linecorp.com/en/blog/the-7-ways-of-counting-characters/

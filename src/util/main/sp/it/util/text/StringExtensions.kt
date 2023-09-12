@@ -167,30 +167,21 @@ fun String.isPalindromeOrEmpty(): Boolean {
 }
 
 /** @return camel case string converted to lower dash case */
-fun String.camelToDashCase() = codePoints().asSequence()
-   .fold(ArrayList<Int>(length)) { str, char ->
-      if (str.isEmpty()) {
-         str += Character.toLowerCase(char)
-      } else {
-         if (Character.isUpperCase(char)) {
-            str += '-'.code
-            str += Character.toLowerCase(char)
-         } else {
-            str += char
-         }
-      }
-      str
-   }
-   .joinToString("", "", "") { Character.toString(it) }
+fun String.camelToDashCase() = camelToCustomCase('-')
 
 /** @return camel case string converted to lower dot case */
-fun String.camelToDotCase() = codePoints().asSequence()
+fun String.camelToDotCase() = camelToCustomCase('.')
+
+/** @return camel case string converted to lower dot case */
+fun String.camelToSpaceCase() = camelToCustomCase(' ')
+
+fun String.camelToCustomCase(c: Char) = codePoints().asSequence()
    .fold(ArrayList<Int>(length)) { str, char ->
       if (str.isEmpty()) {
          str += Character.toLowerCase(char)
       } else {
          if (Character.isUpperCase(char)) {
-            str += '.'.code
+            str += c.code
             str += Character.toLowerCase(char)
          } else {
             str += char

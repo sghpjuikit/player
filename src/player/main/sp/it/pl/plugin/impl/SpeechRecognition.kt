@@ -33,6 +33,7 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
+import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.equalsNc
 import sp.it.util.text.words
 import sp.it.util.units.seconds
@@ -100,7 +101,7 @@ class SpeechRecognition: PluginBase() {
          SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) APP.audio.pause() },
          SpeakHandler("Open widget by name", "open \$widget-name") { text, _ ->
             if (text.startsWith("open ")) {
-               val fName = text.substring(5).removeSuffix(" widget")
+               val fName = text.substring(5).removeSuffix(" widget").camelToSpaceCase()
                val f = APP.widgetManager.factories.getComponentFactories().find { it.name equalsNc fName }
                if (f!=null) ComponentLoaderStrategy.DOCK.loader(f)
             }

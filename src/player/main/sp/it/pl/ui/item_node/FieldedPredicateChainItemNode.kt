@@ -23,7 +23,6 @@ import sp.it.util.ui.isAnyParentOf
 open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValueNode<Predicate<T>, FieldedPredicateItemNode<T, F>, Predicate<T>> {
 
    constructor(chainedFactory: (FieldedPredicateChainItemNode<T, F>) -> FieldedPredicateItemNode<T, F>): super(0, MAX_VALUE, IS.asIs(), null) {
-      this.data = ArrayList()
       this.chainedFactory = Callback { chainedFactory(this) }
       isHomogeneousRem = BiPredicate { i, _ -> i!=0 }
       isHomogeneousAdd = BiPredicate { _, _ -> true }
@@ -46,7 +45,7 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValue
          chain.forEach { it.chained.setPrefTypeSupplier(supplier) }
       }
 
-   var data: List<PredicateData<F>>
+   var data: List<PredicateData<F>> = ArrayList()
       set(data) {
          inconsistentState = true
          field = data

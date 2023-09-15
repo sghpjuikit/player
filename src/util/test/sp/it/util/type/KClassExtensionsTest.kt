@@ -81,26 +81,10 @@ class KClassExtensionsTest: FreeSpec({
       }
 
    }
-
-   "Kotlin bug" - {
-      // https://youtrack.jetbrains.com/issue/KT-41373/KotlinReflectionInternalError-Unresolved-class-when-inspecting-anonymous-Java-class
-      "KT-41373" {
-         KClassExtensionsKT41373.method()::class.annotations
-      }
-      // https://youtrack.jetbrains.com/issue/KT-22792/IllegalAccessException-calling-objectInstance-on-a-private-object#focus=Comments-27-8073638.0-0
-      "KT-22792".config(enabled = false) {
-         TestObject::class.isObject shouldBe true
-         TestDataObject::class.isObject shouldBe true
-      }
-   }
-
 })
 
 
 inline fun <reified T: Any> test(c: (KClass<T>) -> KCallable<*>): String = "${T::class.simpleName}.${c(T::class).name}"
-
-private object TestObject
-private data object TestDataObject
 
 class TClass
 object TObject

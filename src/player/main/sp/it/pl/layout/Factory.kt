@@ -15,6 +15,7 @@ import sp.it.pl.layout.controller.ControllerNoFactory
 import sp.it.pl.main.APP
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.Locatable
+import sp.it.util.dev.failIf
 import sp.it.util.file.div
 import sp.it.util.file.json.JsString
 import sp.it.util.file.nameOrRoot
@@ -32,24 +33,23 @@ sealed interface ComponentFactory<out T: Component>: ComponentInfo {
 }
 
 /** Component factory that creates widgets. */
-@Widget.Info
 open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, Locatable {
 
-   override val id: String
-   override val name: String
-   override val icon: GlyphIcons?
-   override val description: String
-   override val descriptionLong: String
-   override val version: KotlinVersion
-   override val isSupported: Boolean
-   override val author: String
-   override val contributor: String
-   override val year: Year
-   override val tags: Set<WidgetTag>
-   override val type: KClass<*>
-   override val summaryActions: List<ShortcutPane.Entry>
-   override val location: File
-   override val userLocation: File
+   final override val id: String
+   final override val name: String
+   final override val icon: GlyphIcons?
+   final override val description: String
+   final override val descriptionLong: String
+   final override val version: KotlinVersion
+   final override val isSupported: Boolean
+   final override val author: String
+   final override val contributor: String
+   final override val year: Year
+   final override val tags: Set<WidgetTag>
+   final override val type: KClass<*>
+   final override val summaryActions: List<ShortcutPane.Entry>
+   final override val location: File
+   final override val userLocation: File
    /** Companion object of the controller */
    val companion: WidgetCompanion?
    /** [KClass] of the controller created by [create]. */
@@ -63,11 +63,10 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
     * @param controllerType of the controller of the widget this factory will create
     * @param location parent directory of the widget
     */
-   @Suppress("LeakingThis")
    constructor(id: String?, controllerType: KClass<C>, location: File) {
       val companionObject = try { controllerType.companionObjectInstance } catch (t: Throwable) { null } // this can happen in dev environment due to binary incompatibility
       val info = companionObject?.asIf<WidgetInfo>()
-      val i: Widget.Info = null ?: controllerType.findAnnotation() ?: WidgetFactory::class.findAnnotation()!!
+      val i = controllerType.findAnnotation<Widget.Info>() ?: Widget.Info()
 
       this.companion = companionObject?.asIf<WidgetCompanion>()
       this.controllerType = controllerType
@@ -141,11 +140,11 @@ class NodeFactory<T: Node>(val id: UUID, val type: KClass<out T>, override val n
    private fun Widget.withType() = apply { fieldsRaw["node"] = JsString(type.jvmName) }
 }
 
-class NoFactoryFactory(val factoryId: String): WidgetFactory<ControllerNoFactory>("NoFactory", ControllerNoFactory::class, APP.location.widgets/factoryId.decapital()) {
-   override val id = factoryId
-   override val name = factoryId
-   override val summaryActions = listOf<ShortcutPane.Entry>()
-
+class NoFactoryFactory(val factoryId: String): WidgetFactory<ControllerNoFactory>(factoryId, ControllerNoFactory::class, APP.location.widgets/factoryId.decapital()) {
+   init {
+      failIf(id != factoryId) { "Id=$id must be the same as factoryId=$factoryId" }
+      failIf(id != name) { "Id=$id must be the same as factoryId=$factoryId" }
+   }
    override fun toString() = "${javaClass.simpleName} $factoryId"
 
    fun createController(widget: Widget) = ControllerNoFactory(widget)

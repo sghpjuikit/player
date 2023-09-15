@@ -1065,6 +1065,9 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                   }
                   lay += textColon("Name", f.name)
                   when (f) {
+                     is NoFactoryFactory -> {
+                        lay += textColon("Type", "Substitute for 'missing component'")
+                     }
                      is WidgetFactory<*> -> {
                         lay += textColon("Id", f.id)
                         lay += textColon("Supported", f.isSupported)
@@ -1110,9 +1113,6 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                               text = "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString("\n") { "\t${it.name} - ${it.description}" })
                            }
                         }
-                     }
-                     is NoFactoryFactory -> {
-                        lay += textColon("Type", "Substitute for 'missing component'")
                      }
                   }
                }

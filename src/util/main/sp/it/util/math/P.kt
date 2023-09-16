@@ -96,4 +96,7 @@ data class P @JvmOverloads constructor(var x: Double = 0.0, var y: Double = 0.0)
 
    fun clip(minimum: P, maximum: P) = P(x.clip(minimum.x, maximum.x), y.clip(minimum.y, maximum.y))
 
+   /** @return [kotlin.math.atan2] of this point */
+   fun atan2(): Double = kotlin.math.atan2(y, x)
+
 }

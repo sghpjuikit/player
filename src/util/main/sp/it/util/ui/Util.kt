@@ -82,8 +82,11 @@ import javafx.stage.Stage
 import javafx.stage.StageStyle
 import javafx.stage.Window
 import javafx.util.Callback
+import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.floor
+import kotlin.math.sin
 import mu.KotlinLogging
 import sp.it.util.functional.asIf
 import sp.it.util.math.P
@@ -385,10 +388,16 @@ val Window.area: Double get() = width * height
 /* ---------- POINT ------------------------------------------------------------------------------------------------- */
 
 /** @return point `[this,y]` in [Double] */
-infix fun Number.x(y: Number) = P(this.toDouble(), y.toDouble())
+infix fun Number.x(y: Number) = P(toDouble(), y.toDouble())
 
 /** @return point `[this,this]` in [Double] */
-val Number.x2 get() = P(this.toDouble(), this.toDouble())
+val Number.x2 get() = P(toDouble(), toDouble())
+
+/** @return point on unit circle at the angle represented by this number of radians */
+val Number.unitCircleRadP get() = P(cos(toDouble()), sin(toDouble()))
+
+/** @return point on unit circle at the angle represented by this number of degrees */
+val Number.unitCircleDegP get() = (toDouble()/360.0*2*PI).unitCircleRadP
 
 /** Size of the bounds represented as point */
 val Bounds.size get() = P(width, height)
@@ -460,6 +469,11 @@ var Window.centreY
 var PopupWindow.anchorXy
    get() = P(anchorX, anchorY)
    set(value) { anchorX = value.x; anchorY = value.y }
+
+/** ([Circle.centerX],[Circle.centerY)]) */
+var Circle.center: P
+   get() = P(centerX, centerY)
+   set(value) { centerX = value.x; centerY = value.y }
 
 /** ([Arc.centerX],[Arc.centerY)]) */
 var Arc.center: P

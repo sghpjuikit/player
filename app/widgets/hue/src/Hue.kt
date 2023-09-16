@@ -53,8 +53,6 @@ import javafx.scene.shape.Circle
 import javafx.scene.text.TextAlignment
 import kotlin.math.PI
 import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import mu.KLogging
@@ -101,7 +99,6 @@ import sp.it.util.conf.lengthMax
 import sp.it.util.conf.uiConverterElement
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
-import sp.it.util.dev.printIt
 import sp.it.util.file.div
 import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsObject
@@ -117,12 +114,10 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.math.clip
-import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
-import sp.it.util.reactive.map
 import sp.it.util.reactive.notNull
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -137,6 +132,7 @@ import sp.it.util.text.nameUi
 import sp.it.util.text.split3
 import sp.it.util.type.atomic
 import sp.it.util.ui.alpha
+import sp.it.util.ui.center
 import sp.it.util.ui.centre
 import sp.it.util.ui.dsl
 import sp.it.util.ui.flowPane
@@ -147,7 +143,9 @@ import sp.it.util.ui.lookupId
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.scrollPane
+import sp.it.util.ui.size
 import sp.it.util.ui.text
+import sp.it.util.ui.unitCircleDegP
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.ui.xy
@@ -360,8 +358,7 @@ class Hue(widget: Widget): SimpleController(widget) {
             override fun layoutChildren() {
                super.layoutChildren()
                val c = color.value ?: TRANSPARENT
-               selector.centerX =  width/2 + cos(c.hue/360*2*PI + PI)*(selectorRadius*(if (c.opacity==1.0) 0.5*c.saturation else 1 - 0.5*c.opacity))
-               selector.centerY = height/2 + sin(c.hue/360*2*PI + PI)*(selectorRadius*(if (c.opacity==1.0) 0.5*c.saturation else 1 - 0.5*c.opacity))
+               selector.center = size/2.0 + (c.hue+180).unitCircleDegP * (selectorRadius*(if (c.opacity==1.0) 0.5*c.saturation else 1 - 0.5*c.opacity))
             }
          }.apply {
             lay += Thumbnail(selectorRadius*2, selectorRadius*2).run {
@@ -369,12 +366,11 @@ class Hue(widget: Widget): SimpleController(widget) {
 
                fun updateFromMouse(it: MouseEvent) {
                   if (!readOnly.value) {
-                     val d = pane.layoutBounds.centre distance it.xy
                      val c = image.value!!.pixelReader.getColor(it.x.toInt().clip(0, selectorRadius.toInt()*2-1), it.y.toInt().clip(0, selectorRadius.toInt()*2-1))
                      val isOuter = c==TRANSPARENT
                      val cBriRaw = if (isOuter) 0.0 else c.opacity
                      val cBri = (1 + cBriRaw*253).toInt()
-                     val cHueRaw = ((PI-atan2(pane.layoutBounds.centre.x-it.x, pane.layoutBounds.centre.y-it.y))/2/PI-0.25).mod(1.0)
+                     val cHueRaw = (((pane.layoutBounds.centre - it.xy).atan2())/2/PI).mod(1.0)
                      val cHue = (cHueRaw*65535).toInt()
                      val cSatRaw = if (isOuter) 1.0 else c.saturation
                      val cSat = (cSatRaw*245).toInt()

@@ -101,6 +101,7 @@ import sp.it.util.conf.lengthMax
 import sp.it.util.conf.uiConverterElement
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
+import sp.it.util.dev.printIt
 import sp.it.util.file.div
 import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsObject
@@ -116,10 +117,12 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.math.clip
+import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.map
 import sp.it.util.reactive.notNull
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -133,6 +136,7 @@ import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.text.split3
 import sp.it.util.type.atomic
+import sp.it.util.ui.alpha
 import sp.it.util.ui.centre
 import sp.it.util.ui.dsl
 import sp.it.util.ui.flowPane
@@ -146,6 +150,7 @@ import sp.it.util.ui.scrollPane
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.ui.xy
 import sp.it.util.units.seconds
 import sp.it.util.units.uri
 import sp.it.util.units.version
@@ -346,7 +351,7 @@ class Hue(widget: Widget): SimpleController(widget) {
          isVisible = false
          stroke = Color.BLACK
          strokeWidth = 1.0
-         fillProperty() syncFrom color.notNull(TRANSPARENT)
+         fillProperty() syncFrom color.notNull(TRANSPARENT).map { it.alpha(0.5+0.5*it.opacity) }
       }
       val node = vBox {
          alignment = TOP_CENTER
@@ -364,17 +369,17 @@ class Hue(widget: Widget): SimpleController(widget) {
 
                fun updateFromMouse(it: MouseEvent) {
                   if (!readOnly.value) {
-                     val d = pane.layoutBounds.centre.distance(it.x x it.y)
-                     if (d < selectorRadius) {
-                        val o = 2-(d/selectorRadius).clip(0.5, 1.0)*2
-                        val c = image.value!!.pixelReader.getColor(it.x.toInt().clip(0, selectorRadius.toInt()*2), it.y.toInt().clip(0, selectorRadius.toInt()*2)).deriveColor(0.0, 1.0, 1.0, o)
-                        val cBri = 1 + ((c.opacity) * 253).toInt()
-                        val cHue = (c.hue/360.0*65535).toInt()
-                        val cSat = (c.saturation*245).toInt()
-                        changeToBulb(HueBulb("", "", "", HueBulbState(true, cBri, cHue, cSat, true), mapOf()))
-
-                        if (!isDragged) applyToSelected(cBri, cHue, cSat)
-                     }
+                     val d = pane.layoutBounds.centre distance it.xy
+                     val c = image.value!!.pixelReader.getColor(it.x.toInt().clip(0, selectorRadius.toInt()*2-1), it.y.toInt().clip(0, selectorRadius.toInt()*2-1))
+                     val isOuter = c==TRANSPARENT
+                     val cBriRaw = if (isOuter) 0.0 else c.opacity
+                     val cBri = (1 + cBriRaw*253).toInt()
+                     val cHueRaw = ((PI-atan2(pane.layoutBounds.centre.x-it.x, pane.layoutBounds.centre.y-it.y))/2/PI-0.25).mod(1.0)
+                     val cHue = (cHueRaw*65535).toInt()
+                     val cSatRaw = if (isOuter) 1.0 else c.saturation
+                     val cSat = (cSatRaw*245).toInt()
+                     changeToBulb(HueBulb("", "", "", HueBulbState(true, cBri, cHue, cSat, true), mapOf()))
+                     if (!isDragged) applyToSelected(cBri, cHue, cSat)
                   }
                }
                pane.onEventDown(MOUSE_PRESSED, PRIMARY) { isDragged = true }

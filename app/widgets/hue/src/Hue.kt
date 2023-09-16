@@ -116,7 +116,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.math.clip
 import sp.it.util.math.min
 import sp.it.util.reactive.Suppressor
-import sp.it.util.reactive.attach
+import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.notNull
 import sp.it.util.reactive.on
@@ -511,22 +511,21 @@ class Hue(widget: Widget): SimpleController(widget) {
                      color.changeToBulbGroup(hue)
                   }
 
-                  focusedProperty() attach { focusBulbGroup() }
-
-                  onEventDown(KEY_PRESSED, SPACE) { toggleBulbGrouo() }
-                  onEventDown(MOUSE_CLICKED, PRIMARY) {
-                     if (it.clickCount==1) focusBulbGroup()
-                     if (it.clickCount==2) toggleBulbGrouo()
+                  HueCell(HueCellNode(this, group.name), this).apply {
+                     icon.focusedProperty() attachTrue { focusBulbGroup() }
+                     node.onEventDown(KEY_PRESSED, SPACE) { toggleBulbGrouo() }
+                     node.onEventDown(MOUSE_CLICKED, PRIMARY) {
+                        if (it.clickCount==1) focusBulbGroup()
+                        if (it.clickCount==2) toggleBulbGrouo()
+                     }
+                     node.onContextMenuRequested = EventHandler {
+                        if (hue.id!="0")
+                           ContextMenu().dsl {
+                              item("Toggle bulbs on/off", keys = keys(Key.SPACE)) { toggleBulbGrouo() }
+                              item("Delete", keys = keys(Key.DELETE)) { deleteBulbGrouo() }
+                           }.show(node, RIGHT, 0.0, 0.0)
+                     }
                   }
-                  onContextMenuRequested = EventHandler {
-                     if (hue.id!="0")
-                        ContextMenu().dsl {
-                           item("Toggle bulbs on/off", keys = keys(Key.SPACE)) { toggleBulbGrouo() }
-                           item("Delete", keys = keys(Key.DELETE)) { deleteBulbGrouo() }
-                        }.show(this, RIGHT, 0.0, 0.0)
-                  }
-
-                  HueCell(HueCellNode(this, group.name), this)
                }
             }.run {
                icon.hue = group
@@ -592,21 +591,22 @@ class Hue(widget: Widget): SimpleController(widget) {
                      color.changeToBulb(hue)
                   }
 
-                  focusedProperty() attach { focusBulb() }
-                  onEventDown(KEY_PRESSED, SPACE) { toggleBulb() }
-                  onEventDown(MOUSE_CLICKED, PRIMARY) {
-                     if (it.clickCount==1) focusBulb()
-                     if (it.clickCount==2) toggleBulb()
-                  }
-                  onContextMenuRequested = EventHandler {
-                     ContextMenu().dsl {
-                        item("Rename") { rename() }
-                        item("Toggle on/off", keys = keys(Key.SPACE)) { toggleBulb() }
-                        if (hue.confPowerOn!=null) item("Power on behavior") { changePowerOn() }
-                     }.show(this, RIGHT, 0.0, 0.0)
-                  }
 
-                  HueCell(HueCellNode(this, bulb.name), this)
+                  HueCell(HueCellNode(this, bulb.name), this).apply {
+                     icon.focusedProperty() attachTrue { focusBulb() }
+                     node.onEventDown(KEY_PRESSED, SPACE) { toggleBulb() }
+                     node.onEventDown(MOUSE_CLICKED, PRIMARY) {
+                        if (it.clickCount==1) focusBulb()
+                        if (it.clickCount==2) toggleBulb()
+                     }
+                     node.onContextMenuRequested = EventHandler {
+                        ContextMenu().dsl {
+                           item("Rename") { rename() }
+                           item("Toggle on/off", keys = keys(Key.SPACE)) { toggleBulb() }
+                           if (hue.confPowerOn!=null) item("Power on behavior") { changePowerOn() }
+                        }.show(node, RIGHT, 0.0, 0.0)
+                     }
+                  }
                }
             }.run {
                icon.hue = bulb
@@ -621,16 +621,17 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
       hueBridge.scenes() ui { scenes ->
          scenesPane.children setTo scenes.map { scene ->
-            Icon(null, 40.0).run {
+            fun focusScene() {
+               unfocusSensor()
+               unfocusBulbGroup()
+               unfocusBulb()
+            }
+
+            val icon = Icon(null, 40.0).apply {
                styleclass("hue-scene-icon")
-
-               fun focusScene() {
-                  unfocusSensor()
-                  unfocusBulbGroup()
-                  unfocusBulb()
-               }
-
-               focusedProperty() attach { focusScene() }
+            }
+            HueCellNode(icon, scene.name).apply {
+               icon.focusedProperty() attachTrue { focusScene() }
                onEventDown(KEY_PRESSED, SPACE) { focusScene() }
                onEventDown(MOUSE_CLICKED, PRIMARY) {
                   if (it.clickCount==1) focusScene()
@@ -643,7 +644,6 @@ class Hue(widget: Widget): SimpleController(widget) {
                      }
                   }.show(this, RIGHT, 0.0, 0.0)
                }
-               HueCellNode(this, scene.name)
             }
          }
          scenesPane.children += Icon(IconFA.PLUS).onClickDo {
@@ -667,33 +667,34 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
       hueBridge.sensors() ui { scenes ->
          sensorsPane.children setTo scenes.map { sensor ->
-            Icon(sensor.icon, 40.0).run {
-               styleclass("hue-sensor-icon")
+            fun focusSensor() {
+               unfocusSensor()
+               unfocusBulbGroup()
+               unfocusBulb()
+               infoPane.lay += devicePane
 
-               fun focusSensor() {
-                  unfocusSensor()
-                  unfocusBulbGroup()
-                  unfocusBulb()
-                  infoPane.lay += devicePane
-
-                  devicePane.lay.clear()
-                  devicePane.lay += textColon("Type", sensor.type)
-                  when (sensor.type) {
-                     "ZLLTemperature" -> sensor.stateTemperature.ifNotNull { devicePane.lay += textColon("Temperature", "$it°C") }
-                     "ZLLPresence" -> sensor.statePresence.ifNotNull { devicePane.lay += textColon("Presence", it) }
-                     "Daylight" -> sensor.stateDaylight.ifNotNull { devicePane.lay += textColon("Is daylight", it) }
-                     else -> IconMA.SETTINGS_INPUT_ANTENNA
-                  }
-                  if (devicePane.lay.children.isNotEmpty()) devicePane.lay += label()
-                  sensor.config.entries.sortedBy { it.key }.forEach { (name, value) ->
-                     devicePane.lay += textColon(name.capitalLower(), value)
-                  }
+               devicePane.lay.clear()
+               devicePane.lay += textColon("Type", sensor.type)
+               when (sensor.type) {
+                  "ZLLTemperature" -> sensor.stateTemperature.ifNotNull { devicePane.lay += textColon("Temperature", "$it°C") }
+                  "ZLLPresence" -> sensor.statePresence.ifNotNull { devicePane.lay += textColon("Presence", it) }
+                  "Daylight" -> sensor.stateDaylight.ifNotNull { devicePane.lay += textColon("Is daylight", it) }
+                  else -> IconMA.SETTINGS_INPUT_ANTENNA
                }
+               if (devicePane.lay.children.isNotEmpty()) devicePane.lay += label()
+               sensor.config.entries.sortedBy { it.key }.forEach { (name, value) ->
+                  devicePane.lay += textColon(name.capitalLower(), value)
+               }
+            }
+            val icon = Icon(sensor.icon, 40.0).apply {
+               styleclass("hue-sensor-icon")
                pseudoClassChanged("unreachable", sensor.config["reachable"]?.asIf<Boolean>() ?: false)
+            }
+            HueCellNode(icon, sensor.name).apply {
+               icon.focusedProperty() attachTrue { focusSensor() }
                onEventDown(MOUSE_CLICKED, PRIMARY) {
                   if (it.clickCount==1) focusSensor()
                }
-               HueCellNode(this, sensor.name)
             }
          }
       }
@@ -789,7 +790,9 @@ class HueCellNode(icon: Icon, name: String): VBox(5.emScaled) {
    init {
       prefSize = 90.emScaled x 80.emScaled
       alignment = TOP_CENTER
-      lay += icon
+      lay += icon.apply {
+         focusOwner.value = this@HueCellNode
+      }
       lay += label(name) {
          id = "nameLabel"
          isWrapText = true

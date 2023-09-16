@@ -456,7 +456,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                }
             }
             lay += infoPane.apply {
-               prefWidth = 200.emScaled
+               prefWidth = 210.emScaled
             }
          }
       }

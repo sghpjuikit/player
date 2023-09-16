@@ -7,6 +7,7 @@ import hue.HueBulbConfPowerOn.*
 import hue.HueGroupType.LightGroup
 import hue.HueGroupType.Lightsource
 import hue.HueGroupType.Luminaire
+import hue.HueGroupType.Room
 import hue.HueGroupType.Zone
 import hue.HueSceneType.GroupScene
 import hue.HueSceneType.LightScene
@@ -54,7 +55,10 @@ import javafx.scene.text.TextAlignment
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.layout.Widget
@@ -75,6 +79,8 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.textColon
 import sp.it.pl.main.toUi
+import sp.it.pl.plugin.impl.SpeechRecognition.SpeakHandler
+import sp.it.pl.plugin.impl.SpeechRecognition
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.form.Validated
 import sp.it.pl.ui.objects.icon.Icon
@@ -82,7 +88,9 @@ import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Util.pyth
 import sp.it.util.access.v
-import sp.it.util.async.coroutine.await
+import sp.it.util.async.FX_LATER
+import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.asFut
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
@@ -113,8 +121,10 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toUnit
 import sp.it.util.math.clip
 import sp.it.util.math.min
+import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.consumeScrolling
@@ -127,6 +137,7 @@ import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.browse
 import sp.it.util.text.capitalLower
+import sp.it.util.text.equalsNc
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.text.split3
@@ -167,6 +178,7 @@ class Hue(widget: Widget): SimpleController(widget) {
    val groupsPane = flowPane(10.emScaled, 10.emScaled)
    val scenesPane = flowPane(10.emScaled, 10.emScaled)
    val sensorsPane = flowPane(10.emScaled, 10.emScaled)
+   val speechHandlers = mutableListOf<SpeakHandler>()
 
    private val hueBridge = object: CoroutineScope by scope {
       val hueBridgeUserDevice = "spit-player"
@@ -175,7 +187,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       lateinit var apiVersion: KotlinVersion
       lateinit var url: String
 
-      fun init() = runSuspendingFx {
+      suspend fun init() {
          ip = hueBridgeIp.validIpOrNull() ?: ip() ?: fail { "Unable to obtain Phillips Hue bridge ip. Make sure it is turned on and connected to the network." }
          hueBridgeIp = ip
          apiKey = if (isAuthorizedApiKey(ip, hueBridgeApiKey)) hueBridgeApiKey else createApiKey(ip)
@@ -237,31 +249,21 @@ class Hue(widget: Widget): SimpleController(widget) {
          return response.parseToJson().asJsObject().value["apiversion"]?.asJsString()?.value ?: fail { "Could not obtain api version" }
       }
 
-      fun bulbs() = runSuspendingFx {
-         val response = client.getText("$url/lights")
-         response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueBulb>().copy(id = id) }
+      suspend fun bulbs(): List<HueBulb> = client.getText("$url/lights")
+         .parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueBulb>().copy(id = id) }
+
+      suspend fun groups(): List<HueGroup> = client.getText("$url/groups")
+         .parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueGroup>().copy(id = id) }
+
+      suspend fun bulbsAndGroups(): Pair<List<HueBulb>, List<HueGroup>> = (bulbs() to groups()).net { (bulbs, groups) ->
+         bulbs to groups + HueGroup("0", "All", listOf(), HueGroupState(bulbs.all { it.state.on }, bulbs.any { it.state.on }), null)
       }
 
-      fun groups() = runSuspendingFx {
-         val response = client.getText("$url/groups")
-         response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueGroup>().copy(id = id) }
-      }
+      suspend fun scenes(): List<HueScene> = client.getText("$url/scenes")
+         .parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueScene>().copy(id = id) }
 
-      fun bulbsAndGroups() = runSuspendingFx {
-         val bulbs = bulbs().await()
-         val groups = groups().await()
-         bulbs to groups + HueGroup("0", "All", listOf(), HueGroupState(bulbs.all { it.state.on }, bulbs.any { it.state.on }))
-      }
-
-      fun scenes() = runSuspendingFx {
-         val response = client.getText("$url/scenes")
-         response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueScene>().copy(id = id) }
-      }
-
-      fun sensors() = runSuspendingFx {
-         val response = client.getText("$url/sensors")
-         response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueSensor>().copy(id = id) }
-      }
+      suspend fun sensors(): List<HueSensor> =client.getText("$url/sensors")
+         .parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueSensor>().copy(id = id) }
 
       fun renameBulb(bulb: HueBulbId, name: String) = runSuspendingFx {
          client.put("$url/lights/$bulb") {
@@ -315,7 +317,7 @@ class Hue(widget: Widget): SimpleController(widget) {
          }
       }
 
-      fun createScene(scene: HueSceneCreate) = runSuspendingFx {
+      fun createScene(scene: HueSceneCreate) = async {
          client.postText("$url/scenes") {
             setBody(scene.toJson().asJsObject().withoutNullValues().toPrettyS())
          }
@@ -461,15 +463,22 @@ class Hue(widget: Widget): SimpleController(widget) {
          }
       }
 
+      onClose += { APP.plugins.use<SpeechRecognition> { it.handlers -= speechHandlers } }
+      APP.plugins.attachWhile<SpeechRecognition> {
+         it.handlers += speechHandlers
+         Subscription { it.handlers -= speechHandlers }
+      } on onClose
+
       root.sync1IfInScene { refresh() } on onClose
       onClose += { client.close() }
    }
 
-   fun Fut<*>.thenRefresh() = ui { refresh() }
+   fun Fut<*>.thenRefresh() = then(FX_LATER) { refresh().toUnit() }.toUnit()
 
-   fun linkBridge() = hueBridge.init() ui { }
+   fun linkBridge(): Job = scope.launch(FX) { hueBridge.init() }
 
-   fun refresh(): Fut<Any> = hueBridge.init() ui {
+   fun refresh(): Job = scope.launch(FX) {
+
       fun unfocusBulb() {
          selectedBulbIcon?.pseudoClassChanged("edited", false)
          selectedBulbIcon = null
@@ -489,7 +498,21 @@ class Hue(widget: Widget): SimpleController(widget) {
          infoPane.lay -= devicePane
       }
 
-      hueBridge.bulbsAndGroups() ui { (bulbs, groups) ->
+      hueBridge.init()
+      hueBridge.bulbsAndGroups().net { (bulbs, groups) ->
+         APP.plugins.use<SpeechRecognition> {
+            it.handlers -= speechHandlers
+            speechHandlers.clear()
+            speechHandlers += SpeakHandler("Turn all lights on/off",   "lights on|off") { text, _ -> if ("lights on" in text || "lights off" in text) hueBridge.toggleBulbGroup("0").thenRefresh() }
+            speechHandlers += SpeakHandler("Turn group lights on/off", "lights \$group-name on|off") { text, _ ->
+               if (text.startsWith("lights ")) {
+                  val gName = text.substring(7).removeSuffix(" on").removeSuffix(" off")
+                  val g = groups.find { it.name.lowercase() equalsNc gName }
+                  if (g!=null) hueBridge.toggleBulbGroup(g.id).thenRefresh()
+               }
+            }
+            it.handlers += speechHandlers
+         }
          groupsPane.children setTo groups.map { group ->
             hueBulbGroupCells.getOrPut(group.id) {
                HueIcon(IconFA.LIGHTBULB_ALT, 40.0, group).run {
@@ -535,7 +558,8 @@ class Hue(widget: Widget): SimpleController(widget) {
             }
          }
          groupsPane.children += Icon(IconFA.PLUS).onClickDo {
-            hueBridge.bulbs() ui { bulbsAll ->
+            scope.launch(FX) {
+               val bulbsAll = hueBridge.bulbs()
                object: ConfigurableBase<Any?>(), Validated {
                   var name by c("")
                   var type by c(Zone)
@@ -545,6 +569,7 @@ class Hue(widget: Widget): SimpleController(widget) {
 
                   override fun isValid() = when {
                      name.isEmpty() -> Try.error("Name can not be empty")
+                     type==Room && this.bulbs.selected(true).any { it.id in groups.asSequence().filter { it.type==Room.value }.flatMap { it.lights } } -> Try.error("Some bulbs are already in other group of Room type")
                      this.bulbs.selected(true).isEmpty() && type in setOf(Luminaire, LightGroup, Lightsource) -> Try.error("$type can not have no bulbs")
                      else -> Try.ok()
                   }
@@ -619,7 +644,7 @@ class Hue(widget: Widget): SimpleController(widget) {
             }
          }
       }
-      hueBridge.scenes() ui { scenes ->
+      hueBridge.scenes().net { scenes ->
          scenesPane.children setTo scenes.map { scene ->
             fun focusScene() {
                unfocusSensor()
@@ -647,7 +672,8 @@ class Hue(widget: Widget): SimpleController(widget) {
             }
          }
          scenesPane.children += Icon(IconFA.PLUS).onClickDo {
-            hueBridge.bulbs() ui { bulbsAll ->
+            scope.launch(FX) {
+               val bulbsAll = hueBridge.bulbs()
                object: ConfigurableBase<Any?>(), Validated {
                   var name by c("")
                   val bulbs by cCheckList(*bulbsAll.toTypedArray()).uiConverterElement { it.name }
@@ -660,12 +686,12 @@ class Hue(widget: Widget): SimpleController(widget) {
                      else -> Try.ok()
                   }
                }.configure("Create scene") {
-                  hueBridge.createScene(it.materialize()).thenRefresh()
+                  hueBridge.createScene(it.materialize()).asFut().thenRefresh()
                }
             }
          }
       }
-      hueBridge.sensors() ui { scenes ->
+      hueBridge.sensors().net { scenes ->
          sensorsPane.children setTo scenes.map { sensor ->
             fun focusSensor() {
                unfocusSensor()
@@ -808,7 +834,7 @@ data class HueBulb(val id: HueBulbId = "", val name: String, val productname: St
    val confPowerOn get() = config["startup"]?.asIf<HueMap>()?.get("mode")?.asIs<String>()?.net(HueBulbConfPowerOn::valueOf)
 }
 data class HueGroupState(val all_on: Boolean, val any_on: Boolean)
-data class HueGroup(val id: HueGroupId = "", val name: String, val lights: List<HueBulbId>, val state: HueGroupState)
+data class HueGroup(val id: HueGroupId = "", val name: String, val lights: List<HueBulbId>, val state: HueGroupState, val type: String?)
 data class HueGroupCreate(val name: String, val type: String, val lights: List<HueBulbId>)
 data class HueScene(val id: HueSceneId = "", val name: String, val lights: List<HueBulbId>)
 data class HueSceneCreate(val name: String, val type: HueSceneType, val group: HueGroupId?, val lights: List<HueBulbId>?, val recycle: Boolean = false) {

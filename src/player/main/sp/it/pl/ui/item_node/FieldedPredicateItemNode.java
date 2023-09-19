@@ -26,9 +26,7 @@ import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.type.TypesKt.notnull;
 
-/**
- * Filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate.
- */
+/** Filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate. */
 public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends ValueNode<Predicate<V>> {
 
 	private static final Tooltip negTooltip = new Tooltip("Negate");
@@ -42,22 +40,19 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	private boolean inconsistentState = false;
 	private boolean empty = true;
 
-	@SuppressWarnings({"unchecked", "rawtypes", "UseBulkOperation"})
+	@SuppressWarnings({"unchecked", "rawtypes", "RedundantCast"})
 	public FieldedPredicateItemNode() {
 		this(inRaw -> {
+			var typeB = new VType<>(Boolean.class, false);
 			var in = notnull(inRaw);
-			var fsIO = Functors.pool.getIO(in, new VType<>(Boolean.class, false));
 			var fsI = Functors.pool.getI(in);
-			var fsAll = new PrefList();
-			fsIO.forEach(fsAll::add);
-			fsI.stream().filter(it -> it.getParameters().size()==0 && !fsAll.contains(it)).forEach(fsAll::add);
-			fsAll.setPreferred(fsIO.getPreferred());
-			return fsAll;
+			fsI.removeIf(it -> !(it.getOut().equals(typeB) || it.getParameters().isEmpty()));
+			return (PrefList) fsI;
 		});
 	}
 
 	@SuppressWarnings("unchecked")
-	public FieldedPredicateItemNode(Function1<VType<?>,PrefList<PF<Object,?>>> predicatePool) {
+	public FieldedPredicateItemNode(Function1<VType<?>, PrefList<PF<Object,?>>> predicatePool) {
 		super((Predicate<V>) IS);
 
 		root.setAlignment(CENTER_LEFT);

@@ -25,7 +25,7 @@ import static sp.it.util.functional.Util.ISNT0;
 @SuppressWarnings({"unchecked", "unused"})
 public interface Functors {
 
-	FunctorPool pool = new FunctorPool();
+	@NotNull FunctorPool pool = new FunctorPool();
 
 	/** Marker interface for lambda. */
 	interface L {}

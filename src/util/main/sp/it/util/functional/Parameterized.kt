@@ -43,37 +43,39 @@ abstract class PF<I, O>(val name: String, val `in`: VType<I>, val out: VType<O>,
       IDENTITY, IS0, ISNT0, IS, ISNT -> f.asIs()
       else -> TypeAwareF({ i -> apply(i, args.toTypedArray()) }, `in`, out)
    }
+   override fun equals(other: Any?) = this===other || (other is PF<*,*> && name==other.name && `in`==other.`in` && parameters==other.parameters && f==other.f)
+   override fun hashCode() = 31*(31*(31*(31*name.hashCode() + `in`.hashCode()) + out.hashCode()) + parameters.hashCode()) + f.hashCode()
 }
 
 /** Parametric function, `I -> O` function defined as `(I, P1, P2, ..., Pn) -> O` variadic function with parameters. */
-class PF0<I, O>(_name: String, i: VType<I>, o: VType<O>, val f: (I) -> O): PF<I, O>(_name, i, o, f) {
+class PF0<I, O>(name: String, i: VType<I>, o: VType<O>, val f: (I) -> O): PF<I, O>(name, i, o, f) {
    override val parameters: Params = listOf()
    override fun apply(i: I, args: Args): O = f(i)
 }
 
 /** Unary parametric function. */
 @Suppress("UNCHECKED_CAST")
-class PF1<I, P1, O>(_name: String, i: VType<I>, o: VType<O>, val p1: Parameter<P1>, val f: (I, P1) -> O): PF<I, O>(_name, i, o, f) {
+class PF1<I, P1, O>(name: String, i: VType<I>, o: VType<O>, val p1: Parameter<P1>, val f: (I, P1) -> O): PF<I, O>(name, i, o, f) {
    override val parameters: Params = listOf(p1).asIs()
    override fun apply(i: I, args: Args): O = f(i, args[0] as P1)
 }
 
 /** Binary parametric function. */
 @Suppress("UNCHECKED_CAST")
-class PF2<I, P1, P2, O>(_name: String, i: VType<I>, o: VType<O>, val p1: Parameter<P1>, val p2: Parameter<P2>, val f: (I, P1, P2) -> O): PF<I, O>(_name, i, o, f) {
+class PF2<I, P1, P2, O>(name: String, i: VType<I>, o: VType<O>, val p1: Parameter<P1>, val p2: Parameter<P2>, val f: (I, P1, P2) -> O): PF<I, O>(name, i, o, f) {
    override val parameters: Params = listOf(p1, p2).asIs()
    override fun apply(i: I, args: Args): O = f(i, args[0] as P1, args[1] as P2)
 }
 
 /** Tertiary  parametric function. */
 @Suppress("UNCHECKED_CAST")
-class PF3<I, P1, P2, P3, O>(_name: String, i: VType<I>, o: VType<O>, val p1: Parameter<P1>, val p2: Parameter<P2>, val p3: Parameter<P3>, val f: (I, P1, P2, P3) -> O): PF<I, O>(_name, i, o, f) {
+class PF3<I, P1, P2, P3, O>(name: String, i: VType<I>, o: VType<O>, val p1: Parameter<P1>, val p2: Parameter<P2>, val p3: Parameter<P3>, val f: (I, P1, P2, P3) -> O): PF<I, O>(name, i, o, f) {
    override val parameters: Params = listOf(p1, p2, p3).asIs()
    override fun apply(i: I, args: Args): O = f(i, args[0] as P1, args[1] as P2, args[2] as P3)
 }
 
 /** N-ary parametric function. */
-class PFN<I, O>(_name: String, i: VType<I>, o: VType<O>, val ps: Array<Parameter<Any?>>, val f: (I, Args) -> O): PF<I, O>(_name, i, o, f) {
+class PFN<I, O>(name: String, i: VType<I>, o: VType<O>, val ps: Array<Parameter<Any?>>, val f: (I, Args) -> O): PF<I, O>(name, i, o, f) {
    override val parameters: Params = ps.toList().asIs()
    override fun apply(i: I, args: Args): O = f(i, args)
 }

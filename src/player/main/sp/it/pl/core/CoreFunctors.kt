@@ -104,9 +104,9 @@ import sp.it.util.units.uri
 
 object CoreFunctors: Core {
 
-   private val pool = Functors.pool
+   val pool = Functors.pool
 
-   @Suppress("LocalVariableName", "UNUSED_ANONYMOUS_PARAMETER", "RemoveExplicitTypeArguments")
+   @Suppress("LocalVariableName", "UNUSED_ANONYMOUS_PARAMETER")
    override fun init() {
       pool.apply {
          // Negated predicates are disabled, user interface should provide negation ability

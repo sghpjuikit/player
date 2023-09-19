@@ -56,6 +56,9 @@ public interface Util {
 	/** Predicate returning false. Matches no object. */
 	FP<Object> ISNT = o -> false;
 
+	/** Predicate returning {@link java.util.Objects#equals(Object, Object)}. Matches no object. */
+	F2<Object, Object, Boolean> EQ = (a, b) -> Objects.equals(a, b);
+
 	/** Comparator returning 0. Produces no order change. */
 	Comparator<Object> SAME = (a,b) -> 0;
 

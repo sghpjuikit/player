@@ -4,6 +4,7 @@ import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.ComboBox
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.SOMETIMES
+import sp.it.pl.core.CoreFunctors
 import sp.it.pl.main.F
 import sp.it.pl.main.appTooltip
 import sp.it.pl.ui.objects.SpitComboBox
@@ -14,11 +15,15 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
+import sp.it.util.functional.CollectionAll
+import sp.it.util.functional.CollectionAny
+import sp.it.util.functional.CollectionNon
 import sp.it.util.functional.PF
 import sp.it.util.functional.Parameter
 import sp.it.util.functional.asIs
 import sp.it.util.functional.compose
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.net
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sizes
@@ -28,6 +33,7 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
 import sp.it.util.type.VType
 import sp.it.util.type.isSubtypeOf
+import sp.it.util.type.raw
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
 import sp.it.util.ui.lay
@@ -73,7 +79,12 @@ class FItemNode<I, O>(typeIn: VType<I>, typeOutTargeted: VType<O>, functionPool:
          var isInitializing = true
          FItem().apply {
 
-            val functions = functionPool(fs.lastOrNull()?.fCB?.value?.out ?: typeIn)
+            val type = fs.lastOrNull()?.fCB?.value?.out ?: typeIn
+            val typeIsSyntheticCollection = type.raw.net { it==CollectionAll::class || it==CollectionAny::class || it==CollectionNon::class }
+            val functions = when {
+               typeIsSyntheticCollection -> CoreFunctors.pool.getCollectionMappers(type)
+               else -> functionPool(type)
+            }
 
             fs += this
             mapperNodes.children += fCB

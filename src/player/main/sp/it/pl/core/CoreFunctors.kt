@@ -147,10 +147,10 @@ object CoreFunctors: Core {
          val pRegex = p("Regex", "Regular expression", Pattern.compile(""))
 
          add("Is null", type<Any?>(), B, IS0)
-         add("Class (Kotlin)", type<Any?>(), type<KClass<*>>()) { if (it==null) Nothing::class else it::class }
-         add("Class (Java)", type<Any?>(), type<Class<*>>()) { if (it==null) Void::class.java else it::class.java }
-         add("Is", type<Class<*>>(), B, p<Class<*>>(Unit::class.java)) { it, c -> it===c }
-         add("Is", type<KClass<*>>(), B, p<KClass<*>>(Unit::class)) { it, c -> it===c }
+         add("Is type (Kotlin Class)", type<KClass<*>>(), B, p<KClass<*>>(Unit::class)) { it, c -> it===c }
+         add("Is type (Java Class)", type<Class<*>>(), B, p<Class<*>>(Unit::class.java)) { it, c -> it===c }
+         add("Type (Kotlin Class)", type<Any?>(), type<KClass<*>>()) { if (it==null) Nothing::class else it::class }
+         add("Type (Java Class)", type<Any?>(), type<Class<*>>()) { if (it==null) Void::class.java else it::class.java }
          add("Type", type<Any?>(), type<VType<Any?>>()) { it.estimateRuntimeType() }
          add("To String", type<Any?>(), S) { Objects.toString(it) }
          add("To application UI text", type<Any?>(), S) { it.toUi() }

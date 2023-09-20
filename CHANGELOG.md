@@ -4,11 +4,6 @@ All notable changes to this project will be documented in this file. Format base
 ## [Latest]
 - Update Kotlin to 1.9.20-Beta
 - Update dependencies
-- Fix **ContainerFreeForm** the largest empty area computation
-- Fix `PluginInstalledEvent.toUi` freezing application
-- Fix `Action Log` opening only if errors are present
-- Fix **Hue Scenes** widget color picker selector position not correct sometimes
-- Fix **Hue Scenes** threading causing freezing application
 - Improve `Action log` to support showing in case of 0 errors
 - Improve `Action log` error filter
 - Improve menus of Components (add layout actions)
@@ -23,6 +18,15 @@ All notable changes to this project will be documented in this file. Format base
 - Implement open widget voice actions
 - Implement **SpeechSynthesizer** plugin speak action name variations for better UX
 - Implement **Hue Scenes** widget toggle lights voice actions
+- Implement all/any/none functions for filtering/mapping lists
+- Fix **ContainerFreeForm** the largest empty area computation
+- Fix `PluginInstalledEvent.toUi` freezing application
+- Fix `Action Log` opening only if errors are present
+- Fix **Hue Scenes** widget color picker selector position not correct sometimes
+- Fix **Hue Scenes** threading causing freezing application
+- Fix **Hue Scenes** threading causing freezing application
+- Fix filter showing some functions multiple times
+- Fix filter function naming is sometimes ambiguous
 
 ## Voice recognition plugin
 Voice recognition now uses locally running OpenAI Whisper Python program.

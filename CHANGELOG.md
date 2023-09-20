@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **SpeechSynthesizer** plugin speak action name variations for better UX
 - Implement **Hue Scenes** widget toggle lights voice actions
 - Implement all/any/none functions for filtering/mapping lists
+- Implement Song Group Table songs column as List<Song> which enables filtering groups by song attributes
 - Fix **ContainerFreeForm** the largest empty area computation
 - Fix `PluginInstalledEvent.toUi` freezing application
 - Fix `Action Log` opening only if errors are present

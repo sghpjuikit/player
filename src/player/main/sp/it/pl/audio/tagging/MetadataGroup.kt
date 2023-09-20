@@ -17,6 +17,7 @@ class MetadataGroup {
    val field: Metadata.Field<*>
    val isAll: Boolean
    val value: Any?
+   val items: List<Metadata>
    val itemCount: Long
    val albumCount: Long
    val lengthInMs: Double
@@ -30,6 +31,7 @@ class MetadataGroup {
       this.field = field
       this.isAll = isAll
       this.value = value
+      this.items = ms.toList()
       grouped = LinkedHashSet(ms)
       itemCount = ms.size.toLong()
       year = RangeYear()
@@ -57,7 +59,7 @@ class MetadataGroup {
    /** get total file size */
    fun getFileSize(): FileSize = FileSize(fileSizeInB)
 
-   fun getValueS(empty_val: String): String = Field.VALUE.toS(this, value, empty_val)
+   fun getValueS(emptyVal: String): String = Field.VALUE.toS(this, value, emptyVal)
 
    fun getMainField(): Field<*> = Field.VALUE
 
@@ -79,7 +81,7 @@ class MetadataGroup {
       override fun cWidth(): Double = if (this===VALUE) 250.0 else 70.0
 
       object VALUE: Field<Any?>(type(), { it.value }, { o, or -> o?.toUi() ?: or }, "Value", "Song field to group by")
-      object ITEMS: Field<Long>(type(), { it.itemCount }, { o, or -> o?.toUi() ?: or }, "Items", "Number of songs in the group")
+      object ITEMS: Field<List<Metadata>>(type(), { it.items }, { o, or -> o?.size?.toUi() ?: or }, "Songs", "Songs in the group")
       object ALBUMS: Field<Long>(type(), { it.albumCount }, { o, or -> o?.toUi() ?: or }, "Albums", "Number of albums in the group")
       object LENGTH: Field<Duration>(type(), { it.getLength() }, { o, or -> o?.toHMSMs(false) ?: or }, "Length", "Total length of the group")
       object SIZE: Field<FileSize>(type(), { it.getFileSize() }, { o, or -> o?.toUi() ?: or }, "Size", "Total file size of the group")

@@ -17,7 +17,6 @@
 - Implement Weather widget to have reactive layout
 - Implement icons and widget metadata for all Node widgets
 - Implement more convenient plugin on/off toggle in Plugin Management
-- Implement Song Group table Playing icon column
 - Document all used libraries, how they are used, why, where not to use them, etc.
 - Experiment with StartScreen that keeps content loaded between hide/show
 - Implement **vlc**/**mpeg** setup to be restartable
@@ -30,8 +29,6 @@
   Should support arbitrary N(0-1) -> N(0-1) function and config dsl
 - App onStart/End command user defined callbacks
   Requires CommandRunnable of sort
-- MetadataGroup filter by Song predicate
-  Unclear how the predicate should be generalized (group.anyMatch(predicate)? group.allMatch(predicate)?), ui needs work
 - File rename event
   Similar to file delete event, then support file renaming in file tables/grids 
 - Optimize markdown & support selection
@@ -98,8 +95,8 @@
   fixed
 - [x] [JDK-8195750](https://bugs.openjdk.java.net/browse/JDK-8195750) `sp.it.pl.ui.nodeinfo.TableInfo` change throws exception sometimes  
   open, but no longer occurs
-- [ ] [KT-41373](https://youtrack.jetbrains.com/issue/KT-41373) Reflection: Anonymous class inspection fails  
-  reported, open, worked around by using anonymous class's superclass for reflection
+- [x] [KT-41373](https://youtrack.jetbrains.com/issue/KT-41373) Reflection: Anonymous class inspection fails  
+  fixed
 - [x] [KT-41310](https://youtrack.jetbrains.com/issue/KT-41310) ReflectionL Creating `KType` from `Java`  
   reported, not an issue
 - [x] [KT-41309](https://youtrack.jetbrains.com/issue/KT-41309) Kotlinc: `-cp`  requiring escape after Kotlin update

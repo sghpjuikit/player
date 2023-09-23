@@ -7,7 +7,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -256,73 +255,9 @@ public class Playlist extends ObservableListWrapper<PlaylistSong> {
 	 * @return updated indexes of moved songs.
 	 */
 	public List<Integer> moveItemsBy(List<Integer> indexes, int by) {
-		List<List<Integer>> blocks = slice(indexes);
-		List<Integer> newSelected = new ArrayList<>();
-
-		try {
-			if (by>0) {
-				for (int i = blocks.size() - 1; i>=0; i--)
-					newSelected.addAll(moveItemsByBlock(blocks.get(i), by));
-			} else if (by<0) {
-				for (List<Integer> block : blocks)
-					newSelected.addAll(moveItemsByBlock(block, by));
-			}
-		} catch (IndexOutOfBoundsException e) {
-			return indexes;
-		}
-		return newSelected;
-	}
-
-	private List<Integer> moveItemsByBlock(List<Integer> indexes, int by) throws IndexOutOfBoundsException {
-		List<Integer> newSelected = new ArrayList<>();
-		try {
-			if (by>0) {
-				for (int i = indexes.size() - 1; i>=0; i--) {
-					int ii = indexes.get(i);
-					Collections.swap(this, ii, ii + by);
-					newSelected.add(ii + by);
-				}
-
-			} else if (by<0) {
-				for (int ii : indexes) {
-					Collections.swap(this, ii, ii + by);
-					newSelected.add(ii + by);
-				}
-			}
-		} catch (IndexOutOfBoundsException ex) {
-			// thrown if moved block hits start or end of the playlist
-			// this gets rid of enormously complicated if statement
-			// return old indexes
-//            return indexes;
-			throw new IndexOutOfBoundsException();
-		}
-		return newSelected;
-	}
-
-	// slice to monolithic blocks
-	private List<List<Integer>> slice(List<Integer> indexes) {
-		if (indexes.isEmpty()) return new ArrayList<>();
-
-		List<List<Integer>> blocks = new ArrayList<>();
-		blocks.add(new ArrayList<>());
-		int last = indexes.get(0);
-		int list = 0;
-		blocks.get(list).add(indexes.get(0));
-		for (int i = 1; i<indexes.size(); i++) {
-			int index = indexes.get(i);
-			if (index==last + 1) {
-				blocks.get(list).add(index);
-				last++;
-			} else {
-				list++;
-				last = index;
-				List<Integer> newL = new ArrayList<>();
-				newL.add(index);
-				blocks.add(newL);
-			}
-		}
-
-		return blocks;
+		var result = PlaylistUtilsKt.moveItemsBy(this, indexes, by);
+		setAll(result.component1());
+		return result.getSecond();
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */

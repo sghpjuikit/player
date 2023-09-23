@@ -42,7 +42,6 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.input.TransferMode.ANY;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.isM3uPlaylist;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.readM3uPlaylist;
@@ -62,7 +61,6 @@ import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runNew;
 import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
-import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.attach;
@@ -201,27 +199,20 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			var dist = e.getScreenY() - selectionLastScreenY;
 			int by = (int) (dist/getFixedCellSize());
 			if (by!=0) {
-				// snapshot item state
-				movingAll = movingAll!=null ? movingAll : list(getItems());
-				movingSelected = movingSelected!=null ? movingSelected : list(getSelectionModel().getSelectedIndices());
-
 				// apply sorting order into items and clear sorting
 				if (itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
 					movingItems = true;
+					var itemsToMove = new ArrayList<>(getItemsRaw());
+					var indexesToMove = new ArrayList<>(getSelectionModel().getSelectedIndices());
 					setItemsRaw(listRO());
 					getSortOrder().clear();
-					setItemsRaw(movingAll);
-					selectRows(movingSelected, getSelectionModel());
+					setItemsRaw(itemsToMove);
+					selectRows(indexesToMove, getSelectionModel());
 					movingItems = false;
 				}
-
 				moveSelectedItems(by);
 				selectionLastScreenY = e.getScreenY();
 			}
-		});
-		addEventFilter(MOUSE_RELEASED, e -> {
-			movingAll = null;
-			movingSelected = null;
 		});
 
 		// set key-induced actions
@@ -328,8 +319,6 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 /* --------------------- SELECTION ---------------------------------------------------------------------------------- */
 
 
-	private List<PlaylistSong> movingAll = null;
-	private List<Integer> movingSelected = null;
 	public boolean movingItems = false;
 	ChangeListener<PlaylistSong> selItemListener = (o, ov, nv) -> {
 		if (movingItems) return;
@@ -350,10 +339,10 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 	 * @param by distance to move items by. Negative moves back. Zero does nothing.
 	 */
 	public void moveSelectedItems(int by) {
-		movingItems = true;    // lock to avoid firing selectedChange event (important)
-		var newS = getPlaylist().moveItemsBy(movingSelected, by);
+		movingItems = true;
+		var newS = getPlaylist().moveItemsBy(getSelectionModel().getSelectedIndices(), by);
 		selectRows(newS, getSelectionModel());
-		movingItems = false;    // release lock
+		movingItems = false;
 	}
 
 /* --------------------- DRAG AND DROP ------------------------------------------------------------------------------ */

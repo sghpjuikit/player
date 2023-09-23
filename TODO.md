@@ -61,8 +61,6 @@
   - transformation chain projection slider: cut off transformation tail
   - column: line numbers
   - column: item numbers
-- Fix the bug where playlist song moving (CTRL+drag) changes order of unrelated songs when moving too fast  
-  Low priority
 - Implement **Settings** sort option DEFAULT/BY_NAME  
   `CheckIcon(sortAlphabetically).icons(IconFA.SORT_ALPHA_ASC, IconFA.SORT_AMOUNT_ASC)`
 - Implement application **ui-less** mode properly (no window needs to be open)  

@@ -73,6 +73,7 @@ import static sp.it.util.async.AsyncKt.runVT;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IS;
+import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.UtilKt.consumer;
@@ -138,14 +139,21 @@ public class FilteredTable<T> extends FieldedTable<T> {
 					updateComparator();
 					var fi = new ArrayList<>(filteredItems);
 					var c = computeComparatorMemoized();
-					runVT(() -> {
-						fi.sort(c);
-						return null;
-					}).ui(i -> {
+
+					// do async only if necessary
+					if (c==SAME) {
 						sortedItems.setAll(fi);
 						itemsSortingWrapper.setValue(false);
-						return null;
-					});
+					} else {
+						runVT(() -> {
+							fi.sort(c);
+							return null;
+						}).ui(i -> {
+							sortedItems.setAll(fi);
+							itemsSortingWrapper.setValue(false);
+							return null;
+						});
+					}
 //				}
 			}
 			return true;

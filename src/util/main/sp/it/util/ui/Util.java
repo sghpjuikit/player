@@ -327,13 +327,8 @@ public interface Util {
 	 */
 	static void selectRows(List<Integer> selectedIndexes, TableViewSelectionModel<?> selectionModel) {
 		selectionModel.clearSelection();
-		var newSelected = new int[selectedIndexes.size()];
-		for (int i = 0; i<selectedIndexes.size(); i++) {
-			newSelected[i] = selectedIndexes.get(i);
-		}
-		if (newSelected.length!=0) {
-			selectionModel.selectIndices(newSelected[0], newSelected);
-		}
+		if (!selectedIndexes.isEmpty())
+			selectionModel.selectIndices(selectedIndexes.get(0), selectedIndexes.stream().skip(1).mapToInt(it -> it).toArray());
 	}
 
 /* ---------- EVENT ------------------------------------------------------------------------------------------------- */

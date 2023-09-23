@@ -46,7 +46,9 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 			var typeB = new VType<>(Boolean.class, false);
 			var in = notnull(inRaw);
 			var fsI = Functors.pool.getI(in);
+			var fsIO = Functors.pool.getIO(in, new VType<>(Boolean.class, false));
 			fsI.removeIf(it -> !(it.getOut().equals(typeB) || it.getParameters().isEmpty()));
+			if (fsI.contains(fsIO.getPreferred())) ((PrefList) fsI).setPreferred(fsIO.getPreferred());
 			return (PrefList) fsI;
 		});
 	}

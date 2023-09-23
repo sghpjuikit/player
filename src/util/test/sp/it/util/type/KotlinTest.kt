@@ -5,9 +5,15 @@ import io.kotest.matchers.shouldBe
 
 class KotlinTest: FreeSpec({
    "KT" - {
+      // https://youtrack.jetbrains.com/issue/KT-41322
+      "KT-41322" {
+         KotlinKT41322.Foo::class.annotations
+         KotlinKT41322.Foo::class.isData shouldBe false
+      }
       // https://youtrack.jetbrains.com/issue/KT-41373
       "KT-41373" {
          KotlinKT41373.method()::class.annotations
+         KotlinKT41373.method()::class.isData shouldBe false
       }
       // https://youtrack.jetbrains.com/issue/KT-22792
       "KT-22792".config(enabled = false) {

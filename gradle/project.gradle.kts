@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "1.9.20-Beta"
+   kotlin("jvm") version "1.9.20-Beta2"
    application
    id("com.github.ben-manes.versions") version "0.48.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.3"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
@@ -99,7 +99,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "21"
+         val version = "22-ea+9"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"

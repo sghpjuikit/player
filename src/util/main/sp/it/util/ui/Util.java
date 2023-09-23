@@ -9,7 +9,6 @@ import javafx.scene.Node;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -311,24 +310,6 @@ public interface Util {
 				return it instanceof ScrollBar scr && isNotContent && scr.getOrientation()==orientation;
 			})
 			.findFirst().orElse(null);
-	}
-
-/* ---------- TABLE ------------------------------------------------------------------------------------------------- */
-
-	/**
-	 * Convenience method to make it easier to select given rows of the
-	 * TableView via its SelectionModel.
-	 * This method provides alternative to TableViewSelectionModel.selectIndices()
-	 * that requires array parameter. This method makes the appropriate conversions
-	 * and selects the items using List parameter
-	 * <p/>
-	 * After the method is invoked only the provided rows will be selected - it
-	 * clears any previously selected rows.
-	 */
-	static void selectRows(List<Integer> selectedIndexes, TableViewSelectionModel<?> selectionModel) {
-		selectionModel.clearSelection();
-		if (!selectedIndexes.isEmpty())
-			selectionModel.selectIndices(selectedIndexes.get(0), selectedIndexes.stream().skip(1).mapToInt(it -> it).toArray());
 	}
 
 /* ---------- EVENT ------------------------------------------------------------------------------------------------- */

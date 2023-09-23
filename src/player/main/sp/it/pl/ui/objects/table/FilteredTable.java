@@ -84,6 +84,8 @@ import static sp.it.util.reactive.UtilKt.attachSize;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.reactive.UtilKt.syncSize;
 import static sp.it.util.text.StringExtensionsKt.keys;
+import static sp.it.util.ui.TableViewSelectionModelExtensionsKt.selectInverse;
+import static sp.it.util.ui.TableViewSelectionModelExtensionsKt.selectNone;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.UtilKt.menuItem;
 
@@ -319,7 +321,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 				root.getChildren().remove(sn);
 			}
 
-			if (v) failIf(filterPane.length()!=0);
+			if (v) failIf(!filterPane.isEmpty());
 			filterPane.convergeTo(v ? 1 : 0);
 
 			filterPane.getNode().setVisible(v);
@@ -351,9 +353,9 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS).scale(1.3).embedded());
 	public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS).scale(1.3).embedded());
 	public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
-		menuItem("Select all", null, keys(CONTROL, A), consumer(e -> selectAll())),
-		menuItem("Select none", null, keys(ESCAPE), consumer(e -> selectNone())),
-		menuItem("Select inverse", null, consumer(e -> selectInverse()))
+		menuItem("Select all", null, keys(CONTROL, A), consumer(e -> getSelectionModel().selectAll())),
+		menuItem("Select none", null, keys(ESCAPE), consumer(e -> selectNone(getSelectionModel()))),
+		menuItem("Select inverse", null, consumer(e -> selectInverse(getSelectionModel())))
 	);
 	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.SORT).embedded(),
 		new Menu("Order by column", null,

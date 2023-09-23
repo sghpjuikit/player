@@ -1,13 +1,9 @@
 package sp.it.pl.ui.objects.table;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
-import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -32,7 +28,6 @@ import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
 import static sp.it.util.access.PropertiesConstantKt.vAlways;
 import static sp.it.util.type.Util.getFieldValue;
-import static sp.it.util.ui.Util.selectRows;
 
 public class ImprovedTable<T> extends TableView<T> {
 
@@ -201,30 +196,6 @@ public class ImprovedTable<T> extends TableView<T> {
 		return 0;
 	}
 
-/* --------------------- SELECTION ---------------------------------------------------------------------------------- */
-
-	/** Selects all items. Equivalent to {@code getSelectionModel().selectAll(); } */
-	public void selectAll() {
-		getSelectionModel().selectAll();
-	}
-
-	/** Inverts the selection. Selected items will be not selected and vice versa. */
-	public void selectInverse() {
-		List<Integer> selected = getSelectionModel().getSelectedIndices();
-		int size = getItems().size();
-		List<Integer> inverse = new ArrayList<>();
-		for (int i = 0; i<size; i++)
-			if (!selected.contains(i))
-				inverse.add(i);
-
-		selectRows(inverse, getSelectionModel());
-	}
-
-	/** Selects no items. Equivalent to {@code getSelectionModel().clearSelection(); } */
-	public void selectNone() {
-		getSelectionModel().clearSelection();
-	}
-
 /* --------------------- DRAG --------------------------------------------------------------------------------------- */
 
 	/**
@@ -257,7 +228,7 @@ public class ImprovedTable<T> extends TableView<T> {
 			scrollTo(i);
 		} else {
 			double rows = getHeight()/getFixedCellSize();
-			i -= rows/2;
+			i -= (int) (rows/2);
 			i = min(items - (int) rows + 1, max(0, i));
 			scrollTo(i);
 		}

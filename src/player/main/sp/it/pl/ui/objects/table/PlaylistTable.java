@@ -66,8 +66,8 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
+import static sp.it.util.ui.TableViewSelectionModelExtensionsKt.clearAndSelect;
 import static sp.it.util.ui.Util.computeTextWidth;
-import static sp.it.util.ui.Util.selectRows;
 import static sp.it.util.ui.UtilKt.menuItem;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
@@ -125,7 +125,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			// clear table selection on mouse released if no item
 			row.setOnMouseReleased(e -> {
 				if (row.getItem()==null)
-					selectNone();
+					getSelectionModel().clearSelection();
 			});
 			// left double click -> play
 			row.onLeftDoubleClick((r, e) -> getPlaylist().playTransformedItem(r.getItem()));
@@ -207,7 +207,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 					setItemsRaw(listRO());
 					getSortOrder().clear();
 					setItemsRaw(itemsToMove);
-					selectRows(indexesToMove, getSelectionModel());
+					clearAndSelect(getSelectionModel(), indexesToMove);
 					movingItems = false;
 				}
 				moveSelectedItems(by);
@@ -341,7 +341,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 	public void moveSelectedItems(int by) {
 		movingItems = true;
 		var newS = getPlaylist().moveItemsBy(getSelectionModel().getSelectedIndices(), by);
-		selectRows(newS, getSelectionModel());
+		clearAndSelect(getSelectionModel(), newS);
 		movingItems = false;
 	}
 

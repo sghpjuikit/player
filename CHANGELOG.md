@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix filter function naming is sometimes ambiguous
 - Fix file TreeCell with graphics has inconsistent graphic size
 - Fix file TreeCell slower performance (unnecessary updates)
+- Fix game cell icon overlay layout
 
 ## Voice recognition plugin
 Voice recognition now uses locally running OpenAI Whisper Python program.

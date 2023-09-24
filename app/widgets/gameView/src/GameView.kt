@@ -301,7 +301,7 @@ class GameView(widget: Widget): SimpleController(widget) {
             p.opacity = 0.0
             onLayoutChildren = { x, y, w, h ->
                val mh = h min p.maxHeight
-               p.resizeRelocate(x + p.snappedLeftInset(), y + (h-mh-computeCellTextHeight()/2)/2, w-p.snappedLeftInset()-p.snappedRightInset(), mh)
+               p.resizeRelocate(x, y + (h-mh-computeCellTextHeight()/2)/2, w, mh)
             }
             children += p
             anim(200.millis) { p.opacity = it*it }.play()

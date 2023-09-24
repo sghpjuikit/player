@@ -705,18 +705,18 @@ infix fun VType<*>.isSame(t: VType<*>): Boolean = type isSame t.type
 // TODO: remove and merge with T.estimateRuntimeType
 fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
    if (isEmpty()) typeNothingNonNull()
-   else asSequence().map { it.estimateRuntimeType() }.reduce { a,b ->
+   else asSequence().map { it.estimateRuntimeType() }.toList().apply { println(this)  }.reduce { a,b ->
       when {
          a isSame typeNothingNonNull() -> b
          a isSame typeNothingNullable() -> b.nullable().asIs()
          b isSame typeNothingNonNull() -> a
          b isSame typeNothingNullable() -> a.nullable().asIs()
-         a isSame b -> a
-         a isSubtypeOf b -> b
-         b isSubtypeOf a -> a
+         a isSame b && a.raw.visibility==PUBLIC -> a
+         a isSubtypeOf b && b.raw.visibility==PUBLIC -> b
+         b isSubtypeOf a && a.raw.visibility==PUBLIC -> a
          // handles cases like Option<A>, Option<B> -> Option<supertype of A and B>
          // TODO: change == to isSuperClassOf
-         b.raw == a.raw -> {
+         b.raw == a.raw && a.raw.visibility==PUBLIC -> {
             VType(
                b.type.raw.createType(
                   b.type.raw.asIs<KClass<*>>().typeParameters.mapIndexed { i, _ ->
@@ -735,14 +735,15 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
                .flatMap {
                   sequence {
                      val c = it.raw
-                     if (c != Any::class) {
-                        yield(it)
-                     // TODO: yield all parameter combinations by iterating each through subtypes
-                        yield(c.createTypeStar(it.isMarkedNullable, it.annotations))
-                     }
+                     if (c != Any::class && c.visibility == PUBLIC)
+                        yield(c.createType(c.typeParameters.mapIndexed { i, _ -> a.type.argOf(c, i) }, it.isMarkedNullable, it.annotations))
                   }
                }
-               .firstOrNull { VType<T>(it) isSupertypeOf b }?.net { VType(it) }
+               .firstOrNull {
+                  println(it)
+                  println(VType<T>(it) isSupertypeOf b)
+
+                  VType<T>(it) isSupertypeOf b }?.net { VType(it) }
                ?: run {
                   if (a.isNullable || b.isNullable) type<Any?>().asIs()
                   else type<Any>().asIs()
@@ -765,6 +766,7 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
 fun <T> T.estimateRuntimeType(): VType<T> = when (this) {
    null -> typeNothingNullable().asIs()
    is Optional<*> -> VType(Optional::class.createType(listOf(invariant(map { it.estimateRuntimeType().type }.orElse(kTypeNothingNonNull())))))
+   is Option.None -> VType(Option.None::class.createType())
    is Option.Some<*> -> VType(Option.Some::class.createType(listOf(invariant(value.estimateRuntimeType().type))))
    is Try.Ok<*> -> VType(Try.Ok::class.createType(listOf(invariant(value.estimateRuntimeType().type))))
    is Try.Error<*> -> VType(Try.Error::class.createType(listOf(invariant(value.estimateRuntimeType().type))))

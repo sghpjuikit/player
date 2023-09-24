@@ -27,7 +27,6 @@ package sp.it.util.ui;
 
 import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
-import com.sun.jna.platform.WindowUtils;
 import com.sun.jna.platform.win32.GDI32;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.HDC;
@@ -37,13 +36,17 @@ import com.sun.jna.platform.win32.WinGDI.BITMAPINFOHEADER;
 import com.sun.jna.platform.win32.WinGDI.ICONINFO;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import org.jetbrains.annotations.Nullable;
+import static com.sun.jna.platform.win32.WinGDI.DIB_RGB_COLORS;
+import static sp.it.util.system.Os.WINDOWS;
 
 public class IconExtractorJNA {
 
-	public static BufferedImage getWindowIcon(HICON hIcon) {
+	/** @return image of the specified icon (not that the underlying API only supports up to 32x32 pixels) */
+	public static @Nullable BufferedImage getWindowIcon(HICON hIcon) {
+		if (!WINDOWS.isCurrent()) return null;
 		final Dimension iconSize = getIconSize(hIcon);
-		if (iconSize.width == 0 || iconSize.height == 0)
-			return null;
+		if (iconSize.width == 0 || iconSize.height == 0) return null;
 
 		final int width = iconSize.width;
 		final int height = iconSize.height;
@@ -89,13 +92,33 @@ public class IconExtractorJNA {
 				y--;
 		}
 
+		iconInfo.clear();
 		User32.INSTANCE.ReleaseDC(null, hDC);
 
 		return image;
 	}
 
+	/** @return image size of the specified icon (not that the underlying API only supports up to 32x32 pixels) */
 	public static Dimension getIconSize(final HICON hIcon) {
-		return WindowUtils.getIconSize(hIcon);
+		var gdi32 = GDI32.INSTANCE;
+		var user32 = User32.INSTANCE;
+
+		var iconInfo = new ICONINFO();
+		user32.GetIconInfo(hIcon, iconInfo);
+
+		var bmp = iconInfo.hbmColor != null ? iconInfo.hbmColor : iconInfo.hbmMask;
+		var bih = new BITMAPINFO();
+		gdi32.GetDIBits(user32.GetDC(null), bmp, 0, 0, null, bih, DIB_RGB_COLORS);
+
+		int iconWidth = bih.bmiHeader.biWidth;
+		int iconHeight = bih.bmiHeader.biHeight;
+
+		// Clean up resources
+		user32.ReleaseDC(null, user32.GetDC(null));
+		gdi32.DeleteObject(iconInfo.hbmColor);
+		gdi32.DeleteObject(iconInfo.hbmMask);
+
+		return new Dimension(iconWidth, iconHeight);
 	}
 
 }

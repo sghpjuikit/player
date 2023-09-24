@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file. Format base
 - Improve **Logger** widget UX
 - Improve **Hue Scenes** widget item selection
 - Improve **Hue Scenes** widget layout
+- Improve file icon extraction on windows (bigger icon, better performance)
+- Improve tree/grid row with file to show file's icon
 - Implement **Hue Scenes** new scene validation
 - Implement **VoiceRecognition** plugin using WhisperAI (improves accuracy, needs manual installation)
 - Implement **VoiceRecognition** plugin wake word
@@ -28,6 +30,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Hue Scenes** threading causing freezing application
 - Fix filter showing some functions multiple times
 - Fix filter function naming is sometimes ambiguous
+- Fix file TreeCell with graphics has inconsistent graphic size
+- Fix file TreeCell slower performance (unnecessary updates)
 
 ## Voice recognition plugin
 Voice recognition now uses locally running OpenAI Whisper Python program.

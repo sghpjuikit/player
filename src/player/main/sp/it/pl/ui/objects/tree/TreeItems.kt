@@ -48,6 +48,7 @@ import sp.it.pl.layout.feature.ConfiguringFeature
 import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df.FILES
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.fileIcon
@@ -75,11 +76,15 @@ import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.children
+import sp.it.util.file.hasExtension
 import sp.it.util.file.isParentOf
 import sp.it.util.file.nameOrRoot
 import sp.it.util.file.toFast
+import sp.it.util.file.type.MimeType
+import sp.it.util.file.type.mimeType
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -93,11 +98,18 @@ import sp.it.util.text.nullIfBlank
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.nullify
 import sp.it.util.type.type
+import sp.it.util.ui.IconExtractor
 import sp.it.util.ui.createIcon
 import sp.it.util.ui.drag.set
+import sp.it.util.ui.height
 import sp.it.util.ui.isAnyParentOf
+import sp.it.util.ui.lay
 import sp.it.util.ui.root
+import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.show
+import sp.it.util.ui.stackPane
+import sp.it.util.ui.x
+import sp.it.util.ui.x2
 
 private val logger = KotlinLogging.logger { }
 
@@ -284,18 +296,21 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
    }
 
    override fun updateItem(o: T?, empty: Boolean) {
-      super.updateItem(o, empty)
+      if (o!==item) {
+         super.updateItem(o, empty)
 
-      if (!empty && o!=null) {
-         graphic = computeGraphics(o)
-         text = computeText(o)
-      } else {
-         graphic = null
-         text = null
+         if (!empty && o!=null) {
+            graphic = computeGraphics(o).also { it?.setMinPrefMaxSize(height, padding.height) }
+            graphicTextGap = 0.0
+            text = computeText(o)
+         } else {
+            graphic = null
+            text = null
+         }
+
+         // pretty, but confusing UX
+         // pseudoClassChanged("no-arrow", graphic!=null)
       }
-
-      // pretty, but confusing UX
-      // pseudoClassChanged("no-arrow", graphic!=null)
    }
 
    private fun computeText(o: Any?): String = when (o) {
@@ -336,10 +351,19 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 
    private fun computeGraphics(p: Any): Node? = when (p) {
       is Path -> computeGraphics(p.toFile())
-      is File -> {
+      is File -> stackPane {
          val type = if (treeItem.isLeaf) FILE else FileType(p)
          val glyph = fileIcon(p, type)
-         createIcon(glyph, 12.0.emScaled).apply { boundsType = VISUAL }
+
+         lay += if (glyph == IconFA.FILE) {
+            if (p hasExtension "exe" || p.mimeType() == MimeType.`application∕x-ms-shortcut`) null
+               ?: IconExtractor.getFileIcon(p)?.net { Thumbnail(it.width x it.height).apply { loadImage(it) }.pane }
+               ?: createIcon(IconFA.FILE, 12.0.emScaled).apply { boundsType = VISUAL }
+            else
+               createIcon(IconFA.FILE, 12.0.emScaled).apply { boundsType = VISUAL }
+         } else {
+            createIcon(glyph, 12.0.emScaled).apply { boundsType = VISUAL }
+         }
       }
       else -> null
    }

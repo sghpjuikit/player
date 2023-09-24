@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.filechooser.FileSystemView
+import sp.it.util.dev.printIt
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.div
 import sp.it.util.file.type.MimeExt.Companion.exe
@@ -17,6 +18,8 @@ import sp.it.util.file.writeTextTry
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runIf
 import sp.it.util.system.Os
+import sp.it.util.system.Os.OSX
+import sp.it.util.system.Os.WINDOWS
 import sp.it.util.ui.image.toFxAndFlush
 
 /**
@@ -46,7 +49,10 @@ object IconExtractor {
       return icons.computeIfAbsent(key) {
          null
             ?: run {
-               file.iconOfExecutable()?.toFxAndFlush()
+               if (file.extension in setOf("dll", "ico", "exe"))
+                  file.iconOfExecutable()?.toFxAndFlush()
+               else
+                  null
             }
             ?: run {
                val iconFile = null
@@ -61,8 +67,8 @@ object IconExtractor {
    }
 
    private fun File.getSwingIconFromFileSystem(): ImageSw? = when (Os.current) {
-      Os.WINDOWS -> helperFileSystemView.getSystemIcon(this)
-      Os.OSX -> {
+      WINDOWS -> helperFileSystemView.getSystemIcon(this)
+      OSX -> {
          // final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
          // fc.getUI().getFileView(fc).getIcon(file);
          null
@@ -71,16 +77,17 @@ object IconExtractor {
    }
 
    private fun File.iconOfExecutable(): ImageBf? = when (Os.current) {
-      Os.WINDOWS -> {
+      WINDOWS -> {
          val iconCount = Shell32.INSTANCE.ExtractIconEx(absolutePath, -1, null, null, 0)
-
          if (iconCount>0) {
             val iconHandles = arrayOfNulls<WinDef.HICON?>(iconCount).apply {
-               Shell32.INSTANCE.ExtractIconEx(absolutePath, 0, this, null, 1)
+               (0..<iconCount).map { Shell32.INSTANCE.ExtractIconEx(absolutePath, it, this, null, 1) }
             }
-            val iconHandle = iconHandles.filterNotNull().maxByOrNull { IconExtractorJNA.getIconSize(it).width }
 
-            iconHandle?.let(IconExtractorJNA::getWindowIcon)
+            iconHandles.asSequence()
+               .filterNotNull()
+               .maxByOrNull { IconExtractorJNA.getIconSize(it).width.printIt() }
+               ?.let(IconExtractorJNA::getWindowIcon)
          } else {
             null
          }

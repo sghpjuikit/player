@@ -500,7 +500,7 @@ class WidgetManager {
                "-d", compileDir.absolutePath,
                "-jdk-home", APP.location.child("java").absolutePath,
                "-api-version", "1.9",
-               "-jvm-target", "20",
+               "-jvm-target", "21",
                "-no-stdlib",
                "-language-version", "1.9",
                "-Xno-call-assertions",

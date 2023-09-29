@@ -1,6 +1,7 @@
 import kotlin.text.Charsets.UTF_8
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTIUM
+import org.gradle.jvm.toolchain.JvmVendorSpec.AMAZON
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
@@ -25,15 +26,15 @@ fun Project.tests(configuration: Test.() -> Unit) {
 /** Working directory of the application */
 val dirApp = file("app")
 val dirJdk = dirApp/"java"
-val javaVersionSupported = JavaVersion.VERSION_20
+val javaVersionSupported = JavaVersion.VERSION_21
 
 allprojects {
    apply(plugin = "kotlin")
 
    kotlin {
       jvmToolchain {
-         languageVersion.set(JavaLanguageVersion.of(20))
-         vendor.set(ADOPTIUM)
+         languageVersion = JavaLanguageVersion.of(21)
+         vendor = AMAZON
       }
       sourceSets.all {
          languageSettings.apply {
@@ -42,7 +43,7 @@ allprojects {
       }
    }
 
-   buildDir = file("player.buildDir".prjProp ?: rootDir/".gradle-build")/name
+   layout.buildDirectory = file("player.buildDir".prjProp ?: rootDir/".gradle-build")/name
 
    tasks.withType<JavaCompile> {
       options.encoding = UTF_8.name()
@@ -71,7 +72,7 @@ allprojects {
          "-Xstring-concat=indy-with-constants",
       )
       kotlinOptions.javaParameters = true
-      kotlinOptions.jvmTarget = "20"
+      kotlinOptions.jvmTarget = "21"
    }
 
    repositories {
@@ -214,8 +215,8 @@ dependencies {
 }
 
 javaToolchains.compilerFor {
-   languageVersion.set(JavaLanguageVersion.of(20))
-   vendor.set(ADOPTIUM)
+   languageVersion = JavaLanguageVersion.of(20)
+   vendor = ADOPTIUM
 }
 
 
@@ -267,8 +268,8 @@ tasks {
    val jar by getting(Jar::class) {
       dependsOn(copyLibs)
       group = "build"
-      destinationDirectory.set(dirApp)
-      archiveFileName.set("SpitPlayer.jar")
+      destinationDirectory = dirApp
+      archiveFileName = "SpitPlayer.jar"
    }
 
    "run"(JavaExec::class) {
@@ -292,7 +293,7 @@ licenseReport {
 
 application {
    applicationName = "Spit Player"
-   mainClass.set("sp.it.pl.main.AppKt")
+   mainClass = "sp.it.pl.main.AppKt"
    applicationDefaultJvmArgs = listOf(
       "-Dname=SpitPlayer",
       "-Dfile.encoding=UTF-8",

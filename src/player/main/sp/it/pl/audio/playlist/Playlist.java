@@ -74,7 +74,7 @@ public class Playlist extends ObservableListWrapper<PlaylistSong> {
 		public abstract NofX index(Song song);
 	}
 
-	private Transformer transformer = new Transformer() {
+	public class TransformerDefault extends Transformer {
 		@Override public void transform(List<PlaylistSong> original, Consumer<? super List<PlaylistSong>> then) {
 			then.accept(original);
 		}
@@ -86,7 +86,9 @@ public class Playlist extends ObservableListWrapper<PlaylistSong> {
 			for (int i = 0; i<size(); i++) if (get(i).same(song)) return new NofX(i, size());
 			return new NofX(-1, size());
 		}
-	};
+	}
+
+	private Transformer transformer = new TransformerDefault();
 
 	private List<PlaylistSong> transformNow() {
 		return transformer.transformNow(this);

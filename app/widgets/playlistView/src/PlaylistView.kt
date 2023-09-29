@@ -102,22 +102,8 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          outputSelected.value?.let { ms.ifHasK(it.uri) { outputSelected.value = it.toPlaylist() } }
       } on onClose
 
-      playVisible sync { pv ->
-         playlist.setTransformation(
-            object: Playlist.Transformer() {
-               override fun transform(original: List<PlaylistSong>, then: Consumer<in List<PlaylistSong>>) {
-                  table.itemsSorting.sync1If({ it==false }) {
-                     then(transformNow(original))
-                  }
-               }
-               override fun transformNow(original: List<PlaylistSong>): List<PlaylistSong> {
-                  return if (pv) table.items.materialize()
-                  else original.materialize().sortedWith(table.itemsComparator.value)
-               }
-               override fun index(song: Song): NofX = NofX(playlist.indexOfFirst { it.same(song) }, playlist.size)
-            }
-         )
-      } on onClose
+      playVisible sync { pv -> playlist.setTransformation(PlaylistTransformer(table, pv)) } on onClose
+      onClose += { playlist.setTransformation(playlist.TransformerDefault()) }
 
       table.search.setColumn(Field.NAME)
       table.selectionModel.selectionMode = MULTIPLE
@@ -218,6 +204,19 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          updatePlayingItem(dp.indexOfPlaying())
          if (wasActive) PlaylistManager.active = id
       }
+   }
+
+   private class PlaylistTransformer(val table: PlaylistTable, val pv: Boolean): Playlist.Transformer() {
+      override fun transform(original: List<PlaylistSong>, then: Consumer<in List<PlaylistSong>>) {
+         table.itemsSorting.sync1If({ it==false }) {
+            then(transformNow(original))
+         }
+      }
+      override fun transformNow(original: List<PlaylistSong>): List<PlaylistSong> {
+         return if (pv) table.items.materialize()
+         else original.materialize().sortedWith(table.itemsComparator.value)
+      }
+      override fun index(song: Song): NofX = NofX(table.playlist.indexOfFirst { it.same(song) }, table.playlist.size)
    }
 
    companion object: WidgetCompanion, KLogging() {

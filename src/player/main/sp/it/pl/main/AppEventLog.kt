@@ -10,6 +10,7 @@ import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.collections.readOnly
 import sp.it.util.dev.ThreadSafe
+import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
@@ -85,7 +86,7 @@ object AppEventLog {
 private val logger = KotlinLogging.logger { }
 
 @ThreadSafe
-fun <R> Try<R, Throwable>.ifErrorDefault() = ifError { APP.logging.uncaughtExceptionHandler.uncaughtException(Thread.currentThread(), it) }
+fun <R> Try<R, Throwable>.ifErrorDefault() = ifError { AppEventLog.push(AppError(it.message ?: "Unspecified error", "Reason: ${it.stacktraceAsString}")) }
 
 @ThreadSafe
 fun <R, E> Try<R, E>.ifErrorNotify(errorSupplier: (E) -> AppError) = ifError { AppEventLog.push(errorSupplier(it)) }

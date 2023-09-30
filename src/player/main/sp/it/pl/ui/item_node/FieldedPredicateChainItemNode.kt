@@ -8,8 +8,7 @@ import java.util.stream.Stream
 import javafx.beans.value.WritableValue
 import javafx.event.EventHandler
 import javafx.scene.Node
-import javafx.scene.input.KeyCode.ESCAPE
-import javafx.scene.input.KeyCode.F
+import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.util.Callback
 import kotlin.streams.asSequence
@@ -73,7 +72,7 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValue
    fun buildToggleOnKeyHandler(filterVisible: WritableValue<Boolean>, owner: Node) = EventHandler<KeyEvent> { e ->
       if (!e.isConsumed) {
          when (e.code) {
-            F -> {
+            KeyCode.F -> {
                if (e.isShortcutDown) {
                   if (filterVisible.value) {
                      val hasFocus = root.scene?.focusOwner?.let { root.isAnyParentOf(it) }==true
@@ -89,7 +88,7 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValue
                   e.consume()
                }
             }
-            ESCAPE -> {
+            KeyCode.ESCAPE -> {
                if (filterVisible.value) {
                   if (isEmpty()) {
                      filterVisible.value = false

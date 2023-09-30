@@ -60,8 +60,8 @@ allprojects {
    }
 
    tasks.withType<KotlinCompile> {
-      kotlinOptions.apiVersion = "1.9"
-      kotlinOptions.languageVersion = "1.9"
+      kotlinOptions.apiVersion = "2.0"
+      kotlinOptions.languageVersion = "2.0"
       kotlinOptions.suppressWarnings = false
       kotlinOptions.verbose = true
       kotlinOptions.freeCompilerArgs += listOf(

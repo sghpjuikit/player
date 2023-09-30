@@ -499,10 +499,10 @@ class WidgetManager {
             val command = listOf(
                "-d", compileDir.absolutePath,
                "-jdk-home", APP.location.child("java").absolutePath,
-               "-api-version", "1.9",
+               "-api-version", "2.0",
                "-jvm-target", "21",
                "-no-stdlib",
-               "-language-version", "1.9",
+               "-language-version", "2.0",
                "-Xno-call-assertions",
                "-Xno-param-assertions",
                "-Xjvm-default=all",
@@ -749,7 +749,7 @@ class WidgetManager {
    }
 
    /** Widget factory projection - lazy reified reference to a factory of widget with a feature, enabling convenient use of its feature */
-   data class FactoryRef<out FEATURE: Any>(val name: String, val id: String, private val feature: KClass<FEATURE>): NameUi {
+   data class FactoryRef<out FEATURE: Any>(val name: String, val id: String, private val feature: KClass<out FEATURE>): NameUi {
       override val nameUi = name
 
       /** @return widget factory this ref is referencing or error with the factory id. Also see [Try.orNone] */

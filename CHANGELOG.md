@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+- Update Java to 21
 - Update Kotlin to 1.9.20-Beta
 - Update dependencies
 - Improve `Action log` to support showing in case of 0 errors
@@ -33,6 +34,19 @@ All notable changes to this project will be documented in this file. Format base
 - Fix file TreeCell with graphics has inconsistent graphic size
 - Fix file TreeCell slower performance (unnecessary updates)
 - Fix game cell icon overlay layout
+
+## Performance
+This version updates Java to 21, which officially introduces virtual threads.
+Java 21 also improves `InputStream` performance, which has effect when loading images.
+
+JavaFX 22-ea+11 brings long awaited optimization and fix for pseudoclass handling,
+which reduces memory consumption and makes ui more responsive.
+
+On Kotlin side, K2 compiler has now been enabled for this project.
+This reduces compilation time for widgets dramatically.
+
+Gradle has been updated to 8.4.
+This finally reuses compiler daemon and drastically reduces compilation time. 
 
 ## Voice recognition plugin
 Voice recognition now uses locally running OpenAI Whisper Python program.
@@ -1199,7 +1213,7 @@ There is still work to be done regarding cumbersome control of transparent windo
 
 The **Spektrum** widget has been massively improved.
 It now supports large number of separate settings that can be freely combined into unique effects.
-For instance, the widget allows specifying various data as input (FFT, volume, etc), various data transformations, drawing styles and
+For instance, the widget allows specifying various data as input (FFT, volume, etc.), various data transformations, drawing styles and
 multiple effects, such as pulsing, mirroring, shifting and more. These are all applied separately and more choices could easily be implemented.
 The widget could still do with some drawing optimizations and also suffers absolute vs relative coordinate/sizing issue that I am not sure how to tackle at the moment.
 

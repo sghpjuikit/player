@@ -40,6 +40,7 @@ import sp.it.util.access.minus
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Config
+import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.recurseDF
 import sp.it.util.reactive.attach
@@ -48,6 +49,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncFrom
 import sp.it.util.text.keysUi
 import sp.it.util.type.isSubclassOf
+import sp.it.util.type.type
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
 import sp.it.util.ui.label
@@ -206,7 +208,7 @@ class ConfigSearch: AutoCompletion<Entry> {
       }
    }
 
-   @Suppress("NonAsciiCharacters", "ClassName")
+   @Suppress("NonAsciiCharacters", "ClassName", "PropertyName", "PrivatePropertyName", "LocalVariableName")
    interface Entry {
       val name: String
       val icon: GlyphIcons?
@@ -225,12 +227,12 @@ class ConfigSearch: AutoCompletion<Entry> {
          override fun Ctx.run() = runΛ()
       }
 
-      class SimpleEntry constructor(override val name: String, override val icon: GlyphIcons?, val infoΛ: () -> String, private val runΛ: Ctx.() -> Unit): Entry {
+      class SimpleEntry(override val name: String, override val icon: GlyphIcons?, val infoΛ: () -> String, private val runΛ: Ctx.() -> Unit): Entry {
          override val info get() = infoΛ()
          override fun Ctx.run() = runΛ()
       }
 
-      class ConfigEntry constructor(private val config: Config<*>): Entry {
+      class ConfigEntry(private val config: Config<*>): Entry {
          override val name = "${if (config is Runnable) "Run " else ""}${config.group}.${config.nameUi}"
          override val icon = if (config is Action) IconFA.PLAY else IconFA.COGS
          override val info by lazy { "$name\n\n${config.info}" }
@@ -253,7 +255,8 @@ class ConfigSearch: AutoCompletion<Entry> {
             when {
                config is Runnable -> config.run()
                value is Runnable -> value.run()
-               value is Boolean -> (config as Config<Boolean?>).value = !value
+               config.type == type<Boolean>() && config.isEditableByUserRightNow() -> (config as Config<Boolean>).value = !value.asIs<Boolean>()
+               config.type == type<Boolean?>() && config.isEditableByUserRightNow() -> (config as Config<Boolean?>).value = when (value.asIs<Boolean?>()) { null -> true; true -> false; false -> null }
             }
          }
       }
@@ -302,7 +305,7 @@ class ConfigSearch: AutoCompletion<Entry> {
       }
 
       override fun updateItem(item: Entry?, empty: Boolean) {
-         if (this.item == item && item!=null) return
+         if (this.item == item) return
 
          super.updateItem(item, empty)
 

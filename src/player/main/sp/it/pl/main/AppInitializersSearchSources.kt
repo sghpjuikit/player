@@ -11,28 +11,15 @@ import sp.it.pl.layout.loadIn
 import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry.SimpleEntry
-import sp.it.pl.ui.pane.ActContext
-import sp.it.pl.ui.pane.ActionData
 import sp.it.util.access.focused
 import sp.it.util.action.Action
 import sp.it.util.collections.setTo
-import sp.it.util.conf.ConfList
-import sp.it.util.conf.Config
-import sp.it.util.conf.ConfigDef
-import sp.it.util.conf.Constraint
-import sp.it.util.conf.EditMode
-import sp.it.util.conf.ListConfig
-import sp.it.util.conf.ValueConfig
-import sp.it.util.conf.but
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.Windows
-import sp.it.util.type.VType
-import sp.it.util.type.isObject
 import sp.it.util.type.raw
-import sp.it.util.type.typeNothingNullable
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -102,8 +89,8 @@ fun AppSearch.initApp() = APP.apply {
    }
 
    sources += AppSearch.Source("Actions") {
-      configuration.getConfigs().asSequence().filterIsInstance<Action>().filter { it.isEditableByUserRightNow() }
-   } by { it.name + it.keys } toSource {
+      configuration.getConfigs().asSequence().filter { it is Action || it.type.raw==Boolean::class }
+   } by { it.name + (if (it is Action) it.keys else "") } toSource {
       Entry.of(it)
    }
 

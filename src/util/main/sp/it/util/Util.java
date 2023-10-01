@@ -2,7 +2,6 @@ package sp.it.util;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -13,13 +12,11 @@ import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
-import static java.lang.Math.random;
 import static java.lang.Math.sqrt;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toCollection;
 import static sp.it.util.Util.StringDirection.FROM_START;
-import static sp.it.util.dev.FailKt.failIf;
-import static sp.it.util.text.UtilKt.capitalLower;
+import static sp.it.util.text.StringExtensionsKt.capitalLower;
 
 /** Provides general purpose utility methods. */
 @SuppressWarnings("unused")
@@ -243,37 +240,6 @@ public interface Util {
 	/** Returns {@code sqrt(a^2 + b^2)}. */
 	static double pyth(double a, double b) {
 		return sqrt(a*a + b*b);
-	}
-
-	/**
-	 * Pops random element from the list, i.e., returns random element from the list and removes it from the list.
-	 *
-	 * @return random element from the list.
-	 * @throws java.lang.RuntimeException if list empty
-	 * @apiNote this method has side effects, i.e., mutates the list
-	 */
-	static <T> T randPopOf(List<T> list) {
-		failIf(list.isEmpty());
-
-		int i = (int) Math.floor(random()*list.size());
-		T t = list.get(i);
-		list.remove(t);
-		return t;
-	}
-
-	/**
-	 * Returns n random elements from the source list. Source list won't be changed.
-	 *
-	 * @return specified number of random elements from the list
-	 * @throws java.lang.RuntimeException if list does not have enough elements
-	 */
-	static <T> ArrayList<T> randN(int amount, List<T> source) {
-		failIf(amount>=source.size());
-
-		ArrayList<T> all = new ArrayList<>(source); // we need a copy
-		ArrayList<T> l = new ArrayList<>();
-		for (int i = 0; i<amount; i++) l.add(randPopOf(all));
-		return l;
 	}
 
 	enum StringDirection {

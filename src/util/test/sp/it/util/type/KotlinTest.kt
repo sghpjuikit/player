@@ -2,6 +2,7 @@ package sp.it.util.type
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import kotlin.reflect.full.superclasses
 
 class KotlinTest: FreeSpec({
    "KT" - {
@@ -9,11 +10,13 @@ class KotlinTest: FreeSpec({
       "KT-41322" {
          KotlinKT41322.Foo::class.annotations
          KotlinKT41322.Foo::class.isData shouldBe false
+         KotlinKT41322.Foo::class.superclasses
       }
       // https://youtrack.jetbrains.com/issue/KT-41373
       "KT-41373" {
          KotlinKT41373.method()::class.annotations
          KotlinKT41373.method()::class.isData shouldBe false
+         KotlinKT41373.method()::class.superclasses
       }
       // https://youtrack.jetbrains.com/issue/KT-22792
       "KT-22792".config(enabled = false) {

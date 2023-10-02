@@ -221,8 +221,16 @@ fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when {
    this==Any::class -> sequenceOf(Any::class)
    this==Nothing::class -> sequenceOf(Nothing::class, Any::class)
    this==Unit::class -> sequenceOf(Unit::class, Any::class)
-   else -> java.recurseBF { listOfNotNull(it.superclass) + it.interfaces }.map { it.kotlin }.filter { it != Any::class } + Any::class
-   // recurse { it.superclasses }   // TODO: KClass.superclasses is bugged for anonymous Java classes
+   else -> {
+      val iterated = HashSet<Any?>()
+      val all = recurseBF { it.superclasses }.filter { it != Any::class } + Any::class
+      sequence {
+         all.forEach {
+            if (it !in iterated) yield(it)
+            iterated += it
+         }
+      }
+   }
 }
 
 private data class Extractor<T>(val declaringClass: KClass<*>, val method: KFunction<T>, val type: VType<T>)

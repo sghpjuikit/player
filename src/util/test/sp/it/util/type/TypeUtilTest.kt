@@ -220,19 +220,12 @@ class TypeUtilTest: FreeSpec({
          ArrayList::class.superKClassesInc().toList() shouldBe listOf(
             java.util.ArrayList::class,
             java.util.AbstractList::class,
-            kotlin.collections.List::class,
             java.util.RandomAccess::class,
             kotlin.Cloneable::class,
             java.io.Serializable::class,
-            java.util.AbstractCollection::class,
             kotlin.collections.List::class,
-            java.util.SequencedCollection::class,
+            java.util.AbstractCollection::class,
             kotlin.collections.Collection::class,
-            java.util.SequencedCollection::class,
-            kotlin.collections.Collection::class,
-            kotlin.collections.Iterable::class,
-            kotlin.collections.Collection::class,
-            kotlin.collections.Iterable::class,
             kotlin.collections.Iterable::class,
             kotlin.Any::class
          )

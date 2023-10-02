@@ -226,10 +226,12 @@ class TypeUtilTest: FreeSpec({
             java.io.Serializable::class,
             java.util.AbstractCollection::class,
             kotlin.collections.List::class,
+            java.util.SequencedCollection::class,
             kotlin.collections.Collection::class,
-            kotlin.collections.Collection::class,
+            java.util.SequencedCollection::class,
             kotlin.collections.Collection::class,
             kotlin.collections.Iterable::class,
+            kotlin.collections.Collection::class,
             kotlin.collections.Iterable::class,
             kotlin.collections.Iterable::class,
             kotlin.Any::class

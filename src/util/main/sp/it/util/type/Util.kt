@@ -705,7 +705,7 @@ infix fun VType<*>.isSame(t: VType<*>): Boolean = type isSame t.type
 // TODO: remove and merge with T.estimateRuntimeType
 fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
    if (isEmpty()) typeNothingNonNull()
-   else asSequence().map { it.estimateRuntimeType() }.toList().apply { println(this)  }.reduce { a,b ->
+   else asSequence().map { it.estimateRuntimeType() }.toList().reduce { a,b ->
       when {
          a isSame typeNothingNonNull() -> b
          a isSame typeNothingNullable() -> b.nullable().asIs()

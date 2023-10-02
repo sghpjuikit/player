@@ -9,7 +9,6 @@ import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.filechooser.FileSystemView
-import sp.it.util.dev.printIt
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.div
 import sp.it.util.file.type.MimeExt.Companion.exe
@@ -86,7 +85,7 @@ object IconExtractor {
 
             iconHandles.asSequence()
                .filterNotNull()
-               .maxByOrNull { IconExtractorJNA.getIconSize(it).width.printIt() }
+               .maxByOrNull { IconExtractorJNA.getIconSize(it).width }
                ?.let(IconExtractorJNA::getWindowIcon)
          } else {
             null

@@ -25,6 +25,7 @@ parentProcess = int(arg('parent-process', -1))
 wake_word = arg('wake-word', 'mimi')
 name = wake_word[0].upper() + wake_word[1:]
 listening_for_wake_word = True
+terminating = False
 
 
 if __name__ == '__main__' and showHelp:
@@ -79,54 +80,57 @@ if __name__ == '__main__':
     speak(name + " initializing.")
 
 modelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
-modelTiny = whisper.load_model(os.path.join(modelDir, 'tiny.en.pt'))
 modelBase = whisper.load_model(os.path.join(modelDir, 'base.en.pt'))
+modelTiny = modelBase
 r = sr.Recognizer()
+listening = None
 source = sr.Microphone()
 warnings.filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
 
 
 def listen_for_wake_word(audio):
-    global listening_for_wake_word
-    with open("user_wake.wav", "wb") as f:
-        f.write(audio.get_wav_data())
-    result = modelTiny.transcribe('user_wake.wav')
-    text_input = result['text']
-    if wake_word in text_input.lower().strip():
-        write("SYS: Yes. Please speak.")
-        speak('Yes')
-        listening_for_wake_word = False
+    if not terminating:
+        with open("user_wake.wav", "wb") as f:
+            f.write(audio.get_wav_data())
+        result = modelTiny.transcribe('user_wake.wav')
+        text_input = result['text']
+        write(text_input)
+        if wake_word in text_input.lower().strip():
+            write("SYS: Yes. Please speak.")
+            speak('Yes')
+            global listening_for_wake_word
+            listening_for_wake_word = False
 
 
 def prompt_gpt(audio):
     global listening_for_wake_word
-    try:
-        with open("user_prompt.wav", "wb") as f:
-            f.write(audio.get_wav_data())
-        prompt_text = modelBase.transcribe('user_prompt.wav')['text']
-        if prompt_text.strip().lower().replace('.', '') in ['never mind', 'stop', 'cancel', 'ignore']:
-            write("SYS: Ok.")
-            speak("Ok")
-            listening_for_wake_word = True
-        elif len(prompt_text.strip()) == 0:
-            write("SYS: Empty prompt. Please speak again.")
-            speak("Empty prompt. Please speak again.")
-            listening_for_wake_word = True
-        else:
-            write('USER: ' + prompt_text)
-            write('SYS: Say ' + wake_word + ' to wake me up.')
-            listening_for_wake_word = True
-    except Exception as e:
-        writeEx("Error: ", e)
+    if not terminating:
+        try:
+            with open("user_prompt.wav", "wb") as f:
+                f.write(audio.get_wav_data())
+            prompt_text = modelBase.transcribe('user_prompt.wav')['text']
+            if prompt_text.strip().lower().replace('.', '') in ['never mind', 'stop', 'cancel', 'ignore']:
+                write("SYS: Ok.")
+                speak("Ok")
+                listening_for_wake_word = True
+            elif len(prompt_text.strip()) == 0:
+                write("SYS: Empty prompt. Please speak again.")
+                speak("Empty prompt. Please speak again.")
+                listening_for_wake_word = True
+            else:
+                write('USER: ' + prompt_text)
+                write('SYS: Say ' + wake_word + ' to wake me up.')
+                listening_for_wake_word = True
+        except Exception as e:
+            writeEx("Error: ", e)
 
 
 def callback(recognizer, audio):
-    global listening_for_wake_word
-    if listening_for_wake_word:
-        listen_for_wake_word(audio)
-    else:
-        prompt_gpt(audio)
-
+    if not terminating:
+        if listening_for_wake_word:
+            listen_for_wake_word(audio)
+        else:
+            prompt_gpt(audio)
 
 def start_listening():
     with source as s:
@@ -135,16 +139,21 @@ def start_listening():
     write('SYS: ' + name + ' online. Say ' + wake_word + ' to wake me up.')
     speak(name + " online.")
 
-    r.listen_in_background(source, callback)
+    global listening
+    listening = r.listen_in_background(source, callback)
 
     # wait until parent dies or listen forever
-    while parentProcess == -1 or psutil.pid_exists(parentProcess):
+    while not terminating and (parentProcess == -1 or psutil.pid_exists(parentProcess)):
         time.sleep(1)
 
 
 def exit_handler(*args):
-    write('SYS: ' + name + ' offline.')
-    speak(name + ' offline')
+    global terminating
+    if not terminating:
+        terminating = True
+        write('SYS: ' + name + ' offline.')
+        speak(name + ' offline')
+        listening(False)
 
 
 def installExitHandler():

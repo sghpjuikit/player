@@ -41,7 +41,7 @@ if __name__ == '__main__' and showHelp:
 
 import atexit
 import signal
-import speech_recognition as sr
+import speech_recognition # https://github.com/Uberi/speech_recognition
 import whisper
 import warnings
 import time
@@ -82,9 +82,9 @@ if __name__ == '__main__':
 modelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
 modelBase = whisper.load_model(os.path.join(modelDir, 'base.en.pt'))
 modelTiny = modelBase
-r = sr.Recognizer()
+r = speech_recognition.Recognizer()
 listening = None
-source = sr.Microphone()
+source = speech_recognition.Microphone()
 warnings.filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
 
 

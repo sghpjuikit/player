@@ -19,6 +19,7 @@ import sp.it.util.functional.net
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.Windows
+import sp.it.util.type.isEnum
 import sp.it.util.type.raw
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
@@ -89,7 +90,7 @@ fun AppSearch.initApp() = APP.apply {
    }
 
    sources += AppSearch.Source("Actions") {
-      configuration.getConfigs().asSequence().filter { it is Action || it.type.raw==Boolean::class }
+      configuration.getConfigs().asSequence().filter { it is Action || it.type.raw==Boolean::class || it.type.raw.isEnum }
    } by { it.name + (if (it is Action) it.keys else "") } toSource {
       Entry.of(it)
    }

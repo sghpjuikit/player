@@ -36,6 +36,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.util.access.Values
 import sp.it.util.access.minus
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
@@ -48,7 +49,9 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncFrom
 import sp.it.util.text.keysUi
+import sp.it.util.type.isEnum
 import sp.it.util.type.isSubclassOf
+import sp.it.util.type.raw
 import sp.it.util.type.type
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
@@ -245,6 +248,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                   }
                }
                config.type.isSubclassOf<Boolean>() || config.isEnumerable -> ConfigEditor.create(config).editor
+               config.type.raw.isEnum -> ConfigEditor.create(config).editor
                else -> null
             }
          }
@@ -257,6 +261,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                value is Runnable -> value.run()
                config.type == type<Boolean>() && config.isEditableByUserRightNow() -> (config as Config<Boolean>).value = !value.asIs<Boolean>()
                config.type == type<Boolean?>() && config.isEditableByUserRightNow() -> (config as Config<Boolean?>).value = when (value.asIs<Boolean?>()) { null -> true; true -> false; false -> null }
+               config.type.raw.isEnum && config.isEditableByUserRightNow() -> {}
             }
          }
       }

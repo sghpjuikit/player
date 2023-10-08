@@ -21,6 +21,7 @@ import sp.it.pl.audio.playback.GeneralPlayer
 import sp.it.pl.audio.playback.PlayTimeHandler
 import sp.it.pl.audio.playback.VlcPlayer
 import sp.it.pl.audio.playback.VlcPlayer.AudioDevice
+import sp.it.pl.audio.playback.VolumeProperty
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
@@ -65,6 +66,8 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
+import sp.it.util.conf.max
+import sp.it.util.conf.min
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.only
 import sp.it.util.conf.readOnlyUnless
@@ -104,6 +107,7 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
+import sp.it.util.units.toHMSMs
 import sp.it.util.units.uuid
 import uk.co.caprica.vlcj.player.base.AudioChannel
 
@@ -116,6 +120,23 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       playback.status attach { APP.actionStream(PlaybackStatusChanged(it)) }
    }
    private val player = GeneralPlayer(state)
+
+   val volume by cv(state.playback.volume).min(VolumeProperty.MIN).max(VolumeProperty.MAX)
+      .noPersist().def(name = "Playback volume", info = "Playback volume")
+   val loopMode by cv(state.playback.loopMode)
+      .noPersist().def(name = "Playback loopMode", info = "Playback loopMode")
+   val status by cvro(state.playback.status)
+      .noPersist().def(name = "Playback status", info = "Current playback status", editable = EditMode.APP)
+   val duration by cvro(state.playback.duration).uiConverter { it.toHMSMs() }
+      .noPersist().def(name = "Playback song duration", info = "Duration of the currently played song", editable = EditMode.APP)
+   val currentTime by cvro(state.playback.currentTime).uiConverter { it.toHMSMs() }
+      .noPersist().def(name = "Playback song currentTime", info = "Current position of the playback")
+   val realTime by cvro(state.playback.realTime).uiConverter { it.toHMSMs() }
+      .noPersist().def(name = "Playback song realTime", info = "Total duration of the playback of the currently played song", editable = EditMode.APP)
+   val mute by cv(state.playback.mute)
+      .noPersist().def(name = "Playback mute", info = "Current mute state")
+   val rate by cv(state.playback.rate)
+      .noPersist().def(name = "Playback rate", info = "Playback rate of playback. May have no effect")
 
    var continuePlaybackOnStart by c(true)
       .def(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
@@ -533,7 +554,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       state.playback.volume.decByStep()
    }
 
-   @IsAction(name = "Toggle looping", info = "Switch between playlist looping mode.", keys = "ALT+L")
+   @IsAction(name = "Toggle looping", info = "Switch between playlist looping mode.", keys = "ALT+K")
    fun toggleLoopMode() {
       state.playback.loopMode.toggleNext()
    }

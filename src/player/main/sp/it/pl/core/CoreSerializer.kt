@@ -1,8 +1,8 @@
 package sp.it.pl.core
 
 import io.fury.Fury
-import io.fury.Language.JAVA
-import io.fury.serializer.CompatibleMode.SCHEMA_CONSISTENT
+import io.fury.config.CompatibleMode.SCHEMA_CONSISTENT
+import io.fury.config.Language.JAVA
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.ObjectInputStream

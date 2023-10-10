@@ -139,7 +139,7 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "5.3.3")
+         implementation("com.github.f4b6a3", "uuid-creator", "5.3.5")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
          implementation("com.github.oshi", "oshi-core", "6.4.6")  // https://github.com/oshi/oshi/releases
@@ -177,8 +177,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.3.4")
-         implementation("io.ktor", "ktor-client-cio", "2.3.4")
+         implementation("io.ktor", "ktor-server-core", "2.3.5")
+         implementation("io.ktor", "ktor-client-cio", "2.3.5")
       }
 
       "Test" group {
@@ -187,7 +187,7 @@ allprojects {
       }
 
       "Db" group {
-         implementation("org.furyio", "fury-core", "0.1.2")
+         implementation("org.furyio", "fury-core", "0.2.0")
       }
 
    }

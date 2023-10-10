@@ -130,7 +130,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    val duration by cvro(state.playback.duration).uiConverter { it.toHMSMs() }
       .noPersist().def(name = "Playback song duration", info = "Duration of the currently played song", editable = EditMode.APP)
    val currentTime by cvro(state.playback.currentTime).uiConverter { it.toHMSMs() }
-      .noPersist().def(name = "Playback song currentTime", info = "Current position of the playback")
+      .noPersist().def(name = "Playback song currentTime", info = "Current position of the playback", editable = EditMode.APP)
    val realTime by cvro(state.playback.realTime).uiConverter { it.toHMSMs() }
       .noPersist().def(name = "Playback song realTime", info = "Total duration of the playback of the currently played song", editable = EditMode.APP)
    val mute by cv(state.playback.mute)

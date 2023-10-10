@@ -7,6 +7,7 @@ import java.net.URISyntaxException
 import java.net.URL
 import java.nio.charset.Charset
 import java.text.BreakIterator
+import java.util.LinkedList
 import java.util.Locale
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
@@ -176,7 +177,7 @@ fun String.camelToDotCase() = camelToCustomCase('.')
 fun String.camelToSpaceCase() = camelToCustomCase(' ')
 
 fun String.camelToCustomCase(c: Char) = codePoints().asSequence()
-   .fold(ArrayList<Int>(length)) { str, char ->
+   .fold(LinkedList<Int>()) { str, char ->
       if (str.isEmpty()) {
          str += Character.toLowerCase(char)
       } else {

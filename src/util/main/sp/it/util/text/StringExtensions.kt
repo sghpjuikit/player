@@ -159,7 +159,7 @@ fun String.plural(count: Int = 2): String = org.atteo.evo.inflector.English.plur
 fun String.pluralUnit(count: Int = 2): String = "$count " + plural(count)
 
 /** @return true iff this string is nonempty palindrome */
-fun String.isPalindrome(): Boolean = !isEmpty() && isPalindromeOrEmpty()
+fun String.isPalindrome(): Boolean = isNotEmpty() && isPalindromeOrEmpty()
 
 /** @return true iff this string is palindrome or empty string */
 fun String.isPalindromeOrEmpty(): Boolean {

@@ -371,7 +371,7 @@ class App: Application(), GlobalConfigDelegator {
       logger.info { "Stopping..." }
 
       runTry {
-         store()
+         runTry { store() }.ifErrorNotify { AppError("Unable to store application state", "Reason: ${it.stacktraceAsString}") }
          onStopping()
 
          // app

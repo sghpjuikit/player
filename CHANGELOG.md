@@ -43,10 +43,13 @@ JavaFX 22-ea+11 brings long awaited optimization and fix for pseudoclass handlin
 which reduces memory consumption and makes ui more responsive.
 
 On Kotlin side, K2 compiler has now been enabled for this project.
-This reduces compilation time for widgets dramatically.
+This reduces compila[SpitPlayer.jsa](app%2FSpitPlayer.jsa)tion time for widgets dramatically.
 
 Gradle has been updated to 8.4.
-This finally reuses compiler daemon and drastically reduces compilation time. 
+This finally reuses compiler daemon and drastically reduces compilation time.
+
+The application now uses `-XX:+AutoCreateSharedArchive -XX:SharedArchiveFile=SpitPlayer.jsa`,
+which improves startup.
 
 ## Voice recognition plugin
 Voice recognition now uses locally running OpenAI Whisper Python program.

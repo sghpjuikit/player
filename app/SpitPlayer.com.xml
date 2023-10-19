@@ -17,7 +17,7 @@
   <icon>resources\icons\icon512.ico</icon>
   <classPath>
     <mainClass>sp.it.pl.main.AppKt</mainClass>
-    <cp>lib/*</cp>
+    <cp>lib/*.jar</cp>
   </classPath>
   <jre>
     <path>java</path>

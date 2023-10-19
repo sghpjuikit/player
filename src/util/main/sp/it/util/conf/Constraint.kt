@@ -28,7 +28,7 @@ interface Constraint<in T> {
 
 
    /** Denotes type of [java.io.File]. For example to decide between file and directory chooser. */
-   enum class FileActor constructor(private val condition: (File) -> Boolean, private val message: String): Constraint<File?> {
+   enum class FileActor(private val condition: (File) -> Boolean, private val message: String): Constraint<File?> {
       FILE({ !it.exists() || it.isFile }, "File must not be directory"),
       DIRECTORY({ !it.exists() || it.isDirectory }, "File must be directory"),
       ANY({ true }, "");
@@ -92,6 +92,9 @@ interface Constraint<in T> {
 
    /** When using [Multiline], scroll text area to the bottom when text is appended. */
    object MultilineScrollToBottom: MarkerConstraint()
+
+   /** When using [Multiline], preferred text area row count to determine height. */
+   data class MultilineRows(val rows: Int?): MarkerConstraint()
 
    object DurationNonNegative: Constraint<Duration> {
       override fun isValid(value: Duration?): Boolean {

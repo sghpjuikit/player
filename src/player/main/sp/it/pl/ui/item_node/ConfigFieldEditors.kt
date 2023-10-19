@@ -1230,6 +1230,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    val isCollection = c.type.raw.isSubclassOf<Collection<*>>() || c.type.raw.isSubclassOf<Map<*,*>>()
    val isMultiline = c.hasConstraint<Constraint.Multiline>() || isCollection
    val isMultilineScrollToBottom = isMultiline && c.hasConstraint<Constraint.MultilineScrollToBottom>()
+   val isMultilineRows = if (isMultiline) c.findConstraint<Constraint.MultilineRows>()?.rows else null
    val obv = getObservableValue(c)
    override val editor = if (isMultiline) TextArea() else SpitTextField()
    private val converterRaw: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: ::toS
@@ -1256,7 +1257,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       // value
       editor.text = converterRaw(config.value)
       editor.asIf<TextArea>()?.isWrapText = true
-      editor.asIf<TextArea>()?.prefRowCount = editor.text.lengthInLines.clip(1, 10)
+      editor.asIf<TextArea>()?.prefRowCount = isMultilineRows ?: editor.text.lengthInLines.clip(1, 10)
       obv?.attach { refreshValue() } on disposer
       obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() } } on disposer
       editor.focusedProperty() attachFalse  { refreshValue() } on disposer

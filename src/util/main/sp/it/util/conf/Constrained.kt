@@ -8,6 +8,7 @@ import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.Constraint.FileOut
 import sp.it.util.conf.Constraint.FileRelative
 import sp.it.util.conf.Constraint.Multiline
+import sp.it.util.conf.Constraint.MultilineRows
 import sp.it.util.conf.Constraint.MultilineScrollToBottom
 import sp.it.util.conf.Constraint.NoPersist
 import sp.it.util.conf.Constraint.NoUi
@@ -50,10 +51,10 @@ fun <T: Any?, C: ConstrainedDsl<T>> C.but(constraints: Sequence<Constraint<T>>) 
 
 /** Adds [NoUi] */
 fun <T: Any?, C: ConstrainedDsl<T>> C.noUi() = but(NoUi)
-/** Adds [Multiline] */
-fun <T: Any?, C: ConstrainedDsl<T>> C.multiline() = but(Multiline)
-/** Adds [Multiline] and [MultilineScrollToBottom] */
-fun <T: Any?, C: ConstrainedDsl<T>> C.multilineToBottom() = but(Multiline).but(MultilineScrollToBottom)
+/** Adds [Multiline] and [MultilineRows] */
+fun <T: Any?, C: ConstrainedDsl<T>> C.multiline(rows: Int? = null) = but(Multiline).but(MultilineRows(rows))
+/** Adds [Multiline] and [MultilineRows] and [MultilineScrollToBottom] */
+fun <T: Any?, C: ConstrainedDsl<T>> C.multilineToBottom(rows: Int? = null) = but(Multiline).but(MultilineRows(rows)).but(MultilineScrollToBottom)
 /** Adds [NoUiDefaultButton] */
 fun <T: Any?, C: ConstrainedDsl<T>> C.noUiDefaultButton() = but(NoUiDefaultButton)
 /** Adds [NoPersist] */

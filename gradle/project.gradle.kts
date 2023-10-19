@@ -304,7 +304,6 @@ application {
       "-XX:+UseStringDeduplication",
       "-XX:+UseCompressedOops",
       "-XX:+CompactStrings",  // OpenJ9 only
-      *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
-      "--enable-preview"
+      *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty()
    )
 }

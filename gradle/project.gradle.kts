@@ -187,7 +187,7 @@ allprojects {
       }
 
       "Db" group {
-         implementation("org.furyio", "fury-core", "0.2.0")
+         implementation("org.furyio", "fury-core", "0.2.1")
       }
 
    }

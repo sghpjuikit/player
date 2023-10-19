@@ -8,7 +8,7 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import kotlin.math.roundToInt
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.invoke
 import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -321,7 +321,7 @@ class VlcPlayer: GeneralPlayer.Play {
       private val setup by lazy {
          runSuspendingFx {
             AppProgress.start("Obtaining Vlc").reportFor { task ->
-               withContext(VT) {
+               VT {
                   val os = Os.current
                   val vlcDir = APP.location/"vlc"
                   val vlcZip = vlcDir/"vlc.zip"

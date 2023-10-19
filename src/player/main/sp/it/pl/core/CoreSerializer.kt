@@ -15,6 +15,12 @@ import kotlin.reflect.cast
 import kotlin.reflect.jvm.jvmName
 import mu.KotlinLogging
 import org.jetbrains.annotations.Blocking
+import sp.it.pl.audio.MetadatasDB
+import sp.it.pl.audio.PlaybackStateDB
+import sp.it.pl.audio.PlayerStateDB
+import sp.it.pl.audio.PlaylistDB
+import sp.it.pl.audio.PlaylistItemDB
+import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.util.async.threadFactory
@@ -62,6 +68,14 @@ object CoreSerializer: Core {
       // gives better reasoning about state
       .withCompatibleMode(SCHEMA_CONSISTENT)
       .build()!!
+      .apply {
+         register(PlayerStateDB::class.java)
+         register(PlaybackStateDB::class.java)
+         register(PlaylistDB::class.java)
+         register(PlaylistItemDB::class.java)
+         register(MetadatasDB::class.java)
+         register(Metadata::class.java)
+      }
 
    class SerializerFury {
 

@@ -53,7 +53,6 @@ allprojects {
       options.compilerArgs = listOf(
          "-Xlint:unchecked",
          "-Xlint:preview",
-         "--enable-preview",
       )
       sourceCompatibility = javaVersionSupported.majorVersion
       targetCompatibility = javaVersionSupported.majorVersion

@@ -69,6 +69,14 @@ fun <T> ChanValue<T>.filter(test: (T) -> Boolean): ChanValue<T> = object: Mapped
    override fun updateListening() = s.subscribe(listeners.orNull()?.isNotEmpty()==true)
 }
 
+infix operator fun <R, T: R, O: R> ChanValue<T>.plus(other: ChanValue<O>): ChanValue<R> = object: MappedChanValue<R>() {
+   private val s = Subscribed {
+      this@plus subscribe { nv -> listeners.orNull()?.invoke(nv) }
+      other subscribe { nv -> listeners.orNull()?.invoke(nv) }
+   }
+
+   override fun updateListening() = s.subscribe(listeners.orNull()?.isNotEmpty()==true)
+}
 
 fun <T> ChanValue<T>.first(): ChanValue<T> = object: ChanValue<T> {
    protected val listeners = lazy { Handler1<T>() }

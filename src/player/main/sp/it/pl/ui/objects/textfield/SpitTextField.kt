@@ -78,6 +78,7 @@ open class SpitTextField: TextField() {
 
    companion object {
       const val STYLECLASS = "decorated-text-field"
+      const val STYLECLASS_PASSWORD = "password-field"
    }
 
 }

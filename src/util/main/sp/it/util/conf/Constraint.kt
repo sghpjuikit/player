@@ -87,6 +87,9 @@ interface Constraint<in T> {
       override fun message() = "Text must be at least ${toUiConverter.toS(min)} and at most ${toUiConverter.toS(max)} characters long"
    }
 
+   /** Use password field. Allowed for non-[String] values. */
+   object Password: MarkerConstraint()
+
    /** Use multi-line text area instead of text field as editor. Allowed for non-[String] values. [Collection] and [Map] is multiline by default. */
    object Multiline: MarkerConstraint()
 

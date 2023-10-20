@@ -72,6 +72,15 @@ public class SpitTextFieldSkin extends TextFieldSkin {
 		super.dispose();
 	}
 
+	@Override
+	protected String maskText(String txt) {
+		if (getSkinnable().getStyleClass().contains(SpitTextField.STYLECLASS_PASSWORD)) {
+			return "●".repeat(txt.length());
+		} else {
+			return txt;
+		}
+	}
+
 	private void updateChildren() {
 		var newLeft = ((SpitTextField) getSkinnable()).getLeft();
 		if (!newLeft.isEmpty()) {

@@ -35,6 +35,7 @@ import javafx.scene.control.RadioButton
 import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.control.Slider
 import javafx.scene.control.TextArea
+import javafx.scene.control.TextField
 import javafx.scene.control.ToggleButton
 import javafx.scene.effect.Effect
 import javafx.scene.input.KeyCode
@@ -1228,6 +1229,7 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
 
 class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    val isCollection = c.type.raw.isSubclassOf<Collection<*>>() || c.type.raw.isSubclassOf<Map<*,*>>()
+   val isPassword = c.hasConstraint<Constraint.Password>() || isCollection
    val isMultiline = c.hasConstraint<Constraint.Multiline>() || isCollection
    val isMultilineScrollToBottom = isMultiline && c.hasConstraint<Constraint.MultilineScrollToBottom>()
    val isMultilineRows = if (isMultiline) c.findConstraint<Constraint.MultilineRows>()?.rows else null
@@ -1251,6 +1253,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    }
 
    init {
+      if (isPassword) editor.styleClass += SpitTextField.STYLECLASS_PASSWORD
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.promptText = c.nameUi
 
@@ -1366,12 +1369,13 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
          if (isSealed) editor.userData = config.value
          isNull = config.value==null
          val text = if (isValueRefreshingRaw) converterRaw(config.value) else converter(config.value)
-         editor.text = text
-         editor.asIf<TextArea>().ifNotNull {
-            if (it.text != text) {
-               it.clear()
-               it.appendText(text)
-               if (isMultilineScrollToBottom) it.scrollTop = Double.MAX_VALUE
+         if (editor is TextField) {
+            editor.text = text
+         } else if (editor is TextArea) {
+            if (editor.text != text) {
+               editor.clear()
+               editor.appendText(text)
+               if (isMultilineScrollToBottom) editor.scrollTop = Double.MAX_VALUE
             }
          }
 

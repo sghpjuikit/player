@@ -15,6 +15,7 @@ import sp.it.util.conf.Constraint.NoUi
 import sp.it.util.conf.Constraint.NoUiDefaultButton
 import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.Constraint.ObjectNonNull
+import sp.it.util.conf.Constraint.Password
 import sp.it.util.conf.Constraint.PreserveOrder
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.Constraint.StringLength
@@ -53,6 +54,8 @@ fun <T: Any?, C: ConstrainedDsl<T>> C.but(constraints: Sequence<Constraint<T>>) 
 fun <T: Any?, C: ConstrainedDsl<T>> C.noUi() = but(NoUi)
 /** Adds [Multiline] and [MultilineRows] */
 fun <T: Any?, C: ConstrainedDsl<T>> C.multiline(rows: Int? = null) = but(Multiline).but(MultilineRows(rows))
+/** Adds [Password] */
+fun <T: Any?, C: ConstrainedDsl<T>> C.password() = but(Password)
 /** Adds [Multiline] and [MultilineRows] and [MultilineScrollToBottom] */
 fun <T: Any?, C: ConstrainedDsl<T>> C.multilineToBottom(rows: Int? = null) = but(Multiline).but(MultilineRows(rows)).but(MultilineScrollToBottom)
 /** Adds [NoUiDefaultButton] */

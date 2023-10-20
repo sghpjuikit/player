@@ -29,7 +29,6 @@ private abstract class MappedChanValue<T>: ChanValue<T> {
 
 fun <T> ObservableValue<T>.chan(): ChanValue<T> = object: MappedChanValue<T>() {
    private val s = Subscribed {
-      listeners.orNull()?.invoke(this@chan.value)
       this@chan attach { nv -> listeners.orNull()?.invoke(nv) }
    }
 

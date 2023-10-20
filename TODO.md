@@ -1,4 +1,5 @@
 ## Potential future work
+- tasks do not show in task list, see Task.runGet
 - implement plus icon for custom widget custom inputs in layout mode
 - implement custom outputs for custom widgets
 - Improve **Tagger** widget

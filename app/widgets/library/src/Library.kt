@@ -58,7 +58,6 @@ import sp.it.util.units.toHMSMs
 import java.io.File
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
 import javafx.scene.control.TableColumn
-import mu.KLogging
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.Css.Pseudoclasses.played
 import sp.it.pl.main.HelpEntries
@@ -231,7 +230,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
    override fun focus() = table.requestFocus()
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = SONG_TABLE_NAME
       override val description = "Table of songs"
       override val descriptionLong = "$description. Allows access to song database."

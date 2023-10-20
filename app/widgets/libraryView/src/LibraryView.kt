@@ -11,7 +11,6 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.control.Menu
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.scene.control.TableCell
-import javafx.scene.control.TableColumn
 import javafx.scene.input.KeyCode.*
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
@@ -20,7 +19,6 @@ import javafx.scene.input.TransferMode.ANY
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Callback
-import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
@@ -102,7 +100,9 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.system.chooseFile
 import sp.it.util.system.chooseFiles
-import sp.it.util.text.*
+import sp.it.util.text.keys
+import sp.it.util.text.nameUi
+import sp.it.util.text.pluralUnit
 import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
@@ -115,10 +115,6 @@ import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import sp.it.util.units.version
 import sp.it.util.units.year
-
-private typealias Metadatas = List<Metadata>
-private typealias MetadataGroups = List<MetadataGroup>
-private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, TableCell<MetadataGroup, T>>
 
 class LibraryView(widget: Widget): SimpleController(widget) {
 
@@ -140,9 +136,8 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    val tableShowFooter by cOr(APP.ui::tableShowFooter, table.footerVisible, Inherit(), onClose)
       .defInherit(APP.ui::tableShowFooter)
    val fieldFilter by cv<MField<*>>(CATEGORY).values(MField.all.filter { it.isTypeStringRepresentable() })
-      .def(name = "Field", info = "Field by which the table groups the songs") attach {
-         applyData()
-      }
+      .def(name = "Field", info = "Field by which the table groups the songs")
+      .attach { applyData() }
    private var lastAddFilesLocation by cn<File>(APP.location.user).noUi()
       .def(name = "Last add songs browse location", editable = EditMode.APP)
    private var lastAddDirLocation by cn<File>(APP.location.user).only(FileType.DIRECTORY).noUi()
@@ -195,7 +190,9 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
       table.setColumnFactory { f ->
          when (f) {
-            PLAYING -> table.buildPlayingFieldColumn().asIs()
+            PLAYING -> {
+               table.buildPlayingFieldColumn().asIs()
+            }
             is MgField<*> -> {
                val mf = fieldFilter.value
                tableColumn<MetadataGroup, Any?> {
@@ -209,7 +206,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                   cellFactory = when (f) {
                      AVG_RATING -> RatingCellFactory.asIs()
                      W_RATING ->
-                        CellFactory {
+                        Callback {
                            object: TableCell<MetadataGroup, Double?>() {
                               init {
                                  alignment = CENTER_RIGHT
@@ -222,7 +219,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                            }.asIs()
                         }
 
-                     else -> CellFactory {
+                     else -> Callback {
                         f.buildFieldedCell().apply {
                            alignment = if (f.getMFType(mf).isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
                         }
@@ -355,7 +352,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    }
 
    /** Populates metadata groups to table from metadata list. */
-   private fun setItems(list: Metadatas?) {
+   private fun setItems(list: List<Metadata>?) {
       if (list==null) return
 
       val f = fieldFilter.value
@@ -369,7 +366,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
    }
 
-   private fun filterList(list: Metadatas?, orAll: Boolean): Metadatas = when {
+   private fun filterList(list: List<Metadata>?, orAll: Boolean): List<Metadata> = when {
       list==null -> listOf()
       list.isEmpty() -> listOf()
       else -> {
@@ -385,7 +382,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
    private fun playSelected() = play(inputItemsFiltered())
 
-   private fun play(items: Metadatas) {
+   private fun play(items: List<Metadata>) {
       if (items.isNotEmpty())
          PlaylistManager.use { it.setAndPlay(items.sortedWith(APP.audio.songOrderComparator)) }
    }
@@ -446,7 +443,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       lastAddFilesLocation = Util.getCommonRoot(it)
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = SONG_GROUP_TABLE_NAME
       override val description = "Table of songs"
       override val descriptionLong = "$description. Allows access to song database."

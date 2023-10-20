@@ -49,16 +49,19 @@ class TextUtilTest: FreeSpec({
    String::camelToDashCase.name - {
       "AaaBbbCCC".camelToDashCase() shouldBe "aaa-bbb-c-c-c"
       "AaaBbbCCC".camelToDashCase() shouldBe "AaaBbbCCC".camelToDashCase().lowercase()
+      "Aaa-Bbb".camelToDashCase() shouldBe "aaa-bbb".camelToDashCase()
    }
 
    String::camelToDotCase.name - {
       "AaaBbbCCC".camelToDotCase() shouldBe "aaa.bbb.c.c.c"
       "AaaBbbCCC".camelToDotCase() shouldBe "AaaBbbCCC".camelToDotCase().lowercase()
+      "Aaa.Bbb".camelToDotCase() shouldBe "aaa.bbb".camelToDotCase()
    }
 
    String::camelToSpaceCase.name - {
       "AaaBbbCCC".camelToSpaceCase() shouldBe "aaa bbb c c c"
       "AaaBbbCCC".camelToSpaceCase() shouldBe "AaaBbbCCC".camelToSpaceCase().lowercase()
+      "Aaa Bbb".camelToSpaceCase() shouldBe "aaa bbb".camelToSpaceCase()
    }
 
    String::camelToCustomCase.name - {

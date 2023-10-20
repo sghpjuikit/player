@@ -182,7 +182,7 @@ fun String.camelToCustomCase(c: Char) = codePoints().asSequence()
          str += Character.toLowerCase(char)
       } else {
          if (Character.isUpperCase(char)) {
-            str += c.code
+            if (str.last() != c.code) str += c.code
             str += Character.toLowerCase(char)
          } else {
             str += char

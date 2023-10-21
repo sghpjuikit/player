@@ -277,6 +277,10 @@ tasks {
       args = listOf("--dev")
    }
 
+   "assemble" {
+      dependsOn(":widgets:assemble")
+   }
+
    "build" {
       dependsOn(":widgets:build")
    }

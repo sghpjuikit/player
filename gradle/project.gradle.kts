@@ -130,13 +130,6 @@ allprojects {
          implementation("net.jthink", "jaudiotagger", "3.0.1")
       }
 
-      "AI" group {
-         implementation("de.dfki.mary", "voice-cmu-slt-hsmm", "5.2.1") {
-            exclude("com.twmacinta", "fast-md5")
-            exclude("gov.nist.math", "Jampack")
-         }
-      }
-
       "Misc" group {
          implementation("com.github.f4b6a3", "uuid-creator", "5.3.5")
          implementation("org.atteo", "evo-inflector", "1.3")

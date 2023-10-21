@@ -19,7 +19,6 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **VoiceRecognition** plugin wake word
 - Implement **VoiceRecognition** plugin to be interactive (gives voice feedback)
 - Implement open widget voice actions
-- Implement **SpeechSynthesizer** plugin speak action name variations for better UX
 - Implement **Hue Scenes** widget toggle lights voice actions
 - Implement all/any/none functions for filtering/mapping lists
 - Implement Song Group Table songs column as List<Song> which enables filtering groups by song attributes
@@ -27,6 +26,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement enum config editors access through search
 - Implement **Clipboard Viewer** widget
 - Implement **Keyboard Event Viewer** widget
+- Remove **SpeechSynthesizer** plugin
 - Fix **ContainerFreeForm** the largest empty area computation
 - Fix `PluginInstalledEvent.toUi` freezing application
 - Fix `Action Log` opening only if errors are present
@@ -47,7 +47,7 @@ JavaFX 22-ea+11 brings long awaited optimization and fix for pseudoclass handlin
 which reduces memory consumption and makes ui more responsive.
 
 On Kotlin side, K2 compiler has now been enabled for this project.
-This reduces compila[SpitPlayer.jsa](app%2FSpitPlayer.jsa)tion time for widgets dramatically.
+This reduces compilation time for widgets dramatically.
 
 Gradle has been updated to 8.4.
 This finally reuses compiler daemon and drastically reduces compilation time.
@@ -56,30 +56,19 @@ The application now uses `-XX:+AutoCreateSharedArchive -XX:SharedArchiveFile=Spi
 which improves startup.
 
 ## Voice recognition plugin
-Voice recognition now uses locally running OpenAI Whisper Python program.
+This plugin used pure Java solution - `alphacephei`'s vosk AI models.
+
+Voice recognition now uses locally running Python program using OpenAI Whisper:
 - It gives voice feedback and uses configurable wake word.
 - Provides state-of-the-art speech recognition quality and the increased accuracy helps a lot for shorter commands
 - Decouples AI from the application, which makes things more stable, performant and deterministic
 
-This implementation also has voice feedback (using OS voices like e.g. Windows Narrator) to provide comfortable
-UX when speaking to the application. The application tells user
-- when it has voice recognition starting & activated & closing
-- when it is listening to wake word
-
-Installation requires user to install `python` and run couple `pip install` commands.
-Requirements for this plugin alone are 3GB of RAM.
-
-The older implementation used pure Java solution - `alphacephei`'s vosk AI models, and it has been removed.
+It also has configurable speech capability, voice feedback and LLM chat.
+See [README](/app/speech-recognition-whisper/README.md) for details.
 
 ## Voice synthesis plugin
-The implementation uses pure Java solution - somewhat outdated MaryTTS (Java library).
-Ideally, this will be removed in favor of system voice used for voice recognition plugin.
-In the future, when good local AI will be available, it may be used instead.
-
-## AI direction
-It is obvious that doing pure Java AI solutions is not an optimal way.
-Python, on the other hand already allows easy voice synthesis, voice recognition as well as LLM, all offline and state-of-the-art.
-In fact, after improving speech area, LLM integration (most likely using `Gpt4All`) is on the menu as well.
+This plugin used pure Java solution - somewhat outdated MaryTTS (Java library).
+This plugin has been removed in favor of voice used for voice recognition plugin.
 
 ## [7.8.0] 2023 08 06
 - Update Java to 20

@@ -12,7 +12,11 @@ app/vlc/
 app/widgets/**/out
 app/speech-recognition-whisper/user_wake.wav
 app/speech-recognition-whisper/user_prompt.wav
-app/speech-recognition-whisper/models/**.pt
+app/speech-recognition-whisper/cache
+app/speech-recognition-whisper/models-llm/**
+!app/speech-recognition-whisper/models-llm/README.md
+app/speech-recognition-whisper/models-whisper/**
+!app/speech-recognition-whisper/models-whisper/README.md
 private/
 *.log
 

@@ -1,6 +1,7 @@
 package playerControls
 
 import de.jensd.fx.glyphs.GlyphIcons
+import java.io.File
 import javafx.geometry.HPos
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER
@@ -9,6 +10,8 @@ import javafx.geometry.VPos
 import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.Slider
+import javafx.scene.input.MouseButton.BACK
+import javafx.scene.input.MouseButton.FORWARD
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
@@ -40,6 +43,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconUN
+import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.Widgets.PLAYBACK_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAudio
@@ -72,10 +76,6 @@ import sp.it.util.units.seconds
 import sp.it.util.units.toHMSMs
 import sp.it.util.units.version
 import sp.it.util.units.year
-import java.io.File
-import javafx.scene.input.MouseButton.BACK
-import javafx.scene.input.MouseButton.FORWARD
-import sp.it.pl.main.WidgetTags.AUDIO
 
 class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature, HorizontalDock {
    val volume = Slider()

@@ -5,14 +5,14 @@ import javafx.scene.control.TextArea
 import javafx.scene.layout.Priority.ALWAYS
 import mu.KLogging
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.DEVELOPMENT
-import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.TextDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconOC
+import sp.it.pl.main.WidgetTags.DEVELOPMENT
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.Widgets.LOGGER_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.icon.CheckIcon

@@ -1,5 +1,7 @@
 package inspector
 
+import javafx.stage.Window as WindowFX
+import java.io.File
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.scene.Node
 import javafx.scene.Parent
@@ -20,7 +22,10 @@ import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.FileExplorerFeature
 import sp.it.pl.layout.feature.Opener
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconUN
+import sp.it.pl.main.WidgetTags.DEVELOPMENT
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.Widgets.INSPECTOR_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAny
@@ -41,29 +46,24 @@ import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.into
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.propagateESCAPE
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.ui.expandToRootAndSelect
+import sp.it.util.ui.flowPane
 import sp.it.util.ui.isAnyChildOf
+import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.pickTopMostAt
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.styleclassToggle
+import sp.it.util.ui.traverseParents
 import sp.it.util.ui.x
 import sp.it.util.units.version
 import sp.it.util.units.year
-import java.io.File
-import javafx.stage.Window as WindowFX
-import sp.it.pl.main.WidgetTags.DEVELOPMENT
-import sp.it.pl.main.WidgetTags.UTILITY
-import sp.it.pl.main.IconMD
-import sp.it.util.reactive.into
-import sp.it.util.reactive.syncNonNullWhile
-import sp.it.util.ui.flowPane
-import sp.it.util.ui.label
-import sp.it.util.ui.traverseParents
 
 class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, Opener {
    private val outputSelected = io.o.create<Any?>("Selected", null)

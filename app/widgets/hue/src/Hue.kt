@@ -3,7 +3,8 @@
 package hue
 
 import de.jensd.fx.glyphs.GlyphIcons
-import hue.HueBulbConfPowerOn.*
+import hue.HueBulbConfPowerOn.custom
+import hue.HueBulbConfPowerOn.unknown
 import hue.HueGroupType.LightGroup
 import hue.HueGroupType.Lightsource
 import hue.HueGroupType.Luminaire
@@ -79,8 +80,8 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.textColon
 import sp.it.pl.main.toUi
-import sp.it.pl.plugin.impl.SpeechRecognition.SpeakHandler
 import sp.it.pl.plugin.impl.SpeechRecognition
+import sp.it.pl.plugin.impl.SpeechRecognition.SpeakHandler
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.form.Validated
 import sp.it.pl.ui.objects.icon.Icon

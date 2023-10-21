@@ -11,7 +11,8 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.control.Menu
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.scene.control.TableCell
-import javafx.scene.input.KeyCode.*
+import javafx.scene.input.KeyCode.DELETE
+import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED

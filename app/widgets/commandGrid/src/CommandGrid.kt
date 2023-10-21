@@ -8,12 +8,12 @@ import javafx.scene.input.ScrollEvent.SCROLL
 import mu.KLogging
 import sp.it.pl.conf.Command
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
-import sp.it.pl.main.IconUN
 import sp.it.pl.main.FileExtensions.command
+import sp.it.pl.main.IconUN
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.grid.GridFileThumbCell
 import sp.it.pl.ui.objects.grid.GridView

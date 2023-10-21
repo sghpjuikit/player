@@ -109,7 +109,7 @@ import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.onChangeAndNow;
 import static sp.it.util.reactive.UtilKt.sync;
-import static sp.it.util.text.StringExtensionsKt .capitalLower;
+import static sp.it.util.text.StringExtensionsKt.capitalLower;
 import static sp.it.util.type.UtilKt.estimateRuntimeType;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;

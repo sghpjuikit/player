@@ -56,7 +56,8 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.zip
-import sp.it.util.text.*
+import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 import sp.it.util.ui.canvas
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize

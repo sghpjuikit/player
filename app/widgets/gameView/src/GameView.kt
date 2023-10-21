@@ -5,8 +5,8 @@ import io.ktor.http.encodeURLQueryComponent
 import java.io.File
 import java.util.UUID
 import javafx.geometry.Insets
-import javafx.geometry.Pos.TOP_CENTER
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.TOP_CENTER
 import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
@@ -29,8 +29,6 @@ import javafx.util.Callback
 import kotlin.math.round
 import mu.KLogging
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.GAME
-import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
@@ -44,6 +42,8 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconTx
 import sp.it.pl.main.IconUN
+import sp.it.pl.main.WidgetTags.GAME
+import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.isImage

@@ -1,9 +1,19 @@
 package imageViewer
 
+import java.io.File
 import javafx.animation.Animation.INDEFINITE
 import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.scene.input.KeyCode.END
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyCode.HOME
+import javafx.scene.input.KeyCode.KP_LEFT
+import javafx.scene.input.KeyCode.KP_RIGHT
+import javafx.scene.input.KeyCode.LEFT
+import javafx.scene.input.KeyCode.RIGHT
+import javafx.scene.input.KeyCode.SPACE
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
@@ -20,6 +30,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconUN
+import sp.it.pl.main.WidgetTags.IMAGE
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAudio
 import sp.it.pl.main.hasAudio
@@ -29,27 +40,37 @@ import sp.it.pl.main.isImage
 import sp.it.pl.main.toMetadata
 import sp.it.pl.ui.nodeinfo.SongInfo
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
+import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.toggle
+import sp.it.util.access.toggleNext
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.async.runVT
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.div
+import sp.it.util.file.getFilesR
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
+import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.ui.Util.layAnchor
+import sp.it.util.ui.anchorPane
 import sp.it.util.ui.lay
+import sp.it.util.ui.layFullArea
+import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.stackPane
@@ -59,20 +80,6 @@ import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
-import java.io.File
-import javafx.scene.input.KeyCode.*
-import javafx.scene.input.KeyEvent.KEY_PRESSED
-import sp.it.pl.main.WidgetTags.IMAGE
-import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
-import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
-import sp.it.util.access.toggleNext
-import sp.it.util.async.runVT
-import sp.it.util.file.FileType.FILE
-import sp.it.util.file.getFilesR
-import sp.it.util.text.keys
-import sp.it.util.ui.anchorPane
-import sp.it.util.ui.layFullArea
-import sp.it.util.ui.minSize
 
 class ImageViewer(widget: Widget): SimpleController(widget) {
    private val inputLocation = io.i.create<File?>("Location", null) { dataChanged(it) }

@@ -22,6 +22,7 @@ import javafx.scene.layout.VBox
 import kotlin.reflect.KClass
 import mu.KLogging
 import org.jaudiotagger.tag.wav.WavTag
+import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
@@ -50,7 +51,6 @@ import sp.it.util.Named
 import sp.it.util.async.FX
 import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.getElementClass
-import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.toPrettyS

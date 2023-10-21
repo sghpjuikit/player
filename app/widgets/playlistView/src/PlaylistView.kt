@@ -1,9 +1,13 @@
 package playlistView
 
+import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import java.io.File
+import java.util.UUID
+import java.util.function.Consumer
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.stage.FileChooser
-import mu.KLogging
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
@@ -17,30 +21,39 @@ import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.PlaylistFeature
 import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.main.APP
+import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.Key
+import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.Widgets.PLAYLIST_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.ui.objects.table.PlaylistTable
 import sp.it.pl.ui.pane.ShortcutPane.Entry
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.toggle
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
+import sp.it.util.conf.cOr
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.conf.defInherit
 import sp.it.util.conf.only
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.asIf
+import sp.it.util.functional.invoke
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.sync1If
 import sp.it.util.system.saveFile
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
@@ -48,25 +61,11 @@ import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
+import sp.it.util.units.NofX
 import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import sp.it.util.units.version
 import sp.it.util.units.year
-import java.io.File
-import java.util.UUID
-import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
-import java.util.function.Consumer
-import sp.it.pl.audio.Song
-import sp.it.pl.main.WidgetTags.AUDIO
-import sp.it.pl.main.HelpEntries
-import sp.it.pl.main.IconMA
-import sp.it.pl.main.Key
-import sp.it.util.access.OrV.OrValue.Initial.Inherit
-import sp.it.util.conf.cOr
-import sp.it.util.conf.defInherit
-import sp.it.util.functional.invoke
-import sp.it.util.reactive.sync1If
-import sp.it.util.units.NofX
 
 class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
@@ -219,7 +218,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       override fun index(song: Song): NofX = NofX(table.playlist.indexOfFirst { it.same(song) }, table.playlist.size)
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = PLAYLIST_NAME
       override val description = "Playlist table controlling playback song order"
       override val descriptionLong = "$description. Highlights playing and unplayable songs"

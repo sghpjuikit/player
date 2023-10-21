@@ -1,7 +1,19 @@
 package image
 
 import java.io.File
-import javafx.scene.input.KeyCode.*
+import javafx.scene.input.KeyCode.DOWN
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyCode.KP_DOWN
+import javafx.scene.input.KeyCode.KP_LEFT
+import javafx.scene.input.KeyCode.KP_RIGHT
+import javafx.scene.input.KeyCode.KP_UP
+import javafx.scene.input.KeyCode.LEFT
+import javafx.scene.input.KeyCode.M
+import javafx.scene.input.KeyCode.RIGHT
+import javafx.scene.input.KeyCode.SHIFT
+import javafx.scene.input.KeyCode.SPACE
+import javafx.scene.input.KeyCode.UP
+import javafx.scene.input.KeyCode.V
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion

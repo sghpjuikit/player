@@ -3,7 +3,6 @@ package tester
 import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import java.lang.Math.random
-import java.lang.RuntimeException
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.LocalDate

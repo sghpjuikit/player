@@ -1,5 +1,10 @@
 package tagger
 
+import sp.it.pl.ui.objects.textfield.SpitTextField as DTextField
+import java.io.File
+import java.net.URI
+import java.time.Year
+import java.util.concurrent.atomic.AtomicLong
 import javafx.collections.FXCollections.observableArrayList
 import javafx.geometry.HPos
 import javafx.geometry.Insets
@@ -38,6 +43,7 @@ import javafx.scene.input.TransferMode.COPY
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.GridPane
+import javafx.scene.layout.GridPane.REMAINING
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.layout.Priority.SOMETIMES
@@ -47,8 +53,11 @@ import javafx.scene.paint.Color
 import javafx.scene.text.Text
 import javafx.scene.text.TextAlignment
 import javafx.util.Callback
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.audio.tagging.Metadata.Companion.SEPARATOR_UNIT
 import sp.it.pl.audio.tagging.Metadata.Field.ADDED_TO_LIBRARY
 import sp.it.pl.audio.tagging.Metadata.Field.ALBUM
 import sp.it.pl.audio.tagging.Metadata.Field.ALBUM_ARTIST
@@ -83,7 +92,6 @@ import sp.it.pl.audio.tagging.setOnDone
 import sp.it.pl.audio.tagging.write
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.SongReader
@@ -92,8 +100,12 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMD
+import sp.it.pl.main.WidgetTags.AUDIO
+import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.Widgets.SONG_TAGGER_NAME
 import sp.it.pl.main.appProgressIndicator
+import sp.it.pl.main.autocompleteSuggestionsFor
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.formIcon
 import sp.it.pl.main.getAudio
@@ -102,14 +114,21 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.main.isAudioEditable
 import sp.it.pl.main.isImageJaudiotagger
 import sp.it.pl.plugin.impl.Notifier
-import sp.it.pl.ui.objects.textfield.MoodItemNode
+import sp.it.pl.ui.labelForWithClick
+import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
+import sp.it.pl.ui.objects.complexfield.StringTagTextField
+import sp.it.pl.ui.objects.complexfield.TagTextField
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.image.ArtworkCover
 import sp.it.pl.ui.objects.image.ThumbnailWithAdd
 import sp.it.pl.ui.objects.spinner.Spinner
+import sp.it.pl.ui.objects.textfield.MoodItemNode
 import sp.it.pl.ui.objects.window.NodeShow.LEFT_CENTER
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.util.access.focused
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.async.runIO
@@ -117,20 +136,32 @@ import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.dev.fail
+import sp.it.util.dev.failCase
 import sp.it.util.file.div
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOr
+import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.math.clip
+import sp.it.util.math.max
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.zip
+import sp.it.util.text.capital
+import sp.it.util.text.decapital
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.text.pluralUnit
+import sp.it.util.text.splitNoEmpty
+import sp.it.util.type.atomic
+import sp.it.util.type.property
 import sp.it.util.type.type
 import sp.it.util.ui.borderPane
 import sp.it.util.ui.containsMouse
@@ -152,6 +183,7 @@ import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.scrollPane
+import sp.it.util.ui.show
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.textAlignment
 import sp.it.util.ui.textArea
@@ -161,39 +193,6 @@ import sp.it.util.ui.x2
 import sp.it.util.units.em
 import sp.it.util.units.version
 import sp.it.util.units.year
-import java.io.File
-import java.net.URI
-import java.time.Year
-import java.util.ArrayList
-import sp.it.pl.ui.objects.textfield.SpitTextField as DTextField
-import java.util.concurrent.atomic.AtomicLong
-import javafx.scene.layout.GridPane.REMAINING
-import kotlin.math.ceil
-import kotlin.math.roundToInt
-import sp.it.pl.audio.tagging.Metadata.Companion.SEPARATOR_UNIT
-import sp.it.pl.main.IconMD
-import sp.it.pl.main.WidgetTags.AUDIO
-import sp.it.pl.main.autocompleteSuggestionsFor
-import sp.it.pl.ui.labelForWithClick
-import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
-import sp.it.pl.ui.objects.complexfield.StringTagTextField
-import sp.it.pl.ui.objects.complexfield.TagTextField
-import sp.it.pl.ui.objects.image.ArtworkCover
-import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
-import sp.it.util.access.focused
-import sp.it.util.dev.failCase
-import sp.it.util.functional.orNull
-import sp.it.util.math.clip
-import sp.it.util.math.max
-import sp.it.util.reactive.attachFalse
-import sp.it.util.reactive.onChange
-import sp.it.util.reactive.zip
-import sp.it.util.text.capital
-import sp.it.util.text.decapital
-import sp.it.util.text.splitNoEmpty
-import sp.it.util.type.atomic
-import sp.it.util.type.property
-import sp.it.util.ui.show
 
 typealias Predicate = (String) -> Boolean
 typealias Converter = (String) -> String

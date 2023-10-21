@@ -153,7 +153,7 @@ allprojects {
 
       "Image" group {
          implementation("com.drewnoakes", "metadata-extractor", "2.18.0")
-         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.9.4")
+         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.10.0")
          imageIO("bmp")
          imageIO("clippath")
          imageIO("core")

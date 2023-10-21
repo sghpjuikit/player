@@ -6,6 +6,8 @@ import javafx.scene.control.Skin
 import javafx.scene.text.Text
 import kotlin.reflect.KClass
 import sp.it.pl.layout.NodeFactory
+import sp.it.pl.ui.objects.ClipboardViewer
+import sp.it.pl.ui.objects.KeyboardEventViewer
 import sp.it.pl.main.Widgets.ICON_BROWSER_NAME
 import sp.it.pl.ui.nodeinfo.IconPickerContent
 import sp.it.pl.ui.nodeinfo.MouseInfo
@@ -80,6 +82,8 @@ object CoreInstances: InstanceMap(), Core {
          NodeFactory(uuid("ae85ff79-d119-4677-a108-ca8f07bd4626"), javafx.scene.control.Label::class, "JavaFX Label") { Label("Label") },
          NodeFactory(uuid("5528126f-c9d5-40a7-ad72-a50f3bd9ab14"), javafx.scene.text.Text::class, "JavaFX Text") { Text("Text") },
          NodeFactory(uuid("109cbb7f-958b-47f7-8c89-072736a1b4c7"), IconPickerContent::class, ICON_BROWSER_NAME) { IconPickerContent() },
+         NodeFactory(uuid("2c7ae6d2-c32f-4a1b-84ab-4aece490d9a5"), ClipboardViewer::class, "Clipboard Viewer") { ClipboardViewer() },
+         NodeFactory(uuid("edad420c-a6b2-4b99-a8e1-6890337a4039"), KeyboardEventViewer::class, "Keyboard Event Viewer") { KeyboardEventViewer() },
       )
 
       addInstances<SearchUriBuilder>(

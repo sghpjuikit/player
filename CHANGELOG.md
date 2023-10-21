@@ -25,6 +25,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement Song Group Table songs column as List<Song> which enables filtering groups by song attributes
 - Implement playback state read-only configs editors
 - Implement enum config editors access through search
+- Implement **Clipboard Viewer** widget
+- Implement **Keyboard Event Viewer** widget
 - Fix **ContainerFreeForm** the largest empty area computation
 - Fix `PluginInstalledEvent.toUi` freezing application
 - Fix `Action Log` opening only if errors are present

@@ -85,6 +85,8 @@ import sp.it.pl.main.reportFor
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.item_node.ValueToggleButtonGroupCE
+import sp.it.pl.ui.objects.ClipboardViewer
+import sp.it.pl.ui.objects.KeyboardEventViewer
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
@@ -218,7 +220,9 @@ class Tester(widget: Widget): SimpleController(widget) {
       Group(IconOC.CODE, "Test CSS Gradients") { testCssGradients() },
       Group(IconOC.CODE, "Test CSS Borders") { testCssBorders() },
       Group(IconOC.CODE, "Test Tasks") { testTasks() },
-      Group(IconOC.CODE, "Test Mouse events") { testMouseEvents() }
+      Group(IconOC.CODE, "Test Mouse events") { testMouseEvents() },
+      Group(IconOC.CODE, "Test Keyboard events") { testKeyEvents() },
+      Group(IconOC.CODE, "Test Clipboard") { testClipboard() }
    )
    val groupSelected by cv(groups.first().name).noUi()
 
@@ -739,6 +743,20 @@ class Tester(widget: Widget): SimpleController(widget) {
                }
             }
          }
+      }
+   }
+
+   fun testKeyEvents() {
+      onContentChange()
+      content.children setToOne KeyboardEventViewer()
+      content.children[0].requestFocus()
+   }
+
+   fun testClipboard() {
+      onContentChange()
+      content.children setToOne fittingScrollPane {
+         content = ClipboardViewer()
+         content.requestFocus()
       }
    }
 

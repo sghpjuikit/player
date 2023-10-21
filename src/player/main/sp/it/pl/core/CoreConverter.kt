@@ -142,6 +142,7 @@ import sp.it.util.units.uri
 import kotlin.NumberFormatException as NFE
 import kotlin.IllegalArgumentException as IAE
 import kotlin.IndexOutOfBoundsException as OBE
+import javafx.scene.image.Image
 import sp.it.pl.audio.PlayerManager
 import sp.it.pl.main.Events
 import sp.it.pl.plugin.PluginInfo
@@ -213,6 +214,7 @@ object CoreConverter: Core {
          is PluginBox<*> -> o.info.name
          is WidgetFactory<*> -> o.name
          is Node -> o.id?.trim().orEmpty() + ":" + o::class.toUi()
+         is Image -> "Image(${o.width} x ${o.height})"
          is Name -> o.value
          is File -> o.path
          is URI -> URLDecoder.decode(o.toASCIIString(), UTF_8)

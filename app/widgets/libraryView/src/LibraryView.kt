@@ -119,9 +119,7 @@ import sp.it.util.units.year
 
 class LibraryView(widget: Widget): SimpleController(widget) {
 
-   private val table = object: FilteredTable<MetadataGroup>(MetadataGroup::class.java, VALUE) {
-      override fun computeFieldsAll() = super.computeFieldsAll() + PLAYING
-   }
+   private val table = Table()
    private val inputItems = io.i.create("To display", listOf<Metadata>()) { setItems(it) }
    private val outputSelectedGroup = io.o.create("Selected", listOf<MetadataGroup>())
    private val outputSelectedSongs = io.io.mapped(outputSelectedGroup, "As Songs") { filterList(inputItems.value, true) }
@@ -442,6 +440,10 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    private fun addFiles() = chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, audioExtensionFilter()).ifOk {
       APP.ui.actionPane.orBuild.show(it)
       lastAddFilesLocation = Util.getCommonRoot(it)
+   }
+
+   class Table: FilteredTable<MetadataGroup>(MetadataGroup::class.java, VALUE) {
+      override fun computeFieldsAll() = super.computeFieldsAll() + PLAYING
    }
 
    companion object: WidgetCompanion {

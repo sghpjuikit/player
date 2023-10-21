@@ -84,9 +84,7 @@ import sp.it.util.units.year
 
 class Library(widget: Widget): SimpleController(widget), SongReader {
 
-   private val table = object: FilteredTable<Metadata>(Metadata::class.java, Metadata.EMPTY.getMainField()) {
-      override fun computeFieldsAll() = super.computeFieldsAll() + PLAYING
-   }
+   private val table = Table()
    private val outputSelected = io.o.create<Metadata?>("Selected", null)
    private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
@@ -229,6 +227,10 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
    }
 
    override fun focus() = table.requestFocus()
+
+   class Table: FilteredTable<Metadata>(Metadata::class.java, Metadata.EMPTY.getMainField()) {
+      override fun computeFieldsAll() = super.computeFieldsAll() + PLAYING
+   }
 
    companion object: WidgetCompanion {
       override val name = SONG_TABLE_NAME

@@ -119,9 +119,9 @@ class SpeechRecognition: PluginBase() {
          SpeakHandler("Resume playback", "start music") { text, command -> if (command in text) APP.audio.resume() },
          SpeakHandler("Pause playback", "stop music") { text, command -> if (command in text) APP.audio.pause() },
          SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) APP.audio.pause() },
-         SpeakHandler("Open widget by name", "open widget \$widget-name") { text, _ ->
-            if (text.startsWith("command open widget")) {
-               val fName = text.removePrefix("command open widget").removeSuffix("widget").trim().camelToSpaceCase()
+         SpeakHandler("Open widget by name", "[open|show] (widget)? \$widget-name (widget)?") { text, _ ->
+            if (text.startsWith("command open")) {
+               val fName = text.removePrefix("command open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
                val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase() equalsNc fName }
                if (f!=null) ComponentLoaderStrategy.DOCK.loader(f)
             }

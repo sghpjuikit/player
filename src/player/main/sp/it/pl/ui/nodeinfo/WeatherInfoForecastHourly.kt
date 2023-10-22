@@ -18,7 +18,6 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
-import sp.it.util.ui.onScrollOnlyScrollHorizontally
 import sp.it.util.ui.pseudoClassToggle
 import sp.it.util.ui.scrollPane
 
@@ -37,7 +36,6 @@ class WeatherInfoForecastHourly(units: Units, value: List<Cell.Data>): HBox() {
          vbarPolicy = NEVER
          hbarPolicy = NEVER
          isFitToHeight = true
-         onScrollOnlyScrollHorizontally()
          content = cellsPane
       }
 

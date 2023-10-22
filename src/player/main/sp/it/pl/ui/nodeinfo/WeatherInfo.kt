@@ -53,6 +53,7 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.browse
 import sp.it.util.text.capital
+import sp.it.util.time.isYoungerThanFx
 import sp.it.util.ui.displayed
 import sp.it.util.ui.dsl
 import sp.it.util.ui.hBox
@@ -64,6 +65,7 @@ import sp.it.util.ui.times
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.em
+import sp.it.util.units.hours
 import sp.it.util.units.uri
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -277,7 +279,7 @@ class WeatherInfo: HBox(15.0) {
       val hourly: List<Hourly>,
       val daily: List<Daily>,
    ) {
-      fun isActual(info: WeatherInfo) = current.dt.toInstant().isOlderThan1Hour() && lat!=info.latitude.value && lon!=info.longitude.value
+      fun isActual(info: WeatherInfo) = current.dt.toInstant().isYoungerThanFx(1.hours) && lat!=info.latitude.value && lon!=info.longitude.value
 
       data class Current(
          val dt: Dt,
@@ -427,10 +429,9 @@ class WeatherInfo: HBox(15.0) {
       override val tags = setOf(UTILITY)
       override val summaryActions = listOf<ShortcutPane.Entry>()
 
-      fun String.asJsonTree(): JsValue? = APP.serializerJson.json.fromJson<JsValue>(this).orNull()
-      inline fun <reified T> JsValue.asJson(): T? = APP.serializerJson.json.fromJsonValue<T>(this).orNull()
+      private fun String.asJsonTree(): JsValue? = APP.serializerJson.json.fromJson<JsValue>(this).orNull()
 
-      fun Instant.isOlderThan1Hour() = Instant.now().isBefore(plusSeconds(3500))
+      private inline fun <reified T> JsValue.asJson(): T? = APP.serializerJson.json.fromJsonValue<T>(this).orNull()
 
       object Types {
          @JvmInline value class Dt(val dt: Long) {

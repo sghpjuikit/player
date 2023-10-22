@@ -65,7 +65,6 @@ import sp.it.util.type.raw
 import sp.it.util.ui.expandToRootAndSelect
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
-import sp.it.util.ui.leftAnchor
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.splitPane
 import sp.it.util.ui.stackPane
@@ -116,12 +115,11 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
             lay += Icon().blank()
          }
          lay(ALWAYS) += splitPane {
-            setDividerPositions(0.2)
+            root.sync1IfInScene { setDividerPositions(0.2) }
 
             lay(false) += groups.apply {
                id = "groups"
                prefWidth = 200.emScaled
-               leftAnchor
             }
             lay(true) += stackPane {
                id = "editors"

@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement enum config editors access through search
 - Implement **Clipboard Viewer** widget
 - Implement **Keyboard Event Viewer** widget
+- Implement **ScrollPane** skin fade effect and scroll animation effect
 - Remove **SpeechSynthesizer** plugin
 - Fix **ContainerFreeForm** the largest empty area computation
 - Fix `PluginInstalledEvent.toUi` freezing application

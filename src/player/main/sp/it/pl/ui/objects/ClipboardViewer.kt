@@ -13,7 +13,7 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.collections.setTo
 import sp.it.util.collections.toStringPretty
 import sp.it.util.reactive.on
-import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncTrue
 import sp.it.util.ui.displayed
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -32,7 +32,7 @@ class ClipboardViewer: VBox() {
       lay += label()
       lay(ALWAYS) += content
 
-      displayed sync { reload() } on onNodeDispose
+      displayed syncTrue { reload() } on onNodeDispose
    }
 
    override fun requestFocus() {

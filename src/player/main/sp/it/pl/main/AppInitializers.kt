@@ -20,6 +20,7 @@ import sp.it.pl.layout.controller.io.InOutput
 import sp.it.pl.layout.controller.io.Input
 import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.layout.feature.Feature
+import sp.it.pl.plugin.Hue
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.impl.AppSearchPlugin
@@ -291,4 +292,5 @@ fun PluginManager.initForApp() {
    installPlugin<WallpaperChanger>()
    installPlugin<StartScreen>()
    installPlugin<SpeechRecognition>()
+   installPlugin<Hue>()
 }

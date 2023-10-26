@@ -118,15 +118,15 @@ class PluginRef<P: PluginBase>(val type: KClass<P>) {
       return when {
          APP.plugins.isInstalled(type) -> {
             Subscription(
-               APP.actionStream.onEvent<PluginStarted<P>>({ it.plugin.plugin is P }) { block(it.plugin.plugin!!) on disposer },
-               APP.actionStream.onEvent<PluginStopped<P>>({ it.plugin.plugin is P }) { disposer() },
+               APP.actionStream.onEvent<PluginStarted<P>>({ type.isInstance(it.plugin.plugin) }) { block(it.plugin.plugin!!) on disposer },
+               APP.actionStream.onEvent<PluginStopped<P>>({ type.isInstance(it.plugin.plugin) }) { disposer() },
                Subscription { disposer() }
             )
          }
-         else -> APP.actionStream.onEvent<PluginInstalled<P>>({ it.plugin.plugin is P }) {
+         else -> APP.actionStream.onEvent<PluginInstalled<P>>({ type.isInstance(it.plugin.plugin) }) {
             Subscription(
-               APP.actionStream.onEvent<PluginStarted<P>>({ it.plugin.plugin is P }) { block(it.plugin.plugin!!) on disposer },
-               APP.actionStream.onEvent<PluginStopped<P>>({ it.plugin.plugin is P }) { disposer() },
+               APP.actionStream.onEvent<PluginStarted<P>>({ type.isInstance(it.plugin.plugin) }) { block(it.plugin.plugin!!) on disposer },
+               APP.actionStream.onEvent<PluginStopped<P>>({ type.isInstance(it.plugin.plugin) }) { disposer() },
                Subscription { disposer() }
             )
          }

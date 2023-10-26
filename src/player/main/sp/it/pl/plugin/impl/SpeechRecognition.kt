@@ -224,7 +224,7 @@ class SpeechRecognition: PluginBase() {
 
    companion object: PluginInfo, KLogging() {
       override val name = "Speech Recognition"
-      override val description = "Provides speech recognition, synthesis, LLM chat and voice control capabilities. See https://github.com/openai/whisper"
+      override val description = "Provides speech recognition, synthesis, LLM chat and voice control capabilities.\nSee https://github.com/openai/whisper"
       override val isSupported = true
       override val isSingleton = true
       override val isEnabledByDefault = false

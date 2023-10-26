@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. Format base
 - Improve file icon extraction on windows (bigger icon, better performance)
 - Improve tree/grid row with file to show file's icon
 - Implement **Hue Scenes** new scene validation
+- Implement **Hue** plugin (for programmatic/voice control of Hue system without widget)
 - Implement **VoiceRecognition** plugin using WhisperAI (improves accuracy, needs manual installation)
 - Implement **VoiceRecognition** plugin wake word
 - Implement **VoiceRecognition** plugin to be interactive (gives voice feedback)

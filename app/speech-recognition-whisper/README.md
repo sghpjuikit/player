@@ -13,7 +13,7 @@ This is a speech recognition python script using OpenAI Whisper. Features:
 
 ## Installation
 
-1. Install python 3.11
+1. Install python >= `3.11`
 2. Install python dependencies
     ```
     pip install openai-whisper
@@ -24,7 +24,8 @@ This is a speech recognition python script using OpenAI Whisper. Features:
     pip install PyAudio
     pip install pyttsx3
     pip install psutil
-    pip install GPT4All
+    pip install python-vlc
+    pip install gpt4all
     pip install PyCharacterAI
     ```
 3. Install ffmpeg

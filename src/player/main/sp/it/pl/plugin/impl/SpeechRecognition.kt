@@ -85,12 +85,14 @@ class SpeechRecognition: PluginBase() {
          var stderr = ""
          val stdoutListener = process.inputStream.consume {
             stdout = it
+               .filter { it.isNotBlank() }
                .onEach { runFX { speakingStdout.value = (speakingStdout.value ?: "") + "\n" + it.ansi() } }
                .onEach { if (it.startsWith("USER: ")) runFX { handleSpeech(it.substring(6)) } }
                .joinToString("")
          }
          val stderrListener = process.errorStream.consume {
             stderr = it
+               .filter { it.isNotBlank() }
                .onEach { runFX { speakingStdout.value = (speakingStdout.value ?: "") + "\n" + it.ansi() } }
                .joinToString("")
          }
@@ -235,6 +237,5 @@ class SpeechRecognition: PluginBase() {
 
    /** Speech event handler */
    data class SpeakHandler(val name: String, val commandUi: String, val action: (String, String) -> Unit)
-
 
 }

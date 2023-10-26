@@ -1,6 +1,7 @@
 package sp.it.pl.plugin
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObjectInstance
@@ -16,6 +17,7 @@ import sp.it.pl.plugin.PluginManager.Events.PluginInstalled
 import sp.it.pl.plugin.PluginManager.Events.PluginStarted
 import sp.it.pl.plugin.PluginManager.Events.PluginStopped
 import sp.it.util.Locatable
+import sp.it.util.access.vn
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.materialize
 import sp.it.util.conf.ConfigDelegator
@@ -95,11 +97,26 @@ class PluginManager: GlobalConfigDelegator {
    /** Invokes the action with the running plugin of the type specified by the generic type argument or does nothing if no such instance. */
    inline fun <reified P: PluginBase> use(noinline action: (P) -> Unit) = use(P::class, action)
 
+   inline fun <reified P: PluginBase> plugin(): PluginRef<P> = PluginRef(P::class)
+
+   object Events {
+      /** At the time the event is invoked, the plugin is not running. */
+      data class PluginInstalled<T: PluginBase>(val plugin: PluginBox<T>)
+      /** At the time the event is invoked, the plugin has started and [PluginBox.plugin] is not null. */
+      data class PluginStarted<T: PluginBase>(val plugin: PluginBox<T>)
+      /** At the time the event is invoked, the plugin is still running and [PluginBox.plugin] is not null. */
+      data class PluginStopped<T: PluginBase>(val plugin: PluginBox<T>)
+   }
+
+}
+
+class PluginRef<P: PluginBase>(val type: KClass<P>) {
+
    /** Sets a block to be fired every time a plugin of this type is started (right after) until it is stopped or the returned subscription unsubscribed. */
-   inline fun <reified P: PluginBase> attachWhile(noinline block: (P) -> Subscription): Subscription {
+   fun attachWhile(block: (P) -> Subscription): Subscription {
       val disposer = Disposer()
       return when {
-         isInstalled(P::class) -> {
+         APP.plugins.isInstalled(type) -> {
             Subscription(
                APP.actionStream.onEvent<PluginStarted<P>>({ it.plugin.plugin is P }) { block(it.plugin.plugin!!) on disposer },
                APP.actionStream.onEvent<PluginStopped<P>>({ it.plugin.plugin is P }) { disposer() },
@@ -117,12 +134,12 @@ class PluginManager: GlobalConfigDelegator {
    }
 
    /** Sets a block to be fired immediately if running and every time a plugin of this type is started (right after) until it is stopped or the returned subscription unsubscribed. */
-   inline fun <reified P: PluginBase> syncWhile(noinline block: (P) -> Subscription): Subscription {
+   fun syncWhile(block: (P) -> Subscription): Subscription {
       val disposer = Disposer()
 
-      getRaw<P>()?.plugin?.ifNotNull { block(it) on disposer }
+      APP.plugins.getRaw(type)?.plugin?.ifNotNull { block(it) on disposer }
       return when {
-         isInstalled(P::class) -> {
+         APP.plugins.isInstalled(type) -> {
             Subscription(
                APP.actionStream.onEvent<PluginStarted<P>>({ it.plugin.plugin is P }) { block(it.plugin.plugin!!) on disposer },
                APP.actionStream.onEvent<PluginStopped<P>>({ it.plugin.plugin is P }) { disposer() },
@@ -139,15 +156,15 @@ class PluginManager: GlobalConfigDelegator {
       }
    }
 
-   object Events {
-      /** At the time the event is invoked, the plugin is not running. */
-      data class PluginInstalled<T: PluginBase>(val plugin: PluginBox<T>)
-      /** At the time the event is invoked, the plugin has started and [PluginBox.plugin] is not null. */
-      data class PluginStarted<T: PluginBase>(val plugin: PluginBox<T>)
-      /** At the time the event is invoked, the plugin is still running and [PluginBox.plugin] is not null. */
-      data class PluginStopped<T: PluginBase>(val plugin: PluginBox<T>)
+   /** Sets a block to be fired immediately if running and every time a plugin of this type is started (right after) until it is stopped or the returned subscription unsubscribed. */
+   fun asValue(): ObservableValue<P?> {
+      val v = vn<P>(null)
+      syncWhile {
+         v.value = it
+         Subscription { v.value = null }
+      }
+      return v
    }
-
 }
 
 interface PluginInfo: Locatable {

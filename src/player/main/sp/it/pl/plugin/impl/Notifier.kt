@@ -279,10 +279,10 @@ data class NotifySource<out T: Any>(val type: VType<T>, val name: String, val bl
 
    /**
     * Returns subscribed that enables/disables notifications from this source through [Notifier.notifySources]
-    * for [Notifier] plugin using [sp.it.pl.plugin.PluginManager.syncWhile].
+    * for [Notifier] plugin using [sp.it.pl.plugin.PluginRef.syncWhile].
     */
    fun toSubscribed(disposer: Disposer? = null): Subscribed = Subscribed {
-      APP.plugins.syncWhile<Notifier> {
+      APP.plugins.plugin<Notifier>().syncWhile {
          if (this !in it.notifySources) it.notifySources += this
          Subscription { it.notifySources -= this }
       }.apply {

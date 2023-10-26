@@ -114,6 +114,9 @@ def speak(text, use_cache=True):
 write('SYS: ' + name + ' initializing...')
 speak(name + " initializing")
 
+cache_dir = "cache"
+if not os.path.exists(cache_dir):
+    os.makedirs(cache_dir)
 
 whisperModelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-whisper")
 whisperModel = whisper.load_model(os.path.join(whisperModelDir, speechRecognitionModelName))
@@ -147,7 +150,8 @@ def callback(recognizer, audio):
     if not terminating:
         try:
             import uuid
-            audio_file = os.path.join("cache", "user_" + str(uuid.uuid4()) + ".wav")
+
+            audio_file = os.path.join(cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
             text = ''
             try:
                 with open(audio_file, "wb") as f:

@@ -19,9 +19,5 @@ def cache_file(text, cache_dir):
     sanitized_text = sanitize_filename(text)
     cache_path = os.path.join(cache_dir, sanitized_text)
 
-    # Check if the cache directory exists, create it if not
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
-
     # Find the appropriate file
     return cache_path, os.path.exists(cache_path)

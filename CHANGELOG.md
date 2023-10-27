@@ -13,18 +13,18 @@ All notable changes to this project will be documented in this file. Format base
 - Improve **Hue Scenes** widget item selection
 - Improve **Hue Scenes** widget layout
 - Improve file icon extraction on windows (bigger icon, better performance)
-- Improve tree/grid row with file to show file's icon
-- Implement **Hue Scenes** new scene validation
-- Implement **Hue** plugin (for programmatic/voice control of Hue system without widget)
+- Improve tree/grid rows containing file to show file's icon
+- Implement open widget voice actions
+- Implement all/any/none functions for filtering/mapping lists
+- Implement playback state read-only configs editors
+- Implement enum config editors access through search
 - Implement **VoiceRecognition** plugin using WhisperAI (improves accuracy, needs manual installation)
 - Implement **VoiceRecognition** plugin wake word
 - Implement **VoiceRecognition** plugin to be interactive (gives voice feedback)
-- Implement open widget voice actions
 - Implement **Hue Scenes** widget toggle lights voice actions
-- Implement all/any/none functions for filtering/mapping lists
-- Implement Song Group Table songs column as List<Song> which enables filtering groups by song attributes
-- Implement playback state read-only configs editors
-- Implement enum config editors access through search
+- Implement **Hue Scenes** new scene validation
+- Implement **Hue** plugin (for programmatic/voice control of Hue system without widget)
+- Implement **Song Group Table** songs column as List<Song> which enables filtering groups by song attributes
 - Implement **Clipboard Viewer** widget
 - Implement **Keyboard Event Viewer** widget
 - Implement **ScrollPane** skin fade effect and scroll animation effect
@@ -56,7 +56,7 @@ Gradle has been updated to 8.4.
 This finally reuses compiler daemon and drastically reduces compilation time.
 
 The application now uses `-XX:+AutoCreateSharedArchive -XX:SharedArchiveFile=SpitPlayer.jsa`,
-which improves startup.
+which improves startup speed.
 
 ## Voice recognition plugin
 This plugin used pure Java solution - `alphacephei`'s vosk AI models.
@@ -70,7 +70,7 @@ It also has configurable speech capability, voice feedback and LLM chat.
 See [README](/app/speech-recognition-whisper/README.md) for details.
 
 ## Voice synthesis plugin
-This plugin used pure Java solution - somewhat outdated MaryTTS (Java library).
+This plugin used pure Java solution - somewhat outdated `MaryTTS` (Java library).
 This plugin has been removed in favor of voice used for voice recognition plugin.
 
 ## [7.8.0] 2023 08 06

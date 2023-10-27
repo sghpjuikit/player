@@ -78,7 +78,7 @@ class Hue: PluginBase() {
    private val speechHandlers = mutableListOf<SpeakHandler>()
    private var hueBridgeApiKey by c("").noUi()
    private var hueBridgeIp by c("").noUi()
-   private val client = HttpClient(CIO).apply { onClose += this }
+   private val client = HttpClient(CIO).apply { onClose += this::close }
 
    val refreshes = Handler1<Unit>()
    val hueBridge = HueBridge()

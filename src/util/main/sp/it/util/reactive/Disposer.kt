@@ -27,10 +27,6 @@ class Disposer: () -> Unit, Unsubscriber {
       disposers += { disposer.unsubscribe() }
    }
 
-   operator fun plusAssign(disposer: AutoCloseable) {
-      disposers += disposer::close
-   }
-
    operator fun plusAssign(disposers: Iterable<() -> Unit>) {
       disposers.forEach { this += it }
    }

@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+
+## [7.9.0] 2023 10 27
 - Update Java to 21
 - Update Kotlin to 1.9.20-Beta
 - Update dependencies

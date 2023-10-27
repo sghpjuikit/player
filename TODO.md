@@ -46,12 +46,6 @@
   Useful to control pc without mouse. This would be an interesting addition. But needs lots of work
 - Implement **playlists** table  
   Requires deeper integration with **Update library** action, playlist discovery, etc.
-- Implement widget factory ref example **Tester** widget:
-  ```
-  private val widgetFactory by cvn<FactoryRef<Any>>(null).def(name = "Component", info = "Component").but(ValueSealedSetIfNotIn(USE)).valuesIn {
-     APP.widgetManager.factories.getFactoriesWith()
-  }
-  ```
 - Support task hierarchy, i.e., task tree  
   Challenging issue
 - Improve `GridView` to retain position on column change  

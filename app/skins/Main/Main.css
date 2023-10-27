@@ -1363,12 +1363,20 @@ TextFlow > * {
 
 /*********************************** ListView *********************************/
 
+.list-view {
+    -fx-skin: "sp.it.pl.ui.objects.SpitListViewSkin";
+}
+
 .list-cell {}
 .list-cell:odd {
     -fx-background-color: null;
 }
 
 /*********************************** TreeView *********************************/
+
+.tree-view {
+    -fx-skin: "sp.it.pl.ui.objects.SpitTreeViewSkin";
+}
 
 .tree-cell {
     -fx-indent: 0.5em;
@@ -1397,7 +1405,13 @@ TextFlow > * {
     -fx-background-color: null;
 }
 
-/********************************* TableView  *********************************/
+/****************************** TreeTableView *********************************/
+
+.tree-table-view {
+    -fx-skin: "sp.it.pl.ui.objects.SpitTreeTableViewSkin";
+}
+
+/******************************** TableView  **********************************/
 
 .table-view,
 .tree-table-view {

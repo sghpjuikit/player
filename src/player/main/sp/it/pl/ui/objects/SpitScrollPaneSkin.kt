@@ -1,6 +1,7 @@
 package sp.it.pl.ui.objects
 
 import java.time.Instant
+import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.control.ScrollBar
 import javafx.scene.control.ScrollPane
@@ -36,7 +37,6 @@ import sp.it.util.time.isOlderThanFx
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.ui.Util
 import sp.it.util.ui.size
-import sp.it.util.ui.x
 import sp.it.util.units.millis
 
 /** ScrollPaneSkin skin that adds animations, fade effect and consumes scroll events (if the content does not fit). */
@@ -59,16 +59,18 @@ open class SpitScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane
          fun update() {
             val o = orient()
             fill = if (!skinnable.isPannable && o is OrientUni && true==skinnable.content?.net { it.layoutBounds.width>width || it.layoutBounds.height>height }) {
-               val v = skinnable.hvalue x skinnable.vvalue o o
-               val vMin = skinnable.hmin x skinnable.vmin o o
-               val vMax = skinnable.hmax x skinnable.vmax o o
-               LinearGradient(
-                  0.0, 0.0, 1 x 0 o o, 0 x 1 o o, true, CycleMethod.NO_CYCLE,
-                  Stop(0.0, if (v<=vMin) BLACK else TRANSPARENT),
-                  Stop(0.1, BLACK),
-                  Stop(0.9, BLACK),
-                  Stop(1.0, if (v>=vMax) BLACK else TRANSPARENT)
-               )
+               with(o) {
+                  val v = skinnable.hvalue o skinnable.vvalue
+                  val vMin = skinnable.hmin o skinnable.vmin
+                  val vMax = skinnable.hmax o skinnable.vmax
+                  LinearGradient(
+                     0.0, 0.0, 1.0 o 0.0, 0.0 o 1.0, true, CycleMethod.NO_CYCLE,
+                     Stop(0.0, if (v<=vMin) BLACK else TRANSPARENT),
+                     Stop(0.1, BLACK),
+                     Stop(0.9, BLACK),
+                     Stop(1.0, if (v>=vMax) BLACK else TRANSPARENT)
+                  )
+               }
             } else {
                BLACK
             }
@@ -89,7 +91,7 @@ open class SpitScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane
       node.onEventDown(ScrollEvent.ANY) {
          fun ScrollBar?.isScrollingNeeded() = this!=null && visibleAmount<max
          val vsb = Util.getScrollBar(skinnable, VERTICAL)
-         val hsb = Util.getScrollBar(skinnable, VERTICAL)
+         val hsb = Util.getScrollBar(skinnable, HORIZONTAL)
 
          if (vsb.isScrollingNeeded() || hsb.isScrollingNeeded())
             it.consume()
@@ -105,42 +107,40 @@ open class SpitScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane
 
       skinnable.onEventUp(SCROLL) {
          if (!skinnable.isPannable && (it.deltaY!=0.0 || it.deltaX!=0.0)) {
-            val scrollAmount = 0.25
-            val isVertical = !it.isShiftDown
-            val o = oRaw.net { if (it is OrientUni) it else if (isVertical) Orient.VER else Orient.HOR }
-            val isNecessary = true==skinnable.content?.net { it.layoutBounds.size o o > skinnable.size o o }
-            val size = skinnable.layoutBounds.size o o
-            val sizeContent = skinnable.content?.net { it.layoutBounds.size o o } ?: size
-            val vDir = -(it.deltaX.sign + it.deltaY.sign)
-            val v = skinnable.hvalueProperty() to skinnable.vvalueProperty() o o
-            val vMin = skinnable.hminProperty() to skinnable.vminProperty() o o
-            val vMax = skinnable.hmaxProperty() to skinnable.vmaxProperty() o o
-            val vFrom = v.value
-            val vTo = (vFrom + vDir*(vMax.value-vMin.value)*(size*scrollAmount/sizeContent)).clip(vMin.value, vMax.value)
-            val t = skinnable.content?.net { it.translateXProperty() to it.translateYProperty() o o }
+            with(if (oRaw is OrientUni) oRaw else if (!it.isShiftDown) Orient.VER else Orient.HOR) {
+               val scrollAmount = 0.25
+               val isNecessary = true==skinnable.content?.net { it.layoutBounds.size.o > skinnable.size.o }
+               val size = skinnable.layoutBounds.size.o
+               val sizeContent = skinnable.content?.net { it.layoutBounds.size.o } ?: size
+               val vDir = -(it.deltaX.sign + it.deltaY.sign)
+               val v = skinnable.hvalueProperty() o skinnable.vvalueProperty()
+               val vMin = skinnable.hminProperty() o skinnable.vminProperty()
+               val vMax = skinnable.hmaxProperty() o skinnable.vmaxProperty()
+               val vFrom = v.value
+               val vTo = (vFrom + vDir*(vMax.value-vMin.value)*(size*scrollAmount/sizeContent)).clip(vMin.value, vMax.value)
+               val t = skinnable.content?.net { it.translateXProperty() o it.translateYProperty() }
 
-            if (isNecessary) {
-               val isMin = vDir<0 && v.value==vMin.value
-               val isMax = vDir>0 && v.value==vMax.value
-               if (isMin || isMax) {
-                  if (isMinMaxAt.isOlderThanFx(500.millis)) {
-                     isMinMaxAt = Instant.now()
-                     (a o o).value.stop()
-                     (a o o).value = anim(100.millis) { t?.value = vDir*5.emScaled*it }.intpl(interpolator { it*it }.sym().rev())
-                     (a o o).value.play()
+               if (isNecessary) {
+                  val isMin = vDir<0 && v.value==vMin.value
+                  val isMax = vDir>0 && v.value==vMax.value
+                  if (isMin || isMax) {
+                     if (isMinMaxAt.isOlderThanFx(500.millis)) {
+                        isMinMaxAt = Instant.now()
+                        a.o.value.stop()
+                        a.o.value = anim(100.millis) { t?.value = vDir*5.emScaled*it }.intpl(interpolator { it*it }.sym().rev())
+                        a.o.value.play()
+                     }
+                  } else {
+                     a.o.value.stop()
+                     a.o.value = anim(200.millis) { v.value = vFrom + it*(vTo-vFrom) }.intpl(interpolator { sqrt(it) }.easeOut())
+                     a.o.value.play()
                   }
-               } else {
-                  (a o o).value.stop()
-                  (a o o).value = anim(200.millis) { v.value = vFrom + it*(vTo-vFrom) }.intpl(interpolator { sqrt(it) }.easeOut())
-                  (a o o).value.play()
                }
             }
          }
       }
    }
 
-   private infix fun <A> Pair<A,A>.o(o: OrientUni): A = when (o) { Orient.HOR -> first; Orient.VER -> second }
-   private infix fun P.o(o: OrientUni): Double = when (o) { Orient.HOR -> x; Orient.VER -> y }
 
    private fun orient(): Orient =
            if ( skinnable.isFitToWidth &&  skinnable.isFitToHeight) Orient.NONE
@@ -149,7 +149,11 @@ open class SpitScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane
       else if (!skinnable.isFitToWidth && !skinnable.isFitToHeight) Orient.BOTH
       else fail { "Forbidden" }
 
-   private sealed interface OrientUni
+   private sealed interface OrientUni {
+      infix fun <T> T.o(t: T): T = if (this==Orient.HOR) this else t
+      val <A> Pair<A,A>.o: A get() = if (this@OrientUni==Orient.HOR) first else second
+      val P.o: Double get() = if (this@OrientUni==Orient.HOR) x else y
+   }
    private sealed interface Orient {
       data object NONE: Orient
       data object HOR: Orient, OrientUni

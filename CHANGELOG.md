@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Clipboard Viewer** widget
 - Implement **Keyboard Event Viewer** widget
 - Implement **ScrollPane** skin fade effect and scroll animation effect
+- Implement **ListView** | **TableView** | **TreeView** | **TreeTableView** skin fade effect and scroll animation effect
 - Remove **SpeechSynthesizer** plugin
 - Fix **ContainerFreeForm** the largest empty area computation
 - Fix `PluginInstalledEvent.toUi` freezing application

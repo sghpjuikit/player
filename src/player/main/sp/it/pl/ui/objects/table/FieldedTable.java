@@ -1,6 +1,5 @@
 package sp.it.pl.ui.objects.table;
 
-import java.lang.reflect.Field;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +16,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.skin.TableHeaderRow;
-import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import sp.it.pl.access.fieldvalue.AnyField.STRING_UI;
@@ -29,6 +27,7 @@ import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.access.fieldvalue.ObjectFieldBase;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Functors.F3;
+import sp.it.util.reactive.Subscription;
 import sp.it.util.type.VType;
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -56,6 +55,7 @@ import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.Util.with;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.sync;
+import static sp.it.util.reactive.UtilKt.syncNonNullWhile;
 import static sp.it.util.type.Util.invokeMethodP0;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 import static sp.it.util.ui.UtilKt.menu;
@@ -247,24 +247,18 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 					.toList()
 			));
 
-			// link table column button to our menu instead of an old one
-			if (getSkin()==null) setSkin(new TableViewSkin<>(this));    // make sure skin exists
-			// TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow(); // java9 no longer supports this
-			TableHeaderRow h = (TableHeaderRow) invokeMethodP0(getSkin(), "getTableHeaderRow");
-
-			try {
-				// cornerRegion is the context menu button, use reflection
-				Field f = TableHeaderRow.class.getDeclaredField("cornerRegion");
-				// they just wont let us...
-				f.setAccessible(true);
-				// link to our custom menu
-				Pane columnB = (Pane) f.get(h);
-				columnB.setOnMousePressed(e -> columnMenu.show(columnB, BOTTOM, 0, 0));
-				f.setAccessible(false);
-			} catch (Exception ex) {
-				org.slf4j.LoggerFactory.getLogger(FieldedTable.class).error("Error initializing table menu", ex);
-			}
-
+			syncNonNullWhile(skinProperty(), skin -> {
+				try {
+					var h = (TableHeaderRow) invokeMethodP0(skin, "getTableHeaderRow");
+					var f = TableHeaderRow.class.getDeclaredField("cornerRegion");
+					f.setAccessible(true);
+					var columnB = (Pane) f.get(h);
+					columnB.setOnMousePressed(e -> columnMenu.show(columnB, BOTTOM, 0, 0));
+				} catch (Exception ex) {
+					org.slf4j.LoggerFactory.getLogger(FieldedTable.class).error("Error initializing table menu", ex);
+				}
+				return Subscription.Companion.invoke();
+			});
 		}
 		return columnStateDefault;
 	}

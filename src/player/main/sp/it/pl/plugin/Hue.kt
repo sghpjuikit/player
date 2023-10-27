@@ -1,3 +1,5 @@
+@file:Suppress("EnumEntryName", "SpellCheckingInspection")
+
 package sp.it.pl.plugin
 
 import de.jensd.fx.glyphs.GlyphIcons
@@ -71,6 +73,11 @@ import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.seconds
 
+/*
+ * Hue plugin. See:
+ * https://developers.meethue.com/develop/hue-api/
+ * https://developers.meethue.com/develop/hue-api/supported-devices/
+ */
 class Hue: PluginBase() {
 
    private val scope: CoroutineScope = MainScope()

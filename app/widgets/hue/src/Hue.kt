@@ -35,7 +35,6 @@ import kotlinx.coroutines.launch
 import mu.KLogging
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
-import sp.it.pl.layout.appProperty
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
@@ -278,8 +277,9 @@ class Hue(widget: Widget): SimpleController(widget) {
                withText(RIGHT, "Refresh")
             }
             lay += Icon(IconFA.PLAY).run {
+               disableProperty() syncFrom huePlugin.map { it==null } on onClose
                tooltip("Run commandsto bridge manually")
-               onClickDo { uri("https://$hueBridgeIp/debug/clip.html").browse() }
+               onClickDo { huePlugin.value?.ifNotNull { uri("https://${it.hueBridge.ip}/debug/clip.html").browse() } }
                withText(RIGHT, "Commands")
             }
          }
@@ -544,10 +544,6 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
    }
 
-   /*
-    * https://developers.meethue.com/develop/hue-api/
-    * https://developers.meethue.com/develop/hue-api/supported-devices/
-    */
    companion object: WidgetCompanion, KLogging() {
       override val name = "Hue Scenes"
       override val description = "Manages Phillips Hue bulbs, groups & scenes"
@@ -562,9 +558,6 @@ class Hue(widget: Widget): SimpleController(widget) {
       override val summaryActions = listOf(
          Entry("Data", "Refresh", F5.nameUi),
       )
-
-      private var hueBridgeApiKey by appProperty("")
-      private var hueBridgeIp by appProperty("")
 
       fun drawGradientCir(radius: Int): Image {
          return WritableImage(2*radius, 2*radius).apply {

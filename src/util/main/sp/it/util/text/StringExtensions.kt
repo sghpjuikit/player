@@ -87,6 +87,12 @@ val String.lengthInChars: Int get() = length
 /** Length of this string in code points */
 val String.lengthInCodePoints: Int get() = codePointCount(0, length)
 
+/** [lengthInChars] */
+val String.length16: Int get() = lengthInChars
+
+/** [lengthInCodePoints] */
+val String.length32: Int get() = lengthInCodePoints
+
 /** Length of this string in graphemes */
 val String.lengthInGraphemes: Int get() {
    val counter = BreakIterator.getCharacterInstance(Locale.ROOT)

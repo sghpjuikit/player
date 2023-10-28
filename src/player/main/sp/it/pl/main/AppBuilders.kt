@@ -673,8 +673,8 @@ fun Any?.detectContent(): Any? = when (this) {
          }
          ?: this.toBigDecimalOrNull()?.let {
             when (it) {
-               in Float.MIN_VALUE.toBigDecimal()..Float.MAX_VALUE.toBigDecimal() -> it.toFloat()
-               in Double.MIN_VALUE.toBigDecimal()..Double.MAX_VALUE.toBigDecimal() -> it.toFloat()
+               in (-Float.MAX_VALUE).toBigDecimal()..Float.MAX_VALUE.toBigDecimal() -> it.toFloat()
+               in (-Double.MAX_VALUE).toBigDecimal()..Double.MAX_VALUE.toBigDecimal() -> it.toFloat()
                else -> it
             }
          }

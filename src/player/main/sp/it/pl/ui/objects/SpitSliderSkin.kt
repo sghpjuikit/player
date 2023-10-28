@@ -176,7 +176,9 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
          }
          override fun fromString(string: String) = fail()
          override fun toString(`object`: Double): String = when {
-            `object`==Double.MIN_VALUE -> "-∞"
+            `object`==-Double.NEGATIVE_INFINITY -> "-∞"
+            `object`==-Double.MAX_VALUE -> "-∞"
+            `object`==Double.POSITIVE_INFINITY -> "+∞"
             `object`==Double.MAX_VALUE -> "+∞"
             isInteger -> `object`.toLong().toString()
             else -> "%.${precision}f".format(`object`)

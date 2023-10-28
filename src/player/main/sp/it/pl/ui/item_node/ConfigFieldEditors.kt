@@ -1422,9 +1422,9 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
             UShort::class -> onNumberScrolled<UShort>(UShort.MIN_VALUE, UShort.MAX_VALUE, { a,b -> (a+b).toUShort() }) { it.toUShort() }
             Int::class -> onNumberScrolled<Int>(Int.MIN_VALUE, Int.MAX_VALUE, Int::plus) { it }
             UInt::class -> onNumberScrolled<UInt>(UInt.MIN_VALUE, UInt.MAX_VALUE, UInt::plus) { it.toUInt() }
-            Float::class -> onNumberScrolled<Float>(Float.MIN_VALUE, Float.MAX_VALUE, Float::plus) { it.toFloat() }
+            Float::class -> onNumberScrolled<Float>(-Float.MAX_VALUE, Float.MAX_VALUE, Float::plus) { it.toFloat() }
             Long::class -> onNumberScrolled<Long>(Long.MIN_VALUE, Long.MAX_VALUE, Long::plus) { it.toLong() }
-            Double::class -> onNumberScrolled<Double>(Double.MIN_VALUE, Double.MAX_VALUE, Double::plus) { it.toDouble() }
+            Double::class -> onNumberScrolled<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, Double::plus) { it.toDouble() }
             ULong::class -> onNumberScrolled<ULong>(ULong.MIN_VALUE, ULong.MAX_VALUE, ULong::plus) { it.toULong() }
             BigInteger::class -> onNumberScrolled<BigInteger>(null, null, BigInteger::plus) { it.toBigInteger() }
             BigDecimal::class -> onNumberScrolled<BigDecimal>(null, null, BigDecimal::plus) { it.toBigDecimal() }

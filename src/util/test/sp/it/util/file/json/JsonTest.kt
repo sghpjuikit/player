@@ -24,10 +24,14 @@ import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.getAny
 import sp.it.util.functional.net
+import sp.it.util.text.Char16
+import sp.it.util.text.Char32
+import sp.it.util.text.toChar32
 import sp.it.util.type.kType
 import sp.it.util.type.raw
 import sp.it.util.type.type
 
+@Suppress("SpellCheckingInspection")
 class JsonTest: FreeSpec({
    val j = Json()
    val nf = "\n"
@@ -38,6 +42,7 @@ class JsonTest: FreeSpec({
                                   JsTrue shouldBe JsTrue
                                  JsFalse shouldBe JsFalse
                         JsString("text") shouldBe JsString("text")
+                       JsString("日本語") shouldBe JsString("日本語")
                      JsNumber(123456789) shouldBe JsNumber(123456789)
               JsNumber(-Float.MAX_VALUE) shouldBe JsNumber(-Float.MAX_VALUE)
                JsNumber(Float.MIN_VALUE) shouldBe JsNumber(Float.MIN_VALUE)
@@ -84,6 +89,7 @@ class JsonTest: FreeSpec({
          j.ast(""""text"""") shouldBe Ok(JsString("text"))
          j.ast(""""text """") shouldBe Ok(JsString("text "))
          j.ast("""" text"""") shouldBe Ok(JsString(" text"))
+         j.ast("0") shouldBe Ok(JsNumber(0))
          j.ast("1") shouldBe Ok(JsNumber(1))
          j.ast("-43") shouldBe Ok(JsNumber(-43))
          j.ast("2.3") shouldBe Ok(JsNumber(BigDecimal("2.3")))
@@ -118,11 +124,6 @@ class JsonTest: FreeSpec({
 
          j.fromJson<String>(""""a"""")      shouldBe Ok("a")
          j.fromJson<String>(""""1"""")      shouldBe Ok("1")
-         j.fromJson<String>(""""\n"""")     shouldBe Ok("\n")
-         j.fromJson<String>(""""\t"""")     shouldBe Ok("\t")
-
-         j.fromJson<String>(""""a"""")      shouldBe Ok("a")
-         j.fromJson<String>(""""1"""")      shouldBe Ok("1")
          j.fromJson<String>(""""\""""")     shouldBe Ok("\"")
          j.fromJson<String>(""""\\""""")    shouldBe Ok("\\")
          j.fromJson<String>(""""\/""""")    shouldBe Ok("/")
@@ -131,6 +132,7 @@ class JsonTest: FreeSpec({
          j.fromJson<String>(""""\n"""")     shouldBe Ok("\n")
          j.fromJson<String>(""""\r"""")     shouldBe Ok("\r")
          j.fromJson<String>(""""\t"""")     shouldBe Ok("\t")
+         j.fromJson<String>(""""日本語"""")  shouldBe Ok("日本語")
          j.fromJson<String>(""""\u0001"""") shouldBe Ok("\u0001")
          j.fromJson<String>(""""\u01AF"""") shouldBe Ok("\u01AF")
          j.fromJson<String>(""""\u01af"""") shouldBe Ok("\u01af")
@@ -148,6 +150,31 @@ class JsonTest: FreeSpec({
          j.fromJson<Char>(""""\u0001"""")   shouldBe Ok('\u0001')
          j.fromJson<Char>(""""\u01AF"""")   shouldBe Ok('\u01AF')
          j.fromJson<Char>(""""\u01af"""")   shouldBe Ok('\u01af')
+
+         j.fromJson<Char>(""""\u0001"""")   shouldBeTry Ok('\u0001')
+         j.fromJson<Char>(""""\u00FF"""")   shouldBeTry Ok('\u00FF')
+         j.fromJson<Char>(""""\u0FFF"""")   shouldBeTry Ok('\u0FFF')
+         j.fromJson<Char>(""""t"""")        shouldBeTry Ok('t')
+         j.fromJson<Char>(""""語"""")       shouldBeTry Ok('語')
+         j.fromJson<Char>(""""𝔊"""")       shouldBeTry Error("𝔊 is not Char")
+         j.fromJson<Char>(""""क्तु"""")       shouldBeTry Error("क्तु is not Char")
+         j.fromJson<Char>(""""日本語"""")    shouldBeTry Error("日本語 is not Char")
+         j.fromJson<Char16>(""""\u0001"""")   shouldBeTry Ok('\u0001')
+         j.fromJson<Char16>(""""\u00FF"""")   shouldBeTry Ok('\u00FF')
+         j.fromJson<Char16>(""""\u0FFF"""")   shouldBeTry Ok('\u0FFF')
+         j.fromJson<Char16>(""""t"""")        shouldBeTry Ok('t')
+         j.fromJson<Char16>(""""語"""")       shouldBeTry Ok('語')
+         j.fromJson<Char16>(""""𝔊"""")       shouldBeTry Error("𝔊 is not Char")
+         j.fromJson<Char16>(""""क्तु"""")       shouldBeTry Error("क्तु is not Char")
+         j.fromJson<Char16>(""""日本語"""")    shouldBeTry Error("日本語 is not Char")
+         j.fromJson<Char32>(""""\u0001"""")   shouldBeTry Ok('\u0001'.toChar32())
+         j.fromJson<Char32>(""""\u00FF"""")   shouldBeTry Ok('\u00FF'.toChar32())
+         j.fromJson<Char32>(""""\u0FFF"""")   shouldBeTry Ok('\u0FFF'.toChar32())
+         j.fromJson<Char32>(""""t"""")        shouldBeTry Ok('t'.toChar32())
+         j.fromJson<Char32>(""""語"""")       shouldBeTry Ok('語'.toChar32())
+         j.fromJson<Char32>(""""𝔊"""")       shouldBeTry Ok(Char32(0x1D50A))
+         j.fromJson<Char32>(""""क्तु"""")       shouldBeTry Error("क्तु is not Char32")
+         j.fromJson<Char32>(""""日本語"""")    shouldBeTry Error("日本語 is not Char32")
 
          j.fromJson<Byte>("55")             shouldBe Ok(55.toByte())
          j.fromJson<UByte>("55")            shouldBe Ok(55L.toUByte())

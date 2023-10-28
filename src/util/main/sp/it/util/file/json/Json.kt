@@ -49,7 +49,13 @@ import sp.it.util.math.rangeBigDec
 import sp.it.util.math.toBigDec
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.Parsers
+import sp.it.util.text.Char16
+import sp.it.util.text.Char32
+import sp.it.util.text.chars16
+import sp.it.util.text.chars32
 import sp.it.util.text.escapeJson
+import sp.it.util.text.length16
+import sp.it.util.text.length32
 import sp.it.util.type.VType
 import sp.it.util.type.argOf
 import sp.it.util.type.dataComponentProperties
@@ -127,6 +133,7 @@ class Json: JsonAst() {
       typeAliases {
          // @formatter:off
                  "char" alias Char::class
+               "char32" alias Char32::class
               "boolean" alias Boolean::class
                  "byte" alias Byte::class
                 "ubyte" alias UByte::class
@@ -233,6 +240,7 @@ class Json: JsonAst() {
                   is UInt -> JsNumber(value.toLong()).withAmbiguity()
                   is ULong -> JsNumber(value.toString().toBigInteger()).withAmbiguity()
                   is Char -> JsString(value.toString())
+                  is Char32 -> JsString(value.toString())
                   is String -> JsString(value)
                   is Enum<*> -> JsString(value.name).withAmbiguity()
                   is Array<*> -> JsArray(value.map { toJsonValue(kType<Any>(), it) })
@@ -382,7 +390,8 @@ class Json: JsonAst() {
                is JsString -> {
                   when {
                      typeJ.isEnumClass -> getEnumValue(typeJ, value.value)
-                     typeK==Char::class -> if (value.value.length==1) value.value[0] else fail { "${value.value} is not $typeTarget" }
+                     typeK==Char16::class -> if (value.value.length16==1) value.value.chars16().first() else fail { "${value.value} is not Char" }
+                     typeK==Char32::class -> if (value.value.length32==1) value.value.chars32().first() else fail { "${value.value} is not Char32" }
                      typeK==Float::class -> when (value.value) {
                         "NaN" -> Float.NaN
                         "Infinity" -> Float.POSITIVE_INFINITY

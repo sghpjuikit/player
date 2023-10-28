@@ -61,7 +61,7 @@ import sp.it.util.text.Char16
 import sp.it.util.text.Char32
 import sp.it.util.text.Grapheme
 import sp.it.util.text.StringSplitParser
-import sp.it.util.text.Strings
+import sp.it.util.text.StringSeq
 import sp.it.util.text.char32At
 import sp.it.util.text.chars16
 import sp.it.util.text.chars32
@@ -337,9 +337,9 @@ object CoreFunctors: Core {
          add("Format to pretty json", type<JsValue>(), S) { it.toPrettyS() }
          add("Format to compact json", type<JsValue>(), S) { it.toCompactS() }
 
-         add("Any contains", type<Strings>(), B, p<String>(""), pNoCase) { obj, text, noCase -> obj.anyContains(text, noCase) }
-         add("Is empty", type<Strings>(), B) { it.isEmpty() }
-         add("Elements", type<Strings>(), type<Int>()) { it.size() }
+         add("Any contains", type<StringSeq>(), B, p<String>(""), pNoCase) { obj, text, noCase -> obj.anyContains(text, noCase) }
+         add("Is empty", type<StringSeq>(), B) { it.isEmpty() }
+         add("Elements", type<StringSeq>(), type<Int>()) { it.size() }
 
          add("To Int", type<Char16>(), type<Int>()) { it.code }
          add("To Int", type<Char32>(), type<Int>()) { it.toInt() }

@@ -53,9 +53,9 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
 import sp.it.util.localDateTimeFromMillis
-import sp.it.util.text.Strings
+import sp.it.util.text.StringSeq
 import sp.it.util.text.splitNoEmpty
-import sp.it.util.text.toStrings
+import sp.it.util.text.toStringSeq
 import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
@@ -709,7 +709,7 @@ class Metadata: Song, Serializable {
    fun getTimeLibraryAdded(): LocalDateTime? = libraryAdded?.toLongOrNull()?.localDateTimeFromMillis()
 
    /** @return all available text about this song */
-   fun getFulltext() = FIELDS_FULLTEXT.asSequence().map { it.getOf(this) }.filterNotNull().toStrings()
+   fun getFulltext() = FIELDS_FULLTEXT.asSequence().map { it.getOf(this) }.filterNotNull().toStringSeq()
 
    /** @return index of the first same song as this in the active playlist or -1 if not on playlist */
    fun getPlaylistIndex(): Int? = PlaylistManager.use({ it.indexOfSame(this) + 1 }, null)
@@ -839,8 +839,8 @@ class Metadata: Song, Serializable {
       override fun searchSupported(): Boolean = super.searchSupported() || this==FULLTEXT
 
       override fun searchMatch(matcher: (String) -> Boolean): (Metadata) -> Boolean = when (this) {
-         CHAPTERS -> { m -> CHAPTERS.getOf(m).strings.any(matcher) }
-         FULLTEXT -> { m -> FULLTEXT.getOf(m).strings.any(matcher) }
+         CHAPTERS -> { m -> CHAPTERS.getOf(m).seq.any(matcher) }
+         FULLTEXT -> { m -> FULLTEXT.getOf(m).seq.any(matcher) }
          TAGS -> { m -> m.getTagsAsSequence().orEmpty().any(matcher) }
          else -> super.searchMatch(matcher)
       }
@@ -923,7 +923,7 @@ class Metadata: Song, Serializable {
       object COLOR: Field<Color?>(type(), { it.getColor() }, { o, or -> o?.toString() ?: or }, "Color", "Color the song evokes")
       object TAGS: Field<Set<String>?>(type(), { it.getTagsAsSequence()?.toSet() }, { o, or -> o?.toString() ?: or }, "Tags", "Tags associated with this song")
       object CHAPTERS: Field<Chapters>(type(), { it.getChapters() }, { o, or -> o?.toString() ?: or }, "Chapters", "Comments at specific time points of the song")
-      object FULLTEXT: Field<Strings>(type(), { it.getFulltext() }, { o, or -> o?.toString() ?: or }, "Fulltext", "All possible fields merged into single text. Use for searching.")
+      object FULLTEXT: Field<StringSeq>(type(), { it.getFulltext() }, { o, or -> o?.toString() ?: or }, "Fulltext", "All possible fields merged into single text. Use for searching.")
       object CUSTOM1: Field<String?>(type(), { it.custom1 }, { o, or -> o ?: or }, "Custom1", "Custom field 1")
       object CUSTOM2: Field<String?>(type(), { it.custom2 }, { o, or -> o ?: or }, "Custom2", "Custom field 2. Reserved for field `Chapters`.")
       object CUSTOM3: Field<String?>(type(), { it.custom3 }, { o, or -> o ?: or }, "Custom3", "Custom field 3")

@@ -4,7 +4,7 @@ import java.util.Objects
 import javafx.util.Duration
 import kotlin.math.floor
 import sp.it.util.functional.Try
-import sp.it.util.text.Strings
+import sp.it.util.text.StringSeq
 
 /** Chapter is a text associated with specific point of time in a song. */
 class Chapter: Comparable<Chapter> {
@@ -61,8 +61,8 @@ class Chapter: Comparable<Chapter> {
    }
 }
 
-class Chapters(val chapters: List<Chapter> = listOf()): Strings {
+class Chapters(val chapters: List<Chapter> = listOf()): StringSeq {
 
-   override val strings: Sequence<String> get() = chapters.asSequence().map { it.text }
+   override val seq: Sequence<String> get() = chapters.asSequence().map { it.text }
 
 }

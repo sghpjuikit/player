@@ -1,16 +1,6 @@
 package sp.it.util.file.json
 
-import kotlin.Int.Companion.MAX_VALUE as MAX_INT
-import com.fasterxml.jackson.core.StreamReadConstraints
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.databind.node.ArrayNode
-import com.fasterxml.jackson.databind.node.BooleanNode
-import com.fasterxml.jackson.databind.node.MissingNode
-import com.fasterxml.jackson.databind.node.NullNode
-import com.fasterxml.jackson.databind.node.NumericNode
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.databind.node.TextNode
+import ch.obermuhlner.math.big.BigDecimalMath
 import java.io.File
 import java.io.InputStream
 import java.math.BigDecimal
@@ -117,17 +107,11 @@ data class JsObject(val value: Map<String, JsValue>): JsValue(), JsRoot {
 }
 
 open class JsonAst {
-   protected val om = JsonMapper().apply {
-      // less lenient parsing so "1 2" is invalid json, see https://github.com/FasterXML/jackson-core/issues/808
-      enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-      factory.setStreamReadConstraints(
-         StreamReadConstraints.builder().maxNestingDepth(MAX_INT).maxNumberLength(MAX_INT).maxStringLength(MAX_INT).build()
-      )
-   }
 
-   fun ast(json: String): Try<JsValue, Throwable> = runTry { fromJacksonAST(om.readTree(json)) }
+   fun ast(json: String): Try<JsValue, Throwable> = runTry { parseJson(json) }
 
-   fun ast(json: InputStream): Try<JsValue, Throwable> = runTry { fromJacksonAST(om.readTree(json)) }
+   fun ast(json: InputStream): Try<JsValue, Throwable> = runTry { parseJson(json) }
+
 }
 
 class Json: JsonAst() {
@@ -155,8 +139,8 @@ class Json: JsonAst() {
                "double" alias Double::class
                "number" alias Number::class
                "object" alias Any::class
-              "big-int" alias java.math.BigInteger::class
-          "big-decimal" alias java.math.BigDecimal::class
+              "big-int" alias BigInteger::class
+          "big-decimal" alias BigDecimal::class
                "string" alias String::class
            "java-class" alias Class::class
          "kotlin-class" alias KClass::class
@@ -375,29 +359,22 @@ class Json: JsonAst() {
                is JsTrue -> true
                is JsFalse -> false
                is JsNumber -> {
-                  when (typeK) {
+                  when(typeK) {
+                     value.value::class -> value.value
                      Any::class -> value.value
                      Number::class -> value.value
-                     Byte::class -> value.value.toByte()
-                     UByte::class -> value.value.toShort().toUByte()
-                     Short::class -> value.value.toShort()
-                     UShort::class -> value.value.toInt().toUShort()
-                     Int::class -> value.value.toInt()
-                     UInt::class -> value.value.toLong().toUInt()
-                     Long::class -> value.value.toLong()
-                     ULong::class -> value.value.toString().toULong()
-                     Float::class -> value.value.toFloat()
-                     Double::class -> value.value.toDouble()
-                     BigInteger::class -> when (value.value) {
-                        is BigInteger -> value.value
-                        is BigDecimal -> value.value.toBigInteger()
-                        else -> BigInteger.valueOf(value.value.toLong())
-                     }
-                     BigDecimal::class -> when (value.value) {
-                        is BigInteger -> value.value.toBigDecimal()
-                        is BigDecimal -> value.value
-                        else -> BigDecimal(value.value.toString())
-                     }
+                     Byte::class -> value.value.toBd().net { if (it in Byte.range) it.toByte() else fail { "${value.value} not Byte" } }
+                     UByte::class -> value.value.toBd().net { if (it in UByte.range) it.toShort().toUByte() else fail { "${value.value} not UByte" } }
+                     Short::class -> value.value.toBd().net { if (it in Short.range) it.toShort() else fail { "${value.value} not Short" } }
+                     UShort::class -> value.value.toBd().net { if (it in UShort.range) it.toInt().toUShort() else fail { "${value.value} not UShort" } }
+                     Int::class -> value.value.toBd().net { if (it in Int.range) it.toInt() else fail { "${value.value} not Int" } }
+                     UInt::class -> value.value.toBd().net { if (it in UInt.range) it.toLong().toUInt() else fail { "${value.value} not UInt" } }
+                     Long::class -> value.value.toBd().net { if (it in Long.range) it.toLong() else fail { "${value.value} not Long" } }
+                     ULong::class -> value.value.toBd().net { if (it in ULong.range) it.toString().toULong() else fail { "${value.value} not ULong" } }
+                     Float::class -> value.value.toBd().net { if (it in Float.range) it.toFloat() else fail { "${value.value} not Float" } }
+                     Double::class -> value.value.toBd().net { if (it in Double.range) it.toDouble() else fail { "${value.value} not Double" } }
+                     BigInteger::class -> value.value.toBd().toBigInteger()
+                     BigDecimal::class -> value.value.toBd()
                      else -> fail { "Unsupported number type=$typeK ${value.toPrettyS()}" }
                   }
                }
@@ -636,26 +613,27 @@ private fun JsValue.toPrettyS(indent: String, newline: String, indentRaw: String
    return builder.toString()
 }
 
-fun fromJacksonAST(ast: Any?): JsValue {
-   return when (ast) {
-      null -> JsNull
-      true -> JsTrue
-      false -> JsFalse
-      is String -> JsString(ast)
-      is NullNode -> JsNull
-      is Number -> JsNumber(ast)
-      is BooleanNode -> fromJacksonAST(ast.booleanValue())
-      is TextNode -> JsString(ast.textValue())
-      is NumericNode -> JsNumber(ast.numberValue())
-      is ArrayNode -> JsArray(ast.elements().asSequence().map { fromJacksonAST(it) }.toList())
-      is ObjectNode -> JsObject(ast.fields().asSequence().associate { it.key to fromJacksonAST(it.value) })
-      is MissingNode -> fail { "Missing json AST node" }
-      else -> fail { "Unrecognized json AST node=${ast::class.jvmName}($ast)" }
-   }
-}
-
 @Suppress("UNCHECKED_CAST", "DEPRECATION")
-fun getEnumValue(enumClass: Class<*>, value: String): Enum<*> {
+private fun getEnumValue(enumClass: Class<*>, value: String): Enum<*> {
    val enumConstants = enumClass.enumConstants as Array<out Enum<*>>
    return enumConstants.first { it.name==value }
+}
+
+private val Byte.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
+private val UByte.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
+private val Short.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
+private val UShort.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
+private val Int.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
+private val UInt.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
+private val Long.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
+private val ULong.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
+private val Float.Companion.range get() = (-MAX_VALUE).toBd()..MAX_VALUE.toBd()
+private val Double.Companion.range get() = (-MAX_VALUE).toBd()..MAX_VALUE.toBd()
+
+private fun Any.toBd() = when (this) {
+   is BigDecimal -> this
+   is BigInteger -> toBigDecimal()
+   is Long -> BigDecimal.valueOf(this)
+   is Double -> BigDecimal.valueOf(this)
+   else -> BigDecimalMath.toBigDecimal(toString())
 }

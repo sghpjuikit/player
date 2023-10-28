@@ -172,92 +172,7 @@ class Hue(widget: Widget): SimpleController(widget) {
 
    private val infoPane = vBox(30.emScaled)
    private val devicePane = vBox(0, TOP_LEFT)
-   private val color = object: ConfigurableBase<Any?>() {
-      val avoidApplying = Suppressor()
-      val readOnly = v(true)
-      val color by cvn<Color>(null).def(name = "Color", editable = NONE)
-      val hue by cv(0).between(0, 65535).def(name = "Color Hue", editable = NONE)
-      val sat by cv(0).between(0, 254).def(name = "Color Saturation", editable = NONE)
-      val bri by cv(1).between(1, 254).def(name = "Color Brightness", editable = NONE)
-      val configurable = this
-      var isDragged = false
-      val selectorRadius = 75.emScaled
-      val selector = Circle(5.emScaled).apply {
-         isManaged = false
-         isMouseTransparent = true
-         isVisible = false
-         stroke = Color.BLACK
-         strokeWidth = 1.0
-         fillProperty() syncFrom color.notNull(TRANSPARENT).map { it.alpha(0.5+0.5*it.opacity) }
-      }
-      val node = vBox {
-         alignment = TOP_CENTER
-         lay += form(configurable)
-         lay += object: StackPane() {
-            override fun layoutChildren() {
-               super.layoutChildren()
-               val c = color.value ?: TRANSPARENT
-               selector.center = size/2.0 + (c.hue+180).unitCircleDegP * (selectorRadius*(if (c.opacity==1.0) 0.5*c.saturation else 1 - 0.5*c.opacity))
-            }
-         }.apply {
-            lay += Thumbnail(selectorRadius*2, selectorRadius*2).run {
-               loadImage(drawGradientCir(selectorRadius.toInt()))
-
-               fun updateFromMouse(it: MouseEvent) {
-                  if (!readOnly.value) {
-                     val c = image.value!!.pixelReader.getColor(it.x.toInt().clip(0, selectorRadius.toInt()*2-1), it.y.toInt().clip(0, selectorRadius.toInt()*2-1))
-                     val isOuter = c==TRANSPARENT
-                     val cBriRaw = if (isOuter) 0.0 else c.opacity
-                     val cBri = (1 + cBriRaw*253).toInt()
-                     val cHueRaw = (((pane.layoutBounds.centre - it.xy).atan2())/2/PI).mod(1.0)
-                     val cHue = (cHueRaw*65535).toInt()
-                     val cSatRaw = if (isOuter) 1.0 else c.saturation
-                     val cSat = (cSatRaw*245).toInt()
-                     changeToBulb(HueBulb("", "", "", HueBulbState(true, cBri, cHue, cSat, true), mapOf()))
-                     if (!isDragged) applyToSelected(cBri, cHue, cSat)
-                  }
-               }
-               pane.onEventDown(MOUSE_PRESSED, PRIMARY) { isDragged = true }
-               pane.onEventDown(MOUSE_RELEASED, PRIMARY) { isDragged = false }
-               pane.onEventDown(MOUSE_RELEASED, PRIMARY) { updateFromMouse(it) }
-               pane.onEventDown(MOUSE_DRAGGED, PRIMARY) { if (isDragged) updateFromMouse(it) }
-
-               pane
-            }
-            lay += selector
-         }
-      }
-
-      @Suppress("UNUSED_PARAMETER")
-      fun changeToBulbGroup(group: HueGroup) {
-         avoidApplying.suppressing {
-            color.value = null
-            hue.value = 0
-            sat.value = 0
-            bri.value = 1
-            selector.isVisible = false
-            selector.parent?.requestLayout()
-         }
-      }
-      fun changeToBulb(bulb: HueBulb) {
-         avoidApplying.suppressing {
-            color.value = Color.hsb(bulb.state.hue.toDouble()*360.0/65535.0, bulb.state.sat.toDouble()/254.0, 1.0, bulb.state.bri.minus(1).toDouble()/253.0)
-            hue.value = bulb.state.hue
-            sat.value = bulb.state.sat
-            bri.value = bulb.state.bri
-            selector.isVisible = true
-            selector.parent?.requestLayout()
-         }
-      }
-
-      fun applyToSelected(bri: Int?, hue: Int?, sat: Int?) {
-         avoidApplying.suppressed {
-            val state = HueBulbStateEditLight(bri, hue, sat)
-            selectedBulbId.ifNotNull { hueBridge?.applyBulbLight(it, state) }
-            selectedGroupId.ifNotNull { hueBridge?.applyBulbGroupLight(it, state) }
-         }
-      }
-   }
+   private val color = ColorPane()
 
    init {
       root.prefSize = 900.emScaled x 600.emScaled
@@ -540,6 +455,93 @@ class Hue(widget: Widget): SimpleController(widget) {
                   if (it.clickCount==1) focusSensor()
                }
             }
+         }
+      }
+   }
+
+   inner class ColorPane: ConfigurableBase<Any?>() {
+      val avoidApplying = Suppressor()
+      val readOnly = v(true)
+      val color by cvn<Color>(null).def(name = "Color", editable = NONE)
+      val hue by cv(0).between(0, 65535).def(name = "Color Hue", editable = NONE)
+      val sat by cv(0).between(0, 254).def(name = "Color Saturation", editable = NONE)
+      val bri by cv(1).between(1, 254).def(name = "Color Brightness", editable = NONE)
+      val configurable = this
+      var isDragged = false
+      val selectorRadius = 75.emScaled
+      val selector = Circle(5.emScaled).apply {
+         isManaged = false
+         isMouseTransparent = true
+         isVisible = false
+         stroke = Color.BLACK
+         strokeWidth = 1.0
+         fillProperty() syncFrom color.notNull(TRANSPARENT).map { it.alpha(0.5+0.5*it.opacity) }
+      }
+      val node = vBox {
+         alignment = TOP_CENTER
+         lay += form(configurable)
+         lay += object: StackPane() {
+            override fun layoutChildren() {
+               super.layoutChildren()
+               val c = color.value ?: TRANSPARENT
+               selector.center = size/2.0 + (c.hue + 180).unitCircleDegP*(selectorRadius*(if (c.opacity==1.0) 0.5*c.saturation else 1 - 0.5*c.opacity))
+            }
+         }.apply {
+            lay += Thumbnail(selectorRadius*2, selectorRadius*2).run {
+               loadImage(drawGradientCir(selectorRadius.toInt()))
+
+               fun updateFromMouse(it: MouseEvent) {
+                  if (!readOnly.value) {
+                     val c = image.value!!.pixelReader.getColor(it.x.toInt().clip(0, selectorRadius.toInt()*2-1), it.y.toInt().clip(0, selectorRadius.toInt()*2-1))
+                     val isOuter = c==TRANSPARENT
+                     val cBriRaw = if (isOuter) 0.0 else c.opacity
+                     val cBri = (1 + cBriRaw*253).toInt()
+                     val cHueRaw = (((pane.layoutBounds.centre - it.xy).atan2())/2/PI).mod(1.0)
+                     val cHue = (cHueRaw*65535).toInt()
+                     val cSatRaw = if (isOuter) 1.0 else c.saturation
+                     val cSat = (cSatRaw*245).toInt()
+                     changeToBulb(HueBulb("", "", "", HueBulbState(true, cBri, cHue, cSat, true), mapOf()))
+                     if (!isDragged) applyToSelected(cBri, cHue, cSat)
+                  }
+               }
+               pane.onEventDown(MOUSE_PRESSED, PRIMARY) { isDragged = true }
+               pane.onEventDown(MOUSE_RELEASED, PRIMARY) { isDragged = false }
+               pane.onEventDown(MOUSE_RELEASED, PRIMARY) { updateFromMouse(it) }
+               pane.onEventDown(MOUSE_DRAGGED, PRIMARY) { if (isDragged) updateFromMouse(it) }
+
+               pane
+            }
+            lay += selector
+         }
+      }
+
+      @Suppress("UNUSED_PARAMETER")
+      fun changeToBulbGroup(group: HueGroup) {
+         avoidApplying.suppressing {
+            color.value = null
+            hue.value = 0
+            sat.value = 0
+            bri.value = 1
+            selector.isVisible = false
+            selector.parent?.requestLayout()
+         }
+      }
+      fun changeToBulb(bulb: HueBulb) {
+         avoidApplying.suppressing {
+            color.value = Color.hsb(bulb.state.hue.toDouble()*360.0/65535.0, bulb.state.sat.toDouble()/254.0, 1.0, bulb.state.bri.minus(1).toDouble()/253.0)
+            hue.value = bulb.state.hue
+            sat.value = bulb.state.sat
+            bri.value = bulb.state.bri
+            selector.isVisible = true
+            selector.parent?.requestLayout()
+         }
+      }
+
+      fun applyToSelected(bri: Int?, hue: Int?, sat: Int?) {
+         avoidApplying.suppressed {
+            val state = HueBulbStateEditLight(bri, hue, sat)
+            selectedBulbId.ifNotNull { hueBridge?.applyBulbLight(it, state) }
+            selectedGroupId.ifNotNull { hueBridge?.applyBulbGroupLight(it, state) }
          }
       }
    }

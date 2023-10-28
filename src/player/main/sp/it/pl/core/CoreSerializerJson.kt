@@ -64,7 +64,6 @@ import sp.it.util.file.writeSafely
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.PF
 import sp.it.util.functional.Try
-import sp.it.util.functional.Try.Java.error
 import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
 import sp.it.util.math.StrExF
@@ -184,14 +183,13 @@ class CoreSerializerJson: Core {
 
    // TODO: error handling on call sites
    @Blocking
-   inline fun <reified T> fromJson(file: File): Try<T, Throwable> {
-      return if (!file.exists())
-         error<T, Throwable>(Exception("Couldn't deserialize ${T::class} from file $file", FileNotFoundException(file.absolutePath)))
-      else
-         json.fromJson<T>(file).ifError {
-            logger.error(it) { "Couldn't deserialize ${T::class} from file$file" }
-         }
-   }
+   inline fun <reified T> fromJson(file: File): Try<T, Throwable> =
+      json.fromJson<T>(file).mapError {
+         if (file.exists()) it
+         else FileNotFoundException(file.absolutePath)
+      }.ifError {
+         logger.error(it) { "Couldn't deserialize ${T::class} from file $file" }
+      }
 
    companion object: KLogging()
 }

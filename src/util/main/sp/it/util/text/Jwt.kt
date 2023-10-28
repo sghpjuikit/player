@@ -12,6 +12,7 @@ import sp.it.util.parsing.ConverterString
 import sp.it.util.parsing.ConverterToUiString
 
 data class Jwt(val header: JsObject, val payload: JsObject, val signature: String) {
+
    companion object: ConverterString<Jwt>, ConverterToUiString<Jwt> {
 
       override fun toUiS(o: Jwt, locale: Locale): String = o.header.toPrettyS() + "\n.\n" + o.payload.toPrettyS() + "\n.\n" + o.signature
@@ -27,4 +28,5 @@ data class Jwt(val header: JsObject, val payload: JsObject, val signature: Strin
       }
 
    }
+
 }

@@ -194,9 +194,14 @@ fun <T> observableSet(vararg items: T): ObservableSet<T> = observableSet(*items)
 /** @return mutable observable map */
 fun <K,V> observableMap(): ObservableMap<K,V> = FXCollections.observableHashMap()
 
+/** @return read-only observable list */
 fun <T> ObservableList<T>.readOnly() = ObservableListRO(this)
 
+/** @return read-only observable set */
 fun <T> ObservableSet<T>.readOnly() = ObservableSetRO(this)
+
+/** @return read-only observable map */
+fun <K, V> ObservableMap<K, V>.readOnly() = ObservableMapRO(this)
 
 /** Returns a map containing all key-value pairs with not null keys. */
 @Suppress("UNCHECKED_CAST")

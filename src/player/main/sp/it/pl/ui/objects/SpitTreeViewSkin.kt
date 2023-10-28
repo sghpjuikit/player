@@ -1,8 +1,6 @@
 package sp.it.pl.ui.objects
 
-import javafx.scene.control.TableView
 import javafx.scene.control.TreeView
-import javafx.scene.control.skin.TableViewSkin
 import javafx.scene.control.skin.TreeViewSkin
 import javafx.scene.control.skin.VirtualFlow
 import javafx.scene.input.ScrollEvent.SCROLL
@@ -10,11 +8,9 @@ import javafx.scene.layout.Region
 import kotlin.math.sign
 import kotlin.math.sqrt
 import sp.it.pl.main.emScaled
-import sp.it.util.access.v
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Interpolators.Companion.easeOut
 import sp.it.util.animation.Anim.Interpolators.Companion.interpolator
-import sp.it.util.math.P
 import sp.it.util.math.clip
 import sp.it.util.reactive.onEventUp
 import sp.it.util.type.Util

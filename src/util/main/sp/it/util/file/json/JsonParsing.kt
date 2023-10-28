@@ -4,6 +4,7 @@ import ch.obermuhlner.math.big.BigDecimalMath
 import java.io.InputStream
 import java.math.BigInteger
 import kotlin.text.Charsets.UTF_8
+import sp.it.util.math.rangeBigInt
 
 fun parseJson(input: String): JsValue =
    parseJson(input.byteInputStream(UTF_8))
@@ -18,7 +19,7 @@ private class Lexer(private val inputStream: InputStream) {
    private fun getNextChar(): Char {
       val nextByte = inputStream.read()
       position++
-      currentChar = if (nextByte != -1) nextByte.toChar() else '\u0000'
+      currentChar = if (nextByte!=-1) nextByte.toChar() else '\u0000'
       return currentChar
    }
 
@@ -91,7 +92,7 @@ private class Lexer(private val inputStream: InputStream) {
          }
 
          else -> {
-            if (currentChar.isDigit() || currentChar == '-') {
+            if (currentChar.isDigit() || currentChar=='-') {
                val value = readNumber()
                Token(TokenType.NUMBER, value)
             } else
@@ -110,10 +111,10 @@ private class Lexer(private val inputStream: InputStream) {
       val sb = StringBuilder()
       var escaped = false
 
-      while (currentChar != '\u0000') {
-         if (currentChar == '\\' && !escaped) {
+      while (currentChar!='\u0000') {
+         if (currentChar=='\\' && !escaped) {
             escaped = true
-         } else if (currentChar == '"' && !escaped) {
+         } else if (currentChar=='"' && !escaped) {
             getNextChar()
             break
          } else {
@@ -134,7 +135,7 @@ private class Lexer(private val inputStream: InputStream) {
                         unicode[i] = currentChar
                      }
                      val unicodeValue = String(unicode).toIntOrNull(16)
-                     if (unicodeValue != null) {
+                     if (unicodeValue!=null) {
                         sb.append(unicodeValue.toChar())
                      } else {
                         sb.append("\\u")
@@ -158,7 +159,7 @@ private class Lexer(private val inputStream: InputStream) {
 
    private fun readNumber(): String {
       val sb = StringBuilder()
-      while (currentChar.isDigit() || currentChar == '.' || currentChar == 'e' || currentChar == 'E' || currentChar == '+' || currentChar == '-') {
+      while (currentChar.isDigit() || currentChar=='.' || currentChar=='e' || currentChar=='E' || currentChar=='+' || currentChar=='-') {
          sb.append(currentChar)
          getNextChar()
       }
@@ -225,19 +226,15 @@ private class Parser(private val lexer: Lexer) {
    }
 
    private fun determineNumberType(value: String): Number {
-      return when {
-         value.contains('.') || value.contains('e', ignoreCase = true) -> BigDecimalMath.toBigDecimal(value)
-         else -> {
-            val longValue = value.toLongOrNull()
-            when {
-               // TODO: should we narrow the type down to Byte? Pe
-               // longValue != null && longValue >= Byte.MIN_VALUE && longValue <= Byte.MAX_VALUE -> longValue.toByte()
-               // longValue != null && longValue >= Short.MIN_VALUE && longValue <= Short.MAX_VALUE -> longValue.toShort()
-               longValue!=null && longValue>=Int.MIN_VALUE && longValue<=Int.MAX_VALUE -> longValue.toInt()
-               else -> BigInteger(value)
-            }
+      return if (value.contains('.') || value.contains('e', ignoreCase = true))
+         BigDecimalMath.toBigDecimal(value)
+      else
+         when (val num = BigInteger(value)) {
+            // Narrow type down do common types
+            in Int.rangeBigInt -> num.toInt()
+            in Long.rangeBigInt -> num.toLong()
+            else -> num
          }
-      }
    }
 
    private fun parseArrayElements(): List<JsValue> {

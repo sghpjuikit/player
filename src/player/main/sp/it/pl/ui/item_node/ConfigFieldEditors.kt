@@ -172,6 +172,9 @@ import sp.it.util.functional.runTry
 import sp.it.util.functional.supplyIfNotNull
 import sp.it.util.functional.toOption
 import sp.it.util.math.clip
+import sp.it.util.math.max
+import sp.it.util.math.min
+import sp.it.util.math.range
 import sp.it.util.parsing.nullOf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
@@ -1416,23 +1419,23 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    companion object {
       fun onNumberScrolledHandler(editor: ConfigEditor<*>) = editor.run {
          when (config.type.raw) {
-            Byte::class -> onNumberScrolled<Byte>(Byte.MIN_VALUE, Byte.MAX_VALUE, { a,b -> (a+b).toByte() }) { it.toByte() }
-            UByte::class -> onNumberScrolled<UByte>(UByte.MIN_VALUE, UByte.MAX_VALUE, { a,b -> (a+b).toUByte() }) { it.toUByte() }
-            Short::class -> onNumberScrolled<Short>(Short.MIN_VALUE, Short.MAX_VALUE, { a,b -> (a+b).toShort() }) { it.toShort() }
-            UShort::class -> onNumberScrolled<UShort>(UShort.MIN_VALUE, UShort.MAX_VALUE, { a,b -> (a+b).toUShort() }) { it.toUShort() }
-            Int::class -> onNumberScrolled<Int>(Int.MIN_VALUE, Int.MAX_VALUE, Int::plus) { it }
-            UInt::class -> onNumberScrolled<UInt>(UInt.MIN_VALUE, UInt.MAX_VALUE, UInt::plus) { it.toUInt() }
-            Float::class -> onNumberScrolled<Float>(-Float.MAX_VALUE, Float.MAX_VALUE, Float::plus) { it.toFloat() }
-            Long::class -> onNumberScrolled<Long>(Long.MIN_VALUE, Long.MAX_VALUE, Long::plus) { it.toLong() }
-            Double::class -> onNumberScrolled<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, Double::plus) { it.toDouble() }
-            ULong::class -> onNumberScrolled<ULong>(ULong.MIN_VALUE, ULong.MAX_VALUE, ULong::plus) { it.toULong() }
-            BigInteger::class -> onNumberScrolled<BigInteger>(null, null, BigInteger::plus) { it.toBigInteger() }
-            BigDecimal::class -> onNumberScrolled<BigDecimal>(null, null, BigDecimal::plus) { it.toBigDecimal() }
+            Byte::class -> onNumberScrolled<Byte>(Byte.range, { a,b -> (a+b).toByte() }) { it.toByte() }
+            UByte::class -> onNumberScrolled<UByte>(UByte.range, { a,b -> (a+b).toUByte() }) { it.toUByte() }
+            Short::class -> onNumberScrolled<Short>(Short.range, { a,b -> (a+b).toShort() }) { it.toShort() }
+            UShort::class -> onNumberScrolled<UShort>(UShort.range, { a,b -> (a+b).toUShort() }) { it.toUShort() }
+            Int::class -> onNumberScrolled<Int>(Int.range, Int::plus) { it }
+            UInt::class -> onNumberScrolled<UInt>(UInt.range, UInt::plus) { it.toUInt() }
+            Float::class -> onNumberScrolled<Float>(Float.range, Float::plus) { it.toFloat() }
+            Long::class -> onNumberScrolled<Long>(Long.range, Long::plus) { it.toLong() }
+            Double::class -> onNumberScrolled<Double>(Double.range, Double::plus) { it.toDouble() }
+            ULong::class -> onNumberScrolled<ULong>(ULong.range, ULong::plus) { it.toULong() }
+            BigInteger::class -> onNumberScrolled<BigInteger>(null, BigInteger::plus) { it.toBigInteger() }
+            BigDecimal::class -> onNumberScrolled<BigDecimal>(null, BigDecimal::plus) { it.toBigDecimal() }
             else -> null
          }
       }
 
-      private inline fun <reified T> ConfigEditor<*>.onNumberScrolled(min: T?, max: T?, crossinline adder: (T, T) -> T, crossinline caster: (Int) -> T): (Event) -> Unit = { it ->
+      private inline fun <reified T: Comparable<T>> ConfigEditor<*>.onNumberScrolled(range: ClosedRange<T>?, crossinline adder: (T, T) -> T, crossinline caster: (Int) -> T): (Event) -> Unit = { it ->
          val isEditable = this.isEditable.value
          val isMouseEdit = it is MouseEvent && it.eventType==MOUSE_CLICKED && it.button==PRIMARY
          val isScrollEdit = it is ScrollEvent && editor.hasFocus()
@@ -1444,8 +1447,8 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
             }
             val ov: T = config.value.asIs() ?: caster(0)
             val nv: T = when {
-               ov==min && dv<0 -> ov
-               ov==max && dv>0 -> ov
+               ov==range?.min && dv<0 -> ov
+               ov==range?.max && dv>0 -> ov
                else -> {
                   val oov = when {
                      ov is Float -> (if (dv<0) ceil(ov) else floor(ov)).asIs()

@@ -106,6 +106,8 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.math.rangeBigDec
+import sp.it.util.math.rangeBigInt
 import sp.it.util.named
 import sp.it.util.reactive.Unsubscriber
 import sp.it.util.reactive.asDisposer
@@ -664,17 +666,17 @@ fun Any?.detectContent(): Any? = when (this) {
       else -> null
          ?: this.toBigIntegerOrNull()?.let {
             when (it) {
-               in Byte.MIN_VALUE.toInt().toBigInteger()..Byte.MAX_VALUE.toInt().toBigInteger() -> it.toByte()
-               in Short.MIN_VALUE.toInt().toBigInteger()..Short.MAX_VALUE.toInt().toBigInteger() -> it.toShort()
-               in Int.MIN_VALUE.toBigInteger()..Int.MAX_VALUE.toBigInteger() -> it.toInt()
-               in Long.MIN_VALUE.toBigInteger()..Long.MAX_VALUE.toBigInteger() -> it.toLong()
+               in Byte.rangeBigInt -> it.toByte()
+               in Short.rangeBigInt -> it.toShort()
+               in Int.rangeBigInt -> it.toInt()
+               in Long.rangeBigInt -> it.toLong()
                else -> it
             }
          }
          ?: this.toBigDecimalOrNull()?.let {
             when (it) {
-               in (-Float.MAX_VALUE).toBigDecimal()..Float.MAX_VALUE.toBigDecimal() -> it.toFloat()
-               in (-Double.MAX_VALUE).toBigDecimal()..Double.MAX_VALUE.toBigDecimal() -> it.toFloat()
+               in Float.rangeBigDec -> it.toFloat()
+               in Double.rangeBigDec -> it.toDouble()
                else -> it
             }
          }

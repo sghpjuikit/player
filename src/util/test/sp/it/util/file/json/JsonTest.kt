@@ -188,29 +188,32 @@ class JsonTest: FreeSpec({
          j.fromJson<BigInteger>("-55")      shouldBeTry Ok(BigInteger("-55"))
          j.fromJson<BigDecimal>("-55")      shouldBeTry Ok(BigDecimal("-55"))
 
-         j.fromJson<Byte>("2147483648")           shouldBeTry Error("2147483648 not Byte")
-         j.fromJson<Byte>("128")                  shouldBeTry Error("128 not Byte")
-         j.fromJson<Byte>("-129")                 shouldBeTry Error("-129 not Byte")
-         j.fromJson<UByte>("2147483648")          shouldBeTry Error("2147483648 not UByte")
-         j.fromJson<UByte>("256")                 shouldBeTry Error("256 not UByte")
-         j.fromJson<UByte>("-256")                shouldBeTry Error("-256 not UByte")
-         j.fromJson<Short>("2147483648")          shouldBeTry Error("2147483648 not Short")
-         j.fromJson<Short>("32768")               shouldBeTry Error("32768 not Short")
-         j.fromJson<Short>("-32769")              shouldBeTry Error("-32769 not Short")
-         j.fromJson<UShort>("2147483648")         shouldBeTry Error("2147483648 not UShort")
-         j.fromJson<UShort>("65537")              shouldBeTry Error("65537 not UShort")
-         j.fromJson<UShort>("-65538")             shouldBeTry Error("-65538 not UShort")
-         j.fromJson<Int>("9223372036854775808")   shouldBeTry Error("9223372036854775808 not Int")
-         j.fromJson<Int>("2147483648")            shouldBeTry Error("2147483648 not Int")
-         j.fromJson<Int>("-2147483649")           shouldBeTry Error("-2147483649 not Int")
-         j.fromJson<UInt>("9223372036854775808")  shouldBeTry Error("9223372036854775808 not UInt")
-         j.fromJson<UInt>("4294967296")           shouldBeTry Error("4294967296 not UInt")
-         j.fromJson<UInt>("-4294967297")          shouldBeTry Error("-4294967297 not UInt")
-         j.fromJson<Long>("9223372036854775808")  shouldBeTry Error("9223372036854775808 not Long")
-         j.fromJson<Long>("-9223372036854775809") shouldBeTry Error("-9223372036854775809 not Long")
-//         j.fromJson<ULong>("9223372036854775808") shouldBeTry Error("9223372036854775808 not ULong")
-//         j.fromJson<Float>("9223372036854775808")  shouldBeTry Ok("9223372036854775808 not Float")
-//         j.fromJson<Double>("9223372036854775808") shouldBeTry Ok("9223372036854775808 not Double")
+         j.fromJson<Byte>("2147483648")                shouldBeTry Error("2147483648 not Byte")
+         j.fromJson<Byte>("128")                       shouldBeTry Error("128 not Byte")
+         j.fromJson<Byte>("-129")                      shouldBeTry Error("-129 not Byte")
+         j.fromJson<UByte>("2147483648")               shouldBeTry Error("2147483648 not UByte")
+         j.fromJson<UByte>("256")                      shouldBeTry Error("256 not UByte")
+         j.fromJson<UByte>("-256")                     shouldBeTry Error("-256 not UByte")
+         j.fromJson<Short>("2147483648")               shouldBeTry Error("2147483648 not Short")
+         j.fromJson<Short>("32768")                    shouldBeTry Error("32768 not Short")
+         j.fromJson<Short>("-32769")                   shouldBeTry Error("-32769 not Short")
+         j.fromJson<UShort>("2147483648")              shouldBeTry Error("2147483648 not UShort")
+         j.fromJson<UShort>("65537")                   shouldBeTry Error("65537 not UShort")
+         j.fromJson<UShort>("-65538")                  shouldBeTry Error("-65538 not UShort")
+         j.fromJson<Int>("9223372036854775808")        shouldBeTry Error("9223372036854775808 not Int")
+         j.fromJson<Int>("2147483648")                 shouldBeTry Error("2147483648 not Int")
+         j.fromJson<Int>("-2147483649")                shouldBeTry Error("-2147483649 not Int")
+         j.fromJson<UInt>("9223372036854775808")       shouldBeTry Error("9223372036854775808 not UInt")
+         j.fromJson<UInt>("4294967296")                shouldBeTry Error("4294967296 not UInt")
+         j.fromJson<UInt>("-4294967297")               shouldBeTry Error("-4294967297 not UInt")
+         j.fromJson<Long>("9223372036854775808")       shouldBeTry Error("9223372036854775808 not Long")
+         j.fromJson<Long>("-9223372036854775809")      shouldBeTry Error("-9223372036854775809 not Long")
+         j.fromJson<ULong>("92233720368547758080")     shouldBeTry Error("92233720368547758080 not ULong")
+         j.fromJson<ULong>("-92233720368547758080")    shouldBeTry Error("-92233720368547758080 not ULong")
+         j.fromJson<Float>("3.4028235E39")             shouldBeTry Error("3.4028235E+39 not Float")
+         j.fromJson<Float>("-3.4028235E39")            shouldBeTry Error("-3.4028235E+39 not Float")
+         j.fromJson<Double>("1.7976931348623157E309")  shouldBeTry Error("1.7976931348623157E+309 not Double")
+         j.fromJson<Double>("-1.7976931348623157E309") shouldBeTry Error("-1.7976931348623157E+309 not Double")
 
          j.fromJson<Int>("34E4") shouldBe Ok(340000)
          j.fromJson<Int>("22e+2") shouldBe Ok(2200)
@@ -424,14 +427,14 @@ class JsonTest: FreeSpec({
             argIns(Long.MAX_VALUE),
             argIns(ULong.MIN_VALUE),
             argIns(ULong.MAX_VALUE),
-            argIns(Float.MIN_VALUE),
             argIns(-Float.MAX_VALUE),
+            argIns(Float.MIN_VALUE),
             argIns(Float.MAX_VALUE),
             argIns(Float.POSITIVE_INFINITY),
             argIns(Float.NEGATIVE_INFINITY),
             argIns(Float.NaN),
+            argIns(-Double.MAX_VALUE),
             argIns(Double.MIN_VALUE),
-            argIns(-Double.MIN_VALUE),
             argIns(Double.MAX_VALUE),
             argIns(Double.POSITIVE_INFINITY),
             argIns(Double.NEGATIVE_INFINITY),

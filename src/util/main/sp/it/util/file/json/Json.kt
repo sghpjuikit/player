@@ -1,6 +1,5 @@
 package sp.it.util.file.json
 
-import ch.obermuhlner.math.big.BigDecimalMath
 import java.io.File
 import java.io.InputStream
 import java.math.BigDecimal
@@ -46,6 +45,8 @@ import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
+import sp.it.util.math.rangeBigDec
+import sp.it.util.math.toBigDec
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.Parsers
 import sp.it.util.text.escapeJson
@@ -363,18 +364,18 @@ class Json: JsonAst() {
                      value.value::class -> value.value
                      Any::class -> value.value
                      Number::class -> value.value
-                     Byte::class -> value.value.toBd().net { if (it in Byte.range) it.toByte() else fail { "${value.value} not Byte" } }
-                     UByte::class -> value.value.toBd().net { if (it in UByte.range) it.toShort().toUByte() else fail { "${value.value} not UByte" } }
-                     Short::class -> value.value.toBd().net { if (it in Short.range) it.toShort() else fail { "${value.value} not Short" } }
-                     UShort::class -> value.value.toBd().net { if (it in UShort.range) it.toInt().toUShort() else fail { "${value.value} not UShort" } }
-                     Int::class -> value.value.toBd().net { if (it in Int.range) it.toInt() else fail { "${value.value} not Int" } }
-                     UInt::class -> value.value.toBd().net { if (it in UInt.range) it.toLong().toUInt() else fail { "${value.value} not UInt" } }
-                     Long::class -> value.value.toBd().net { if (it in Long.range) it.toLong() else fail { "${value.value} not Long" } }
-                     ULong::class -> value.value.toBd().net { if (it in ULong.range) it.toString().toULong() else fail { "${value.value} not ULong" } }
-                     Float::class -> value.value.toBd().net { if (it in Float.range) it.toFloat() else fail { "${value.value} not Float" } }
-                     Double::class -> value.value.toBd().net { if (it in Double.range) it.toDouble() else fail { "${value.value} not Double" } }
-                     BigInteger::class -> value.value.toBd().toBigInteger()
-                     BigDecimal::class -> value.value.toBd()
+                     Byte::class -> value.value.toBigDec().net { if (it in Byte.rangeBigDec) it.toByte() else fail { "${value.value} not Byte" } }
+                     UByte::class -> value.value.toBigDec().net { if (it in UByte.rangeBigDec) it.toShort().toUByte() else fail { "${value.value} not UByte" } }
+                     Short::class -> value.value.toBigDec().net { if (it in Short.rangeBigDec) it.toShort() else fail { "${value.value} not Short" } }
+                     UShort::class -> value.value.toBigDec().net { if (it in UShort.rangeBigDec) it.toInt().toUShort() else fail { "${value.value} not UShort" } }
+                     Int::class -> value.value.toBigDec().net { if (it in Int.rangeBigDec) it.toInt() else fail { "${value.value} not Int" } }
+                     UInt::class -> value.value.toBigDec().net { if (it in UInt.rangeBigDec) it.toLong().toUInt() else fail { "${value.value} not UInt" } }
+                     Long::class -> value.value.toBigDec().net { if (it in Long.rangeBigDec) it.toLong() else fail { "${value.value} not Long" } }
+                     ULong::class -> value.value.toBigDec().net { if (it in ULong.rangeBigDec) it.toString().toULong() else fail { "${value.value} not ULong" } }
+                     Float::class -> value.value.toBigDec().net { if (it in Float.rangeBigDec) it.toFloat() else fail { "${value.value} not Float" } }
+                     Double::class -> value.value.toBigDec().net { if (it in Double.rangeBigDec) it.toDouble() else fail { "${value.value} not Double" } }
+                     BigInteger::class -> value.value.toBigDec().toBigInteger()
+                     BigDecimal::class -> value.value.toBigDec()
                      else -> fail { "Unsupported number type=$typeK ${value.toPrettyS()}" }
                   }
                }
@@ -617,23 +618,4 @@ private fun JsValue.toPrettyS(indent: String, newline: String, indentRaw: String
 private fun getEnumValue(enumClass: Class<*>, value: String): Enum<*> {
    val enumConstants = enumClass.enumConstants as Array<out Enum<*>>
    return enumConstants.first { it.name==value }
-}
-
-private val Byte.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
-private val UByte.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
-private val Short.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
-private val UShort.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
-private val Int.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
-private val UInt.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
-private val Long.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
-private val ULong.Companion.range get() = MIN_VALUE.toBd()..MAX_VALUE.toBd()
-private val Float.Companion.range get() = (-MAX_VALUE).toBd()..MAX_VALUE.toBd()
-private val Double.Companion.range get() = (-MAX_VALUE).toBd()..MAX_VALUE.toBd()
-
-private fun Any.toBd() = when (this) {
-   is BigDecimal -> this
-   is BigInteger -> toBigDecimal()
-   is Long -> BigDecimal.valueOf(this)
-   is Double -> BigDecimal.valueOf(this)
-   else -> BigDecimalMath.toBigDecimal(toString())
 }

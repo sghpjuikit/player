@@ -43,8 +43,9 @@ import sp.it.pl.plugin.impl.SpeechRecognition.SpeakHandler
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.runSuspendingFx
-import sp.it.util.conf.c
-import sp.it.util.conf.noUi
+import sp.it.util.conf.cv
+import sp.it.util.conf.def
+import sp.it.util.conf.password
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.file.json.JsNull
@@ -83,9 +84,13 @@ class Hue: PluginBase() {
    private val scope: CoroutineScope = MainScope()
    private val onClose = Disposer()
    private val speechHandlers = mutableListOf<SpeakHandler>()
-   private var hueBridgeApiKey by c("").noUi()
-   private var hueBridgeIp by c("").noUi()
    private val client = HttpClient(CIO).apply { onClose += this::close }
+
+   private val hueBridgeApiKey by cv("").password()
+      .def(name = "Hue bridge API key", info = "API key of the Phillips Hue bridge. Use linking and button press to pair the application")
+
+   private val hueBridgeIp by cv("")
+      .def(name = "Hue bridge IP", info = "IP of the Phillips Hue bridge. Use linking and button press to pair the application")
 
    val refreshes = Handler1<Unit>()
    val hueBridge = HueBridge()
@@ -135,10 +140,10 @@ class Hue: PluginBase() {
       lateinit var url: String
 
       suspend fun init() {
-         ip = hueBridgeIp.validIpOrNull() ?: ip() ?: fail { "Unable to obtain Phillips Hue bridge ip. Make sure it is turned on and connected to the network." }
-         hueBridgeIp = ip
-         apiKey = if (isAuthorizedApiKey(ip, hueBridgeApiKey)) hueBridgeApiKey else createApiKey(ip)
-         hueBridgeApiKey = apiKey
+         ip = hueBridgeIp.value.validIpOrNull() ?: ip() ?: fail { "Unable to obtain Phillips Hue bridge ip. Make sure it is turned on and connected to the network." }
+         hueBridgeIp.value = ip
+         apiKey = if (isAuthorizedApiKey(ip, hueBridgeApiKey.value)) hueBridgeApiKey.value else createApiKey(ip)
+         hueBridgeApiKey.value = apiKey
          apiVersion = apiVersion("http://$ip/api/$apiKey").split3(".").net { (major, minor, patch) -> KotlinVersion(major.toInt(), minor.toInt(), patch.toIntOrNull() ?: 0) }
          url = "http://$ip/api/$apiKey"
       }

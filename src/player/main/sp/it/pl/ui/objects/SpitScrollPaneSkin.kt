@@ -150,7 +150,7 @@ open class SpitScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane
       else fail { "Forbidden" }
 
    private sealed interface OrientUni {
-      infix fun <T> T.o(t: T): T = if (this==Orient.HOR) this else t
+      infix fun <T> T.o(t: T): T = if (this@OrientUni==Orient.HOR) this else t
       val <A> Pair<A,A>.o: A get() = if (this@OrientUni==Orient.HOR) first else second
       val P.o: Double get() = if (this@OrientUni==Orient.HOR) x else y
    }

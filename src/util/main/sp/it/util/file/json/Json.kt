@@ -73,7 +73,7 @@ import sp.it.util.type.sealedSubObjects
 import sp.it.util.type.type
 import sp.it.util.type.typeOrAny
 
-sealed class JsValue {
+sealed class JsValue: JsTokenLike {
    fun asJsNull() = asIs<JsNull>()
    fun asJsTrue() = asIs<JsTrue>()
    fun asJsFalse() = asIs<JsFalse>()
@@ -584,8 +584,12 @@ fun JsValue.toCompactS(): String {
       is JsFalse -> "false"
       is JsString -> value.js()
       is JsNumber -> when (value) {
-         Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN -> value.toString().js()
-         Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN -> value.toString().js()
+         Double.POSITIVE_INFINITY -> "Infinity".js()
+         Double.NEGATIVE_INFINITY -> "-Infinity".js()
+         Double.NaN -> "NaN".js()
+         Float.POSITIVE_INFINITY -> "Infinity".js()
+         Float.NEGATIVE_INFINITY -> "-Infinity".js()
+         Float.NaN -> "NaN".js()
          else -> value.toString()
       }
       is JsArray ->
@@ -609,8 +613,12 @@ private fun JsValue.toPrettyS(indent: String, newline: String, indentRaw: String
       is JsFalse -> "false".a()
       is JsString -> value.js().a()
       is JsNumber -> when (value) {
-         Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN -> value.toString().js().a()
-         Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN -> value.toString().js().a()
+         Double.POSITIVE_INFINITY -> "Infinity".js().a()
+         Double.NEGATIVE_INFINITY -> "-Infinity".js().a()
+         Double.NaN -> "NaN".js().a()
+         Float.POSITIVE_INFINITY -> "Infinity".js().a()
+         Float.NEGATIVE_INFINITY -> "-Infinity".js().a()
+         Float.NaN -> "NaN".js().a()
          else -> value.toString().a()
       }
       is JsArray ->

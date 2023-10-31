@@ -1,4 +1,7 @@
 ## Potential future work
+
+- Implement Weather widget to have reactive layout
+- Load widget factories in bgr
 - tasks do not show in task list, see Task.runGet
 - implement plus icon for custom widget custom inputs in layout mode
 - implement custom outputs for custom widgets
@@ -15,7 +18,6 @@
 - Fix LibraryView not refreshing on song library add sometimes
 - Implement **Playback Knobs** widget skinnable size
 - Implement `Placeholder` to distinguish file drag `MOVE` and file `COPY` in description
-- Implement Weather widget to have reactive layout
 - Implement icons and widget metadata for all Node widgets
 - Implement more convenient plugin on/off toggle in Plugin Management
 - Document all used libraries, how they are used, why, where not to use them, etc.

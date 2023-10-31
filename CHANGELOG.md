@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+- Implement **Hue** plugin (for programmatic/voice control of Hue system without widget)
 
 ## [7.9.0] 2023 10 27
 - Update Java to 21
@@ -25,7 +26,6 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **VoiceRecognition** plugin to be interactive (gives voice feedback)
 - Implement **Hue Scenes** widget toggle lights voice actions
 - Implement **Hue Scenes** new scene validation
-- Implement **Hue** plugin (for programmatic/voice control of Hue system without widget)
 - Implement **Song Group Table** songs column as List<Song> which enables filtering groups by song attributes
 - Implement **Clipboard Viewer** widget
 - Implement **Keyboard Event Viewer** widget

@@ -3,7 +3,6 @@ package sp.it.util.file.json
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.forAll
 import io.kotest.data.row
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -113,154 +112,154 @@ class JsonTest: FreeSpec({
          j.ast("""{$nf} $nf""") shouldBe Ok(JsObject())
          j.ast("""{"name": "John", "age": 42}""") shouldBe Ok(JsObject("name" to JsString("John"), "age" to JsNumber(42)))
          j.ast("""{$nf"name":$nf "John", "age": 42}""") shouldBe Ok(JsObject("name" to JsString("John"), "age" to JsNumber(42)))
-         j.ast("1 2") should { it.isError  }
-         j.ast("1 2 3 4") should { it.isError  }
+         j.ast("1 2") shouldBeTry Error("Invalid token at position 0")
+         j.ast("1 2 3 4") shouldBeTry Error("Invalid token at position 0")
       }
       "simple json" {
          // @formatter:off
-         j.fromJson<String>("""""""")       shouldBe Ok("")
-         j.fromJson<String>("""" """")      shouldBe Ok(" ")
-         j.fromJson<String>(""""text"""")   shouldBe Ok("text")
+                 j.fromJson<String>("""""""") shouldBeTry Ok("")
+                j.fromJson<String>("""" """") shouldBeTry Ok(" ")
+             j.fromJson<String>(""""text"""") shouldBeTry Ok("text")
 
-         j.fromJson<String>(""""a"""")      shouldBe Ok("a")
-         j.fromJson<String>(""""1"""")      shouldBe Ok("1")
-         j.fromJson<String>(""""\""""")     shouldBe Ok("\"")
-         j.fromJson<String>(""""\\""""")    shouldBe Ok("\\")
-         j.fromJson<String>(""""\/""""")    shouldBe Ok("/")
-         j.fromJson<String>(""""\b""""")    shouldBe Ok("\b")
-         j.fromJson<String>(""""\f""""")    shouldBe Ok("\u000c")
-         j.fromJson<String>(""""\n"""")     shouldBe Ok("\n")
-         j.fromJson<String>(""""\r"""")     shouldBe Ok("\r")
-         j.fromJson<String>(""""\t"""")     shouldBe Ok("\t")
-         j.fromJson<String>(""""日本語"""")  shouldBe Ok("日本語")
-         j.fromJson<String>(""""\u0001"""") shouldBe Ok("\u0001")
-         j.fromJson<String>(""""\u01AF"""") shouldBe Ok("\u01AF")
-         j.fromJson<String>(""""\u01af"""") shouldBe Ok("\u01af")
+                j.fromJson<String>(""""a"""") shouldBeTry Ok("a")
+                j.fromJson<String>(""""1"""") shouldBeTry Ok("1")
+               j.fromJson<String>(""""\""""") shouldBeTry Ok("\"")
+              j.fromJson<String>(""""\\""""") shouldBeTry Ok("\\")
+              j.fromJson<String>(""""\/""""") shouldBeTry Ok("/")
+              j.fromJson<String>(""""\b""""") shouldBeTry Ok("\b")
+              j.fromJson<String>(""""\f""""") shouldBeTry Ok("\u000c")
+               j.fromJson<String>(""""\n"""") shouldBeTry Ok("\n")
+               j.fromJson<String>(""""\r"""") shouldBeTry Ok("\r")
+               j.fromJson<String>(""""\t"""") shouldBeTry Ok("\t")
+            j.fromJson<String>(""""日本語"""") shouldBeTry Ok("日本語")
+           j.fromJson<String>(""""\u0001"""") shouldBeTry Ok("\u0001")
+           j.fromJson<String>(""""\u01AF"""") shouldBeTry Ok("\u01AF")
+           j.fromJson<String>(""""\u01af"""") shouldBeTry Ok("\u01af")
 
-         j.fromJson<Char>(""""a"""")        shouldBe Ok('a')
-         j.fromJson<Char>(""""1"""")        shouldBe Ok('1')
-         j.fromJson<Char>(""""\""""")       shouldBe Ok('"')
-         j.fromJson<Char>(""""\\""""")      shouldBe Ok('\\')
-         j.fromJson<Char>(""""\/""""")      shouldBe Ok('/')
-         j.fromJson<Char>(""""\b""""")      shouldBe Ok('\b')
-         j.fromJson<Char>(""""\f""""")      shouldBe Ok('\u000c')
-         j.fromJson<Char>(""""\n"""")       shouldBe Ok('\n')
-         j.fromJson<Char>(""""\r"""")       shouldBe Ok('\r')
-         j.fromJson<Char>(""""\t"""")       shouldBe Ok('\t')
-         j.fromJson<Char>(""""\u0001"""")   shouldBe Ok('\u0001')
-         j.fromJson<Char>(""""\u01AF"""")   shouldBe Ok('\u01AF')
-         j.fromJson<Char>(""""\u01af"""")   shouldBe Ok('\u01af')
+                  j.fromJson<Char>(""""a"""") shouldBeTry Ok('a')
+                  j.fromJson<Char>(""""1"""") shouldBeTry Ok('1')
+                 j.fromJson<Char>(""""\""""") shouldBeTry Ok('"')
+                j.fromJson<Char>(""""\\""""") shouldBeTry Ok('\\')
+                j.fromJson<Char>(""""\/""""") shouldBeTry Ok('/')
+                j.fromJson<Char>(""""\b""""") shouldBeTry Ok('\b')
+                j.fromJson<Char>(""""\f""""") shouldBeTry Ok('\u000c')
+                 j.fromJson<Char>(""""\n"""") shouldBeTry Ok('\n')
+                 j.fromJson<Char>(""""\r"""") shouldBeTry Ok('\r')
+                 j.fromJson<Char>(""""\t"""") shouldBeTry Ok('\t')
+             j.fromJson<Char>(""""\u0001"""") shouldBeTry Ok('\u0001')
+             j.fromJson<Char>(""""\u01AF"""") shouldBeTry Ok('\u01AF')
+             j.fromJson<Char>(""""\u01af"""") shouldBeTry Ok('\u01af')
 
-         j.fromJson<Char>(""""\u0001"""")   shouldBeTry Ok('\u0001')
-         j.fromJson<Char>(""""\u00FF"""")   shouldBeTry Ok('\u00FF')
-         j.fromJson<Char>(""""\u0FFF"""")   shouldBeTry Ok('\u0FFF')
-         j.fromJson<Char>(""""t"""")        shouldBeTry Ok('t')
-         j.fromJson<Char>(""""語"""")       shouldBeTry Ok('語')
-         j.fromJson<Char>(""""𝔊"""")       shouldBeTry Error("𝔊 is not Char")
-         j.fromJson<Char>(""""क्तु"""")       shouldBeTry Error("क्तु is not Char")
-         j.fromJson<Char>(""""日本語"""")    shouldBeTry Error("日本語 is not Char")
-         j.fromJson<Char16>(""""\u0001"""")   shouldBeTry Ok('\u0001')
-         j.fromJson<Char16>(""""\u00FF"""")   shouldBeTry Ok('\u00FF')
-         j.fromJson<Char16>(""""\u0FFF"""")   shouldBeTry Ok('\u0FFF')
-         j.fromJson<Char16>(""""t"""")        shouldBeTry Ok('t')
-         j.fromJson<Char16>(""""語"""")       shouldBeTry Ok('語')
-         j.fromJson<Char16>(""""𝔊"""")       shouldBeTry Error("𝔊 is not Char")
-         j.fromJson<Char16>(""""क्तु"""")       shouldBeTry Error("क्तु is not Char")
-         j.fromJson<Char16>(""""日本語"""")    shouldBeTry Error("日本語 is not Char")
-         j.fromJson<Char32>(""""\u0001"""")   shouldBeTry Ok('\u0001'.toChar32())
-         j.fromJson<Char32>(""""\u00FF"""")   shouldBeTry Ok('\u00FF'.toChar32())
-         j.fromJson<Char32>(""""\u0FFF"""")   shouldBeTry Ok('\u0FFF'.toChar32())
-         j.fromJson<Char32>(""""t"""")        shouldBeTry Ok('t'.toChar32())
-         j.fromJson<Char32>(""""語"""")       shouldBeTry Ok('語'.toChar32())
-         j.fromJson<Char32>(""""𝔊"""")       shouldBeTry Ok(Char32(0x1D50A))
-         j.fromJson<Char32>(""""क्तु"""")       shouldBeTry Error("क्तु is not Char32")
-         j.fromJson<Char32>(""""日本語"""")    shouldBeTry Error("日本語 is not Char32")
+             j.fromJson<Char>(""""\u0001"""") shouldBeTry Ok('\u0001')
+             j.fromJson<Char>(""""\u00FF"""") shouldBeTry Ok('\u00FF')
+             j.fromJson<Char>(""""\u0FFF"""") shouldBeTry Ok('\u0FFF')
+                  j.fromJson<Char>(""""t"""") shouldBeTry Ok('t')
+                 j.fromJson<Char>(""""語"""") shouldBeTry Ok('語')
+                 j.fromJson<Char>(""""𝔊"""") shouldBeTry Error("𝔊 is not Char")
+                 j.fromJson<Char>(""""क्तु"""") shouldBeTry Error("क्तु is not Char")
+              j.fromJson<Char>(""""日本語"""") shouldBeTry Error("日本語 is not Char")
+           j.fromJson<Char16>(""""\u0001"""") shouldBeTry Ok('\u0001')
+           j.fromJson<Char16>(""""\u00FF"""") shouldBeTry Ok('\u00FF')
+           j.fromJson<Char16>(""""\u0FFF"""") shouldBeTry Ok('\u0FFF')
+                j.fromJson<Char16>(""""t"""") shouldBeTry Ok('t')
+               j.fromJson<Char16>(""""語"""") shouldBeTry Ok('語')
+                j.fromJson<Char16>(""""𝔊"""") shouldBeTry Error("𝔊 is not Char")
+               j.fromJson<Char16>(""""क्तु"""") shouldBeTry Error("क्तु is not Char")
+            j.fromJson<Char16>(""""日本語"""") shouldBeTry Error("日本語 is not Char")
+           j.fromJson<Char32>(""""\u0001"""") shouldBeTry Ok('\u0001'.toChar32())
+           j.fromJson<Char32>(""""\u00FF"""") shouldBeTry Ok('\u00FF'.toChar32())
+           j.fromJson<Char32>(""""\u0FFF"""") shouldBeTry Ok('\u0FFF'.toChar32())
+                j.fromJson<Char32>(""""t"""") shouldBeTry Ok('t'.toChar32())
+               j.fromJson<Char32>(""""語"""") shouldBeTry Ok('語'.toChar32())
+                j.fromJson<Char32>(""""𝔊"""") shouldBeTry Ok(Char32(0x1D50A))
+               j.fromJson<Char32>(""""क्तु"""") shouldBeTry Error("क्तु is not Char32")
+            j.fromJson<Char32>(""""日本語"""") shouldBeTry Error("日本語 is not Char32")
 
-         j.fromJson<Byte>("55")             shouldBe Ok(55.toByte())
-         j.fromJson<UByte>("55")            shouldBe Ok(55L.toUByte())
-         j.fromJson<Short>("55")            shouldBe Ok(55.toShort())
-         j.fromJson<UShort>("55")           shouldBe Ok(55.toUShort())
-         j.fromJson<Int>("55")              shouldBe Ok(55)
-         j.fromJson<UInt>("55")             shouldBe Ok(55.toUInt())
-         j.fromJson<Long>("55")             shouldBe Ok(55L)
-         j.fromJson<ULong>("55")            shouldBe Ok(55.toULong())
-         j.fromJson<Float>("55")            shouldBe Ok(55f)
-         j.fromJson<Double>("55")           shouldBe Ok(55.0)
-         j.fromJson<BigInteger>("55")       shouldBe Ok(BigInteger("55"))
-         j.fromJson<BigDecimal>("55")       shouldBe Ok(BigDecimal("55"))
+                       j.fromJson<Byte>("55") shouldBeTry Ok(55.toByte())
+                      j.fromJson<UByte>("55") shouldBeTry Ok(55L.toUByte())
+                      j.fromJson<Short>("55") shouldBeTry Ok(55.toShort())
+                     j.fromJson<UShort>("55") shouldBeTry Ok(55.toUShort())
+                        j.fromJson<Int>("55") shouldBeTry Ok(55)
+                       j.fromJson<UInt>("55") shouldBeTry Ok(55.toUInt())
+                       j.fromJson<Long>("55") shouldBeTry Ok(55L)
+                      j.fromJson<ULong>("55") shouldBeTry Ok(55.toULong())
+                      j.fromJson<Float>("55") shouldBeTry Ok(55f)
+                     j.fromJson<Double>("55") shouldBeTry Ok(55.0)
+                 j.fromJson<BigInteger>("55") shouldBeTry Ok(BigInteger("55"))
+                 j.fromJson<BigDecimal>("55") shouldBeTry Ok(BigDecimal("55"))
 
-         j.fromJson<Byte>("+55")            shouldBeTry Error("Invalid token at position 0")
-         j.fromJson<UByte>("+55")           shouldBeTry Error("Invalid token at position 0")
-         j.fromJson<Short>("+55")           shouldBeTry Error("Invalid token at position 0")
-         j.fromJson<UShort>("+55")          shouldBeTry Error("Invalid token at position 0")
-         j.fromJson<Int>("+55")             shouldBeTry Error("Invalid token at position 0")
-         j.fromJson<UInt>("+55")            shouldBeTry Error("Invalid token at position 0")
-         j.fromJson<Long>("+55")            shouldBeTry Error("Invalid token at position 0")
-         j.fromJson<ULong>("+55")           shouldBeTry Error("Invalid token at position 0")
-         j.fromJson<Float>("+55")           shouldBeTry Error("Invalid token at position 0")
-         j.fromJson<Double>("+55")          shouldBeTry Error("Invalid token at position 0")
-         j.fromJson<BigInteger>("+55")      shouldBeTry Error("Invalid token at position 0")
-         j.fromJson<BigDecimal>("+55")      shouldBeTry Error("Invalid token at position 0")
+                      j.fromJson<Byte>("+55") shouldBeTry Error("Invalid token at position 0")
+                     j.fromJson<UByte>("+55") shouldBeTry Error("Invalid token at position 0")
+                     j.fromJson<Short>("+55") shouldBeTry Error("Invalid token at position 0")
+                    j.fromJson<UShort>("+55") shouldBeTry Error("Invalid token at position 0")
+                       j.fromJson<Int>("+55") shouldBeTry Error("Invalid token at position 0")
+                      j.fromJson<UInt>("+55") shouldBeTry Error("Invalid token at position 0")
+                      j.fromJson<Long>("+55") shouldBeTry Error("Invalid token at position 0")
+                     j.fromJson<ULong>("+55") shouldBeTry Error("Invalid token at position 0")
+                     j.fromJson<Float>("+55") shouldBeTry Error("Invalid token at position 0")
+                    j.fromJson<Double>("+55") shouldBeTry Error("Invalid token at position 0")
+                j.fromJson<BigInteger>("+55") shouldBeTry Error("Invalid token at position 0")
+                j.fromJson<BigDecimal>("+55") shouldBeTry Error("Invalid token at position 0")
 
-         j.fromJson<Byte>("-55")            shouldBeTry Ok((-55).toByte())
-         j.fromJson<UByte>("-55")           shouldBeTry Error("-55 not UByte")
-         j.fromJson<Short>("-55")           shouldBeTry Ok((-55).toShort())
-         j.fromJson<UShort>("-55")          shouldBeTry Error("-55 not UShort")
-         j.fromJson<Int>("-55")             shouldBeTry Ok(-55)
-         j.fromJson<UInt>("-55")            shouldBeTry Error("-55 not UInt")
-         j.fromJson<Long>("-55")            shouldBeTry Ok(-55L)
-         j.fromJson<ULong>("-55")           shouldBeTry Error("-55 not ULong")
-         j.fromJson<Float>("-55")           shouldBeTry Ok(-55f)
-         j.fromJson<Double>("-55")          shouldBeTry Ok(-55.0)
-         j.fromJson<BigInteger>("-55")      shouldBeTry Ok(BigInteger("-55"))
-         j.fromJson<BigDecimal>("-55")      shouldBeTry Ok(BigDecimal("-55"))
+                      j.fromJson<Byte>("-55") shouldBeTry Ok((-55).toByte())
+                     j.fromJson<UByte>("-55") shouldBeTry Error("-55 not UByte")
+                     j.fromJson<Short>("-55") shouldBeTry Ok((-55).toShort())
+                    j.fromJson<UShort>("-55") shouldBeTry Error("-55 not UShort")
+                       j.fromJson<Int>("-55") shouldBeTry Ok(-55)
+                      j.fromJson<UInt>("-55") shouldBeTry Error("-55 not UInt")
+                      j.fromJson<Long>("-55") shouldBeTry Ok(-55L)
+                     j.fromJson<ULong>("-55") shouldBeTry Error("-55 not ULong")
+                     j.fromJson<Float>("-55") shouldBeTry Ok(-55f)
+                    j.fromJson<Double>("-55") shouldBeTry Ok(-55.0)
+                j.fromJson<BigInteger>("-55") shouldBeTry Ok(BigInteger("-55"))
+                j.fromJson<BigDecimal>("-55") shouldBeTry Ok(BigDecimal("-55"))
 
-         j.fromJson<Byte>("2147483648")                shouldBeTry Error("2147483648 not Byte")
-         j.fromJson<Byte>("128")                       shouldBeTry Error("128 not Byte")
-         j.fromJson<Byte>("-129")                      shouldBeTry Error("-129 not Byte")
-         j.fromJson<UByte>("2147483648")               shouldBeTry Error("2147483648 not UByte")
-         j.fromJson<UByte>("256")                      shouldBeTry Error("256 not UByte")
-         j.fromJson<UByte>("-256")                     shouldBeTry Error("-256 not UByte")
-         j.fromJson<Short>("2147483648")               shouldBeTry Error("2147483648 not Short")
-         j.fromJson<Short>("32768")                    shouldBeTry Error("32768 not Short")
-         j.fromJson<Short>("-32769")                   shouldBeTry Error("-32769 not Short")
-         j.fromJson<UShort>("2147483648")              shouldBeTry Error("2147483648 not UShort")
-         j.fromJson<UShort>("65537")                   shouldBeTry Error("65537 not UShort")
-         j.fromJson<UShort>("-65538")                  shouldBeTry Error("-65538 not UShort")
-         j.fromJson<Int>("9223372036854775808")        shouldBeTry Error("9223372036854775808 not Int")
-         j.fromJson<Int>("2147483648")                 shouldBeTry Error("2147483648 not Int")
-         j.fromJson<Int>("-2147483649")                shouldBeTry Error("-2147483649 not Int")
-         j.fromJson<UInt>("9223372036854775808")       shouldBeTry Error("9223372036854775808 not UInt")
-         j.fromJson<UInt>("4294967296")                shouldBeTry Error("4294967296 not UInt")
-         j.fromJson<UInt>("-4294967297")               shouldBeTry Error("-4294967297 not UInt")
-         j.fromJson<Long>("9223372036854775808")       shouldBeTry Error("9223372036854775808 not Long")
-         j.fromJson<Long>("-9223372036854775809")      shouldBeTry Error("-9223372036854775809 not Long")
-         j.fromJson<ULong>("92233720368547758080")     shouldBeTry Error("92233720368547758080 not ULong")
-         j.fromJson<ULong>("-92233720368547758080")    shouldBeTry Error("-92233720368547758080 not ULong")
-         j.fromJson<Float>("3.4028235E39")             shouldBeTry Error("3.4028235E+39 not Float")
-         j.fromJson<Float>("-3.4028235E39")            shouldBeTry Error("-3.4028235E+39 not Float")
-         j.fromJson<Double>("1.7976931348623157E309")  shouldBeTry Error("1.7976931348623157E+309 not Double")
-         j.fromJson<Double>("-1.7976931348623157E309") shouldBeTry Error("-1.7976931348623157E+309 not Double")
+               j.fromJson<Byte>("2147483648") shouldBeTry Error("2147483648 not Byte")
+                      j.fromJson<Byte>("128") shouldBeTry Error("128 not Byte")
+                     j.fromJson<Byte>("-129") shouldBeTry Error("-129 not Byte")
+              j.fromJson<UByte>("2147483648") shouldBeTry Error("2147483648 not UByte")
+                     j.fromJson<UByte>("256") shouldBeTry Error("256 not UByte")
+                    j.fromJson<UByte>("-256") shouldBeTry Error("-256 not UByte")
+              j.fromJson<Short>("2147483648") shouldBeTry Error("2147483648 not Short")
+                   j.fromJson<Short>("32768") shouldBeTry Error("32768 not Short")
+                  j.fromJson<Short>("-32769") shouldBeTry Error("-32769 not Short")
+             j.fromJson<UShort>("2147483648") shouldBeTry Error("2147483648 not UShort")
+                  j.fromJson<UShort>("65537") shouldBeTry Error("65537 not UShort")
+                 j.fromJson<UShort>("-65538") shouldBeTry Error("-65538 not UShort")
+       j.fromJson<Int>("9223372036854775808") shouldBeTry Error("9223372036854775808 not Int")
+                j.fromJson<Int>("2147483648") shouldBeTry Error("2147483648 not Int")
+               j.fromJson<Int>("-2147483649") shouldBeTry Error("-2147483649 not Int")
+      j.fromJson<UInt>("9223372036854775808") shouldBeTry Error("9223372036854775808 not UInt")
+               j.fromJson<UInt>("4294967296") shouldBeTry Error("4294967296 not UInt")
+              j.fromJson<UInt>("-4294967297") shouldBeTry Error("-4294967297 not UInt")
+      j.fromJson<Long>("9223372036854775808") shouldBeTry Error("9223372036854775808 not Long")
+     j.fromJson<Long>("-9223372036854775809") shouldBeTry Error("-9223372036854775809 not Long")
+    j.fromJson<ULong>("92233720368547758080") shouldBeTry Error("92233720368547758080 not ULong")
+   j.fromJson<ULong>("-92233720368547758080") shouldBeTry Error("-92233720368547758080 not ULong")
+            j.fromJson<Float>("3.4028235E39") shouldBeTry Error("3.4028235E+39 not Float")
+           j.fromJson<Float>("-3.4028235E39") shouldBeTry Error("-3.4028235E+39 not Float")
+ j.fromJson<Double>("1.7976931348623157E309") shouldBeTry Error("1.7976931348623157E+309 not Double")
+j.fromJson<Double>("-1.7976931348623157E309") shouldBeTry Error("-1.7976931348623157E+309 not Double")
 
-         j.fromJson<Int>("34E4") shouldBe Ok(340000)
-         j.fromJson<Int>("22e+2") shouldBe Ok(2200)
-         j.fromJson<Long>("34E4") shouldBe Ok(340000L)
-         j.fromJson<Long>("22e+2") shouldBe Ok(2200L)
+                      j.fromJson<Int>("34E4") shouldBeTry Ok(340000)
+                     j.fromJson<Int>("22e+2") shouldBeTry Ok(2200)
+                     j.fromJson<Long>("34E4") shouldBeTry Ok(340000L)
+                    j.fromJson<Long>("22e+2") shouldBeTry Ok(2200L)
 
-         j.fromJson<Float>(""""NaN"""") shouldBe Ok(Float.NaN)
-         j.fromJson<Float>(""""Infinity"""") shouldBe Ok(Float.POSITIVE_INFINITY)
-         j.fromJson<Float>(""""-Infinity"""") shouldBe Ok(Float.NEGATIVE_INFINITY)
-         j.fromJson<Double>("55") shouldBe Ok(55.0)
-         j.fromJson<Double>(""""NaN"""") shouldBe Ok(Double.NaN)
-         j.fromJson<Double>(""""Infinity"""") shouldBe Ok(Double.POSITIVE_INFINITY)
-         j.fromJson<Double>(""""-Infinity"""") shouldBe Ok(Double.NEGATIVE_INFINITY)
+               j.fromJson<Float>(""""NaN"""") shouldBeTry Ok(Float.NaN)
+          j.fromJson<Float>(""""Infinity"""") shouldBeTry Ok(Float.POSITIVE_INFINITY)
+         j.fromJson<Float>(""""-Infinity"""") shouldBeTry Ok(Float.NEGATIVE_INFINITY)
+                     j.fromJson<Double>("55") shouldBeTry Ok(55.0)
+              j.fromJson<Double>(""""NaN"""") shouldBeTry Ok(Double.NaN)
+         j.fromJson<Double>(""""Infinity"""") shouldBeTry Ok(Double.POSITIVE_INFINITY)
+        j.fromJson<Double>(""""-Infinity"""") shouldBeTry Ok(Double.NEGATIVE_INFINITY)
 
-         j.fromJson<String>("""""""") shouldBe Ok("")
-         j.fromJson<String>("""" """") shouldBe Ok(" ")
-         j.fromJson<String>(""""null"""") shouldBe Ok("null")
-         j.fromJson<Any?>("null") shouldBe Ok(null)
-         j.fromJson<String?>(""""null"""") shouldBe Ok("null")
-         j.fromJson<String?>("null") shouldBe Ok(null)
+                 j.fromJson<String>("""""""") shouldBeTry Ok("")
+                j.fromJson<String>("""" """") shouldBeTry Ok(" ")
+             j.fromJson<String>(""""null"""") shouldBeTry Ok("null")
+                     j.fromJson<Any?>("null") shouldBeTry Ok(null)
+            j.fromJson<String?>(""""null"""") shouldBeTry Ok("null")
+                  j.fromJson<String?>("null") shouldBeTry Ok(null)
          // @formatter:on
       }
    }
@@ -576,29 +575,75 @@ class JsonTest: FreeSpec({
       }
    }
    "toS" - {
-      val json = JsArray(JsNull, JsString(""), JsNumber(1), JsArray(), JsObject(), JsArray(JsNumber(1), JsNumber(2)), JsObject("a" to JsTrue, "b" to JsFalse))
+      val json1 = JsTrue
+      val json2 = JsArray()
+      val json3 = JsObject()
+      val json4 = JsArray(JsTrue)
+      val json5 = JsObject("a" to JsTrue)
+      val json6 = JsArray(JsTrue, JsFalse)
+      val json7 = JsObject("a" to JsTrue, "b" to JsFalse)
+      val json8 = JsArray(JsNull, JsString(""), JsNumber(1), JsArray(), JsObject(), JsArray(JsNumber(1), JsNumber(2)), JsObject("a" to JsTrue, "b" to JsFalse))
 
+      "tokens" {
+         json1.tokens().toList() shouldBe listOf(JsToken.Tru)
+         json2.tokens().toList() shouldBe listOf(JsToken.Lbk, JsToken.Rbk)
+         json3.tokens().toList() shouldBe listOf(JsToken.Lbc, JsToken.Rbc)
+         json4.tokens().toList() shouldBe listOf(JsToken.Lbk, JsToken.Tru, JsToken.Rbk)
+         json5.tokens().toList() shouldBe listOf(JsToken.Lbc, JsToken.Str("a"), JsToken.Col, JsToken.Tru, JsToken.Rbc)
+         json6.tokens().toList() shouldBe listOf(JsToken.Lbk, JsToken.Tru, JsToken.Com, JsToken.Fal, JsToken.Rbk)
+         json7.tokens().toList() shouldBe listOf(JsToken.Lbc, JsToken.Str("a"), JsToken.Col, JsToken.Tru, JsToken.Com, JsToken.Str("b"), JsToken.Col, JsToken.Fal, JsToken.Rbc)
+         json8.tokens().toList() shouldBe listOf(
+            JsToken.Lbk,
+               JsToken.Nul,
+               JsToken.Com,
+               JsToken.Str(""),
+               JsToken.Com,
+               JsToken.Num(1),
+               JsToken.Com,
+               JsToken.Lbk,
+               JsToken.Rbk,
+               JsToken.Com,
+               JsToken.Lbc,
+               JsToken.Rbc,
+               JsToken.Com,
+               JsToken.Lbk,
+                  JsToken.Num(1),
+                  JsToken.Com,
+                  JsToken.Num(2),
+               JsToken.Rbk,
+               JsToken.Com,
+               JsToken.Lbc,
+                  JsToken.Str("a"),
+                  JsToken.Col,
+                  JsToken.Tru,
+                  JsToken.Com,
+                  JsToken.Str("b"),
+                  JsToken.Col,
+                  JsToken.Fal,
+               JsToken.Rbc,
+            JsToken.Rbk
+         )
+      }
       "toCompactS" {
-         json.toCompactS() shouldBe """[null,"",1,[],{},[1,2],{"a":true,"b":false}]"""
+         json1.toCompactS() shouldBe """true"""
+         json2.toCompactS() shouldBe """[]"""
+         json3.toCompactS() shouldBe """{}"""
+         json4.toCompactS() shouldBe """[true]"""
+         json5.toCompactS() shouldBe """{"a":true}"""
+         json6.toCompactS() shouldBe """[true,false]"""
+         json7.toCompactS() shouldBe """{"a":true,"b":false}"""
+         json8.toCompactS() shouldBe """[null,"",1,[],{},[1,2],{"a":true,"b":false}]"""
       }
       "toPrettyS" {
-         json.toPrettyS() shouldBe """
-            [
-              null,
-              "",
-              1,
-              [],
-              {},
-              [
-                1,
-                2
-              ],
-              {
-                "a": true,
-                "b": false
-              }
-            ]
-         """.trimIndent()
+         val n = '\n'
+         json1.toPrettyS() shouldBe """true"""
+         json2.toPrettyS() shouldBe """[]"""
+         json3.toPrettyS() shouldBe """{}"""
+         json4.toPrettyS() shouldBe """[$n  true$n]"""
+         json5.toPrettyS() shouldBe """{$n  "a": true$n}"""
+         json6.toPrettyS() shouldBe """[$n  true,$n  false$n]"""
+         json7.toPrettyS() shouldBe """{$n  "a": true,$n  "b": false$n}"""
+         json8.toPrettyS() shouldBe """[$n  null,$n  "",$n  1,$n  [],$n  {},$n  [$n    1,$n    2$n  ],$n  {$n    "a": true,$n    "b": false$n  }$n]"""
       }
    }
 })

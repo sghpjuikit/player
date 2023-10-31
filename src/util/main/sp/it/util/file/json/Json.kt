@@ -576,60 +576,59 @@ operator fun JsValue?.div(index: Int): JsValue? = when (this) {
    else -> fail { "Expected ${JsObject::class}, but got $this" }
 }
 
-fun JsValue.toCompactS(): String {
-   fun String.js() = "\"${this.escapeJson()}\""
-   return when (this) {
-      is JsNull -> "null"
-      is JsTrue -> "true"
-      is JsFalse -> "false"
-      is JsString -> value.js()
-      is JsNumber -> when (value) {
-         Double.POSITIVE_INFINITY -> "Infinity".js()
-         Double.NEGATIVE_INFINITY -> "-Infinity".js()
-         Double.NaN -> "NaN".js()
-         Float.POSITIVE_INFINITY -> "Infinity".js()
-         Float.NEGATIVE_INFINITY -> "-Infinity".js()
-         Float.NaN -> "NaN".js()
-         else -> value.toString()
+fun JsValue.toCompactS(): String =
+   tokens().joinToString(separator = "") { token ->
+      when (token) {
+         is JsTokenLiteral -> token.text
+         is JsToken.Str -> token.value.js()
+         is JsToken.Num -> when (token.value) {
+            Double.POSITIVE_INFINITY -> "Infinity".js()
+            Double.NEGATIVE_INFINITY -> "-Infinity".js()
+            Double.NaN -> "NaN".js()
+            Float.POSITIVE_INFINITY -> "Infinity".js()
+            Float.NEGATIVE_INFINITY -> "-Infinity".js()
+            Float.NaN -> "NaN".js()
+            else -> token.value.toString()
+         }
       }
-      is JsArray ->
-         if (value.isEmpty()) "[]"
-         else "[" + value.joinToString(",") { it.toCompactS() } + "]"
-      is JsObject ->
-         if (value.isEmpty()) "{}"
-         else "{" + value.entries.sortedBy { it.key }.joinToString(",") { it.key.js() + ":" + it.value.toCompactS() } + "}"
    }
-}
 
-fun JsValue.toPrettyS(indent: String = "  ", newline: String = "\n"): String = toPrettyS(indent, newline, "", StringBuilder())
-
-private fun JsValue.toPrettyS(indent: String, newline: String, indentRaw: String, builder: StringBuilder): String {
-   fun String.js() = "\"${this.escapeJson()}\""
-   fun String.a() = builder.append(this)
-   val (nl, indent1) = newline to indentRaw + indent
-   when (this) {
-      is JsNull -> "null".a()
-      is JsTrue -> "true".a()
-      is JsFalse -> "false".a()
-      is JsString -> value.js().a()
-      is JsNumber -> when (value) {
-         Double.POSITIVE_INFINITY -> "Infinity".js().a()
-         Double.NEGATIVE_INFINITY -> "-Infinity".js().a()
-         Double.NaN -> "NaN".js().a()
-         Float.POSITIVE_INFINITY -> "Infinity".js().a()
-         Float.NEGATIVE_INFINITY -> "-Infinity".js().a()
-         Float.NaN -> "NaN".js().a()
-         else -> value.toString().a()
+fun JsValue.toPrettyS(indent: String = "  ", newline: String = "\n"): String =
+   buildString {
+      var i = 0
+      var wasCol = false
+      var wasSta = false
+      fun String.a() = append(this)
+      fun lineAndIndent() { newline.a(); repeat(i) { indent.a() } }
+      tokens().forEach { token ->
+         val isCom = token is JsToken.Com || token is JsToken.Col
+         val isCol = token is JsToken.Col
+         val isSta = token == JsToken.Lbc || token == JsToken.Lbk
+         val isEnd = token == JsToken.Rbc || token == JsToken.Rbk
+         val isEmt = wasSta && isEnd
+         if (isEnd) i--
+         if (!isCom && !wasCol && !isEmt && isNotEmpty()) lineAndIndent()
+         if (isSta) i++
+         when (token) {
+            is JsToken.Col -> { token.text.a(); " ".a() }
+            is JsTokenLiteral -> token.text.a()
+            is JsToken.Str -> token.value.js().a()
+            is JsToken.Num -> when (token.value) {
+               Double.POSITIVE_INFINITY -> "Infinity".js().a()
+               Double.NEGATIVE_INFINITY -> "-Infinity".js().a()
+               Double.NaN -> "NaN".js().a()
+               Float.POSITIVE_INFINITY -> "Infinity".js().a()
+               Float.NEGATIVE_INFINITY -> "-Infinity".js().a()
+               Float.NaN -> "NaN".js().a()
+               else -> token.value.toString().a()
+            }
+         }
+         wasCol = isCol
+         wasSta = isSta
       }
-      is JsArray ->
-         if (value.isEmpty()) "[]".a()
-         else value.joinTo(builder, ",$nl", "[$nl", "$nl$indentRaw]") { indent1.a(); it.toPrettyS(indent, nl, indent1, builder); "" }
-      is JsObject ->
-         if (value.isEmpty()) "{}".a()
-         else value.entries.sortedBy { it.key }.joinTo(builder, ",$nl", "{$nl", "$nl$indentRaw}") { indent1.a(); it.key.js().a(); ": ".a(); it.value.toPrettyS(indent, nl, indent1, builder); "" }
    }
-   return builder.toString()
-}
+
+private fun String.js() = "\"${this.escapeJson()}\""
 
 @Suppress("UNCHECKED_CAST", "DEPRECATION")
 private fun getEnumValue(enumClass: Class<*>, value: String): Enum<*> {

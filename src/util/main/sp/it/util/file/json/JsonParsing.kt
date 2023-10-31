@@ -2,19 +2,23 @@ package sp.it.util.file.json
 
 import ch.obermuhlner.math.big.BigDecimalMath
 import java.io.InputStream
+import java.io.Reader
 import java.math.BigInteger
+import java.util.LinkedList
 import kotlin.text.Charsets.UTF_8
+import sp.it.util.file.json.JsToken.*
 import sp.it.util.math.rangeBigInt
+import sp.it.util.dev.fail
 
 fun parseJson(input: String): JsValue =
-   parseJson(input.byteInputStream(UTF_8))
+   Parser(Lexer(input.reader())).parseValue()
 
 fun parseJson(input: InputStream): JsValue =
-   Parser(Lexer(input)).parseValue()
+   Parser(Lexer(input.reader(UTF_8))).parseValue()
 
-private class Lexer(inputStream: InputStream) {
+private class Lexer(reader: Reader) {
    private var pos = -1
-   private var reader = inputStream.bufferedReader(UTF_8)
+   private var reader = reader.buffered()
    private var ch: Int = nextCh()
 
    fun pos() = pos
@@ -28,72 +32,72 @@ private class Lexer(inputStream: InputStream) {
       return ch
    }
 
-   fun nextToken(): Token {
-      skipWhitespace()
+   fun nextToken(): JsToken {
+      readWhitespace()
 
       return when (ch) {
          Chars.EOF -> {
-            Token.Eof
+            Eof
          }
          Chars.LEFT_BRACE -> {
             nextCh()
-            Token.Lbc
+            Lbc
          }
          Chars.RIGHT_BRACE -> {
             nextCh()
-            Token.Rbc
+            Rbc
          }
          Chars.LEFT_BRACKET -> {
             nextCh()
-            Token.Lbk
+            Lbk
          }
          Chars.RIGHT_BRACKET -> {
             nextCh()
-            Token.Rbk
+            Rbk
          }
          Chars.COLON -> {
             nextCh()
-            Token.Col
+            Col
          }
          Chars.COMMA -> {
             nextCh()
-            Token.Com
+            Com
          }
          Chars.N -> {
             if (nextCh()==Chars.U && nextCh()==Chars.L && nextCh()==Chars.L) {
                nextCh()
-               Token.Nul
+               Nul
             } else
-               throw ParseException("Invalid token at position $pos")
+               fail { "Invalid token at position $pos" }
          }
          Chars.T -> {
             if (nextCh()==Chars.R && nextCh()==Chars.U && nextCh()==Chars.E) {
                nextCh()
-               Token.Tru
+               Tru
             } else
-               throw ParseException("Invalid token at position $pos")
+               fail { "Invalid token at position $pos" }
          }
          Chars.F -> {
             if (nextCh()==Chars.A && nextCh()==Chars.L && nextCh()==Chars.S && nextCh()==Chars.E) {
                nextCh()
-               Token.Fal
+               Fal
             } else
-               throw ParseException("Invalid token at position $pos")
+               fail { "Invalid token at position $pos" }
          }
          Chars.QUOTE -> {
             nextCh()
-            Token.Str(readString())
+            Str(readString())
          }
          else -> {
             if (Character.isDigit(ch) || ch==Chars.DASH)
-               Token.Num(readNumber())
+               Num(readNumber())
             else
-               throw ParseException("Invalid token at position $pos")
+               fail { "Invalid token at position $pos" }
          }
       }
    }
 
-   private fun skipWhitespace() {
+   private fun readWhitespace() {
       while (Character.isWhitespace(ch))
          nextCh()
    }
@@ -137,13 +141,22 @@ private class Lexer(inputStream: InputStream) {
       return sb.toString()
    }
 
-   private fun readNumber(): String {
-      val sb = StringBuilder()
-      while (Character.isDigit(ch) || ch==Chars.DOT || ch==Chars.E || ch==Chars.E_UPPER || ch==Chars.PLUS || ch==Chars.DASH) {
-         sb.appendCodePoint(ch)
-         nextCh()
+   private fun readNumber(): Number {
+      val value = buildString {
+         while (Character.isDigit(ch) || ch==Chars.DOT || ch==Chars.E || ch==Chars.E_UPPER || ch==Chars.PLUS || ch==Chars.DASH) {
+            appendCodePoint(ch)
+            nextCh()
+         }
       }
-      return sb.toString()
+      return if ('.' in value || value.contains('e', ignoreCase = true))
+         BigDecimalMath.toBigDecimal(value)
+      else
+         when (val num = BigInteger(value)) {
+            // Narrow type down to common types
+            in Int.rangeBigInt -> num.toInt()
+            in Long.rangeBigInt -> num.toLong()
+            else -> num
+         }
    }
 
 }
@@ -162,80 +175,67 @@ private class Parser(lexer: Lexer) {
 
    fun parseValue(): JsValue {
       return when (val token = currentToken) {
-         Token.Nul -> {
-            consumeToken(Token.Nul)
+         Nul -> {
+            consumeToken(Nul)
             JsNull
          }
 
-         Token.Tru -> {
-            consumeToken(Token.Tru)
+         Tru -> {
+            consumeToken(Tru)
             JsTrue
          }
 
-         Token.Fal -> {
-            consumeToken(Token.Fal)
+         Fal -> {
+            consumeToken(Fal)
             JsFalse
          }
 
-         is Token.Str -> {
+         is Str -> {
             consumeToken(token)
             JsString(token.value)
          }
 
-         is Token.Num -> {
-            val value = parseNumber(token.value)
+         is Num -> {
             consumeToken(token)
-            JsNumber(value)
+            JsNumber(token.value)
          }
 
-         Token.Lbk -> {
-            consumeToken(Token.Lbk)
-            val elements = parseArrayElements()
-            consumeToken(Token.Rbk)
+         Lbk -> {
+            consumeToken(Lbk)
+            val elements = parseArray()
+            consumeToken(Rbk)
             JsArray(elements)
          }
 
-         Token.Lbc -> {
-            consumeToken(Token.Lbc)
-            val properties = parseObjectProperties()
-            consumeToken(Token.Rbc)
+         Lbc -> {
+            consumeToken(Lbc)
+            val properties = parseObject()
+            consumeToken(Rbc)
             JsObject(properties)
          }
 
-         else -> throw ParseException("Invalid token at position ${lexer.pos()}")
+         else -> fail { "Invalid token at position ${lexer.pos()}" }
       }
    }
 
    private fun parseString(): String {
       val token = currentToken
-      if (token is Token.Str) {
+      if (token is Str) {
          val value = token.value
          consumeToken(token)
          return value
       } else
-         throw ParseException("Unexpected token $currentToken, expected STRING at position ${lexer.pos()}")
+         fail { "Unexpected token $currentToken, expected STRING at position ${lexer.pos()}" }
    }
 
-   private fun parseNumber(value: String): Number {
-      return if ('.' in value || value.contains('e', ignoreCase = true))
-         BigDecimalMath.toBigDecimal(value)
-      else
-         when (val num = BigInteger(value)) {
-            // Narrow type down to common types
-            in Int.rangeBigInt -> num.toInt()
-            in Long.rangeBigInt -> num.toLong()
-            else -> num
-         }
-   }
-
-   private fun parseArrayElements(): List<JsValue> {
+   private fun parseArray(): List<JsValue> {
       val elements = ArrayList<JsValue>()
-      if (currentToken!=Token.Rbk) {
+      if (currentToken!=Rbk) {
          while (true) {
             elements += parseValue()
 
-            if (currentToken==Token.Com)
-               consumeToken(Token.Com)
+            if (currentToken==Com)
+               consumeToken(Com)
             else
                break
          }
@@ -243,17 +243,17 @@ private class Parser(lexer: Lexer) {
       return elements
    }
 
-   private fun parseObjectProperties(): Map<String, JsValue> {
+   private fun parseObject(): Map<String, JsValue> {
       val properties = LinkedHashMap<String, JsValue>()
-      if (currentToken!=Token.Rbc) {
+      if (currentToken!=Rbc) {
          while (true) {
             val key = parseString()
-            consumeToken(Token.Col)
+            consumeToken(Col)
             val value = parseValue()
             properties[key] = value
 
-            if (currentToken==Token.Com)
-               consumeToken(Token.Com)
+            if (currentToken==Com)
+               consumeToken(Com)
             else
                break
          }
@@ -261,11 +261,11 @@ private class Parser(lexer: Lexer) {
       return properties
    }
 
-   private fun consumeToken(expectedType: Token) {
-      if (currentToken===expectedType)
+   private fun consumeToken(expectedToken: JsToken) {
+      if (currentToken===expectedToken)
          currentToken = lexer.nextToken()
       else
-         throw ParseException("Unexpected token $currentToken, expected $expectedType at position ${lexer.pos()}")
+         fail { "Unexpected token $currentToken, expected $expectedToken at position ${lexer.pos()}" }
    }
 }
 
@@ -296,19 +296,67 @@ object Chars {
    const val S = 's'.code
 }
 
-sealed interface Token {
-   data object Eof: Token
-   data object Lbc: Token
-   data object Rbc: Token
-   data object Lbk: Token
-   data object Rbk: Token
-   data object Col: Token
-   data object Com: Token
-   data object Nul: Token
-   data object Tru: Token
-   data object Fal: Token
-   @JvmInline value class Str(val value: String): Token
-   @JvmInline value class Num(val value: String): Token
+sealed interface JsTokenLike
+sealed interface JsTokenLiteral { val text: String }
+sealed interface JsToken: JsTokenLike {
+   data object Eof: JsToken, JsTokenLiteral { override val text = "\u0000" }
+   data object Lbc: JsToken, JsTokenLiteral { override val text = "{" }
+   data object Rbc: JsToken, JsTokenLiteral { override val text = "}" }
+   data object Lbk: JsToken, JsTokenLiteral { override val text = "[" }
+   data object Rbk: JsToken, JsTokenLiteral { override val text = "]" }
+   data object Col: JsToken, JsTokenLiteral { override val text = ":" }
+   data object Com: JsToken, JsTokenLiteral { override val text = "," }
+   data object Nul: JsToken, JsTokenLiteral { override val text = "null" }
+   data object Tru: JsToken, JsTokenLiteral { override val text = "true" }
+   data object Fal: JsToken, JsTokenLiteral { override val text = "false" }
+   @JvmInline value class Str(val value: String): JsToken
+   @JvmInline value class Num(val value: Number): JsToken
 }
 
-class ParseException(message: String): RuntimeException(message)
+fun JsValue.tokens(): Sequence<JsToken> = sequence {
+   val stack = LinkedList<JsTokenLike>()
+   stack += this@tokens
+
+   while (stack.isNotEmpty()) {
+      val current = stack.pop()
+
+      when (current) {
+         is JsToken -> yield(current)
+         is JsNull -> yield(Nul)
+         is JsTrue -> yield(Tru)
+         is JsFalse -> yield(Fal)
+         is JsString -> yield(Str(current.value))
+         is JsNumber -> yield(Num(current.value))
+         is JsArray -> {
+            yield(Lbk)
+            val elementRaw = current.value
+            val elements = sequence {
+               var i = 1
+               elementRaw.forEach {
+                  yield(it)
+                  if (i<elementRaw.size) yield(Com)
+                  i++
+               }
+               yield(Rbk)
+            }
+            stack.addAll(0, elements.toList())
+         }
+         is JsObject -> {
+            yield(Lbc)
+            val elementRaw = current.value
+            val elements = sequence {
+               var i = 0
+               elementRaw.entries.sortedBy { it.key }.forEach { (key, value) ->
+                  yield(Str(key))
+                  yield(Col)
+                  yield(value)
+                  if (i<elementRaw.size-1) yield(Com)
+                  i++
+               }
+               yield(Rbc)
+            }
+            stack.addAll(0, elements.toList())
+         }
+      }
+   }
+}

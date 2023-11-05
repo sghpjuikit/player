@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "1.9.20-RC2"
+   kotlin("jvm") version "1.9.20"
    application
    id("com.github.ben-manes.versions") version "0.49.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.3"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
@@ -99,7 +99,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "22-ea+11"
+         val version = "22-ea+16"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -174,8 +174,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.7.2")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.7.2")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.8.0")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.8.0")
       }
 
       "Db" group {

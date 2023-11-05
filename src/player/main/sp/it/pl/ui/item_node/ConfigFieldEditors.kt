@@ -388,7 +388,7 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
    private val uiInfoConverter: ((T) -> String)? = c.findConstraint<UiInfoConverter<T>>()?.converter
       ?: if (c.type.raw.isSubclassOf<InfoUi>()) { it -> it.asIs<InfoUi>().infoUi } else null
 
-   final override val editor = SpitComboBox(uiConverter)
+   final override val editor = SpitComboBox<T>(uiConverter)
    private var suppressChanges = false
 
    init {

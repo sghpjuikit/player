@@ -52,7 +52,7 @@ interface ChildrenLay: Lay {
    override operator fun plusAssign(children: Sequence<Node>) = this.children.addAll(children.toList()).toUnit()
 
    /** Removes the specified child from [Pane.children] */
-   operator fun minusAssign(child: Node) = this.children.remove(child).toUnit()
+   operator fun minusAssign(child: Node?) = if (child==null) Unit else this.children.remove(child).toUnit()
 
    /** Removes the specified children from [Pane.children] */
    operator fun minusAssign(children: Collection<Node>) = this.children.removeAll(children).toUnit()

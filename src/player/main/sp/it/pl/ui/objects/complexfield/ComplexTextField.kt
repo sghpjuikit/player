@@ -59,7 +59,7 @@ open class ComplexTextField<T>(val parser: UiStringHelper<T>): FlowPane() {
    val valueText = valueTextRw.readOnly()
    private val valuePos = v(-1)
    private val valueParts = observableList<String>()
-   private val comboBox = SpitComboBox<ArgValue?>({ it?.valuePartUiName ?: textNoVal }, textNoVal)
+   private val comboBox = SpitComboBox<ArgValue?>({ it.valuePartUiName }, textNoVal)
 
    init {
       styleClass += STYLECLASS

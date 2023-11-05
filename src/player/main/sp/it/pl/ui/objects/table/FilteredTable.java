@@ -16,6 +16,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Side;
@@ -125,6 +126,14 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		filteredItems = allItems.filtered(null);
 		sortedItems = observableArrayList();
 		itemsPredicate = filteredItems.predicateProperty();
+		filteredItems.addListener(new ListChangeListener<T>() {
+			@Override
+			public void onChanged(Change<? extends T> c) {
+				c.next();
+				if (c.wasUpdated())
+					getSelectionModel().clearSelection();
+			}
+		});
 		onChange(filteredItems, runnable(() -> sort()));
 
 		var isInitialSort = new AtomicBoolean(true);
@@ -425,7 +434,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	@SuppressWarnings({"unchecked", "SimplifyOptionalCallChains"})
 	private PredicateData<ObjectField<T,Object>> getPrimaryFilterPredicate() {
 		return Optional.ofNullable(primaryFilterField)
-			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
+			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData.Companion::ofField)
 			.map(f -> (PredicateData<ObjectField<T,Object>>) f)
 			.orElse(null);
 	}
@@ -434,7 +443,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	private List<PredicateData<ObjectField<T,Object>>> getFilterPredicates() {
 		return computeFieldsAll().stream()
 			.filter(ObjectField::isTypeFilterable)
-			.map(PredicateData::ofField)
+			.map(PredicateData.Companion::ofField)
 			.sorted(by(e -> e.name()))
 			.map(f -> (PredicateData<ObjectField<T,Object>>) (Object) f)
 			.toList();

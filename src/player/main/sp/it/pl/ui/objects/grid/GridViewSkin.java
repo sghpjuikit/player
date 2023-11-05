@@ -310,7 +310,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	@SuppressWarnings({"unchecked", "SimplifyOptionalCallChains"})
 	private PredicateData<ObjectField<F,Object>> getPrimaryFilterPredicate() {
 		return Optional.ofNullable(grid.getFilterPrimaryField())
-			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
+			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData.Companion::ofField)
 			.map(f -> (PredicateData<ObjectField<F,Object>>) f)
 			.orElse(null);
 	}
@@ -319,7 +319,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(KClass<F> filterType) {
 		return stream(APP.getClassFields().get(filterType))
 			.filter(ObjectField::isTypeFilterable)
-			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
+			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData.Companion::ofField)
 			.map(f -> (PredicateData<ObjectField<F,Object>>) f)
 			.sorted(by(e -> e.name()))
 			.toList();

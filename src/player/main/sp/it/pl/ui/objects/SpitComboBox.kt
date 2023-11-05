@@ -28,13 +28,13 @@ import sp.it.util.reactive.onEventUp
  *  * Searching & scrolling when typing, [search]
  *  * [readOnly]
  */
-class SpitComboBox<T>(toStringConverter: (T) -> String, emptyText: String = textNoVal): ComboBox<T>() {
+class SpitComboBox<T>(toStringConverter: (T & Any) -> String, emptyText: String = textNoVal): ComboBox<T>() {
    /** Whether this combobox is not editable. Default false. Note: [ComboBox.editable] refers to [ComboBox.commitValue]. */
    val readOnly: Property<Boolean> = V(false)
    /** Text for when no value is selected. Default `"<none>"`  */
    val emptyText: String = emptyText
    /** String converter for cell value factory if non-null. Default is Object::toString  */
-   val toStringConverter: (T) -> String = toStringConverter
+   val toStringConverter: (T & Any) -> String = toStringConverter
    /** String converter for cell value factory. Delegates to [toStringConverter] and [emptyText]. Set to [converterProperty].  */
    val toStringConverterFx: StringConverter<T?> = object: StringConverter<T?>() {
       override fun toString(o: T?): String = if (o==null) emptyText else toStringConverter(o)

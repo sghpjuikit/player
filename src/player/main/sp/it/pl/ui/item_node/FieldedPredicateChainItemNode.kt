@@ -21,7 +21,15 @@ import sp.it.util.ui.isAnyParentOf
 /** [ObjectField] [Predicate] chain. */
 open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValueNode<Predicate<T>, FieldedPredicateItemNode<T, F>, Predicate<T>> {
 
-   constructor(chainedFactory: (FieldedPredicateChainItemNode<T, F>) -> FieldedPredicateItemNode<T, F>): super(0, MAX_VALUE, IS.asIs(), null) {
+   @JvmOverloads
+   constructor(
+      chainedFactory: (FieldedPredicateChainItemNode<T, F>) -> FieldedPredicateItemNode<T, F> = {
+         FieldedPredicateItemNode<T, F>().apply {
+            prefTypeSupplier = it.prefTypeSupplier
+            setData(it.data)
+         }
+      }
+   ): super(0, MAX_VALUE, IS.asIs(), null) {
       this.chainedFactory = Callback { chainedFactory(this) }
       isHomogeneousRem = BiPredicate { i, _ -> i!=0 }
       isHomogeneousAdd = BiPredicate { _, _ -> true }
@@ -31,17 +39,10 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValue
       generateValue()
    }
 
-   constructor(): this({
-      FieldedPredicateItemNode<T, F>().apply {
-         setPrefTypeSupplier(it.prefTypeSupplier)
-         setData(it.data)
-      }
-   })
-
    var prefTypeSupplier: Supplier<PredicateData<F>>? = null
       set(supplier) {
          field = supplier
-         chain.forEach { it.chained.setPrefTypeSupplier(supplier) }
+         chain.forEach { it.chained.prefTypeSupplier = supplier }
       }
 
    var data: List<PredicateData<F>> = ArrayList()
@@ -52,7 +53,8 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValue
          clear()  // bug fix, not sure if it does not cause problems
       }
 
-   fun isEmpty(): Boolean = chain.all { it.chained.isEmpty }
+   fun isEmpty(): Boolean =
+      chain.all { it.chained.isEmpty }
 
    /**
     * Shrinks the chain to 1 if [length] > 0, or does not change length otherwise.
@@ -67,7 +69,8 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValue
       generateValue()
    }
 
-   override fun reduce(values: Stream<Predicate<T>>): Predicate<T> = values.asSequence().fold(IS.asIs(), Predicate<T>::and)
+   override fun reduce(values: Stream<Predicate<T>>): Predicate<T> =
+      values.asSequence().fold(IS.asIs(), Predicate<T>::and)
 
    fun buildToggleOnKeyHandler(filterVisible: WritableValue<Boolean>, owner: Node) = EventHandler<KeyEvent> { e ->
       if (!e.isConsumed) {

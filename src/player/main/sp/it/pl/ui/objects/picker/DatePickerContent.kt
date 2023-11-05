@@ -41,7 +41,7 @@ class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
    private val yearMonth = value.map { YearMonth.of(it.year, it.month) }.writable()
 
    private val day1OfWeek = WeekFields.of(locale).firstDayOfWeek
-   private val daysOfWeek = DayOfWeek.values().associateWith { (it.value - day1OfWeek.value + 7) %7 }
+   private val daysOfWeek = DayOfWeek.entries.associateWith { (it.value - day1OfWeek.value + 7) %7 }
    private val DayOfWeek.valueLocal: Int get() = daysOfWeek[this]!!
    private val DayOfWeek.shortNameLocal: String get() = getDisplayName(SHORT, locale).let { it.substring(0, (it.length-1) max 1) }
 
@@ -69,7 +69,7 @@ class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
          prefColumns = 7
          onEventDown(SCROLL) { e -> if (editable.value) yearMonth.setValueOf { it.plusMonths(-e.deltaY.sign.toLong()) } }
 
-         val dof = DayOfWeek.values().sortedBy { it.valueLocal }
+         val dof = DayOfWeek.entries.sortedBy { it.valueLocal }
          lay += dof.map {
 
             label(it.shortNameLocal) {

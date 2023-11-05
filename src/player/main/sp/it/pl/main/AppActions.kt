@@ -1,6 +1,9 @@
 package sp.it.pl.main
 
 import com.drew.imaging.ImageMetadataReader
+import com.twelvemonkeys.image.ResampleOp
+import java.awt.Image
+import java.awt.image.renderable.RenderableImage
 import java.io.File
 import java.net.URISyntaxException
 import javafx.geometry.Pos.CENTER
@@ -54,6 +57,8 @@ import sp.it.util.async.runIoParallel
 import sp.it.util.async.runVT
 import sp.it.util.conf.CheckList
 import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.Constraint
+import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.ValueConfig
@@ -64,9 +69,11 @@ import sp.it.util.conf.cn
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.noUi
+import sp.it.util.conf.only
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.values
 import sp.it.util.dev.ThreadSafe
+import sp.it.util.dev.fail
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.creationTime
 import sp.it.util.file.div
@@ -100,6 +107,7 @@ import sp.it.util.type.type
 import sp.it.util.ui.bgr
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.hyperlink
+import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
@@ -494,8 +502,9 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       object: ConfigurableBase<Any?>() {
          val fileFrom by cn(ii.firstOrNull()).but { if (ii.size!=1) noUi() }.def(name = "Source image file", editable = EditMode.NONE)
          val typeFrom by cn(ii.firstOrNull()?.mimeType()).but { if (ii.size!=1) noUi() }.def(name = "Source image type", editable = EditMode.NONE)
-         var dirTo by c(ii.first().parentDirOrRoot).def(name = "Destination image folder")
+         var dirTo by c(ii.first().parentDirOrRoot).only(FileActor.DIRECTORY).def(name = "Destination image folder")
          var typeTo by c(MimeType.`image∕png`).values(listOf(MimeType.`image∕png`, MimeType.`image∕jpeg`)).def(name = "Destination image type")
+         var sizeTo by cn<ImageSize>(null).def(name = "Destination image size", info = "Destination image size or null if no scaling should be applied")
          var preserveTimeCreated by c(true).def(name = "Preserve '${FileField.TIME_CREATED}'")
          var preserveTimeModified by c(true).def(name = "Preserve '${FileField.TIME_MODIFIED}'")
          var parallel by c(true).def(name = "Run in parallel", info = "Recommended for SSD, but may slow down HDD.")
@@ -503,7 +512,10 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          val suffix = it.typeTo.extension!!
          runIoParallel(if (it.parallel) Runtime.getRuntime().availableProcessors() else 1, items = ii) { i ->
             val fileTo = it.dirTo / "${i.nameWithoutExtension}.$suffix"
-            ImageIO.write(ImageIO.read(i), suffix, fileTo)
+            val imgFrom = ImageIO.read(i)
+            val imgFromScaled = it.sizeTo?.net { ResampleOp(it.width.toInt(), it.height.toInt()).filter(imgFrom, null).apply { imgFrom.flush() } } ?: imgFrom
+            val r = ImageIO.write(imgFromScaled, suffix, fileTo)
+            if (r==false) fail { "No appropriate writer found for $suffix" }
             if (it.preserveTimeCreated) i.creationTime().orNull().ifNotNull { t -> fileTo.setCreated(t) }
             if (it.preserveTimeModified) fileTo.setLastModified(i.lastModified())
          }

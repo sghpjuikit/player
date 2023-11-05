@@ -111,7 +111,6 @@ object CoreFunctors: Core {
 
    @Suppress("LocalVariableName", "UNUSED_ANONYMOUS_PARAMETER")
    private fun FunctorPool.initPool() = apply {
-      println("FUNCTORS")
       // Negated predicates are disabled, user interface should provide negation ability
       // or simply generate all the negations when needed (and reuse functors while at it).
 

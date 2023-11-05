@@ -146,6 +146,7 @@ import javafx.scene.image.Image
 import sp.it.pl.audio.PlayerManager
 import sp.it.pl.main.Events
 import sp.it.pl.plugin.PluginInfo
+import sp.it.util.ui.image.ImageSize
 
 private typealias FromS<T> = (String) -> Try<T, String>
 
@@ -370,6 +371,7 @@ object CoreConverter: Core {
       addP<FileSize>(FileSize)
       addP<StrExF>(StrExF)
       addP<NofX>(NofX)
+      addP<ImageSize>(ImageSize)
       addT<PluginInfo>({ it.name }, tryF(AssertionError::class) { throw AssertionError("") })
       addT<PluginBox<*>>({ it.info.name }, tryF(AssertionError::class) { throw AssertionError("") })
       addP<MimeGroup>(MimeGroup)

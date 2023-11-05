@@ -428,7 +428,7 @@ object CoreConverter: Core {
                val typeIn = ofS<KClass<*>>(data[1].let { if (!iN) it else it.dropLast(1) }).getOr(null)?.createType(listOf(), iN)
                val typeOut = ofS<KClass<*>>(data[2].let { if (!oN) it else it.dropLast(1) }).getOr(null)?.createType(listOf(), oN)
                if (name==null || typeIn==null || typeOut==null) null
-               else Functors.pool.getPF(name, VType<Any?>(typeIn), VType<Any?>(typeOut)).asIs()
+               else CoreFunctors.pool.getPF(name, VType<Any?>(typeIn), VType<Any?>(typeOut)).asIs()
             }
          }
       )

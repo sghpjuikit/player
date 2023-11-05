@@ -5,6 +5,7 @@ import javafx.scene.control.ComboBox
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.SOMETIMES
 import sp.it.pl.core.CoreFunctors
+import sp.it.pl.main.APP
 import sp.it.pl.main.F
 import sp.it.pl.main.appTooltip
 import sp.it.pl.ui.objects.SpitComboBox
@@ -82,7 +83,7 @@ class FItemNode<I, O>(typeIn: VType<I>, typeOutTargeted: VType<O>, functionPool:
             val type = fs.lastOrNull()?.fCB?.value?.out ?: typeIn
             val typeIsSyntheticCollection = type.raw.net { it==CollectionAll::class || it==CollectionAny::class || it==CollectionNon::class }
             val functions = when {
-               typeIsSyntheticCollection -> CoreFunctors.pool.getCollectionMappers(type)
+               typeIsSyntheticCollection -> APP.functors.pool.getCollectionMappers(type)
                else -> functionPool(type)
             }
 

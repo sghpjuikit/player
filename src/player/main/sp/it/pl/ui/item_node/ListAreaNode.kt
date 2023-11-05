@@ -123,7 +123,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
    private val transformsValues = mutableListOf<List<Any?>>()
 
    /** The transformation chain. */
-   @JvmField val transforms = ListAreaNodeTransformations(transformsValues, Functors.pool)
+   @JvmField val transforms = ListAreaNodeTransformations(transformsValues, APP.functors.pool)
 
    /** Writable [output]. */
    private val outputImpl = observableList<Any?>()

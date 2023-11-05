@@ -10,6 +10,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
+import sp.it.pl.core.CoreFunctors;
 import sp.it.pl.main.AppTexts;
 import sp.it.pl.ui.objects.SpitComboBox;
 import sp.it.pl.ui.objects.icon.CheckIcon;
@@ -45,8 +46,8 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		this(inRaw -> {
 			var typeB = new VType<>(Boolean.class, false);
 			var in = notnull(inRaw);
-			var fsI = Functors.pool.getI(in);
-			var fsIO = Functors.pool.getIO(in, new VType<>(Boolean.class, false));
+			var fsI = CoreFunctors.INSTANCE.getPool().getI(in);
+			var fsIO = CoreFunctors.INSTANCE.getPool().getIO(in, new VType<>(Boolean.class, false));
 			fsI.removeIf(it -> !(it.getOut().equals(typeB) || it.getParameters().isEmpty()));
 			if (fsI.contains(fsIO.getPreferred())) ((PrefList) fsI).setPreferred(fsIO.getPreferred());
 			return (PrefList) fsI;

@@ -11,7 +11,6 @@
 
     /* fx overridden values */
 
-    -fx-base: #ececec;
     -fx-control-inner-background: yellow;
     -fx-control-inner-background-alt: yellow;
     -fx-dark-text-color: yellow;
@@ -19,11 +18,7 @@
     -fx-light-text-color: yellow;
     -fx-accent: yellow;
     -fx-default-button: yellow;
-    -fx-focus-color: yellow;
-    -fx-faint-focus-color: yellow;
     -fx-color: yellow;
-    -fx-hover-base: yellow;
-    -fx-pressed-base: yellow;
     -fx-text-background-color: yellow;
     -fx-box-border: yellow;
     -fx-text-box-border: yellow;
@@ -35,7 +30,6 @@
     -fx-body-color: yellow;
     -fx-body-color-bottomup: yellow;
     -fx-body-color-to-right: yellow;
-    -fx-text-base-color: yellow;
     -fx-text-inner-color: yellow;
     -fx-mark-color: yellow;
     -fx-mark-highlight-color: yellow;
@@ -48,21 +42,10 @@
     -fx-page-bullet-border: yellow;
     -fx-page-indicator-hover-border: yellow;
     -fx-focused-text-base-color: yellow;
-    -fx-focused-mark-color: yellow;
     -fx-hover-base: yellow;
     -fx-pressed-base: yellow;
-    -fx-outer-border: yellow;
-    -fx-inner-border: yellow;
-    -fx-body-color: yellow;
-    -fx-control-inner-background: yellow;
-    -fx-mark-highlight-color: yellow;
     -fx-base: yellow;
-    -fx-accent: yellow;
-    -fx-selection-bar: yellow;
     -fx-background: yellow;
-    -fx-cell-focus-inner-border: yellow;
-    -fx-shadow-highlight-color: yellow;
-    -fx-text-background-color: yellow;
     -fx-text-base-color: -skin-def-font-color;
     -fx-disabled-opacity: 0.4;
     -fx-focus-color: #ffcc66;
@@ -123,7 +106,7 @@ Arc,
 Circle,
 CubicCurve,
 Ellipse,
-// LabeledText,  // causes problems
+/* LabeledText,   causes problems */
 Line,
 Path,
 Polygon,

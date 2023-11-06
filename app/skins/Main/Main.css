@@ -1413,6 +1413,10 @@ TextFlow > * {
 
 /******************************** TableView  **********************************/
 
+.table-view {
+    -fx-skin: "sp.it.pl.ui.objects.SpitTableViewSkin";
+}
+
 .table-view,
 .tree-table-view {
     /* Constants used throughout the table-view. */

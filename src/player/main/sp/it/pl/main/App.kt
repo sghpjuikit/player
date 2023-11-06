@@ -389,7 +389,7 @@ class App: Application(), GlobalConfigDelegator {
          db.stop()
          ActionManager.stopActionListening()
          appCommunicator.stop()
-         http.stop()
+         http.dispose()
 
          // cores
          mouse.dispose()

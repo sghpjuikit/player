@@ -1,6 +1,13 @@
 package sp.it.pl.core
 
+import com.sun.net.httpserver.HttpExchange
 import de.jensd.fx.glyphs.GlyphIcons
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.content.OutgoingContent
 import java.io.File
 import java.io.FileNotFoundException
 import java.net.URI
@@ -50,6 +57,8 @@ import sp.it.util.access.fieldvalue.IconField
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.layout.ContainerSeqDb
 import sp.it.pl.layout.WidgetNodeInstance
+import sp.it.pl.main.AppHttp
+import sp.it.pl.main.toS
 import sp.it.pl.plugin.PluginBox
 import sp.it.pl.plugin.PluginInfo
 import sp.it.util.conf.Config
@@ -68,6 +77,7 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
 import sp.it.util.math.StrExF
 import sp.it.util.file.json.JsConverterAnyByConfigurableFx
+import sp.it.util.file.json.toCompactS
 import sp.it.util.text.StringSplitParser
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
@@ -192,4 +202,31 @@ class CoreSerializerJson: Core {
       }
 
    companion object: KLogging()
+}
+
+/** Converts json to value of the type specified by the reified type parameter */
+@Throws
+inline fun <reified T> JsValue.to() = Config.json.fromJsonValue<T>(this).orThrow
+
+/** Converts response body to json */
+@Throws
+public suspend fun HttpResponse.bodyAsJs(): JsValue =
+   Config.json.ast(bodyAsText(Charsets.UTF_8)).orThrow
+
+/** Converts response body to json */
+@Throws
+public fun HttpExchange.requestBodyAsJs(): JsValue =
+   Config.json.ast(requestBody).orThrow
+
+/** Converts object to json (includes type witness) and sets as body */
+public inline infix fun <reified T> HttpRequestBuilder.bodyJs(body: T) =
+   apply { setBody(JsContent(body)) }
+
+class JsContent(o: Any?): OutgoingContent.ByteArrayContent() {
+   private val bytes = Config.json.toJsonValue(o).toCompactS().toByteArray()
+   override val status = null
+   override val contentType = ContentType.Application.Json
+   override val contentLength = bytes.size.toLong()
+   override fun bytes() = bytes
+   override fun toString() = "JsContent(byte[...])"
 }

@@ -16,6 +16,9 @@ import io.ktor.utils.io.core.toByteArray
 import java.net.InetSocketAddress
 import java.util.function.Consumer
 import mu.KLogging
+import sp.it.pl.core.bodyJs
+import sp.it.pl.core.requestBodyAsJs
+import sp.it.pl.core.to
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
@@ -31,7 +34,7 @@ class AppInstanceCom() {
 
    fun start() {
       APP.http.serverHandlers += AppHttp.Handler({ it.requestURI.path=="/instance-launched" }) {
-         newInstanceLaunched(j.fromJson<List<String>>(it.requestBody).orThrow)
+         newInstanceLaunched(it.requestBodyAsJs().to<List<String>>())
       }
    }
 
@@ -46,7 +49,7 @@ class AppInstanceCom() {
    fun fireNewInstanceEvent(args: List<String>) {
       AppHttp.logger.info { "New app instance event sent" }
       launch(VT) {
-         APP.http.client.post("${APP.http.url}/instance-launched") { setBody(AppHttp.JsContent(args)) }
+         APP.http.client.post("${APP.http.url}/instance-launched") { bodyJs(args) }
       }
    }
 

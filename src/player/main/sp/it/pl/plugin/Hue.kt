@@ -3,16 +3,13 @@
 package sp.it.pl.plugin
 
 import de.jensd.fx.glyphs.GlyphIcons
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.java.Java
-import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.http.HttpStatusCode.Companion.SwitchingProtocols
 import javafx.geometry.Pos
 import javafx.geometry.Side
 import javafx.scene.Node
@@ -27,6 +24,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KLogging
 import sp.it.pl.core.InfoUi
+import sp.it.pl.core.to
+import sp.it.pl.core.bodyAsJs
+import sp.it.pl.core.bodyJs
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
@@ -51,7 +51,6 @@ import sp.it.util.dev.failIf
 import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
-import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.div
 import sp.it.util.file.json.toPrettyS
 import sp.it.util.functional.asIf
@@ -149,19 +148,17 @@ class Hue: PluginBase() {
       }
 
       private suspend fun String.validIpOrNull(): String? {
-         val isValid = runTry { client.get("http://${this@validIpOrNull}").status }.orNull()==HttpStatusCode.OK
+         val isValid = runTry { client.get("http://${this@validIpOrNull}").status }.orNull()==OK
          return this@validIpOrNull.takeIf { isValid }
       }
 
-      private suspend fun ip(): String? {
-         val response = client.get("https://discovery.meethue.com/").bodyAsText()
-         return (response.parseToJson().asJsArray()/0/"internalipaddress")?.asJsStringValue()
-      }
+      private suspend fun ip(): String? =
+         (client.get("https://discovery.meethue.com/").bodyAsJs().asJsArray()/0/"internalipaddress")?.asJsStringValue()
 
       private suspend fun isAuthorizedApiKey(ip: String, apiKey: String): Boolean {
          val response = client.get("http://$ip/api/$apiKey/lights")
-         failIf(response.status!=HttpStatusCode.OK) { "Failed to check if hue bridge user $apiKey exists" }
-         return runTry { (response.bodyAsText().parseToJson()/0/"error") }.isError
+         failIf(response.status!=OK) { "Failed to check if hue bridge user $apiKey exists" }
+         return runTry { (response.bodyAsJs()/0/"error") }.isError
       }
 
       private suspend fun createApiKey(ip: String): String {
@@ -190,35 +187,34 @@ class Hue: PluginBase() {
             setBody(JsObject("devicetype" to JsString(hueBridgeUserDevice)).toPrettyS())
          }
 
-             if(userCreated.status==HttpStatusCode.SwitchingProtocols) { popup.content.value = hBox { lay += text("Failed to create Phillips Hue bridge user: Link button not pressed") } }
-         failIf(userCreated.status==HttpStatusCode.SwitchingProtocols) { "Failed to create Phillips Hue bridge user: Link button not pressed" }
-             if(userCreated.status!=HttpStatusCode.OK) { popup.content.value = hBox { lay += text("Failed to create Phillips Hue bridge user") } }
-         failIf(userCreated.status!=HttpStatusCode.OK) { "Failed to create Phillips Hue bridge user" }
+             if(userCreated.status==SwitchingProtocols) { popup.content.value = hBox { lay += text("Failed to create Phillips Hue bridge user: Link button not pressed") } }
+         failIf(userCreated.status==SwitchingProtocols) { "Failed to create Phillips Hue bridge user: Link button not pressed" }
+             if(userCreated.status!=OK) { popup.content.value = hBox { lay += text("Failed to create Phillips Hue bridge user") } }
+         failIf(userCreated.status!=OK) { "Failed to create Phillips Hue bridge user" }
 
-         val apiKey = runTry { (userCreated.bodyAsText().parseToJson()/0/"success"/"username")?.asJsStringValue() }.orThrow
+         val apiKey = runTry { (userCreated.bodyAsJs()/0/"success"/"username")?.asJsStringValue() }.orThrow
          return apiKey ?: fail { "Failed to obtain user Phillips Hue bridge api key" }
       }
 
-      private suspend fun apiVersion(url: String): String {
-         val response = client.getText("$url/config")
-         return response.parseToJson().asJsObject().value["apiversion"]?.asJsString()?.value ?: fail { "Could not obtain api version" }
-      }
+      private suspend fun apiVersion(url: String): String =
+         client.get("$url/config").bodyAsJs().asJsObject().value["apiversion"]?.asJsString()?.value ?: fail { "Could not obtain api version" }
 
-      suspend fun bulbs(): List<HueBulb> = client.getText("$url/lights")
-         .parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueBulb>().copy(id = id) }
+      suspend fun bulbs(): List<HueBulb> =
+         client.get("$url/lights").bodyAsJs().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueBulb>().copy(id = id) }
 
-      suspend fun groups(): List<HueGroup> = client.getText("$url/groups")
-         .parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueGroup>().copy(id = id) }
+      suspend fun groups(): List<HueGroup> =
+         client.get("$url/groups").bodyAsJs().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueGroup>().copy(id = id) }
 
-      suspend fun bulbsAndGroups(): Pair<List<HueBulb>, List<HueGroup>> = (bulbs() to groups()).net { (bulbs, groups) ->
-         bulbs to groups + HueGroup("0", "All", listOf(), HueGroupState(bulbs.all { it.state.on }, bulbs.any { it.state.on }), null)
-      }
+      suspend fun bulbsAndGroups(): Pair<List<HueBulb>, List<HueGroup>> =
+         (bulbs() to groups()).net { (bulbs, groups) ->
+            bulbs to groups + HueGroup("0", "All", listOf(), HueGroupState(bulbs.all { it.state.on }, bulbs.any { it.state.on }), null)
+         }
 
-      suspend fun scenes(): List<HueScene> = client.getText("$url/scenes")
-         .parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueScene>().copy(id = id) }
+      suspend fun scenes(): List<HueScene> =
+         client.get("$url/scenes").bodyAsJs().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueScene>().copy(id = id) }
 
-      suspend fun sensors(): List<HueSensor> =client.getText("$url/sensors")
-         .parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueSensor>().copy(id = id) }
+      suspend fun sensors(): List<HueSensor> =
+         client.get("$url/sensors").bodyAsJs().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueSensor>().copy(id = id) }
 
       fun renameBulb(bulb: HueBulbId, name: String) = runSuspendingFx {
          client.put("$url/lights/$bulb") {
@@ -227,63 +223,61 @@ class Hue: PluginBase() {
       }
 
       fun changePowerOn(bulb: HueBulbId, powerOn: HueBulbConfPowerOn) = runSuspendingFx {
-         client.putText("$url/lights/$bulb/config") {
+         client.put("$url/lights/$bulb/config") {
             setBody("""{ "startup": {"mode": "$powerOn"} }""")
          }
       }
 
       fun toggleBulb(bulb: HueBulbId) = runSuspendingFx {
-         val response = client.getText("$url/lights/$bulb")
-         val on = response.parseToJson().to<HueBulb>().state.on
-         client.putText("$url/lights/$bulb/state") {
-            setBody(HueBulbStateEditOn(!on).toJson().toPrettyS())
+         val on = client.get("$url/lights/$bulb").bodyAsJs().to<HueBulb>().state.on
+         client.put("$url/lights/$bulb/state") {
+            bodyJs(HueBulbStateEditOn(!on).toJson())
          }
       }
 
       fun toggleBulbGroup(group: HueGroupId) = runSuspendingFx {
-         val response = client.getText("$url/groups/$group")
-         val allOn = response.parseToJson().to<HueGroup>().copy(id = group).state.all_on
-         client.putText("$url/groups/$group/action") {
-            setBody(HueBulbStateEditOn(!allOn).toJson().toPrettyS())
+         val allOn = client.get("$url/groups/$group").bodyAsJs().to<HueGroup>().copy(id = group).state.all_on
+         client.put("$url/groups/$group/action") {
+            bodyJs(HueBulbStateEditOn(!allOn).toJson())
          }
       }
 
       fun applyBulbLight(bulb: HueBulbId, state: HueBulbStateEditLight) = runSuspendingFx {
-         client.putText("$url/lights/$bulb/state") {
-            setBody(state.toJson().asJsObject().withoutNullValues().toPrettyS())
+         client.put("$url/lights/$bulb/state") {
+            bodyJs(state.toJson().asJsObject().withoutNullValues())
          }
       }
 
       fun applyBulbGroupLight(group: HueGroupId, state: HueBulbStateEditLight) = runSuspendingFx {
-         client.putText("$url/groups/$group/action") {
-            setBody(state.toJson().asJsObject().withoutNullValues().toPrettyS())
+         client.put("$url/groups/$group/action") {
+            bodyJs(state.toJson().asJsObject().withoutNullValues())
          }
       }
 
       fun applyScene(scene: HueScene) = runSuspendingFx {
-         client.putText("$url/groups/0/action") {
-            setBody(JsObject("scene" to JsString(scene.id)).toPrettyS())
+         client.put("$url/groups/0/action") {
+            bodyJs(JsObject("scene" to JsString(scene.id)))
          }
       }
 
       fun createGroup(group: HueGroupCreate) = runSuspendingFx {
-         client.postText("$url/groups") {
-            setBody(group.toJson().toPrettyS())
+         client.post("$url/groups") {
+            bodyJs(group.toJson())
          }
       }
 
       fun createScene(scene: HueSceneCreate) = async {
-         client.postText("$url/scenes") {
-            setBody(scene.toJson().asJsObject().withoutNullValues().toPrettyS())
+         client.post("$url/scenes") {
+            bodyJs(scene.toJson().asJsObject().withoutNullValues())
          }
       }
 
       fun deleteGroup(group: HueGroupId) = runSuspendingFx {
-         client.deleteText("$url/groups/$group")
+         client.delete("$url/groups/$group")
       }
 
       fun deleteScene(group: HueSceneId) = runSuspendingFx {
-         client.deleteText("$url/scenes/$group")
+         client.delete("$url/scenes/$group")
       }
 
    }
@@ -309,15 +303,6 @@ class Hue: PluginBase() {
             else -> it
          }
       }
-
-      private fun String.parseToJson() = APP.serializerJson.json.ast(this).orThrow
-
-      private inline fun <reified T> JsValue.to() = APP.serializerJson.json.fromJsonValue<T>(this).orThrow
-
-      private suspend fun HttpClient.getText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = get(url, block).bodyAsText()
-      private suspend fun HttpClient.putText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = put(url, block).bodyAsText()
-      private suspend fun HttpClient.postText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = post(url, block).bodyAsText()
-      private suspend fun HttpClient.deleteText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = delete(url, block).bodyAsText()
 
    }
 

@@ -10,6 +10,7 @@ import javafx.geometry.Side.BOTTOM
 import javafx.geometry.VPos.CENTER
 import javafx.scene.control.ContextMenu
 import javafx.scene.layout.HBox
+import sp.it.pl.core.bodyAsJs
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
@@ -151,8 +152,7 @@ class WeatherInfo: HBox(15.0) {
             dataOld!=null -> dataOld
             else -> {
                val link = "https://api.openweathermap.org/data/2.5/onecall?lat=${latitude.value}&lon=${longitude.value}&units=${units.value.name.lowercase()}&exclude=minutely,alerts&appid=${apiKey.value}"
-               val dataRaw = http.get(link).bodyAsText()
-               dataPersistable = dataRaw.asJsonTree()
+               dataPersistable = http.get(link).bodyAsJs()
                dataPersistable?.asJson<Data>()
             }
          }
@@ -427,9 +427,7 @@ class WeatherInfo: HBox(15.0) {
       override val tags = setOf(UTILITY)
       override val summaryActions = listOf<ShortcutPane.Entry>()
 
-      private fun String.asJsonTree(): JsValue? = APP.serializerJson.json.fromJson<JsValue>(this).orNull()
-
-      private inline fun <reified T> JsValue.asJson(): T? = APP.serializerJson.json.fromJsonValue<T>(this).orNull()
+      private inline fun <reified T> JsValue.asJson(): T? = APP.serializerJson.json.fromJsonValue<T>(this).orThrow
 
       object Types {
          @JvmInline value class Dt(val dt: Long) {

@@ -183,9 +183,9 @@ class FunctorPool {
       }
    }
 
-   fun <I> getPrefI(i: VType<I>): PF<I, *> = getI(i).preferredOrFirst
+   fun <I> getPrefI(i: VType<I>): PF<I, *>? = getI(i).preferredOrFirst
 
-   fun <O> getPrefO(o: VType<O>): PF<*, O> = getO(o).preferredOrFirst
+   fun <O> getPrefO(o: VType<O>): PF<*, O>? = getO(o).preferredOrFirst
 
    fun <I, O> getPrefIO(i: VType<I>, o: VType<O>): PF<I, O>? = getIO(i, o).preferredOrFirst
 

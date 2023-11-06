@@ -20,6 +20,7 @@ import sp.it.util.functional.TypeAwareF
 import sp.it.util.functional.Util
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
 import sp.it.util.type.VType
@@ -44,7 +45,7 @@ class FieldedPredicateItemNode<V, F: ObjectField<V, *>?>: ValueNode<Predicate<V>
          val fsI = pool.getI(typeIn)
          val fsIO = pool.getIO(typeIn, VType(Boolean::class.java, false))
          fsI.removeIf { !(it.out==typeB || it.parameters.isEmpty()) }
-         if (fsIO.preferred in fsI) fsI.setPreferred(fsIO.preferred)
+         if (fsI has fsIO.preferred) fsI.preferred = fsIO.preferred
          fsI.asIs()
       }
    ): super(IS.asIs()) {

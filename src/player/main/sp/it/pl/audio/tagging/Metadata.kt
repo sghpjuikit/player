@@ -46,6 +46,8 @@ import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.children
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.type.MimeGroup
+import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Companion.ok
 import sp.it.util.functional.andAlso

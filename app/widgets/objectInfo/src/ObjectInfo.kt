@@ -57,11 +57,15 @@ import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.toFileOrNull
 import sp.it.util.file.type.MimeGroup
 import sp.it.util.file.type.mimeType
+import sp.it.util.functional.Option
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.map
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toOption
 import sp.it.util.named
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventUp
@@ -119,7 +123,9 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
 
    @Blocking
    fun audioMetadata(d: File): List<Named> =
-      d.readAudioFile().map { it.audioHeader to it.tag }.map { (header, tag) ->
+      d.readAudioFile().map {
+         if (it==null) return@map listOf()
+         val (header, tag) = it.audioHeader to it.tag
          val h = header.toString().lineSequence().map { it.trimStart() }.joinToString("\n\t")
          val hName = header::class.toUi()
          val t = tag?.net { it.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" } }

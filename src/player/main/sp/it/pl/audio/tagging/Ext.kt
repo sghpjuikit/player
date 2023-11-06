@@ -16,6 +16,9 @@ import org.jaudiotagger.tag.TagException
 import org.jaudiotagger.tag.id3.AbstractID3Tag
 import org.jaudiotagger.tag.images.Artwork
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
+import sp.it.pl.main.isAudio
+import sp.it.util.file.type.MimeGroup
+import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Try
 import sp.it.util.functional.runTry
 import sp.it.util.math.clip
@@ -39,7 +42,7 @@ val Tag.ratingMin: Int get() = 0
 fun Tag.clipRating(v: Double): Double = v.clip(ratingMin.toDouble(), ratingMax.toDouble())
 
 /** @return audio file or error if fails */
-fun File.readAudioFile(): Try<AudioFile, Throwable> {
+fun File.readAudioFile(): Try<AudioFile?, Throwable> {
    val onError = { e: Exception ->
       logger.error(e) { "Reading metadata failed for file $this" }
       Try.error(e)
@@ -47,9 +50,11 @@ fun File.readAudioFile(): Try<AudioFile, Throwable> {
    return try {
       Try.ok(AudioFileIO.read(this))
    } catch (e: CannotReadVideoException) {
-      onError(e)
+      if (!isAudio()) Try.ok()
+      else onError(e)
    } catch (e: CannotReadException) {
-      onError(e)
+      if (!isAudio()) Try.ok()
+      else onError(e)
    } catch (e: IOException) {
       onError(e)
    } catch (e: TagException) {

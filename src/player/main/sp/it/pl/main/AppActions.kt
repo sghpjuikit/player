@@ -83,6 +83,7 @@ import sp.it.util.file.setCreated
 import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
+import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
@@ -91,9 +92,11 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
+import sp.it.util.functional.map
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toOption
 import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -400,8 +403,9 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    val printAllAudioFileMetadata = action<File>("Show audio metadata", "Show audio metadata", IconFA.INFO, BLOCK, { it.isAudio() }) {
       val title = "File:${it.path}"
-      val content = it.readAudioFile().map { it.audioHeader to it.tag }
-         .map { (header, tag) ->
+      val content = it.readAudioFile().map {
+            if (it==null) return@map ""
+            val (header, tag) = it.audioHeader to it.tag
             "\nHeader %s:\n%s\nTag%s:%s".format(
                "(" + header::class.toUi() + ")",
                header.toString().lineSequence().map { it.trimStart() }.joinToString("\n\t"),

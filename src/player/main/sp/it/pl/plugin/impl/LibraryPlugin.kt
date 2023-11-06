@@ -14,8 +14,8 @@ import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.util.async.executor.EventReducer
-import sp.it.util.async.future.runGet
-import sp.it.util.async.runIO
+import sp.it.util.async.future.runAndGet
+import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
@@ -139,17 +139,17 @@ class LibraryPlugin: PluginBase() {
          )
       }
 
-      runIO {
-         Song.addToLibTask(toAdd.map { SimpleSong(it) }).runGet()
+      runVT {
+         Song.addToLibTask(toAdd.map { SimpleSong(it) }).runAndGet()
          APP.db.removeSongs(toRem.map { SimpleSong(it) })
       }.withAppProgress("Updating song library from detected changes")
    }
 
    fun updateLibrary() {
       val dirs = sourceDirs.materialize()
-      runIO {
+      runVT {
          val songs = findAudio(dirs).map { SimpleSong(it) }.toList()
-         Song.addToLibTask(songs).runGet()
+         Song.addToLibTask(songs).runAndGet()
          Song.removeMissingFromLibTask().run()
       }.withAppProgress("Updating song library from locations")
    }

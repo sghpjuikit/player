@@ -18,6 +18,7 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.isM3uPlaylist
 import sp.it.pl.audio.playlist.readM3uPlaylist
+import sp.it.pl.audio.tagging.AddSongsToLibResult
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.addToLibTask
 import sp.it.pl.layout.WidgetUse.ANY
@@ -48,8 +49,9 @@ import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.async.FX
 import sp.it.util.async.future.Fut.Companion.fut
-import sp.it.util.async.future.runGet
+import sp.it.util.async.future.runAndGet
 import sp.it.util.async.runVT
 import sp.it.util.collections.map.KClassListMap
 import sp.it.util.conf.ConfigurableBase
@@ -65,6 +67,7 @@ import sp.it.util.file.setCreated
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
+import sp.it.util.functional.flatten
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
@@ -374,30 +377,28 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                }
 
                runVT {
-                  if (conf.makeWritable.value) {
-                     val failed = audioFiles.filter { !it.setWritable(true) }
-                     if (failed.isNotEmpty()) return@runVT Try.error(failed)
-                  }
-                  task.runGet().toTry()
-               }.ui { result ->
-                  when (result) {
-                     is Try.Error -> actionPane.show(result)
-                     is Try.Ok -> {
+                  val nonWritable = if (conf.makeWritable.value) audioFiles.filter { !it.setWritable(true) } else listOf()
+                  if (nonWritable.isNotEmpty()) Try.error(nonWritable)
+                  else Try.ok(task.runAndGet())
+               }.withAppProgress(task.title).withProgress(actionPane.actionProgress).onDone(FX) {
+                  when (val r = it.toTry().flatten()) {
+                     is Try.Ok<AddSongsToLibResult> -> {
                         if (conf.editInTagger.value) {
                            val tagger = runBlocking { APP.widgetManager.factories.getFactory(SONG_TAGGER.id).orNone().create() }
-                           val songs = if (conf.editOnlyAdded.value) result.value.converted else result.value.all
+                           val songs = if (conf.editOnlyAdded.value) r.value.converted else r.value.all
                            loadContent {
                               tagger.load().apply {
                                  tagger.controller.asIf<SongReader>()?.read(songs)
                               }
                            }
                         }
-                        if (conf.enqueue.value && result.value.all.isNotEmpty()) {
-                           APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.value.all) }
+                        if (conf.enqueue.value && r.value.all.isNotEmpty()) {
+                           APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(r.value.all) }
                         }
                      }
+                     else -> actionPane.show(r)
                   }
-               }.withProgress(actionPane.actionProgress)
+               }
             }.apply {
                disableProperty() syncFrom executed
             }

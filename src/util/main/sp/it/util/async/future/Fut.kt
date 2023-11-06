@@ -1,10 +1,10 @@
 package sp.it.util.async.future
 
+import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.function.Consumer
-import java.util.function.Function
 import javafx.util.Duration
 import mu.KLogging
 import org.jetbrains.annotations.Blocking
@@ -93,6 +93,8 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
    @Blocking
    fun getDone(): Result<T> = try {
       ResultOk(f.get())
+   } catch (e: CancellationException) {
+      ResultInterrupted(InterruptedException(e.message))
    } catch (e: InterruptedException) {
       ResultInterrupted(e)
    } catch (e: ExecutionException) {
@@ -175,6 +177,18 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
          is ResultOk<T> -> Try.ok(value)
          is ResultInterrupted -> Try.error(error)
          is ResultFail -> Try.error(error.cause ?: error)
+      }
+
+      fun orThrow(): T = when (this) {
+         is ResultOk<T> -> value
+         is ResultInterrupted -> throw error
+         is ResultFail -> throw error
+      }
+
+      fun orThrowRaw(): T = when (this) {
+         is ResultOk<T> -> value
+         is ResultInterrupted -> throw error
+         is ResultFail -> throw (error.cause ?: error)
       }
 
       fun or(block: (Exception) -> @UnsafeVariance T) = toTry().getOrSupply(block)

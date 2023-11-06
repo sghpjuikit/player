@@ -150,6 +150,9 @@ inline fun <R, E, R1: R, R2: R> Try<R1, E>.getOrSupply(or: (E) -> @UV R2): R = w
    is Try.Error<E> -> or(value)
 }
 
+/** Flattens nested Try. Same as `andAlso { it }` */
+fun <R, E, E1: E, E2: E> Try<Try<R, E2>, E1>.flatten(): Try<R, E> = andAlso { it }
+
 /**
  * Applies short-circuit boolean && operation.
  * Returns Ok if both Try are Ok, otherwise Error.

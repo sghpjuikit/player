@@ -393,3 +393,5 @@ fun <T> Fut<T>.withProgress(progressIndicator: ProgressIndicator) = apply {
       progressIndicator.progress = 1.0
    }
 }
+
+fun Task<*>.withAppProgress() = AppProgress.start(this)

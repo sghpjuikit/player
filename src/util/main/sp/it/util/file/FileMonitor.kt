@@ -18,10 +18,13 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Predicate
 import kotlin.concurrent.thread
 import mu.KLogging
+import sp.it.util.async.VT
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
+import sp.it.util.async.runOn
+import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
@@ -143,7 +146,7 @@ class FileMonitor {
          try {
             fm.watchService = FileSystems.getDefault().newWatchService()
 
-            runIO {
+            runOn(VT("FileMonitorStart-${monitoredDir.path}")) {
                fun reg(p: File) {
                   try {
                      when {
@@ -168,7 +171,7 @@ class FileMonitor {
 
                reg(fm.monitoredFileDir)
 
-               thread(name = "FileMonitor-${monitoredDir.path}", isDaemon = true) {
+               runOn(VT("FileMonitor-${monitoredDir.path}")) {
                   var valid: Boolean
                   var watchKey: WatchKey
                   do {
@@ -176,9 +179,9 @@ class FileMonitor {
                         watchKey = fm.watchService.take()
                      } catch (e: InterruptedException) {
                         logger.error(e) { "Interrupted monitoring of directory ${fm.monitoredFileDir}" }
-                        return@thread
+                        return@runOn
                      } catch (e: ClosedWatchServiceException) {
-                        return@thread
+                        return@runOn
                      }
 
                      @Suppress("UNCHECKED_CAST")
@@ -201,11 +204,9 @@ class FileMonitor {
                   } while (valid)
                }
             }
-
          } catch (e: IOException) {
             logger.error(e) { "Error when starting directory monitoring ${fm.monitoredFileDir}" }
          }
-
 
          return fm
       }

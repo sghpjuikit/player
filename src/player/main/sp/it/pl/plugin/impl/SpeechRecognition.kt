@@ -16,9 +16,11 @@ import sp.it.pl.ui.pane.action
 import sp.it.util.access.readOnly
 import sp.it.util.access.vn
 import sp.it.util.action.IsAction
+import sp.it.util.async.VT
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runNew
+import sp.it.util.async.runOn
 import sp.it.util.async.runVT
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.butElement
@@ -63,7 +65,7 @@ class SpeechRecognition: PluginBase() {
       fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"
       fun InputStream.consume(consumeInputLine: (Sequence<String>) -> Unit) = runVT { bufferedReader().useLines(consumeInputLine) }
       fun doOnError(e: Throwable?, text: String?) = logger.error(e) { "Starting whisper failed.\n${text.wrap()}" }.toUnit()
-      return runVT {
+      return runOn(VT("SpeechRecognition")) {
          val whisper = dir / "main.py"
          val commandRaw = listOf(
             "python", whisper.absolutePath,

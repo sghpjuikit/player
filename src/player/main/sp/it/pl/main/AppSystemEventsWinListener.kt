@@ -24,7 +24,9 @@ import mu.KLogging
 import sp.it.pl.main.AppSystemEvents.Event.FileVolumeAdded
 import sp.it.pl.main.AppSystemEvents.Event.FileVolumeRemoved
 import sp.it.pl.main.AppSystemEvents.SysListener
+import sp.it.util.async.NEW
 import sp.it.util.async.runNew
+import sp.it.util.async.runOn
 import sp.it.util.type.volatile
 import sp.it.util.units.uuid
 
@@ -38,7 +40,7 @@ class AppSystemEventsWinListener(emitter: (AppSystemEvents.Event) -> Unit): SysL
 
    init {
       // start blocking event loop on new thread
-      runNew {
+      runOn(NEW("AppSystemEventsWinListener")) {
          logger.info { "Initializing..." }
 
          // define new window class

@@ -127,6 +127,7 @@ class IOLaterExecutor(private val e: Executor = burstTPExecutor(32, 1.minutes, t
 /** Executes the specified block on thread in an IO thread pool. */
 class VTExecutor: Executor by Executors.newVirtualThreadPerTaskExecutor()!! {
    fun named(name: String): Executor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name(name).factory())
+   operator fun invoke(name: String): Executor = Executor { Thread.ofVirtual().name(name).start(it) }
 }
 
 /** Sleeps currently executing thread for specified duration. When interrupted, returns.  */
@@ -149,12 +150,6 @@ fun <T> runNew(block: () -> T) = runOn(NEW, block)
 
 /** Legacy version of [runNew] for Java taking a [Runnable]. */
 fun runNew(block: Runnable) = runNew(block.kt)
-
-/** Calls [runOn] using [NEW] with the specified thread name and the specified block. */
-fun <T> runNew(threadName: String, block: () -> T) = runOn(NEW(threadName), block)
-
-/** Legacy version of [runNew] for Java taking a [Runnable]. */
-fun runNew(threadName: String, block: Runnable) = runNew(threadName, block.kt)
 
 /** Calls [runOn] using [AWT] and the specified block. */
 fun <T> runAwt(block: () -> T) = runOn(AWT, block)

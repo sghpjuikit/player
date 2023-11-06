@@ -91,7 +91,13 @@ fun main(args: Array<String>) {
    if (!isValidatedDirectory(tmp)) fail { "Invalid tmp directory" }
    System.setProperty("java.io.tmpdir", tmp.absolutePath)
    System.setProperty("user.home", tmp.absolutePath)
+
+   // set virtual thread parallelism
    System.setProperty("jdk.virtualThreadScheduler.parallelism", ((Runtime.getRuntime().availableProcessors()*3/4) max 1).toString())
+
+   // set coroutine Default dispatcher paralelism (we use virtual threads instead)
+   System.setProperty("kotlinx.coroutines.scheduler.core.pool.size", "1")
+   System.setProperty("kotlinx.coroutines.scheduler.max.pool.size", "1")
 
    // Disable url caching, which may cause jar files being held in memory
    URLConnection.setDefaultUseCaches("file", false)

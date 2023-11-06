@@ -1,8 +1,6 @@
 package sp.it.pl.ui.nodeinfo
 
 import de.jensd.fx.glyphs.GlyphIcons
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import java.time.Instant
@@ -84,7 +82,7 @@ class WeatherInfo: HBox(15.0) {
    private val pressureL = label()
    private val uvL = label()
    private val visL = label()
-   private val http by lazy { HttpClient(CIO).config { expectSuccess = true } }
+   private val http = APP.http.client
    private val dataKey = "widgets.weather.data.last"
    private var dataPersistable: JsValue?
       get() = APP.configuration.rawGet(dataKey)

@@ -170,7 +170,7 @@ allprojects {
 
       "Http" group {
          implementation("io.ktor", "ktor-server-core", "2.3.5")
-         implementation("io.ktor", "ktor-client-cio", "2.3.5")
+         implementation("io.ktor", "ktor-client-java", "2.3.5")
       }
 
       "Test" group {

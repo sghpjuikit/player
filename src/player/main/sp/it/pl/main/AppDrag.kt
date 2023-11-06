@@ -2,8 +2,6 @@ package sp.it.pl.main
 
 import javafx.scene.input.DataFormat as DataFormatFX
 import de.jensd.fx.glyphs.GlyphIcons
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Supplier
@@ -230,9 +228,7 @@ fun Dragboard.getImageFilesOrUrl(): Fut<List<File>> {
 private fun futUrl(url: String): Fut<File> = runSuspendingFx {
    AppProgress.start("Downloading $url").reportFor { task ->
       val f = dirTmp/url.substringAfterLast("/", "" + uuid())
-      HttpClient(CIO).use { http ->
-         http.downloadFile(url, f).flowOn(VT).conflate().collect { awaitPulse(); task.reportProgress(it) }
-      }
+      APP.http.client.downloadFile(url, f).flowOn(VT).conflate().collect { awaitPulse(); task.reportProgress(it) }
       f.deleteOnExit()
       f
    }

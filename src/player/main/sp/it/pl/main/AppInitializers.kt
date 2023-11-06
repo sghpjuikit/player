@@ -77,8 +77,8 @@ fun File.verify() {
       fail { "File $this is not accessible" }
 }
 
-fun AppInstanceComm.initApp() {
-   onNewInstanceHandlers += Consumer { APP.parameterProcessor.process(it) }
+fun AppInstanceCom.initApp() {
+   onNewInstanceHandlers += APP.parameterProcessor::process
 }
 
 fun ObjectFieldMap.initApp() {

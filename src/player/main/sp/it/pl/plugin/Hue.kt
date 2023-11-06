@@ -4,7 +4,7 @@ package sp.it.pl.plugin
 
 import de.jensd.fx.glyphs.GlyphIcons
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.java.Java
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -84,7 +84,7 @@ class Hue: PluginBase() {
    private val scope: CoroutineScope = MainScope()
    private val onClose = Disposer()
    private val speechHandlers = mutableListOf<SpeakHandler>()
-   private val client = HttpClient(CIO).apply { onClose += this::close }
+   private val client = APP.http.client
 
    private val hueBridgeApiKey by cv("").password()
       .def(name = "Hue bridge API key", info = "API key of the Phillips Hue bridge. Use linking and button press to pair the application")
@@ -299,25 +299,25 @@ class Hue: PluginBase() {
             "\nAdds voice commands to ${SpeechRecognition.name} plugin." +
             "\nSee https://www.philips-hue.com"
 
-      fun JsObject.withoutNullValues() = JsObject(value.filter { it.value !is JsNull })
+      private fun JsObject.withoutNullValues() = JsObject(value.filter { it.value !is JsNull })
 
-      fun JsObject.withoutType() = JsObject(value.filter { it.key!="_type" })
+      private fun JsObject.withoutType() = JsObject(value.filter { it.key!="_type" })
 
-      fun Any?.toJson() = APP.serializerJson.json.toJsonValue(this).let {
+      private fun Any?.toJson() = APP.serializerJson.json.toJsonValue(this).let {
          when (it) {
             is JsObject -> it.withoutType()
             else -> it
          }
       }
 
-      fun String.parseToJson() = APP.serializerJson.json.ast(this).orThrow
+      private fun String.parseToJson() = APP.serializerJson.json.ast(this).orThrow
 
-      inline fun <reified T> JsValue.to() = APP.serializerJson.json.fromJsonValue<T>(this).orThrow
+      private inline fun <reified T> JsValue.to() = APP.serializerJson.json.fromJsonValue<T>(this).orThrow
 
-      suspend fun HttpClient.getText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = get(url, block).bodyAsText()
-      suspend fun HttpClient.putText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = put(url, block).bodyAsText()
-      suspend fun HttpClient.postText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = post(url, block).bodyAsText()
-      suspend fun HttpClient.deleteText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = delete(url, block).bodyAsText()
+      private suspend fun HttpClient.getText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = get(url, block).bodyAsText()
+      private suspend fun HttpClient.putText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = put(url, block).bodyAsText()
+      private suspend fun HttpClient.postText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = post(url, block).bodyAsText()
+      private suspend fun HttpClient.deleteText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = delete(url, block).bodyAsText()
 
    }
 

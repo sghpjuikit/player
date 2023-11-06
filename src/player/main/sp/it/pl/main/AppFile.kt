@@ -1,7 +1,6 @@
 package sp.it.pl.main
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import java.io.File
 import java.net.URI
@@ -213,9 +212,7 @@ suspend fun downloadFile(url: URI, file: File, task: StartAppTaskHandle): Unit =
 
 /** Downloads file to the specified file with [HttpClient.downloadFile] reporting the progress into the specified task. [StartAppTaskHandle.reportDone] must be called by the caller. */
 suspend fun downloadFile(url: String, file: File, task: StartAppTaskHandle): Unit = FX {
-   HttpClient(CIO) { install(HttpTimeout) }.use { http ->
-      http.downloadFile(url, file).flowOn(VT).conflate().collect { awaitPulse(); task.reportProgress(it) }
-   }
+   APP.http.client.downloadFile(url, file).flowOn(VT).conflate().collect { awaitPulse(); task.reportProgress(it) }
 }
 
 data class FileFilter(val value: PF0<File, Boolean>) {

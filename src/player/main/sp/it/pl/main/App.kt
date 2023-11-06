@@ -156,8 +156,10 @@ class App: Application(), GlobalConfigDelegator {
    val onStarted = Disposer()
    /** Called just before this application is stopped when it is fully still running. Runs at most once, on fx thread. */
    val onStopping = Disposer()
+   /** Http server & client. */
+   val http = AppHttp(1099)
    /** Allows sending and receiving [java.lang.String] messages to and from other instances of this application. */
-   val appCommunicator = AppInstanceComm()
+   val appCommunicator = AppInstanceCom()
    /** Application argument handler. */
    val parameterProcessor = AppCli()
 
@@ -314,6 +316,7 @@ class App: Application(), GlobalConfigDelegator {
 
          // init app stuff
          search.initApp()
+         http.init()
          appCommunicator.initApp()
 
          // start parts that can be started from non application fx thread
@@ -386,6 +389,7 @@ class App: Application(), GlobalConfigDelegator {
          db.stop()
          ActionManager.stopActionListening()
          appCommunicator.stop()
+         http.stop()
 
          // cores
          mouse.dispose()

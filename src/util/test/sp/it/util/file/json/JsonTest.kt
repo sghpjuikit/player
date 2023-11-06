@@ -23,6 +23,7 @@ import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.getAny
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
 import sp.it.util.text.Char16
 import sp.it.util.text.Char32
 import sp.it.util.text.toChar32
@@ -67,7 +68,7 @@ class JsonTest: FreeSpec({
    "Read (raw)" - {
       "ast" {
          j.ast("") shouldBeTry Error("Invalid token at position 0")
-         j.ast(" ") shouldBeTry Error("Invalid token at position 1")
+         j.ast(" ") shouldBeTry Error("Invalid token at position 0")
          j.ast("xxx") shouldBeTry Error("Invalid token at position 0")
          j.ast("text") shouldBeTry Error("Invalid token at position 1")
          j.ast("nulL") shouldBeTry Error("Invalid token at position 3")
@@ -93,6 +94,9 @@ class JsonTest: FreeSpec({
          j.ast("-43") shouldBe Ok(JsNumber(-43))
          j.ast("2.3") shouldBe Ok(JsNumber(BigDecimal("2.3")))
          j.ast("34E4") shouldBe Ok(JsNumber(BigDecimal("34E4")))
+         j.ast("E4") shouldBeTry Error("Invalid token at position 0")
+         j.ast("+E4") shouldBeTry Error("Invalid token at position 0")
+         j.ast("-E4") shouldBeTry Error("Invalid token at position 1")
          j.ast("22e+2") shouldBe Ok(JsNumber(BigDecimal("22e+2")))
          j.ast("22e-2") shouldBe Ok(JsNumber(BigDecimal("22e-2")))
          j.ast("431e-3") shouldBe Ok(JsNumber(BigDecimal("431e-3")))
@@ -112,8 +116,13 @@ class JsonTest: FreeSpec({
          j.ast("""{$nf} $nf""") shouldBe Ok(JsObject())
          j.ast("""{"name": "John", "age": 42}""") shouldBe Ok(JsObject("name" to JsString("John"), "age" to JsNumber(42)))
          j.ast("""{$nf"name":$nf "John", "age": 42}""") shouldBe Ok(JsObject("name" to JsString("John"), "age" to JsNumber(42)))
-         j.ast("1 2") shouldBeTry Error("Invalid token at position 0")
-         j.ast("1 2 3 4") shouldBeTry Error("Invalid token at position 0")
+         j.ast("1x2") shouldBeTry Error("Invalid token at position 1")
+         j.ast("1_2") shouldBeTry Error("Invalid token at position 1")
+         j.ast("1+2") shouldBeTry Error("Illegal embedded sign character")
+         j.ast("1-2") shouldBeTry Error("Illegal embedded sign character")
+         j.ast("1 2") shouldBeTry Error("Invalid token at position 1")
+         j.ast("1 2 3") shouldBeTry Error("Invalid token at position 1")
+         j.ast("1 2 3 4") shouldBeTry Error("Invalid token at position 1")
       }
       "simple json" {
          // @formatter:off
@@ -661,7 +670,7 @@ private      class GenCls<out T>(val value: T) {
 @JvmInline value class InlineInt(val value: Int)
 @JvmInline value class InlineComplex(val value: Complex)
 
-private infix  fun Try<*,Throwable>.shouldBeTry(o: Try<*,String>) { this::class shouldBe o::class; mapError { it.message }.getAny() shouldBe o.getAny() }
+private infix  fun Try<*,Throwable>.shouldBeTry(o: Try<*,String>) { if (this::class!=o::class) this shouldBe o; mapError { it.message }.getAny() shouldBe o.getAny() }
 private inline fun <reified T: Any> Any?.shouldBeInstance() = T::class.isInstance(this) shouldBe true
 private infix  fun                  Any?.shouldBeInstance(type: KClass<*>) = type.isInstance(this) shouldBe true
 private infix  fun                  Any?.shouldBeInstance(type: KType) = type.raw.isInstance(this) shouldBe true

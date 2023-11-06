@@ -98,8 +98,8 @@ import sp.it.util.ui.vBox
  * The input can be set using [setInputToLinesOf] methods.
  *
  * The result can be accessed as:
- *  * concatenated text (which is equal to the visible text) [getValAsText]
- *  * list of strings [getVal]. Each string element represents a single line in the text area. [getVal]
+ *  * concatenated text (which is equal to the visible text) [valueAsText]
+ *  * list of strings [value]. Each string element represents a single line in the text area. [value]
  *  * list of objects [output]
  */
 open class ListAreaNode: ValueNode<List<String>>(listOf()) {
@@ -138,7 +138,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
     *
     * When [outputText] is edited, then if:
     *  * output type is String: it is considered a transformation of that text, and it will be
-    * reflected in this list, i.e., [getVal] and this will contain equal elements
+    * reflected in this list, i.e., [value] and this will contain equal elements
     *  * output type is not String: it is considered arbitrary user change of the text representation
     * of transformation output (i.e., this list), but not the output itself.
     *
@@ -151,7 +151,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
     */
    @JvmField val output = outputImpl.readOnly()
 
-   /** Text of the text area and approximately concatenated [getVal]. Editable by user (ui) and programmatically. */
+   /** Text of the text area and approximately concatenated [value]. Editable by user (ui) and programmatically. */
    @JvmField val outputText = textArea.textProperty()!!
 
    /** Prevents unwanted transformation updates when transformation chain changes */
@@ -169,14 +169,14 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
             transformsValues setTo (transformsValues.take(transformations.size + 1 - outputs.size) + outputs)
             val o = transformsValues.last()
             outputImpl setTo o
-            val isManualEdit = transforms.chain.lastOrNull()?.chained?.getVal() is Transformation.Manual
+            val isManualEdit = transforms.chain.lastOrNull()?.chained?.value is Transformation.Manual
             if (!isManualEdit) textArea.text = o.joinToString("\n")
             changeValue(textArea.text.lines())
          }
       }
       textArea.textProperty() attach { text ->
          isTransformsChanging.suppressed {
-            val isManualEdit = transforms.chain.lastOrNull()?.chained?.getVal() is Transformation.Manual
+            val isManualEdit = transforms.chain.lastOrNull()?.chained?.value is Transformation.Manual
             val isTextEdit = transforms.chain.isEmpty() || isManualEdit
             val transformation = TransformationRaw.Manual(text)
             val link = ListAreaNodeTransformationNode(PrefList<TransformationRaw>().apply { addPreferred(transformation) })
@@ -202,8 +202,8 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
    override fun getNode() = root
 
-   /** @return the value as text = [outputText] */
-   fun getValAsText(): String = textArea.text
+   /** The value as text = [outputText] */
+   val valueAsText: String get() = textArea.text
 
    sealed class TransformationRaw: Parameterized<Transformation, Any?> {
       abstract val name: String
@@ -408,12 +408,12 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
       }
 
    val typeOut: VType<*>
-      get() = chain.map { it.chained.getVal().linkTypeOut }.fold(typeIn) { i, o -> o ?: i }
+      get() = chain.map { it.chained.value.linkTypeOut }.fold(typeIn) { i, o -> o ?: i }
 
-   private fun linkTypeInAt(at: Int) = chain.asSequence().drop(at).mapNotNull { it.chained.getVal().linkTypeIn }.firstOrNull()
+   private fun linkTypeInAt(at: Int) = chain.asSequence().drop(at).mapNotNull { it.chained.value.linkTypeIn }.firstOrNull()
       ?: type<Any?>()
 
-   private fun linkTypeOutAt(at: Int) = chain.asSequence().take((at + 1) max 0).mapNotNull { it.chained.getVal().linkTypeOut }.lastOrNull()
+   private fun linkTypeOutAt(at: Int) = chain.asSequence().take((at + 1) max 0).mapNotNull { it.chained.value.linkTypeOut }.lastOrNull()
       ?: typeIn
 
    override fun reduce(values: Stream<Transformation>): List<Transformation> = values.toList()

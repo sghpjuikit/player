@@ -383,7 +383,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                         new ContextMenu(
                             menuItem("Set input data to empty" , null, consumer(it -> setInput(list(Unit.INSTANCE)))),
                             menuItem("Set input data to output data", null, consumer(it -> setInput(output))),
-                            menuItem("Set input data to lines of visible text", null, consumer(it -> setInput(Arrays.asList(getValAsText().split("\\n"))))),
+                            menuItem("Set input data to lines of visible text", null, consumer(it -> setInput(Arrays.asList(getValueAsText().split("\\n"))))),
                             menuItem("Set input data to system clipboard", null, consumer(it -> setInput(list(getAny(Clipboard.getSystemClipboard())))))
                         ).show(THIS, Side.BOTTOM, 0, 0)
                     );
@@ -507,14 +507,14 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 if (empty) return;
 
                 boolean in_out_type_match = true;   //action.type.isInstance(source.get(0));    // TODO: implement properly
-                boolean same_size = equalBy(tas, ta -> ta.getVal().size());
+                boolean same_size = equalBy(tas, ta -> ta.getValue().size());
                 if (!in_out_type_match || !same_size) return;
 
-                Map<String,List<? extends String>> m = ins.values().collect(toMap(in -> in.name, in -> in.ta.getVal()));
+                Map<String,List<? extends String>> m = ins.values().collect(toMap(in -> in.name, in -> in.ta.getValue()));
                 for (int i=0; i<source.size(); i++)
                     action.actionPartial.accept(source.get(i), mapSlice(m,i));
             } else {
-                Map<String,List<? extends String>> m = ins.values().collect(toMap(in -> in.name, in -> in.ta.getVal()));
+                Map<String,List<? extends String>> m = ins.values().collect(toMap(in -> in.name, in -> in.ta.getValue()));
                 action.actionImpartial.accept(m);
             }
         });
@@ -721,7 +721,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         }
 
         @Override
-        public In getVal() {
+        public In getValue() {
             return new In(configEditorA.getConfig().getValue(), configEditorB.getConfig().getValue());
         }
 

@@ -8,7 +8,7 @@ import sp.it.util.functional.invoke
 interface ItemNode<out T> {
 
    /** @return current value */
-   fun getVal(): T
+   val value: T
 
    /** @return the root node */
    fun getNode(): Node
@@ -19,12 +19,11 @@ interface ItemNode<out T> {
 
 /** Item node which directly holds the value */
 abstract class ValueNode<T>(initialValue: T): ItemNode<T> {
-   protected var value: T = initialValue
+   override var value: T = initialValue
+      protected set
 
    /** Value change handler invoked when value changes, consuming the new value. */
    @JvmField var onItemChange: Consumer<T> = Consumer {}
-
-   override fun getVal(): T = value
 
    /** Sets value if not same as current & fires itemChange if available. Internal use only. */
    protected open fun changeValue(nv: T) {

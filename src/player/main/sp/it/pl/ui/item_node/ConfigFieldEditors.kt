@@ -714,12 +714,12 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
       // bind list to chain
       chain.onUserItemAdded += {
          isSyntheticLinkEvent = true
-         if (isNullableOk(it.chained.getVal())) list += it.chained.getVal()
+         if (isNullableOk(it.chained.value)) list += it.chained.value
          isSyntheticLinkEvent = false
       }
       chain.onUserItemRemoved += {
          isSyntheticLinkEvent = true
-         list -= it.chained.getVal()
+         list -= it.chained.value
          isSyntheticLinkEvent = false
       }
       chain.onUserItemsCleared += {
@@ -729,12 +729,12 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
       }
       chain.onUserItemEnabled += {
          isSyntheticLinkEvent = true
-         if (isNullableOk(it.chained.getVal())) list += it.chained.getVal()
+         if (isNullableOk(it.chained.value)) list += it.chained.value
          isSyntheticLinkEvent = false
       }
       chain.onUserItemDisabled += {
          isSyntheticLinkEvent = true
-         list -= it.chained.getVal()
+         list -= it.chained.value
          isSyntheticLinkEvent = false
       }
 
@@ -745,7 +745,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
       }
       disposer += list.onItemRemoved { item ->
          if (!isSyntheticLinkEvent && !isSyntheticSetEvent)
-            chain.chain.find { it.chained.getVal()==item }?.let { chain.chain.remove(it) }
+            chain.chain.find { it.chained.value==item }?.let { chain.chain.remove(it) }
       }
 
    }
@@ -764,8 +764,9 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
          pane.isEditableAllowed syncFrom isEditable on disposer
          pane.onChange = {
             if (!isSyntheticListEvent && !isSyntheticLinkEvent) {
+               changeValue(pane.config.value)
                isSyntheticSetEvent = true
-               list setTo chain.chain.map { it.chained.getVal() }.filter { isNullableOk(it) }
+               list setTo chain.chain.map { it.chained.value }.filter { isNullableOk(it) }
                isSyntheticSetEvent = false
                this@ObservableListCE.onChange?.invoke()
                this@ObservableListCE.onChangeOrConstraint?.invoke()
@@ -773,7 +774,6 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
          }
       }
       override fun getNode() = node
-      override fun getVal(): T? = pane.config.value
    }
 
    private inner class ItemComplexCE(initialValue: T?): ValueNode<T?>(initialValue) {
@@ -786,7 +786,6 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
          pane.configure(lc.toConfigurable(value))
       }
       override fun getNode() = pane
-      override fun getVal(): T? = value
    }
 }
 

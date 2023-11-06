@@ -227,13 +227,13 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 	abstract protected REDUCED_VAL reduce(Stream<VAL> values);
 
 	public VAL getValueAt(int i) {
-		return i>=0 && i<chain.size() && chain.get(i).chained!=null ? chain.get(i).chained.getVal() : null;
+		return i>=0 && i<chain.size() && chain.get(i).chained!=null ? chain.get(i).chained.getValue() : null;
 	}
 
 	/** Return individual chained values that are enabled and non-null. */
 	public Stream<VAL> getValues() {
 		return chain.stream().filter(g -> g.on.getValue())
-				.map(g -> g.chained.getVal())
+				.map(g -> g.chained.getValue())
 				.filter(ISNT0);
 	}
 
@@ -310,7 +310,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		}
 
 		private boolean isHomogeneous(int index, BiPredicate<Integer,VAL> isHomogeneous) {
-			if (chained!=null) return isHomogeneous.test(index, chained.getVal());
+			if (chained!=null) return isHomogeneous.test(index, chained.getValue());
 			return false;
 		}
 

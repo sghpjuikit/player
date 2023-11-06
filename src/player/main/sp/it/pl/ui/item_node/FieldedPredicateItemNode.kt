@@ -110,7 +110,7 @@ class FieldedPredicateItemNode<V, F: ObjectField<V, *>?>: ValueNode<Predicate<V>
       if (config==null) {
          changeValue(IS)
       } else {
-         val p = config!!.getVal()
+         val p = config!!.value
          val o = typeCB.value?.value
          if (p!=null && o!=null) {
             var pr = predicate(o, p)

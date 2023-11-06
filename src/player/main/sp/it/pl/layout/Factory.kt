@@ -64,7 +64,13 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
     * @param location parent directory of the widget
     */
    constructor(id: String?, controllerType: KClass<C>, location: File) {
-      val companionObject = try { controllerType.companionObjectInstance } catch (t: Throwable) { null } // this can happen in dev environment due to binary incompatibility
+      val companionObject = try {
+         controllerType.companionObjectInstance
+      } catch (t: Throwable) {
+         RuntimeException("$controllerType companion object failed to load. Widget metadata will not be used. Try to recompile widget. This may be compiler bug.", t).printStackTrace()
+         null
+      }
+
       val info = companionObject?.asIf<WidgetInfo>()
       val i = controllerType.findAnnotation<Widget.Info>() ?: Widget.Info()
 

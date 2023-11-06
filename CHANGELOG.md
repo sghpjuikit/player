@@ -3,6 +3,24 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 - Implement **Hue** plugin (for programmatic/voice control of Hue system without widget)
+- Implement **Hue** plugin settings
+- Implement **Image conversion** action size change
+- Implement **Add songs to library** action to show up in **Tasks list**
+- Implement app http server/client
+- Optimize thread use (`Default` dispatcher avoids allocating threads)
+- Optimize thread use (use virtual threads in more situations)
+- Improve app start performance (make `CoreFunctors` lazy)
+- Improve code (erroneous use of Double.MIN, Float.MIN)
+- Improve code (erroneous json conversion for char16/32 and other types and special values)
+- Improve code (more efficient json conversion - sequential)
+- Improve code (implement json read/write (mostly) without recursion)
+- Improve code (use enumEntries)
+- Improve code (use descriptive thread names)
+- Improve code (inaccessible widget metadata handling)
+- Improve code (use http instead of RMI for cross-app comunication - reduces threads)
+- Fix errors reading audio metadata for non audio files
+- Fix `ScrollPaneSkin` orientation handling
+- Fix missing table skin in `Main.css`
 
 ## [7.9.0] 2023 10 27
 - Update Java to 21

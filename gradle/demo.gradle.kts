@@ -14,6 +14,6 @@ sourceSets {
 }
 
 dependencies {
-   implementation("com.github.oshi", "oshi-demo", "6.4.6")
+   implementation("com.github.oshi", "oshi-demo", "6.4.7")
    implementation(project(":util"))
 }

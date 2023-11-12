@@ -134,7 +134,7 @@ allprojects {
          implementation("com.github.f4b6a3", "uuid-creator", "5.3.5")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
-         implementation("com.github.oshi", "oshi-core", "6.4.6")  // https://github.com/oshi/oshi/releases
+         implementation("com.github.oshi", "oshi-core", "6.4.7")  // https://github.com/oshi/oshi/releases
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
@@ -146,7 +146,7 @@ allprojects {
 
       "Image" group {
          implementation("com.drewnoakes", "metadata-extractor", "2.18.0")
-         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.10.0")
+         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.10.1")
          imageIO("bmp")
          imageIO("clippath")
          imageIO("core")
@@ -169,8 +169,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.3.5")
-         implementation("io.ktor", "ktor-client-java", "2.3.5")
+         implementation("io.ktor", "ktor-server-core", "2.3.6")
+         implementation("io.ktor", "ktor-client-java", "2.3.6")
       }
 
       "Test" group {

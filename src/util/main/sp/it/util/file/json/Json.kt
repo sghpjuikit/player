@@ -119,6 +119,8 @@ open class JsonAst {
 
    fun ast(json: InputStream): Try<JsValue, Throwable> = runTry { parseJson(json) }
 
+   fun ast(json: File): Try<JsValue, Throwable> = runTry { parseJson(json.inputStream()) }
+
 }
 
 class Json: JsonAst() {
@@ -319,14 +321,14 @@ class Json: JsonAst() {
       }
    }
 
-   fun <T> fromJson(type: VType<T>, json: String): Try<T, Throwable> = fromJson(type, json.byteInputStream(UTF_8))
-
-   fun <T> fromJson(type: VType<T>, json: File): Try<T, Throwable> = fromJson(type, json.inputStream())
+   @Suppress("unchecked_cast")
+   fun <T> fromJson(type: VType<T>, json: String): Try<T, Throwable> = runTry { fromJsonValueImpl(type.type, parseJson(json)) as T }
 
    @Suppress("unchecked_cast")
-   fun <T> fromJson(type: VType<T>, json: InputStream): Try<T, Throwable> = ast(json).andAlso {
-      runTry { fromJsonValueImpl(type.type, it) as T }
-   }
+   fun <T> fromJson(type: VType<T>, json: File): Try<T, Throwable> = runTry { fromJsonValueImpl(type.type, parseJson(json.inputStream())) as T }
+
+   @Suppress("unchecked_cast")
+   fun <T> fromJson(type: VType<T>, json: InputStream): Try<T, Throwable> = runTry { fromJsonValueImpl(type.type, parseJson(json)) as T }
 
    inline fun <reified T> fromJson(json: String): Try<T, Throwable> = fromJson(type(), json)
 

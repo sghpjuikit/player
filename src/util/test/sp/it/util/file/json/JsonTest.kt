@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.matchers.shouldBe
+import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.ArrayDeque
@@ -18,6 +19,9 @@ import java.util.TreeSet
 import java.util.Vector
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import sp.it.util.dev.printIt
+import sp.it.util.file.children
+import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
@@ -91,12 +95,15 @@ class JsonTest: FreeSpec({
          j.ast("""" text"""") shouldBe Ok(JsString(" text"))
          j.ast("0") shouldBe Ok(JsNumber(0))
          j.ast("1") shouldBe Ok(JsNumber(1))
+         j.ast("01") shouldBeTry Error("Invalid token at position 1")
          j.ast("-43") shouldBe Ok(JsNumber(-43))
          j.ast("2.3") shouldBe Ok(JsNumber(BigDecimal("2.3")))
+         j.ast("1.") shouldBeTry Error("Invalid token at position 2")
          j.ast("34E4") shouldBe Ok(JsNumber(BigDecimal("34E4")))
          j.ast("E4") shouldBeTry Error("Invalid token at position 0")
          j.ast("+E4") shouldBeTry Error("Invalid token at position 0")
          j.ast("-E4") shouldBeTry Error("Invalid token at position 1")
+         j.ast("0e1") shouldBe Ok(JsNumber(BigDecimal("0E+1")))
          j.ast("22e+2") shouldBe Ok(JsNumber(BigDecimal("22e+2")))
          j.ast("22e-2") shouldBe Ok(JsNumber(BigDecimal("22e-2")))
          j.ast("431e-3") shouldBe Ok(JsNumber(BigDecimal("431e-3")))
@@ -118,8 +125,8 @@ class JsonTest: FreeSpec({
          j.ast("""{$nf"name":$nf "John", "age": 42}""") shouldBe Ok(JsObject("name" to JsString("John"), "age" to JsNumber(42)))
          j.ast("1x2") shouldBeTry Error("Invalid token at position 1")
          j.ast("1_2") shouldBeTry Error("Invalid token at position 1")
-         j.ast("1+2") shouldBeTry Error("Illegal embedded sign character")
-         j.ast("1-2") shouldBeTry Error("Illegal embedded sign character")
+         j.ast("1+2") shouldBeTry Error("Invalid token at position 1")
+         j.ast("1-2") shouldBeTry Error("Invalid token at position 1")
          j.ast("1 2") shouldBeTry Error("Invalid token at position 1")
          j.ast("1 2 3") shouldBeTry Error("Invalid token at position 1")
          j.ast("1 2 3 4") shouldBeTry Error("Invalid token at position 1")
@@ -653,6 +660,23 @@ j.fromJson<Double>("-1.7976931348623157E309") shouldBeTry Error("-1.797693134862
          json6.toPrettyS() shouldBe """[$n  true,$n  false$n]"""
          json7.toPrettyS() shouldBe """{$n  "a": true,$n  "b": false$n}"""
          json8.toPrettyS() shouldBe """[$n  null,$n  "",$n  1,$n  [],$n  {},$n  [$n    1,$n    2$n  ],$n  {$n    "a": true,$n    "b": false$n  }$n]"""
+      }
+   }
+
+   val dirJSONTestSuite = (File("").absoluteFile.parentFile?.parentFile?.parentFile?.net { it / "JSONTestSuite" }).printIt()
+   "comprehensive (https://github.com/nst/JSONTestSuite)".config(enabled = dirJSONTestSuite?.exists()==true) - {
+      for (f in (dirJSONTestSuite!! / "test_parsing").children().toList()) {
+         val n = f.name
+         val disabled = setOf(
+            "n_multidigit_number_then_00.json",       // no idea how this should behave, but it is benign
+            "n_structure_100000_opening_arrays.json", // enable one recursion is gone
+            "n_structure_open_array_object.json"      // enable one recursion is gone
+         )
+         n.config(enabled = n !in disabled) {
+            true shouldBe true
+            if (n.startsWith("y")) j.ast(f)         .apply { if (isError) f.readText().printIt() }.orThrow
+            if (n.startsWith("n")) j.ast(f).switch().apply { if (isError) f.readText().printIt() }.orThrow
+         }
       }
    }
 })

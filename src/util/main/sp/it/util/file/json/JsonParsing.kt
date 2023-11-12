@@ -109,7 +109,7 @@ private class Lexer(reader: Reader) {
    }
 
    fun readWhitespace() {
-      while (Character.isWhitespace(ch))
+      while (ch==32 || ch==10 || ch==13 || ch==9)
          nextCh()
    }
 
@@ -126,22 +126,27 @@ private class Lexer(reader: Reader) {
          } else {
             if (escaped) {
                when (ch) {
-                  Chars.B -> sb.append('\b')
-                  Chars.T -> sb.append('\t')
-                  Chars.N -> sb.append('\n')
-                  Chars.F -> sb.append('\u000C')
-                  Chars.R -> sb.append('\r')
                   Chars.QUOTE -> sb.append('"')
-                  Chars.TICK -> sb.append('\'')
                   Chars.BACK_SLASH -> sb.append('\\')
+                  Chars.SLASH -> sb.append('/')
+                  Chars.TICK -> sb.append('\'')
+                  Chars.B -> sb.append('\b')
+                  Chars.F -> sb.append('\u000C')
+                  Chars.N -> sb.append('\n')
+                  Chars.R -> sb.append('\r')
+                  Chars.T -> sb.append('\t')
                   Chars.U -> {
                      val unicodeValue = (0..3).fold(0) { v, _ -> (v shl 4) or Character.digit(nextCh(), 16) }
                      sb.appendCodePoint(unicodeValue)
                   }
-                  else -> sb.appendCodePoint(ch)
+                  else -> fail { "Invalid token at position $pos" }
                }
                escaped = false
             } else {
+               when (ch) {
+                  Chars.TAB -> fail { "Invalid token at position $pos" }
+                  Chars.NEWLINE -> fail { "Invalid token at position $pos" }
+               }
                sb.appendCodePoint(ch)
             }
          }
@@ -153,18 +158,43 @@ private class Lexer(reader: Reader) {
 
    private fun readNumber(): Number {
       val value = buildString {
-         while (Character.isDigit(ch) || ch==Chars.DOT || ch==Chars.E || ch==Chars.E_UPPER || ch==Chars.PLUS || ch==Chars.DASH) {
-            appendCodePoint(ch)
-            nextCh()
+
+         fun rSign() {
+            if (ch==Chars.DASH) { appendCodePoint(ch); nextCh() }
+            else if (ch==Chars.PLUS) { appendCodePoint(ch); nextCh() }
          }
+         fun rDigs() {
+            if (ch in 48..57) { appendCodePoint(ch); nextCh() }
+            else fail { "Invalid token at position $pos" }
+            while (ch in 48..57) { appendCodePoint(ch); nextCh() }
+         }
+         fun rInt() {
+            if (ch==Chars.DASH) {
+               appendCodePoint(ch); nextCh()
+               if (ch==48) {
+                  appendCodePoint(ch); nextCh()
+               } else {
+                  rDigs()
+               }
+            } else if (ch==48) {
+               appendCodePoint(ch); nextCh()
+            } else {
+               rDigs()
+            }
+         }
+         fun rExp() {
+            if (ch==Chars.E) { appendCodePoint(ch); nextCh(); rSign(); rDigs() }
+            else if (ch==Chars.E_UPPER) { appendCodePoint(ch); nextCh(); rSign(); rDigs() }
+         }
+         fun rFrac() {
+            if (ch==Chars.DOT) { appendCodePoint(ch); nextCh(); rDigs() }
+         }
+
+         rInt()
+         rFrac()
+         rExp()
       }
-      return if (value.startsWith("e") or value.startsWith("E"))
-         fail { "Invalid token at position ${pos-value.length}" }
-      else if (value.startsWith("-e") or value.startsWith("-E") || value.startsWith("+e") or value.startsWith("+E"))
-         fail { "Invalid token at position ${pos-value.length+1}" }
-      else if (' ' in value)
-         fail { "Invalid token at position ${pos-value.length+value.indexOf(' ')}" }
-      else if ('.' in value || value.contains('e', ignoreCase = true))
+      return if ('.' in value || value.contains('e', ignoreCase = true))
          BigDecimalMath.toBigDecimal(value)
       else
          when (val num = BigInteger(value)) {
@@ -294,9 +324,12 @@ object Chars {
    const val DOT = '.'.code
    const val COMMA = ','.code
    const val QUOTE = '"'.code
+   const val NEWLINE = '\n'.code
+   const val TAB = '\t'.code
    const val TICK = '\''.code
    const val DASH = '-'.code
    const val PLUS = '+'.code
+   const val SLASH = '/'.code
    const val BACK_SLASH = '\\'.code
    const val B = 'b'.code
    const val N = 'n'.code

@@ -366,7 +366,9 @@ class GameView(widget: Widget): SimpleController(widget) {
       }
 
       /** Properties. */
-      val settings: Map<String, JsValue> = APP.serializerJson.fromJson<JsObject>(location/"game.json").orNull()?.value.orEmpty()
+      val settings: Map<String, JsValue> by lazy {
+         APP.serializerJson.fromJson<JsObject>(location/"game.json").orNull()?.value.orEmpty()
+      }
 
       fun exeFile(block: (File?) -> Unit) = runVT {
          null

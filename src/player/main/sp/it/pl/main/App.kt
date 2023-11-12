@@ -160,7 +160,7 @@ class App: Application(), GlobalConfigDelegator {
    /** Called just before this application is stopped when it is fully still running. Runs at most once, on fx thread. */
    val onStopping = Disposer()
    /** Http server & client. */
-   val http = AppHttp(1099)
+   val http = AppHttp(50001)
    /** Allows sending and receiving [java.lang.String] messages to and from other instances of this application. */
    val appCommunicator = AppInstanceCom()
    /** Application argument handler. */
@@ -173,7 +173,7 @@ class App: Application(), GlobalConfigDelegator {
          logger.info { "Multiple app instances detected" }
          if (isSingleton) {
             logger.info { "App will close and delegate parameters to already running instance" }
-            appCommunicator.fireNewInstanceEvent(fetchArguments())
+            appCommunicator.fireNewInstanceEvent(fetchArguments()).block()
             exitProcess(0)
          } else {
             isStateful = false

@@ -7,11 +7,15 @@ import com.sun.net.httpserver.HttpServer
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
 import io.ktor.client.plugins.HttpTimeout
+import java.net.BindException
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.net.Socket
 import java.util.concurrent.CopyOnWriteArrayList
 import mu.KLogging
 import sp.it.pl.core.Core
+import sp.it.util.dev.fail
+import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Subscription
@@ -34,19 +38,24 @@ class AppHttp(
 
    fun buildServer(): HttpServer =
       try {
-      HttpServer.create(InetSocketAddress(InetAddress.getLocalHost(), 53705), 0).apply {
-         runTry {
-            server.createContext("/", HttpHandler { r -> serverRoutes.find(r)?.block?.invoke(r) })
-            server.executor = VTe
-            server.start()
-            logger.info { "Http server url=$url started" }
-         }.ifError {
-            logger.error(it) { "Http server url=$url failed to start" }
+         HttpServer.create(InetSocketAddress(InetAddress.getByName("localhost"), port), 0).apply {
+            runTry {
+               executor = VTe
+               start()
+               createContext("/", HttpHandler { r -> serverRoutes.find(r)?.block?.invoke(r) })
+               logger.info { "Http server url=$url started" }
+            }.ifError {
+               logger.error(it) {
+                  if (it !is BindException) "Http server url=$url failed to start"
+                  else "Http server url=$url failed to start, port in use. Available port: ${findAvailablePort(50000..60000)}"
+               }
+            }
          }
-      }
       } catch (e: Throwable) {
-         e.printStackTrace()
-         throw RuntimeException(e)
+         fail {
+            if (e !is BindException) "Http server url=$url failed to create"
+            else "Http server url=$url failed to create, port in use. Available port: ${findAvailablePort(50000..60000)}"
+         }
       }
 
    fun buildClient(): HttpClient =
@@ -79,5 +88,12 @@ class AppHttp(
          routes.find { it.matcher(request) }
    }
 
-   companion object: KLogging()
+   companion object: KLogging() {
+
+      private fun findAvailablePort(range: IntRange): Int? {
+         val localhost = InetAddress.getByName("localhost")
+         return range.first { runTry { Socket(localhost, it).use { true } }.getOr(false) }
+      }
+
+   }
 }

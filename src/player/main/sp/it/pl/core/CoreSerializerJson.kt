@@ -198,7 +198,8 @@ class CoreSerializerJson: Core {
          if (file.exists()) it
          else FileNotFoundException(file.absolutePath)
       }.ifError {
-         logger.error(it) { "Couldn't deserialize ${T::class} from file $file" }
+         if (it !is FileNotFoundException)
+            logger.error(it) { "Couldn't deserialize ${T::class} from file $file" }
       }
 
    companion object: KLogging()

@@ -7,11 +7,14 @@ import com.sun.net.httpserver.HttpServer
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
 import io.ktor.client.plugins.HttpTimeout
+import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.util.concurrent.CopyOnWriteArrayList
 import mu.KLogging
 import sp.it.pl.core.Core
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.reactive.Subscription
 
 /** Application http server & http client. */
 class AppHttp(
@@ -24,16 +27,26 @@ class AppHttp(
    val url = "http://127.0.0.1:$port"
    /** Http sever of this application, does not support https. */
    val server get() = ser.value
-   /** Http server request handlers. */
-   val serverHandlers = mutableListOf<Handler>()
+   /** Http server routes, i.e., request handlers. */
+   val serverRoutes = Handlers()
    /** Http client of this application. */
    val client get() = cli.value
 
    fun buildServer(): HttpServer =
-      HttpServer.create(InetSocketAddress(port), 0).apply {
-         server.createContext("/", HttpHandler { r -> serverHandlers.find { it.matcher(r) }?.block?.invoke(r) })
-         server.executor = VTe
-         server.start()
+      try {
+      HttpServer.create(InetSocketAddress(InetAddress.getLocalHost(), 53705), 0).apply {
+         runTry {
+            server.createContext("/", HttpHandler { r -> serverRoutes.find(r)?.block?.invoke(r) })
+            server.executor = VTe
+            server.start()
+            logger.info { "Http server url=$url started" }
+         }.ifError {
+            logger.error(it) { "Http server url=$url failed to start" }
+         }
+      }
+      } catch (e: Throwable) {
+         e.printStackTrace()
+         throw RuntimeException(e)
       }
 
    fun buildClient(): HttpClient =
@@ -42,6 +55,8 @@ class AppHttp(
             expectSuccess = true
             install(HttpTimeout)
          }
+
+         logger.info { "Http client started" }
       }
 
    override fun dispose() {
@@ -50,6 +65,19 @@ class AppHttp(
    }
 
    class Handler(val matcher: (HttpExchange) -> Boolean, val block: (HttpExchange) -> Unit)
+
+   inner class Handlers() {
+      protected val routes = CopyOnWriteArrayList<Handler>()
+
+      infix fun route(handler: Handler): Subscription {
+         routes += handler
+         if (routes.isNotEmpty() && !ser.isInitialized()) server
+         return Subscription { routes -= handler }
+      }
+
+      fun find(request: HttpExchange): Handler? =
+         routes.find { it.matcher(request) }
+   }
 
    companion object: KLogging()
 }

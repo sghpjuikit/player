@@ -1,21 +1,6 @@
 package sp.it.pl.main
 
-import sp.it.util.async.VT as VTe
-import com.sun.net.httpserver.HttpExchange
-import com.sun.net.httpserver.HttpHandler
-import com.sun.net.httpserver.HttpsServer
-import io.ktor.client.HttpClient
 import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.charset
-import io.ktor.http.content.OutgoingContent
-import io.ktor.http.content.TextContent
-import io.ktor.utils.io.core.toByteArray
-import java.net.InetSocketAddress
-import java.util.function.Consumer
-import mu.KLogging
 import sp.it.pl.core.bodyJs
 import sp.it.pl.core.requestBodyAsJs
 import sp.it.pl.core.to
@@ -23,17 +8,13 @@ import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
 import sp.it.util.conf.Config
-import sp.it.util.file.json.toCompactS
-import sp.it.util.functional.orNull
-import sp.it.util.functional.runTry
 import sp.it.util.reactive.Handler1
-import sp.it.util.text.lengthInBytes
 
 class AppInstanceCom() {
    private val j = Config.json
 
    fun start() {
-      APP.http.serverHandlers += AppHttp.Handler({ it.requestURI.path=="/instance-launched" }) {
+      APP.http.serverRoutes route AppHttp.Handler({ it.requestURI.path=="/instance-launched" }) {
          newInstanceLaunched(it.requestBodyAsJs().to<List<String>>())
       }
    }

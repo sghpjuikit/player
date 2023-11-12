@@ -63,7 +63,7 @@ class SpeechRecognition: PluginBase() {
       val ansi = Pattern.compile("\\x1B\\[[0-?]*[ -/]*[@-~]")
       fun String.ansi() = ansi.matcher(this).replaceAll("")
       fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"
-      fun InputStream.consume(consumeInputLine: (Sequence<String>) -> Unit) = runVT { bufferedReader().useLines(consumeInputLine) }
+      fun InputStream.consume(name: String, consumeInputLine: (Sequence<String>) -> Unit) = runOn(VT("SpeechRecognition-$name")) { bufferedReader().useLines(consumeInputLine) }
       fun doOnError(e: Throwable?, text: String?) = logger.error(e) { "Starting whisper failed.\n${text.wrap()}" }.toUnit()
       return runOn(VT("SpeechRecognition")) {
          val whisper = dir / "main.py"
@@ -85,14 +85,14 @@ class SpeechRecognition: PluginBase() {
 
          var stdout = ""
          var stderr = ""
-         val stdoutListener = process.inputStream.consume {
+         val stdoutListener = process.inputStream.consume("stdout") {
             stdout = it
                .filter { it.isNotBlank() }
                .onEach { runFX { speakingStdout.value = (speakingStdout.value ?: "") + "\n" + it.ansi() } }
                .onEach { if (it.startsWith("USER: ")) runFX { handleSpeech(it.substring(6)) } }
                .joinToString("")
          }
-         val stderrListener = process.errorStream.consume {
+         val stderrListener = process.errorStream.consume("stderr") {
             stderr = it
                .filter { it.isNotBlank() }
                .onEach { runFX { speakingStdout.value = (speakingStdout.value ?: "") + "\n" + it.ansi() } }

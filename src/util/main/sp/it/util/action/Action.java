@@ -281,13 +281,11 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 
 	private void registerGlobal() {
 		if (!ActionManager.INSTANCE.isActionListening()) return;
-		var ar = orNull(ActionRegistrar.INSTANCE.getHotkeys());
-		if (ar!=null) ar.register(this, getKeys());
+		ActionRegistrar.INSTANCE.getHotkeys().register(this, getKeys());
 	}
 
 	private void unregisterGlobal() {
-		var ar = orNull(ActionRegistrar.INSTANCE.getHotkeys());
-		if (ar!=null) ar.unregister(this);
+		ActionRegistrar.INSTANCE.getHotkeys().unregister(this);
 	}
 
 	private KeyCombination getKeysForLocalRegistering() {

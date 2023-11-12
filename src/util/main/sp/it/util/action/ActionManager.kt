@@ -1,7 +1,9 @@
 package sp.it.util.action
 
+import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent
 import java.util.concurrent.ConcurrentHashMap
 import javafx.application.Platform
+import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ALT_GRAPH
 import javafx.scene.input.KeyCode.COMMA
 import javafx.scene.input.KeyCode.PERIOD
@@ -23,6 +25,7 @@ import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.syncNonNullWhile
+import sp.it.util.type.volatile
 
 object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
 
@@ -30,12 +33,6 @@ object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
    val keyShortcuts by c(COMMA).def(name = "Show shortcuts", info = "Display all available shortcuts.", editable = NONE)
    val keyShortcutsComponent by c(PERIOD).def(name = "Show component shortcuts", info = "Display all available component shortcuts.", editable = NONE)
    val keyActionsComponent by c(SLASH).def(name = "Show component actions", info = "Display all available component actions.", editable = NONE)
-
-   // @IsConfig(name = "Media shortcuts supported", editable = NONE, info = "Whether media shortcuts are supported on this system")
-   // private val isMediaShortcutsSupported by c(true)
-
-   // @IsConfig(name = "Media shortcuts enabled", info = "Allows using shortcuts for media keys on the keyboard.")
-   // val globalMediaShortcutsEnabled by cv(true)
 
    /**
     * Whether global shortcuts are supported by the active platform.
@@ -135,7 +132,7 @@ object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
     * Does nothing if not supported.
     */
    private fun startGlobalListening() {
-      hotkeys.value.start()
+      hotkeys.start()
    }
 
    /**
@@ -146,7 +143,7 @@ object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
     * because bgr listening thread will not close.
     */
    private fun stopGlobalListening() {
-      hotkeys.orNull()?.stop()
+      hotkeys.stop()
    }
 
    /** Invokes immediately before [Action.run]. */
@@ -156,7 +153,7 @@ object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
 }
 
 object ActionRegistrar {
-   val hotkeys = lazy { Hotkeys { Platform.runLater(it) } }
+   val hotkeys = Hotkeys(Platform::runLater)
 
    private val actions = MapSet<String, Action>(ConcurrentHashMap()) { it.name }.apply {
       this += Action.NONE

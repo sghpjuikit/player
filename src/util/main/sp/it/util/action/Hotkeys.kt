@@ -1,15 +1,5 @@
 package sp.it.util.action
 
-import java.util.concurrent.ConcurrentHashMap
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyCode.ALT
-import javafx.scene.input.KeyCode.ALT_GRAPH
-import javafx.scene.input.KeyCode.COMMAND
-import javafx.scene.input.KeyCode.CONTROL
-import javafx.scene.input.KeyCode.META
-import javafx.scene.input.KeyCode.SHIFT
-import javafx.scene.input.KeyCode.WINDOWS
-import mu.KLogging
 import com.github.kwhat.jnativehook.GlobalScreen
 import com.github.kwhat.jnativehook.NativeInputEvent
 import com.github.kwhat.jnativehook.NativeInputEvent.BUTTON1_MASK
@@ -23,11 +13,24 @@ import com.github.kwhat.jnativehook.NativeInputEvent.SCROLL_LOCK_MASK
 import com.github.kwhat.jnativehook.dispatcher.VoidDispatchService
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener
+import java.util.concurrent.ConcurrentHashMap
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.ALT
+import javafx.scene.input.KeyCode.ALT_GRAPH
+import javafx.scene.input.KeyCode.COMMAND
+import javafx.scene.input.KeyCode.CONTROL
+import javafx.scene.input.KeyCode.META
+import javafx.scene.input.KeyCode.SHIFT
+import javafx.scene.input.KeyCode.WINDOWS
+import mu.KLogging
 import sp.it.util.dev.fail
+import sp.it.util.functional.net
 import sp.it.util.functional.runTry
+import sp.it.util.reactive.Subscription
 
 /** Global hotkey manager, implemented on top of JNativeHook library. */
 class Hotkeys(private val executor: (Runnable) -> Unit) {
+   private val keyComboKeys = ConcurrentHashMap<KeyCode, KeyComboKey>()
    private val keyCombos = ConcurrentHashMap<String, KeyCombo>()
    private var keyListener: NativeKeyListener? = null
    private var isRunning = false
@@ -52,6 +55,10 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
          val keyListener = object: NativeKeyListener {
             override fun nativeKeyPressed(e: NativeKeyEvent) {
 
+               // action keys
+               if (e.isActionKey)
+                  return
+
                // For some reason left BACK_SLASH key (left of the Z key) is not recognized, recognize manually
                if (e.rawCode==226) {
                   e.keyCode = NativeKeyEvent.VC_BACK_SLASH
@@ -69,13 +76,21 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
             }
 
             override fun nativeKeyReleased(e: NativeKeyEvent) {
+               // action keys
+               if (e.isActionKey) {
+                  val r = nativeToFx[e.keyCode]?.let(keyComboKeys::get)?.block?.invoke() ?: false
+                  if (r) e.consume()
+                  return
+               }
+
                // For some reason left BACK_SLASH key (left of the Z key) is not recognized, recognize manually
                if (e.rawCode==226) {
                   e.keyCode = NativeKeyEvent.VC_BACK_SLASH
                   e.keyChar = '\\'
                }
 
-               keyCombosPressed.forEach { it.release(e) }
+               val eKeyFx = nativeToFx[e.keyCode]
+               keyCombosPressed.forEach { it.release(e, eKeyFx) }
             }
 
             override fun nativeKeyTyped(e: NativeKeyEvent) {}
@@ -122,9 +137,16 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
       keyCombos[action.name] = KeyCombo(key, *modifiers)
    }
 
+   fun register(key: KeyCode, block: () -> Boolean): Subscription {
+      keyComboKeys[key] = KeyComboKey(key, block)
+      return Subscription { keyComboKeys -= key }
+   }
+
    fun unregister(action: Action) {
       keyCombos.remove(action.name)
    }
+
+   private data class KeyComboKey(val key: KeyCode, val block: () -> Boolean)
 
    private inner class KeyCombo {
       val key: KeyCode
@@ -161,8 +183,8 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
          if (a.isContinuous || isPressedFirst) executor(a)
       }
 
-      fun release(e: NativeKeyEvent) {
-         if (key == nativeToFx[e.keyCode]) {
+      fun release(e: NativeKeyEvent, eKeyFx: KeyCode?) {
+         if (key == eKeyFx) {
             keyCombosPressed -= this
             isPressed = false
             e.consume()
@@ -299,10 +321,12 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
          NativeKeyEvent.VC_POWER to KeyCode.POWER,
          NativeKeyEvent.VC_MEDIA_PLAY to KeyCode.PLAY,
          NativeKeyEvent.VC_MEDIA_STOP to KeyCode.STOP,
+         NativeKeyEvent.VC_MEDIA_NEXT to KeyCode.TRACK_NEXT,
+         NativeKeyEvent.VC_MEDIA_PREVIOUS to KeyCode.TRACK_PREV,
          NativeKeyEvent.VC_MEDIA_EJECT to KeyCode.EJECT_TOGGLE,
          NativeKeyEvent.VC_VOLUME_MUTE to KeyCode.MUTE,
-         NativeKeyEvent.VC_VOLUME_UP to KeyCode.UP,
-         NativeKeyEvent.VC_VOLUME_DOWN to KeyCode.DOWN,
+         NativeKeyEvent.VC_VOLUME_UP to KeyCode.VOLUME_UP,
+         NativeKeyEvent.VC_VOLUME_DOWN to KeyCode.VOLUME_DOWN,
          NativeKeyEvent.VC_KATAKANA to KeyCode.KATAKANA,
          NativeKeyEvent.VC_UNDERSCORE to KeyCode.UNDERSCORE,
          NativeKeyEvent.VC_FURIGANA to KeyCode.UNDERSCORE,
@@ -315,7 +339,7 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
          NativeKeyEvent.VC_SUN_UNDO to KeyCode.UNDO,
          NativeKeyEvent.VC_SUN_COPY to KeyCode.COPY,
          NativeKeyEvent.VC_SUN_INSERT to KeyCode.INSERT,
-         NativeKeyEvent.VC_SUN_CUT to KeyCode.CUT
+         NativeKeyEvent.VC_SUN_CUT to KeyCode.CUT,
       )
    }
 

@@ -10,6 +10,7 @@ import java.util.Locale
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.scene.image.Image
+import javafx.scene.input.KeyCode
 import javafx.stage.FileChooser.ExtensionFilter
 import javafx.stage.Stage
 import kotlin.system.exitProcess
@@ -38,7 +39,9 @@ import sp.it.pl.plugin.impl.SongDb
 import sp.it.pl.ui.objects.window.stage.WindowManager
 import sp.it.util.access.v
 import sp.it.util.action.ActionManager
+import sp.it.util.action.ActionRegistrar
 import sp.it.util.action.IsAction
+import sp.it.util.async.runFX
 import sp.it.util.async.runLater
 import sp.it.util.conf.ConfigDef
 import sp.it.util.conf.EditMode.NONE
@@ -321,6 +324,13 @@ class App: Application(), GlobalConfigDelegator {
 
          // start parts that can be started from non application fx thread
          ActionManager.onActionRunPre += { APP.actionStream(ActionEvent(it)) }
+         ActionRegistrar.hotkeys.register(KeyCode.PLAY)        { runFX { audio.pauseResume() }; true }
+         ActionRegistrar.hotkeys.register(KeyCode.STOP)        { runFX { audio.stop() }; true }
+         ActionRegistrar.hotkeys.register(KeyCode.TRACK_NEXT)  { runFX { audio.playlists.playNextItem() }; true }
+         ActionRegistrar.hotkeys.register(KeyCode.TRACK_PREV)  { runFX { audio.playlists.playPreviousItem() }; true }
+         ActionRegistrar.hotkeys.register(KeyCode.VOLUME_UP)   { false } // handled by OS
+         ActionRegistrar.hotkeys.register(KeyCode.VOLUME_DOWN) { false } // handled by OS
+         ActionRegistrar.hotkeys.register(KeyCode.MUTE)        { false } // handled by OS
          ActionManager.startActionListening(rankAtStart==SLAVE)
          if (rankAtStart==MASTER) appCommunicator.start()
       }.ifError {

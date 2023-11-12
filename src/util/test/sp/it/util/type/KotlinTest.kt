@@ -5,29 +5,27 @@ import io.kotest.matchers.shouldBe
 import kotlin.reflect.full.superclasses
 
 class KotlinTest: FreeSpec({
-   "KT" - {
-      // https://youtrack.jetbrains.com/issue/KT-41322
-      "KT-41322" {
-         KotlinKT41322.Foo::class.annotations
-         KotlinKT41322.Foo::class.isData shouldBe false
-         KotlinKT41322.Foo::class.superclasses
-      }
-      // https://youtrack.jetbrains.com/issue/KT-41373
-      "KT-41373" {
-         KotlinKT41373.method()::class.annotations
-         KotlinKT41373.method()::class.isData shouldBe false
-         KotlinKT41373.method()::class.superclasses
-      }
-      // https://youtrack.jetbrains.com/issue/KT-22792
-      "KT-22792".config(enabled = false) {
-         TestObject::class.isObject shouldBe true
-         TestDataObject::class.isObject shouldBe true
-      }
-      // https://youtrack.jetbrains.com/issue/KT-57641
-      "KT-57641" {
-         val o = object {}
-         o::class.objectInstance shouldBe null
-      }
+   // https://youtrack.jetbrains.com/issue/KT-41322
+   "KT-41322" {
+      KotlinKT41322.Foo::class.annotations
+      KotlinKT41322.Foo::class.isData shouldBe false
+      KotlinKT41322.Foo::class.superclasses
+   }
+   // https://youtrack.jetbrains.com/issue/KT-41373
+   "KT-41373" {
+      KotlinKT41373.method()::class.annotations
+      KotlinKT41373.method()::class.isData shouldBe false
+      KotlinKT41373.method()::class.superclasses
+   }
+   // https://youtrack.jetbrains.com/issue/KT-22792
+   "KT-22792".config(enabled = false) {
+      TestObject::class.isObject shouldBe true
+      TestDataObject::class.isObject shouldBe true
+   }
+   // https://youtrack.jetbrains.com/issue/KT-57641
+   "KT-57641" {
+      val o = object {}
+      o::class.objectInstance shouldBe null
    }
 })
 

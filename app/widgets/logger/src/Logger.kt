@@ -2,6 +2,10 @@ package logger
 
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.scene.control.TextArea
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
 import mu.KLogging
 import sp.it.pl.layout.Widget
@@ -9,6 +13,7 @@ import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.TextDisplayFeature
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
@@ -24,6 +29,8 @@ import sp.it.util.conf.getDelegateConfig
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventDown
+import sp.it.util.system.open
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
@@ -48,10 +55,12 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
          lay += vBox {
             lay += CheckIcon(wrapText).icons(IconMA.WRAP_TEXT).tooltip(::wrapText.getDelegateConfig().nameUi)
             lay += Icon(IconOC.TRASHCAN).tooltip("Clear").onClickDo { area.clear() }
+            lay += Icon(IconFA.FOLDER).tooltip("Log directory").onClickDo { APP.logging.loggingOutputDir.open() }
          }
          lay(ALWAYS) += area.apply {
             isEditable = false
             text = "# This is redirected output (System.out) stream of this application.\n"
+            onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
          }
       }
 

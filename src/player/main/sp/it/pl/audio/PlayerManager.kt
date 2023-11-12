@@ -114,6 +114,7 @@ import uk.co.caprica.vlcj.player.base.AudioChannel
 class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
    val playing = Output<Metadata?>(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing", type(), null).appWide()
+   val playlists = PlaylistManager
    val playingSong = CurrentItem()
    val state = PlayerState.deserialize().apply {
       playback.loopMode attach { PlaylistManager.playingItemSelector.setSelector(it.selector()) }

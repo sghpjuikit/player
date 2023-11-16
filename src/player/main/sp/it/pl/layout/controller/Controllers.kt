@@ -74,6 +74,8 @@ import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.text.appendSent
+import sp.it.util.text.decodeBase64
+import sp.it.util.text.encodeBase64
 import sp.it.util.text.nameUi
 import sp.it.util.text.split2Partial
 import sp.it.util.text.splitNoEmpty
@@ -297,7 +299,7 @@ class ControllerNode(widget: Widget): SimpleController(widget) {
    fun restoreInputs() {
       widget.properties["node-widget-inputs"].asIf<String>().orEmpty().splitNoEmpty("-").forEach {
          val (propertyNameBase64, propertyValueBase64) = it.split2Partial("|")
-         val (propertyName, propertyValueS) = propertyNameBase64.decodeBase64() to propertyValueBase64.ifNotEmpty { it.decodeBase64().unquote() }
+         val (propertyName, propertyValueS) = propertyNameBase64.decodeBase64().orThrow to propertyValueBase64.ifNotEmpty { it.decodeBase64().orThrow.unquote() }
          val properties = nodeInstance.value.properties
          val property = properties.firstOrNull { p -> p.name==propertyName }
          if (property!=null && io.i.getInputs().none { it.name==property.name }) {
@@ -341,8 +343,6 @@ class ControllerNode(widget: Widget): SimpleController(widget) {
       fun String.ifNotEmpty(mapper: (String) -> String) = if (isEmpty()) "" else mapper(this)
       fun String.unquote() = if (startsWith("\"") && endsWith("\"")) drop(1).dropLast(1) else fail { "Must be quoted" }
       fun String.quote() = "\"$this\""
-      fun String.encodeBase64(): String = Base64.getEncoder().encodeToString(toByteArray())
-      fun String.decodeBase64() = String(Base64.getDecoder().decode(toByteArray()))
    }
 
 }

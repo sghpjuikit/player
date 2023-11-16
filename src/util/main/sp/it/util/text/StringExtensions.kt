@@ -326,7 +326,11 @@ fun String.splitTrimmed(delimiter: String, ignoreCase: Boolean = false): List<St
 fun String.splitNoEmpty(delimiter: String, ignoreCase: Boolean = false): Sequence<String> =
    splitToSequence(delimiter, ignoreCase = ignoreCase).filter { it.isNotEmpty() }
 
-/** @return URL this string is denoting or null if [MalformedURLException] is thrown */
+/** @return URL this string is denoting or [URISyntaxException] or [MalformedURLException] is thrown */
+fun String.toURL(): URL =
+   URI(this).toURL()
+
+/** @return URL this string is denoting or [URISyntaxException] or [MalformedURLException] is thrown */
 fun String.toURLOrNull(): URL? =
    try {
       URI(this).toURL()
@@ -334,8 +338,11 @@ fun String.toURLOrNull(): URL? =
       null
    }
 
+/** @return URI this string is denoting or [URISyntaxException] is thrown */
+fun String.toURI(): URI =
+   URI(this)
 
-/** @return URI this string is denoting or null if [MalformedURLException] is thrown */
+/** @return URI this string is denoting or null if [URISyntaxException] is thrown */
 fun String.toURIOrNull(): URI? =
    try {
       URI(this)

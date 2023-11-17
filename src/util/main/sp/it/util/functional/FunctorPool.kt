@@ -88,7 +88,7 @@ class FunctorPool {
 
       // add collection predicates
       if (c.raw.isSubclassOf<Iterable<*>>()) {
-         val listType = c.type.argOf(List::class, 0)
+         val listType = c.type.argOf(Iterable::class, 0)
          val anyType = VType<CollectionAny<Any?>>(CollectionAny::class.createType(listOf(listType), false, listOf()))
          val allType = VType<CollectionAll<Any?>>(CollectionAll::class.createType(listOf(listType), false, listOf()))
          val nonType = VType<CollectionNon<Any?>>(CollectionNon::class.createType(listOf(listType), false, listOf()))

@@ -196,7 +196,6 @@ class App: Application(), GlobalConfigDelegator {
 
    /** Configuration core. */
    val configuration = MainConfiguration.apply {
-      (location.user/"application.properties").renameTo(location.user.application_json)
       rawAdd(location.user.application_json)
       CoreConfiguration
    }

@@ -1,5 +1,6 @@
 package sp.it.pl.audio.playlist
 
+import io.ktor.client.request.head
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.scene.media.Media
@@ -20,13 +21,26 @@ import sp.it.util.type.VType
 import sp.it.util.type.type
 import sp.it.util.units.toHMSMs
 import java.net.URI
+import javafx.collections.MapChangeListener
+import javafx.collections.ObservableMap
+import kotlinx.coroutines.runBlocking
 import sp.it.pl.audio.tagging.AudioFileFormat
+import sp.it.pl.core.CoreConverter
+import sp.it.pl.main.AppHttp.Companion.isFromSpitPlayer
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isVideo
 import sp.it.pl.main.toUi
+import sp.it.util.async.coroutine.IO
+import sp.it.util.async.coroutine.VT
+import sp.it.util.async.runLater
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNotFxThread
+import sp.it.util.functional.asIf
 import sp.it.util.functional.net
+import sp.it.util.functional.runTry
+import sp.it.util.reactive.onItemSync
+import sp.it.util.units.durationOfHMSMs
+import sp.it.util.units.millis
 
 /**
  * Song in playlist.
@@ -90,8 +104,8 @@ class PlaylistSong: Song {
    constructor(new_uri: URI, _artist: String?, _title: String?, _length: Double?) {
       uriP = new_uri
       nameP = SimpleStringProperty()
-      timeP = SimpleObjectProperty(_length?.net { Duration(it) })
-      setATN(_artist, _title)
+      timeP = SimpleObjectProperty()
+      setATN(_artist, _title, _length?.net { Duration(it) })
       isUpdated = true
    }
 
@@ -130,39 +144,65 @@ class PlaylistSong: Song {
       if (isFileBased()) {
          failIfFxThread()
          val f = getFile()!!
-         if (f.isAudio()) {
-            f.readAudioFile().orNull()?.let { af ->
-               val t = af.tag ?: null
-               val h = af.audioHeader
-
-               val length = (1000*h.trackLength).toDouble()
-               val artist = t?.getFirst(FieldKey.ARTIST)
-               val title = t?.getFirst(FieldKey.TITLE)
-
-               runFX {
-                  setATN(artist, title)
-                  timeP.set(Duration(length))
+         when {
+            f.isAudio() -> {
+               f.readAudioFile().orNull()?.let { af ->
+                  val t = af.tag ?: null
+                  val h = af.audioHeader
+                  val length = (1000*h.trackLength).toDouble()
+                  val artist = t?.getFirst(FieldKey.ARTIST)
+                  val title = t?.getFirst(FieldKey.TITLE)
+                  setATN(artist, title, Duration(length))
                }
             }
-         } else if (f.isVideo()) {
-            runFX {
-               setATN(null, null)
-               timeP.set(null)
+            f.isVideo() ->
+               setATN(null, null, null)
+         }
+      } else if (isHttpBased()) {
+         runBlocking(VT) {
+            val r = APP.http.client.head(uri.toString()) { }
+            val isSpitPlayer = r.isFromSpitPlayer()
+            if (isSpitPlayer) {
+               setATN(
+                  r.headers["Spit-Song-${Metadata.Field.ARTIST.name()}"]?.let { CoreConverter.general.ofS(Metadata.Field.ARTIST.type, it).orNull() },
+                  r.headers["Spit-Song-${Metadata.Field.TITLE.name()}"]?.let { CoreConverter.general.ofS(Metadata.Field.TITLE.type, it).orNull() },
+                  r.headers["Spit-Song-${Metadata.Field.LENGTH.name()}"]?.let { CoreConverter.general.ofS(Metadata.Field.LENGTH.type, it).orNull() },
+               )
+            } else {
+               runFX {
+                  runTry {
+                     fun Duration.known() = takeIf { it!=Duration.UNKNOWN }
+                     val media = Media(uri.toString())
+                     setATN(
+                        media.metadata["artist"]?.asIf<String>(),
+                        media.metadata["title"]?.asIf<String>(),
+                        media.metadata["duration"]?.asIf<Duration>()?.known() ?: media.duration?.known(),
+                     )
+                     media.onError = Runnable {
+                        isCorruptCached = true
+                     }
+                     media.metadata.addListener(
+                        object: MapChangeListener<String, Any?> {
+                           override fun onChanged(change: MapChangeListener.Change<out String, out Any?>) {
+                              media.metadata.removeListener(this)
+                              runLater {
+                                 setATN(
+                                    media.metadata["artist"]?.asIf<String>(),
+                                    media.metadata["title"]?.asIf<String>(),
+                                    media.metadata["duration"]?.asIf<Duration>()?.known() ?: media.duration?.known(),
+                                 )
+                              }
+                           }
+                        }
+                     )
+                  }.ifError {
+                     isCorruptCached = true
+                  }
+               }
             }
          }
-      } else {
-         try {
-            val media = Media(uri.toString())
-            setATN("", "")
-            timeP.value = media.duration
-         } catch (e: IllegalArgumentException) {
-            isCorruptCached = true
-         } catch (e: NullPointerException) {
-            isCorruptCached = true
-         } catch (e: UnsupportedOperationException) {
-            isCorruptCached = true
-         }
-      }
+      } else
+         setATN(null, null, null)
    }
 
    /** Updates this song to data from specified metadata */
@@ -170,8 +210,7 @@ class PlaylistSong: Song {
       failIf(uriP!=m.uri) { "Update of $uriP failed, because Metadata uri is ${m.uri}" }
       val f = getFile()
       if (f==null || f.isAudio()) {
-         setATN(m.getArtist(), m.getTitle())
-         timeP.set(m.getLength())
+         setATN(m.getArtist(), m.getTitle(), m.getLength())
          isUpdated = true
       }
    }
@@ -182,10 +221,13 @@ class PlaylistSong: Song {
       if (timeP.value==null) timeP.value = time
    }
 
-   private fun setATN(artist: String?, title: String?) {
-      this.artist = artist
-      this.title = title.takeUnless { it.isNullOrBlank() } ?: uri.path.substringAfterLast("/").substringBeforeLast(".")
-      this.nameP.set(listOfNotNull(this.artist, this.title).joinToString(" - "))
+   private fun setATN(artist: String?, title: String?, duration: Duration?) {
+      runFX {
+         this.artist = artist
+         this.title = title.takeUnless { it.isNullOrBlank() } ?: uri.path.substringAfterLast("/").substringBeforeLast(".")
+         this.nameP.value = listOfNotNull(this.artist, this.title).joinToString(" - ")
+         this.timeP.value = duration ?: this.timeP.value
+      }
    }
 
    /** @return true if this item is corrupted */

@@ -20,8 +20,11 @@ abstract class Song {
    /** @return internal id of this song */
    open val id get() = uri.toString()
 
-   /** @return true iff this song represents a file on a local system, false indicates external resource (e.g. http) */
+   /** @return true iff this song represents a file on a local system */
    fun isFileBased(): Boolean = "file"==uri.scheme
+
+   /** @return true iff this song represents a file over http/https */
+   fun isHttpBased(): Boolean = "http"==uri.scheme || "https"==uri.scheme
 
    /**
     * @return absolute file this song represents or null if it is not based on file

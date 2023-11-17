@@ -20,7 +20,7 @@ class AppInstanceCom() {
    val onNewInstanceHandlers = Handler1<List<String>>()
 
    fun start() {
-      APP.http.serverRoutes route AppHttp.Handler({ it.requestURI.path=="/instance-launched" }) {
+      APP.http.serverRoutes route AppHttp.Handler("/instance-launched") {
          newInstanceLaunched(it.requestBodyAsJs().to<List<String>>())
       }
    }
@@ -34,7 +34,7 @@ class AppInstanceCom() {
    fun fireNewInstanceEvent(args: List<String>): Fut<Unit> {
       logger.info { "Sending NewAppInstance($args)" }
       return launch(NEW) {
-         APP.http.client.post("${APP.http.url}/instance-launched") { bodyJs(args) }
+         APP.http.client.post("127.0.0.1:${APP.http.url.port}/instance-launched") { bodyJs(args) }
       }.job.asFut()
    }
 

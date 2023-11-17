@@ -4,11 +4,16 @@ All notable changes to this project will be documented in this file. Format base
 ## [Latest]
 - Implement **Hue** plugin (for programmatic/voice control of Hue system without widget)
 - Implement **Hue** plugin settings
+- Implement **Hue** plugin voice control
 - Implement **Image conversion** action size change
 - Implement **Add songs to library** action to show up in **Tasks list**
 - Implement app http server/client
-- Optimize thread use (`Default` dispatcher avoids allocating threads)
-- Optimize thread use (use virtual threads in more situations)
+- Implement app http server settings
+- Implement app http `/audio` API
+- Implement app http `/speech` API
+- Implement media key support
+- Improve thread use (`Default` dispatcher avoids allocating threads)
+- Improve thread use (use virtual threads in more situations)
 - Improve app start performance (make `CoreFunctors` lazy)
 - Improve code (erroneous use of Double.MIN, Float.MIN)
 - Improve code (erroneous json conversion for char16/32 and other types and special values)
@@ -21,6 +26,29 @@ All notable changes to this project will be documented in this file. Format base
 - Fix errors reading audio metadata for non audio files
 - Fix `ScrollPaneSkin` orientation handling
 - Fix missing table skin in `Main.css`
+
+## Http Client
+Application now provides/uses single lazy http client for all http requests. Use `APP.http.client`.
+
+## Http Server
+Application now provides http server.
+It supports progrmmatic addition of request matchers/handlers that code and plugins may use.
+
+## Http Server API
+If enabled, application exposes `/audio` http API, which provides http access to the audio library.
+This makes it possible to play the songs from different PC.
+For this end, song metadata handling over http has been improved.
+
+There is also `/speech` API, which makes it possible to run speech recognition on different PC.
+
+## Singleton
+Application no longer uses RMI to delegate launched SLAVE instances to single MASTER instance.
+Instead, http client and server is used.
+
+## Hue
+**Hue Scenes** widget is now split into widget (ui) and plugin (functionality).
+This allows programmatic control of the **Phillips Hue** system without requiring the widget to be open.
+The plugin now supports voice control using `SpeechRecognition` plugin.
 
 ## [7.9.0] 2023 10 27
 - Update Java to 21

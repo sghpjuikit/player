@@ -1,13 +1,18 @@
 package sp.it.pl.plugin.impl
 
+import sp.it.util.async.coroutine.VT as VTc
+import io.ktor.client.request.put
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.util.regex.Pattern
 import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
+import sp.it.pl.core.bodyJs
+import sp.it.pl.core.requestBodyAsJs
 import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppHttp
 import sp.it.pl.main.IconMA
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
@@ -17,11 +22,11 @@ import sp.it.util.access.readOnly
 import sp.it.util.access.vn
 import sp.it.util.action.IsAction
 import sp.it.util.async.VT
+import sp.it.util.async.coroutine.runSuspending
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runNew
 import sp.it.util.async.runOn
-import sp.it.util.async.runVT
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
@@ -39,12 +44,15 @@ import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
 import sp.it.util.file.children
 import sp.it.util.file.div
+import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.chan
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.plus
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
 import sp.it.util.text.camelToSpaceCase
@@ -89,7 +97,7 @@ class SpeechRecognition: PluginBase() {
             stdout = it
                .filter { it.isNotBlank() }
                .onEach { runFX { speakingStdout.value = (speakingStdout.value ?: "") + "\n" + it.ansi() } }
-               .onEach { if (it.startsWith("USER: ")) runFX { handleSpeech(it.substring(6)) } }
+               .onEach { if (it.startsWith("USER: ")) handleSpeechRaw(it.substring(6)) }
                .joinToString("")
          }
          val stderrListener = process.errorStream.consume("stderr") {
@@ -153,7 +161,10 @@ class SpeechRecognition: PluginBase() {
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
    val blacklistWords by cList("a", "the", "please")
-      .def(name = "Blacklisted words", info = "Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive.")
+      .def(
+         name = "Blacklisted words",
+         info = "Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive."
+      )
 
    /** Engine used to generate voice. May require additional configuration */
    val whisperModel by cv("base.en.pt")
@@ -181,15 +192,36 @@ class SpeechRecognition: PluginBase() {
       }
    }
 
+   val handleBy by cvn<String>(null).uiConverter { if (it==null) "This application" else it }
+      .def(
+         name = "Handle speech events by",
+         info = "Optional IP address of another system where this another instance of this application is running and which will handle the speech detected by this instance"
+      )
+
+   /** Enable /speech in [AppHttp]. This API exposes speech & voice assistent functionality. Default false. */
+   val httpEnabled by cv(false)
+      .def(name = "Enable /audio http API",info = "This API exposes speech & voice assistent functionality")
+
+   private val httpApi = Subscribed {
+      APP.http.serverRoutes route AppHttp.Handler("/speech") {
+         it.requestBodyAsJs().asJsStringValue().net { runFX { handleSpeech(it) } }
+      }
+   }
+
+   private var isRunning = false
+
    override fun start() {
       /** Triggers event when process arg changes */
       val processChange = wakeUpWord.chan() + whisperModel.chan() + chatModel.chan() + speechEngine.chan() + speechEngineCharAiToken.chan()
+
       startSpeechRecognition()
       APP.sysEvents.subscribe { startSpeechRecognition() } on onClose // restart on audio device change
       processChange.throttleToLast(2.seconds).subscribe { startSpeechRecognition() } on onClose
+      isRunning = true
    }
 
    override fun stop() {
+      isRunning = false
       stopSpeechRecognition()
       onClose()
    }
@@ -197,9 +229,11 @@ class SpeechRecognition: PluginBase() {
    private fun startSpeechRecognition() {
       stopSpeechRecognition()
       setup = setup()
+      httpEnabled.sync(httpApi::subscribe)
    }
 
    private fun stopSpeechRecognition() {
+      httpApi.unsubscribe()
       invoke("EXIT")
       setup = null
    }
@@ -208,7 +242,15 @@ class SpeechRecognition: PluginBase() {
       setup?.then { it.outputStream.apply { write("$text\n".toByteArray()); flush() } }
    }
 
+   private fun handleSpeechRaw(text: String?) {
+      if (handleBy.value==null)
+         runFX { handleSpeech(text) }
+      else
+         runSuspending(VTc) { APP.http.client.put { bodyJs(text) } }
+   }
+
    private fun handleSpeech(text: String?) {
+      if (!isRunning) return
       speakingTextW.value = text
       text.orEmpty().sanitize().let { handlers.forEach { h -> h.action(it, h.commandUi) } }
    }

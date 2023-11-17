@@ -725,7 +725,7 @@ class Metadata: Song, Serializable {
 
    fun getMainField(): Field<*> = Field.TITLE
 
-   private fun <T> getField(field: Field<T>): T = field.getOf(this)
+   fun <T> getField(field: Field<T>): T = field.getOf(this)
 
    fun <T> getFieldS(f: Field<T>, noVal: String): String {
       val o = getField(f)

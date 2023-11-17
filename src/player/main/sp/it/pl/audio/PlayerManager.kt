@@ -35,10 +35,12 @@ import sp.it.pl.audio.tagging.writeRating
 import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.layout.controller.io.appWide
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppHttp
 import sp.it.pl.main.AppProgress
 import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.initApp
+import sp.it.pl.main.toS
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.util.Sort
 import sp.it.util.Sort.ASCENDING
@@ -79,8 +81,11 @@ import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.ThreadSafe
+import sp.it.util.dev.fail
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType.DIRECTORY
+import sp.it.util.file.json.JsArray
+import sp.it.util.file.json.JsString
 import sp.it.util.functional.Util.SAME
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
@@ -91,6 +96,7 @@ import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler0
+import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachChanges
@@ -98,6 +104,10 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.sync
 import sp.it.util.system.browse
+import sp.it.util.text.decodeBase64
+import sp.it.util.text.encodeBase64
+import sp.it.util.text.split2
+import sp.it.util.text.toURI
 import sp.it.util.type.atomic
 import sp.it.util.type.type
 import sp.it.util.ui.Util.layScrollVTextCenter
@@ -209,13 +219,20 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
    var browse by c<File>(APP.location.user).only(DIRECTORY)
       .def(name = "Last browse location")
+
    var lastSavePlaylistLocation by c<File>(APP.location.user).only(DIRECTORY)
       .def(name = "Last playlist export location")
+
+   /** Enable song modification by this application. Default true. */
    var readOnly by c(true)
       .def(
          name = "No song modification",
-         info = "Disallow all song modifications by this application.\n\nWhen true, app will be unable to change any song metadata"
+         info = "Disallow all song modifications by this application.\n\nWhen true, app is unable to change any song metadata"
       )
+
+   /** Enable /audio in [AppHttp]. This API exposes audio library. Default false. */
+   val httpEnabled by cv(false)
+      .def(name = "Enable /audio http API",info = "This API exposes audio library")
 
    var startTime: Duration? = null
    var postActivating = false // this prevents onTime handlers to reset after playback activation the suspension-activation should undergo as if it never happened
@@ -246,10 +263,45 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
     */
    val onPlaybackEnd = Handler0()
 
-   /**
-    * Set of time-specific actions that individually execute when song playback reaches point of handler's interest.
-    */
+   /** Set of time-specific actions that individually execute when song playback reaches point of handler's interest. */
    val onPlaybackAt: MutableList<PlayTimeHandler> = ArrayList()
+
+   /** Audio http API. */
+   private val httpApi = Subscribed {
+      Subscription(
+         APP.http.serverRoutes route AppHttp.Handler("/audio/library") {
+            val filter = it.requestURI.query
+               .splitToSequence(",")
+               .map { it.split2("=") }
+               .mapNotNull { (key, value) -> value.takeIf { key=="filter" && value.isNotEmpty() } }
+               .toList()
+            val songs = when {
+               filter.isEmpty() -> APP.db.songsById
+               else -> APP.db.songsById.filter { s ->
+                  filter.any { s.getTitleOrEmpty().contains(it, true) } || filter.any { s.getArtistOrEmpty().contains(it, true) }
+               }
+            }
+            JsArray(songs.map { JsString(it.id.encodeBase64()) })
+         },
+         APP.http.serverRoutes route AppHttp.Handler("/audio/library/%songId") {
+            val uri = it.requestURI.path.substringAfter("/audio/library/").decodeBase64().orThrow.toURI()
+            val song = APP.db.getSong(uri)
+            if (song==null)
+               fail { "Not found" }
+            else {
+               for (f in Metadata.Field.all.filter { it.isTypeStringRepresentable() })
+                  it.responseHeaders["Spit-Song-${f.name()}"] = song.getField(f).toS()
+
+               when {
+                  it.requestMethod=="HEAD" -> null
+                  song.isFileBased() -> song.getFile()
+                  song.isHttpBased() -> song.uri.toURL().openConnection()
+                  else -> fail { "Unsupported uri scheme ${uri.scheme}" }
+               }
+            }
+         },
+      )
+   }
 
    fun initialize() {
       playingSong.updated attach { playing.value = it }
@@ -278,9 +330,12 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
          else
             onPlaybackAt.forEach { it.restart(psl) }
       }
+
+      httpEnabled.sync(httpApi::subscribe)
    }
 
    fun dispose() {
+      httpApi.unsubscribe()
       player.dispose()
       isDisposed = true
    }

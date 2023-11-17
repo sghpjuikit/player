@@ -34,7 +34,7 @@ allprojects {
    kotlin {
       jvmToolchain {
          languageVersion = JavaLanguageVersion.of(21)
-         vendor = AMAZON
+         vendor = ADOPTIUM
       }
       sourceSets.all {
          languageSettings.apply {

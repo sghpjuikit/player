@@ -126,7 +126,10 @@ allprojects {
       }
 
       "Audio" group {
-         implementation("uk.co.caprica", "vlcj", "4.8.2")
+         implementation("uk.co.caprica", "vlcj", "4.8.2") {
+            exclude("net.java.dev.jna", "jna-jpms")
+            exclude("net.java.dev.jna", "jna-platform-jpms")
+         }
          implementation("net.jthink", "jaudiotagger", "3.0.1")
       }
 

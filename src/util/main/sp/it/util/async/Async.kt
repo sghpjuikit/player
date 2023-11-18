@@ -28,6 +28,7 @@ import sp.it.util.functional.asTryList
 import sp.it.util.functional.invoke
 import sp.it.util.functional.kt
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toUnit
 import sp.it.util.math.max
 import sp.it.util.reactive.Subscription
 import sp.it.util.units.millis
@@ -58,9 +59,7 @@ operator fun Executor.invoke(block: () -> Unit) = execute(block)
  */
 class NewThreadExecutor: Executor {
 
-   override fun execute(command: Runnable) {
-      thread(start = true, isDaemon = true, block = command.kt)
-   }
+   override fun execute(command: Runnable) = thread(start = true, isDaemon = true, block = command.kt).toUnit()
 
    /**
     * Executes the specified block immediately on a new daemon thread.
@@ -72,20 +71,24 @@ class NewThreadExecutor: Executor {
     * thread.start();
     * ```
     */
-   operator fun invoke(threadName: String) = Executor {
-      thread(start = true, isDaemon = true, name = threadName, block = it.kt)
-   }
+   operator fun invoke(threadName: String, block: Runnable) = invoke(threadName).execute(block)
+
+   operator fun invoke(threadName: String, block: () -> Unit) = invoke(threadName).execute(block)
+
+   operator fun invoke(threadName: String) = Executor { thread(start = true, isDaemon = true, name = threadName, block = it.kt) }
 
 }
 
 /** Executes the specified block on awt thread, immediately if called on awt thread, or using [EventQueue.invokeLater] otherwise. */
 object AwtExecutor: Executor {
-   override fun execute(command: Runnable) = if (EventQueue.isDispatchThread()) command() else EventQueue.invokeLater(command)
+   override fun execute(command: Runnable) =
+      if (EventQueue.isDispatchThread()) command() else EventQueue.invokeLater(command)
 }
 
 /** Executes the specified block on fx thread, immediately if called on fx thread, or using [Platform.runLater] otherwise. */
 object FxExecutor: Executor, CoroutineContext by Dispatchers.JavaFx  {
-   override fun execute(command: Runnable) = if (Platform.isFxApplicationThread()) command() else Platform.runLater(command)
+   override fun execute(command: Runnable) =
+      if (Platform.isFxApplicationThread()) command() else Platform.runLater(command)
 
    /**
     * Executes the specified block on fx thread after specified delay from now.

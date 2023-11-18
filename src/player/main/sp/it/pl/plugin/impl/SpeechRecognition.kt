@@ -38,13 +38,14 @@ import sp.it.util.conf.multilineToBottom
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
+import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiConverter
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
 import sp.it.util.file.children
 import sp.it.util.file.div
-import sp.it.util.functional.net
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscribed
@@ -95,15 +96,18 @@ class SpeechRecognition: PluginBase() {
          var stderr = ""
          val stdoutListener = process.inputStream.consume("stdout") {
             stdout = it
+               .map { it.ansi() }
                .filter { it.isNotBlank() }
-               .onEach { runFX { speakingStdout.value = (speakingStdout.value ?: "") + "\n" + it.ansi() } }
-               .onEach { if (it.startsWith("USER: ")) handleSpeechRaw(it.substring(6)) }
+               .map { it.replace("\u2028", "\n") }
+               .onEach { runFX { speakingStdout.value = (speakingStdout.value ?: "") + "\n" + it } }
+               .onEach { handleInputLocal(it) }
                .joinToString("")
          }
          val stderrListener = process.errorStream.consume("stderr") {
             stderr = it
                .filter { it.isNotBlank() }
-               .onEach { runFX { speakingStdout.value = (speakingStdout.value ?: "") + "\n" + it.ansi() } }
+               .map { it.ansi() }
+               .onEach { runFX { speakingStdout.value = (speakingStdout.value ?: "") + "\n" + it } }
                .joinToString("")
          }
          runNew {
@@ -150,9 +154,7 @@ class SpeechRecognition: PluginBase() {
    private val speakingStdoutW = vn<String>(null)
 
    /** Console output */
-   val speakingStdout by cvnro(speakingStdoutW)
-      .multilineToBottom(20)
-      .noPersist()
+   val speakingStdout by cvnro(speakingStdoutW).multilineToBottom(20).noPersist()
       .def(name = "Speech recognition output", info = "Shows console output of the speech recognition Whisper AI process", editable = EditMode.APP)
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
@@ -200,11 +202,18 @@ class SpeechRecognition: PluginBase() {
 
    /** Enable /speech in [AppHttp]. This API exposes speech & voice assistent functionality. Default false. */
    val httpEnabled by cv(false)
-      .def(name = "Enable /audio http API",info = "This API exposes speech & voice assistent functionality")
+      .def(name = "Http API", info = "This API exposes speech & voice assistent functionality")
+
+   /** Http input */
+   val httpInput by cvnro(speakingStdoutW).multilineToBottom(20).noPersist().readOnlyUnless(httpEnabled)
+      .def(name = "Http input", info = "Shows input received over http.", editable = EditMode.APP)
 
    private val httpApi = Subscribed {
       APP.http.serverRoutes route AppHttp.Handler("/speech") {
-         it.requestBodyAsJs().asJsStringValue().net { runFX { handleSpeech(it) } }
+         it.requestBodyAsJs().asJsStringValue().ifNotNull { text ->
+            runFX { httpInput.value = (httpInput.value ?: "") + "\n" + text }
+            handleInputHttp(text)
+         }
       }
    }
 
@@ -218,10 +227,12 @@ class SpeechRecognition: PluginBase() {
       APP.sysEvents.subscribe { startSpeechRecognition() } on onClose // restart on audio device change
       processChange.throttleToLast(2.seconds).subscribe { startSpeechRecognition() } on onClose
       isRunning = true
+      httpEnabled.sync(httpApi::subscribe)
    }
 
    override fun stop() {
       isRunning = false
+      httpApi.unsubscribe()
       stopSpeechRecognition()
       onClose()
    }
@@ -229,11 +240,9 @@ class SpeechRecognition: PluginBase() {
    private fun startSpeechRecognition() {
       stopSpeechRecognition()
       setup = setup()
-      httpEnabled.sync(httpApi::subscribe)
    }
 
    private fun stopSpeechRecognition() {
-      httpApi.unsubscribe()
       invoke("EXIT")
       setup = null
    }
@@ -242,7 +251,19 @@ class SpeechRecognition: PluginBase() {
       setup?.then { it.outputStream.apply { write("$text\n".toByteArray()); flush() } }
    }
 
-   private fun handleSpeechRaw(text: String?) {
+   private fun handleInputLocal(text: String) {
+      if (text.startsWith("USER: ")) handleSpeechRaw(text.substring(6))
+      if (text.startsWith("SYS: ")) {}
+      if (text.startsWith("CHAT: ")) {}
+   }
+
+   private fun handleInputHttp(text: String) {
+      if (text.startsWith("USER: ")) handleSpeechRaw(text.substring(6))
+      if (text.startsWith("SYS: ")) speak(text.substring(5))
+      if (text.startsWith("CHAT: ")) speak(text.substring(6))
+   }
+
+   private fun handleSpeechRaw(text: String) {
       if (handleBy.value==null)
          runFX { handleSpeech(text) }
       else
@@ -275,6 +296,7 @@ class SpeechRecognition: PluginBase() {
    }
 
    enum class SpeechEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
+      NONE("none", "None", "No voice"),
       SYSTEM("system", "System", "System voice"),
       CHARACTER_AI("character-ai", "Character.ai", "Voice using www.character.ai. Requires free account and access token");
    }

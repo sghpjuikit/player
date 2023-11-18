@@ -10,7 +10,35 @@ from queue import Queue
 from PyCharacterAI import Client  # https://github.com/Xtr4F/PyCharacterAI
 
 
-class Tty:
+class TtyNone:
+    # noinspection PyUnusedLocal
+    def speak(text, use_cache=True):
+        pass
+
+    def stop(self):
+        pass
+
+class TtyOsMac:
+    allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?!-_$:+-/ ")
+
+    def __init__(self):
+        self.queue = Queue()
+        threading.Thread(target=self.loop, daemon=True).start()
+
+    # noinspection PyUnusedLocal
+    def speak(self, text, use_cache=True):
+        self.queue.put(text)
+
+    def loop(self):
+        while True:
+            textRaw = self.queue.get()
+            text = ''.join(c for c in textRaw if c in allowed_chars)
+            os.system(f"say '{text}'")
+
+    def stop(self):
+        pass
+
+class TtyOs:
     def __init__(self):
         self.queue = Queue()
         threading.Thread(target=self.loop, daemon=True).start()

@@ -13,7 +13,7 @@ import traceback
 from threading import Thread
 from typing import cast
 from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
-from util_tty_engines import Tty, TtyCharAi
+from util_tty_engines import TtyNone, TtyOs, TtyOsMac, TtyCharAi
 
 
 # util: print with flush (avoids no console output)
@@ -62,7 +62,7 @@ if showHelp:
     write("    Default: system")
     write("")
     write("  speaking-engine=$engine")
-    write("    Engine for speaking. Use 'system' or 'character-ai'")
+    write("    Engine for speaking. Use 'none', 'os' or 'character-ai'")
     write("    Default: system")
     write("")
     write("  character-ai-token=$token")
@@ -86,7 +86,7 @@ if showHelp:
 parentProcess = int(arg('parent-process', -1))
 wake_word = arg('wake-word', 'system')
 name = wake_word[0].upper() + wake_word[1:]
-speakUseCharAi = arg('speaking-engine', 'os')
+speakEngineType = arg('speaking-engine', 'os')
 speakUseCharAiToken = arg('character-ai-token', '')
 speakUseCharAiVoice = int(arg('character-ai-voice', '22'))
 speechRecognitionModelName = arg('speech-recognition-model', 'base.en.pt')
@@ -97,21 +97,24 @@ listening_for_chat_prompt = False
 listening_for_chat_generation = False
 terminating = False
 
-# speaking actor, non-blocking
-speaking = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice) if speakUseCharAi == 'character-ai' else Tty()
+# speak engine actor, non-blocking
+if speakEngineType == 'none':
+    speakEngine = TtyNone()
+elif speakEngineType == 'os' and sys.platform == 'darwin':
+    speakEngine = TtyOsMac()
+elif speakEngineType == 'os':
+    speakEngine = TtyOs()
+elif speakEngineType == 'character-ai':
+    speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice)
 
 
 # noinspection SpellCheckingInspection
-def speak(text, use_cache=True):
-    if sys.platform == 'darwin':
-        allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?!-_$:+-/ ")
-        clean_text = ''.join(c for c in text if c in allowed_chars)
-        os.system(f"say '{clean_text}'")
-    else:
-        speaking.speak(text, use_cache)
+def speak(text, use_cache=True, use_write=True):
+    if use_write:
+        write('SYS: ' + text)
+    speakEngine.speak(text, use_cache)
 
 
-write('SYS: ' + name + ' initializing...')
 speak(name + " initializing")
 
 cache_dir = "cache"
@@ -132,9 +135,7 @@ chatModel = os.path.join(chatModelDir, chatModelName)
 chat = None if chatModelName == "none" else GPT4All(chatModel)
 chatSession = None
 
-# if __name__ == '__main__':
-#     write('SYS: ' + name + ' INTENT DETECTOR initializing.')
-#     speak(name + " INTENT DETECTOR initializing.")
+# speak(name + " INTENT DETECTOR initializing.")
 
 # https://huggingface.co/glaiveai/glaive-function-calling-v1
 commandTokenizer = None  # AutoTokenizer.from_pretrained("glaiveai/glaive-function-calling-v1", revision="6ade959", trust_remote_code=True)
@@ -186,8 +187,10 @@ def callback(recognizer, audio):
 
             # announcement
             if len(text) == 0:
-                write("SYS: Yes. Please speak.")
-                speak('Yes')
+                if listening_for_chat_prompt:
+                    speak('Yes, conversation is ongoing')
+                else:
+                    speak('Yes')
 
             # start LLM conversation
             elif not listening_for_chat_prompt and chat is not None and "start conversation" in text:
@@ -196,7 +199,6 @@ def callback(recognizer, audio):
                 chatSession = chat.chat_session()
 
                 listening_for_chat_prompt = True
-                write("SYS: Conversing. Please speak.")
                 speak('Conversing')
 
             # if no speech, report to user
@@ -205,7 +207,6 @@ def callback(recognizer, audio):
                 # end LLM conversation
                 if text.startswith("end conversation") or text.startswith("stop conversation"):
                     listening_for_chat_prompt = False
-                    write("SYS: Ok")
                     speak("Ok")
 
                 # do LLM conversation
@@ -224,16 +225,16 @@ def callback(recognizer, audio):
 
                         # generate & stream response
                         text_all = ''
-                        print('CHAT: ', end='', flush=True)
+                        print('CHAT: ', end='', flush=False)
                         for token in text_tokens:
-                            print(token, end='', flush=True)
+                            print(token.replace('\n', '\u2028'), end='', flush=False)
                             text_all = text_all + token
-                        print('\n', flush=True)
+                        print('\n', end='', flush=True)
                         txt = text_all
 
                         # if finished, speak
                         if listening_for_chat_generation:
-                            speak(txt, False)
+                            speak(txt, False, False)
                         else:
                             chatSession.__exit__(None, None, None)
 
@@ -264,7 +265,6 @@ def callback(recognizer, audio):
 
             # generic response
             else:
-                write("SYS: Yes. Please speak.")
                 speak('Yes')
 
         except Exception as e:
@@ -280,7 +280,6 @@ def start_listening():
     global listening
     listening = r.listen_in_background(source, callback)
 
-    write('SYS: ' + name + ' online.')
     speak(name + " online.")
 
 
@@ -289,13 +288,12 @@ def stop(*args):
     global terminating
     if not terminating:
         terminating = True
-        write('SYS: ' + name + ' offline.')
         speak(name + ' offline')
 
         if listening is not None:
             cast(callable, listening)(False)
 
-        speaking.stop()
+        speakEngine.stop()
 
 
 def start_exit_invoker():
@@ -312,13 +310,12 @@ def install_exit_handler():
     signal.signal(signal.SIGBREAK, stop)
     signal.signal(signal.SIGABRT, stop)
 
-
 def start_input_handler():
     while True:
         try:
             m = input()
             if m.startswith("SAY: "):
-                speak(base64.b64decode(m[5:]).decode('utf-8'))
+                speak(base64.b64decode(m[5:]).decode('utf-8'), True, False)
             elif m == "EXIT":
                 sys.exit(0)
         except EOFError as _:

@@ -56,8 +56,11 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
             override fun nativeKeyPressed(e: NativeKeyEvent) {
 
                // action keys
-               if (e.isActionKey)
+               if (e.isActionKey) {
+                  val r = nativeToFx[e.keyCode]?.let(keyComboKeys::get)?.block?.invoke() ?: false
+                  if (r) e.consume()
                   return
+               }
 
                // For some reason left BACK_SLASH key (left of the Z key) is not recognized, recognize manually
                if (e.rawCode==226) {
@@ -76,12 +79,10 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
             }
 
             override fun nativeKeyReleased(e: NativeKeyEvent) {
+
                // action keys
-               if (e.isActionKey) {
-                  val r = nativeToFx[e.keyCode]?.let(keyComboKeys::get)?.block?.invoke() ?: false
-                  if (r) e.consume()
-                  return
-               }
+               if (e.isActionKey)
+                  return // handled in PRESS event // for some cases, action key sometimes only fires PRESS event
 
                // For some reason left BACK_SLASH key (left of the Z key) is not recognized, recognize manually
                if (e.rawCode==226) {

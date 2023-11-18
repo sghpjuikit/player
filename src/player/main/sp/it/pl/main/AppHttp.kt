@@ -107,15 +107,19 @@ class AppHttp(
    private fun buildServerHandler() = HttpHandler { e ->
       runTry {
          logger.info { "Req ${e.requestMethod} ${e.requestURI}" }
-         serverRoutes.find(e).ifNull { fail { "No handler for ${e.requestURI.path}" } }!!.block(e)
+         serverRoutes.find(e).ifNull { throw Exception404("No handler for ${e.requestURI.path}") }!!.block(e)
       }.map {
          when (it) {
             is Fut<*> -> it.blockAndGetOrThrow()
             else -> it
          }
       }.ifError { x ->
-         logger.error(x) { "Failed to handle http request ${e.requestURI}" }
-         e.respond(500, 0) { it.writer().write(x.message ?: "") }
+         if (x is Exception404)
+            e.respond(404, 0) { it.writer().write(x.message ?: "") }
+         else {
+            logger.error(x) { "Failed to handle http request ${e.requestURI}" }
+            e.respond(500, 0) { it.writer().write(x.message ?: "") }
+         }
       }.ifOk {
          val bs = DEFAULT_BUFFER_SIZE
          when (it) {
@@ -190,6 +194,8 @@ class AppHttp(
       fun find(request: HttpExchange): Handler? =
          routes.find { request.requestURI.path.startsWith(it.path) }
    }
+
+   private class Exception404(message: String): RuntimeException(message)
 
    companion object: KLogging() {
 

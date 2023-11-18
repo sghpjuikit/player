@@ -150,11 +150,8 @@ class SpeechRecognition: PluginBase() {
    /** Last spoken text */
    val speakingText = speakingTextW.readOnly()
 
-   /** Console output - writable */
-   private val speakingStdoutW = vn<String>(null)
-
    /** Console output */
-   val speakingStdout by cvnro(speakingStdoutW).multilineToBottom(20).noPersist()
+   val speakingStdout by cvnro(vn<String>(null)).multilineToBottom(20).noPersist()
       .def(name = "Speech recognition output", info = "Shows console output of the speech recognition Whisper AI process", editable = EditMode.APP)
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
@@ -204,17 +201,14 @@ class SpeechRecognition: PluginBase() {
    val httpEnabled by cv(false)
       .def(name = "Http API", info = "This API exposes speech & voice assistent functionality")
 
-   /** Http input - writable */
-   private val httpInputW = vn<String>(null)
-
    /** Http input */
-   val httpInput by cvnro(httpInputW).multilineToBottom(20).noPersist().readOnlyUnless(httpEnabled)
+   private val httpInput by cvnro(vn<String>(null)).multilineToBottom(20).noPersist()
       .def(name = "Http input", info = "Shows input received over http.", editable = EditMode.APP)
 
    private val httpApi = Subscribed {
       APP.http.serverRoutes route AppHttp.Handler("/speech") {
          it.requestBodyAsJs().asJsStringValue().ifNotNull { text ->
-            runFX { httpInput.value = (httpInputW.value ?: "") + "\n" + text }
+            runFX { httpInput.value = (httpInput.value ?: "") + "\n" + text }
             handleInputHttp(text)
          }
       }

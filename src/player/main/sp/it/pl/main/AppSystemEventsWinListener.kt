@@ -25,6 +25,7 @@ import sp.it.pl.main.AppSystemEvents.Event.FileVolumeAdded
 import sp.it.pl.main.AppSystemEvents.Event.FileVolumeRemoved
 import sp.it.pl.main.AppSystemEvents.SysListener
 import sp.it.util.async.NEW
+import sp.it.util.async.invoke
 import sp.it.util.async.runNew
 import sp.it.util.async.runOn
 import sp.it.util.type.volatile
@@ -40,7 +41,7 @@ class AppSystemEventsWinListener(emitter: (AppSystemEvents.Event) -> Unit): SysL
 
    init {
       // start blocking event loop on new thread
-      runOn(NEW("AppSystemEventsWinListener")) {
+      NEW("AppSystemEventsWinListener") {
          logger.info { "Initializing..." }
 
          // define new window class
@@ -101,63 +102,53 @@ class AppSystemEventsWinListener(emitter: (AppSystemEvents.Event) -> Unit): SysL
       user32.SendMessage(hWnd, WinUser.WM_DESTROY, WinDef.WPARAM(0), WinDef.LPARAM(0))
    }
 
-   private fun callback(hwnd: WinDef.HWND, uMsg: Int, wParam: WinDef.WPARAM, lParam: WinDef.LPARAM): WinDef.LRESULT {
-      return when (uMsg) {
-         WinUser.WM_CREATE -> {
+   private fun callback(hwnd: WinDef.HWND, uMsg: Int, wParam: WinDef.WPARAM, lParam: WinDef.LPARAM): WinDef.LRESULT =
+      when (uMsg) {
+         WinUser.WM_CREATE ->
             onCreate(wParam, lParam)
-            WinDef.LRESULT(0)
-         }
          WinUser.WM_DESTROY -> {
             user32.PostQuitMessage(0)
             WinDef.LRESULT(0)
          }
-         WinUser.WM_SESSION_CHANGE -> {
+         WinUser.WM_SESSION_CHANGE ->
             onSessionChange(wParam, lParam)
-            WinDef.LRESULT(0)
-         }
-         WinUser.WM_DEVICECHANGE -> {
+         WinUser.WM_DEVICECHANGE ->
             onDeviceChange(wParam, lParam) ?: user32.DefWindowProc(hwnd, uMsg, wParam, lParam)
-         }
-         else -> user32.DefWindowProc(hwnd, uMsg, wParam, lParam)
+         else ->
+            user32.DefWindowProc(hwnd, uMsg, wParam, lParam)
       }
-   }
 
-   private fun onSessionChange(wParam: WinDef.WPARAM, lParam: WinDef.LPARAM) {
+   private fun onSessionChange(wParam: WinDef.WPARAM, lParam: WinDef.LPARAM) =
       when (wParam.toInt()) {
-         Wtsapi32.WTS_CONSOLE_CONNECT -> Unit
-         Wtsapi32.WTS_CONSOLE_DISCONNECT -> Unit
-         Wtsapi32.WTS_SESSION_LOGON -> Unit
-         Wtsapi32.WTS_SESSION_LOGOFF -> Unit
-         Wtsapi32.WTS_SESSION_LOCK -> Unit
-         Wtsapi32.WTS_SESSION_UNLOCK -> Unit
+         Wtsapi32.WTS_CONSOLE_CONNECT -> ignored()
+         Wtsapi32.WTS_CONSOLE_DISCONNECT -> ignored()
+         Wtsapi32.WTS_SESSION_LOGON -> ignored()
+         Wtsapi32.WTS_SESSION_LOGOFF -> ignored()
+         Wtsapi32.WTS_SESSION_LOCK -> ignored()
+         Wtsapi32.WTS_SESSION_UNLOCK -> ignored()
+         else -> ignored()
       }
-   }
 
-   private fun onCreate(wParam: WinDef.WPARAM?, lParam: WinDef.LPARAM?) {
-      logger.debug { "onCreate: WM_CREATE" }
-   }
+   private fun onCreate(wParam: WinDef.WPARAM?, lParam: WinDef.LPARAM?) =
+      ignored().apply { logger.debug { "onCreate: WM_CREATE" } }
 
    /** @return the result or null if the message is not processed. */
-   private fun onDeviceChange(wParam: WinDef.WPARAM, lParam: WinDef.LPARAM): WinDef.LRESULT? {
-      return when (wParam.toInt()) {
+   private fun onDeviceChange(wParam: WinDef.WPARAM, lParam: WinDef.LPARAM): WinDef.LRESULT? =
+      when (wParam.toInt()) {
          DBT.DBT_DEVICEARRIVAL -> onDeviceChangeArrival(lParam)
          DBT.DBT_DEVICEREMOVECOMPLETE -> onDeviceChangeRemoveComplete(lParam)
          DBT.DBT_DEVNODES_CHANGED -> onDeviceChangeNodesChanged()
-         else -> { logger.debug { "Message WM_DEVICECHANGE message received, value unhandled" }; null }
+         else -> null.apply { logger.debug { "Message WM_DEVICECHANGE message received, value unhandled" } }
       }
-   }
 
-   private fun onDeviceChangeArrival(lParam: WinDef.LPARAM): WinDef.LRESULT? = onDeviceChangeArrivalOrRemoveComplete(lParam, "ADD")
+   private fun onDeviceChangeArrival(lParam: WinDef.LPARAM): WinDef.LRESULT? =
+      onDeviceChangeArrivalOrRemoveComplete(lParam, "ADD")
 
-   private fun onDeviceChangeRemoveComplete(lParam: WinDef.LPARAM): WinDef.LRESULT? = onDeviceChangeArrivalOrRemoveComplete(lParam, "REM")
+   private fun onDeviceChangeRemoveComplete(lParam: WinDef.LPARAM): WinDef.LRESULT? =
+      onDeviceChangeArrivalOrRemoveComplete(lParam, "REM")
 
-   private fun onDeviceChangeNodesChanged(): WinDef.LRESULT {
-      logger.debug { "Message DBT_DEVNODES_CHANGED" }
-
-      // return TRUE means processed message for this wParam.
-      // see http://msdn.microsoft.com/en-us/library/windows/desktop/aa363211.aspx
-      return WinDef.LRESULT(1)
-   }
+   private fun onDeviceChangeNodesChanged(): WinDef.LRESULT =
+      processed().apply { logger.debug { "Message DBT_DEVNODES_CHANGED" } }
 
    private fun onDeviceChangeArrivalOrRemoveComplete(lParam: WinDef.LPARAM, action: String): WinDef.LRESULT? {
       val bhdr = DBT.DEV_BROADCAST_HDR(lParam.toLong())
@@ -223,6 +214,11 @@ class AppSystemEventsWinListener(emitter: (AppSystemEvents.Event) -> Unit): SysL
       private fun Boolean.ifErrorWarn(message: String) {
          if (!this) getLastError(message)
       }
+
+      // return TRUE means processed message for this wParam.
+      // see http://msdn.microsoft.com/en-us/library/windows/desktop/aa363211.aspx
+      private fun processed() = WinDef.LRESULT(1)
+      private fun ignored() = WinDef.LRESULT(0)
 
    }
 }

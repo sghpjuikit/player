@@ -2,7 +2,9 @@ package sp.it.pl.main
 
 import io.ktor.client.request.post
 import kotlinx.coroutines.job
+import kotlinx.coroutines.runBlocking
 import mu.KLogging
+import org.jetbrains.annotations.Blocking
 import sp.it.pl.core.bodyJs
 import sp.it.pl.core.requestBodyAsJs
 import sp.it.pl.core.to
@@ -17,27 +19,26 @@ import sp.it.util.reactive.Handler1
 
 class AppInstanceCom() {
    private val j = Config.json
+   private val api = "/instance-launched"
    val onNewInstanceHandlers = Handler1<List<String>>()
 
    fun start() {
-      APP.http.serverRoutes route AppHttp.Handler("/instance-launched") {
+      APP.http.serverRoutes route AppHttp.Handler(api) {
          newInstanceLaunched(it.requestBodyAsJs().to<List<String>>())
       }
    }
 
    fun stop() = Unit
 
-   /**
-    * Fires new app instance event. Any instance of this application listening
-    * will receive it. Run when application starts.
-    */
-   fun fireNewInstanceEvent(args: List<String>): Fut<Unit> {
-      logger.info { "Sending NewAppInstance($args)" }
-      return launch(NEW) {
-         APP.http.client.post("127.0.0.1:${APP.http.url.port}/instance-launched") { bodyJs(args) }
-      }.job.asFut()
-   }
+   /** Fires new app instance event on localhost and blocks thread until response */
+   @Blocking
+   fun fireNewInstanceEvent(args: List<String>): Unit =
+      runBlocking(NEW) {
+         logger.info { "Sending NewAppInstance($args)" }
+         APP.http.client.post("127.0.0.1:${APP.http.url.port}$api") { bodyJs(args) }
+      }
 
+   /** Handles received new app instance event */
    fun newInstanceLaunched(args: List<String>) {
       logger.info { "NewAppInstance($args)" }
       runFX { onNewInstanceHandlers(args) }

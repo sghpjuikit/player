@@ -120,7 +120,10 @@ import sp.it.util.units.uri
 
 @Suppress("RemoveExplicitTypeArguments")
 class AppActions: GlobalSubConfigDelegator("Shortcuts") {
-
+   /** [ActionManager] */
+   val manager = ActionManager
+   /** [ActionRegistrar] */
+   val registrar = ActionRegistrar
    /** [AppActionsAny] */
    val any = AppActionsAny
    /** [AppActionsApp] */

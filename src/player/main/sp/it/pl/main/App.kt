@@ -173,7 +173,7 @@ class App: Application(), GlobalConfigDelegator {
          logger.info { "Multiple app instances detected" }
          if (isSingleton) {
             logger.info { "App will close and delegate parameters to already running instance" }
-            appCommunicator.fireNewInstanceEvent(fetchArguments()).block()
+            appCommunicator.fireNewInstanceEvent(fetchArguments())
             exitProcess(0)
          } else {
             isStateful = false

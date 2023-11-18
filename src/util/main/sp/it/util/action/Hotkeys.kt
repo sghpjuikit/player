@@ -26,6 +26,7 @@ import mu.KLogging
 import sp.it.util.dev.fail
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Subscription
 
 /** Global hotkey manager, implemented on top of JNativeHook library. */
@@ -143,9 +144,11 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
       return Subscription { keyComboKeys -= key }
    }
 
-   fun unregister(action: Action) {
-      keyCombos.remove(action.name)
-   }
+   fun registered(key: KeyCode?) =
+      keyComboKeys[key]?.block
+
+   fun unregister(action: Action) =
+      keyCombos.remove(action.name).toUnit()
 
    private data class KeyComboKey(val key: KeyCode, val block: () -> Boolean)
 

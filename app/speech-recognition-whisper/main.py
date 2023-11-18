@@ -98,7 +98,6 @@ listening_for_chat_generation = False
 terminating = False
 
 # speak engine actor, non-blocking
-speakEngine = None
 if speakEngineType == 'none':
     speakEngine = TtyNone()
 elif speakEngineType == 'os' and sys.platform == 'darwin':

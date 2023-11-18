@@ -204,14 +204,17 @@ class SpeechRecognition: PluginBase() {
    val httpEnabled by cv(false)
       .def(name = "Http API", info = "This API exposes speech & voice assistent functionality")
 
+   /** Http input - writable */
+   private val httpInputW = vn<String>(null)
+
    /** Http input */
-   val httpInput by cvnro(speakingStdoutW).multilineToBottom(20).noPersist().readOnlyUnless(httpEnabled)
+   val httpInput by cvnro(httpInputW).multilineToBottom(20).noPersist().readOnlyUnless(httpEnabled)
       .def(name = "Http input", info = "Shows input received over http.", editable = EditMode.APP)
 
    private val httpApi = Subscribed {
       APP.http.serverRoutes route AppHttp.Handler("/speech") {
          it.requestBodyAsJs().asJsStringValue().ifNotNull { text ->
-            runFX { httpInput.value = (httpInput.value ?: "") + "\n" + text }
+            runFX { httpInput.value = (httpInputW.value ?: "") + "\n" + text }
             handleInputHttp(text)
          }
       }
@@ -297,7 +300,7 @@ class SpeechRecognition: PluginBase() {
 
    enum class SpeechEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
       NONE("none", "None", "No voice"),
-      SYSTEM("system", "System", "System voice"),
+      SYSTEM("os", "System", "System voice"),
       CHARACTER_AI("character-ai", "Character.ai", "Voice using www.character.ai. Requires free account and access token");
    }
 

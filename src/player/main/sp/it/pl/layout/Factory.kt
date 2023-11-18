@@ -137,7 +137,7 @@ class DeserializingFactory(val launcher: File): ComponentFactory<Component> {
 }
 
 class NodeFactory<T: Node>(val id: UUID, val type: KClass<out T>, override val name: String, val constructor: () -> T): ComponentFactory<Component>, Locatable {
-            val info: WidgetInfo? = null//type.companionObjectInstance?.asIf<WidgetInfo>()
+            val info: WidgetInfo? = type.companionObjectInstance?.asIf<WidgetInfo>()
    override val location = nodeWidgetFactory.location
    override val userLocation = APP.location.user.widgets/type.jvmName
    override suspend fun create() = nodeWidgetFactory.create().withType()

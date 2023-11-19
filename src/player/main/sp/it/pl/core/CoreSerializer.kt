@@ -8,8 +8,6 @@ import java.io.FileNotFoundException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
 import kotlin.reflect.jvm.jvmName
@@ -23,7 +21,7 @@ import sp.it.pl.audio.PlaylistItemDB
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
-import sp.it.util.async.threadFactory
+import sp.it.util.async.actor.ActorSe
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.div
 import sp.it.util.file.writeSafely
@@ -37,75 +35,54 @@ val logger = KotlinLogging.logger { }
 object CoreSerializer: Core {
 
    private val serializer = SerializerFury()
-   private lateinit var executor: ExecutorService
+   private val serializerActor = ActorSe<CoreSerializer.() -> Unit>("Serializator") { this.it() }
 
-   class SerializerJava {
-      fun read(f: File): Any? =
-         ObjectInputStream(f.inputStream().buffered()).use {
-            it.readObject()
-         }
-
-      fun write(f: File, o: Any?) =
-         ObjectOutputStream(f.outputStream().buffered()).use {
-            it.writeObject(o)
+   private val fury by lazy {
+      Fury.builder()
+         // set java only
+         // gives performance for no loss
+         .withLanguage(JAVA)
+         // disable codegen
+         // codegen causes large (6ms -> 200ms) startup cost for little effect
+         .withCodegen(false)
+         // allow unknown types
+         // but may be insecure if the classes contains malicious code
+         .requireClassRegistration(false)
+         // disable reference tracking for shared/circular reference
+         // gives performance for no loss
+         .withRefTracking(false)
+         // enable strict schema validation
+         // gives better reasoning about state
+         .withCompatibleMode(SCHEMA_CONSISTENT)
+         .build()!!
+         .apply {
+            register(PlayerStateDB::class.java)
+            register(PlaybackStateDB::class.java)
+            register(PlaylistDB::class.java)
+            register(PlaylistItemDB::class.java)
+            register(MetadatasDB::class.java)
+            register(Metadata::class.java)
          }
    }
-
-   private val fury = Fury.builder()
-      // set java only
-      // gives performance for no loss
-      .withLanguage(JAVA)
-      // disable codegen
-      // codegen causes large (6ms -> 200ms) startup cost for little effect
-      .withCodegen(false)
-      // allow unknown types
-      // but may be insecure if the classes contains malicious code
-      .requireClassRegistration(false)
-      // disable reference tracking for shared/circular reference
-      // gives performance for no loss
-      .withRefTracking(false)
-      // enable strict schema validation
-      // gives better reasoning about state
-      .withCompatibleMode(SCHEMA_CONSISTENT)
-      .build()!!
-      .apply {
-         register(PlayerStateDB::class.java)
-         register(PlaybackStateDB::class.java)
-         register(PlaylistDB::class.java)
-         register(PlaylistItemDB::class.java)
-         register(MetadatasDB::class.java)
-         register(Metadata::class.java)
-      }
 
    class SerializerFury {
-
-      fun read(f: File): Any? {
-       return  f.inputStream().use {
-            fury.deserialize(it)
-         }
-      }
-
-      fun write(f: File, o: Any?) {
-         f.outputStream().use {
-            fury.serialize(it, o)
-         }
-      }
+      fun read(f: File): Any? = f.inputStream().use { fury.deserialize(it) }
+      fun write(f: File, o: Any?): Unit = f.outputStream().use { fury.serialize(it, o) }
    }
 
-   override fun init() {
-      if (!::executor.isInitialized)
-         executor = Executors.newSingleThreadExecutor(threadFactory("Serialization", false))
+   class SerializerJava {
+      fun read(f: File): Any? = ObjectInputStream(f.inputStream().buffered()).use { it.readObject() }
+      fun write(f: File, o: Any?) = ObjectOutputStream(f.outputStream().buffered()).use { it.writeObject(o) }
    }
 
-   override fun dispose() {
-      if (::executor.isInitialized)
-         executor.shutdown()
-   }
+   override fun init() = Unit
+
+   override fun dispose() =
+      serializerActor.close()
 
    @ThreadSafe
-   fun useAtomically(block: CoreSerializer.() -> Unit) {
-      executor.execute { this.block() }
-   }
+   fun useAtomically(block: CoreSerializer.() -> Unit): Unit =
+      serializerActor(block)
 
    /**
     * Deserializes single instance of this type from file.

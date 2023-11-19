@@ -14,17 +14,14 @@ from threading import Thread
 from typing import cast
 from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
 from util_tty_engines import TtyNone, TtyOs, TtyOsMac, TtyCharAi
+from util_write_engine import Writer
 
+# util: print engine actor, non-blocking
+write = Writer()
 
-# util: print with flush (avoids no console output)
-def write(text):
-    print(text, flush=True)
-
-
-# util: print with flush (avoids no console output)
+# util: print ex with flush (avoids no console output)
 def write_ex(text, exception):
     print(text, exception, flush=True)
-
 
 # util: arg parsing
 def arg(arg_name, fallback):
@@ -35,6 +32,7 @@ def arg(arg_name, fallback):
         return a.split("=", 1)[-1]
 
 
+# help
 showHelp = '--help' in sys.argv or '-h' in sys.argv
 if showHelp:
     write("This is a speech recognition python script using OpenAI Whisper.")
@@ -83,6 +81,7 @@ if showHelp:
     write("")
     quit()
 
+# args
 parentProcess = int(arg('parent-process', -1))
 wake_word = arg('wake-word', 'system')
 name = wake_word[0].upper() + wake_word[1:]
@@ -225,12 +224,13 @@ def callback(recognizer, audio):
 
                         # generate & stream response
                         text_all = ''
-                        print('CHAT: ', end='', flush=False)
+                        write.iterableStart()
+                        write.iterablePart('CHAT: ')
                         for token in text_tokens:
-                            print(token.replace('\n', '\u2028'), end='', flush=False)
                             text_all = text_all + token
-                        print('\n', end='', flush=True)
+                            write.iterablePart(token.replace('\n', '\u2028'))
                         txt = text_all
+                        write.iterableEnd()
 
                         # if finished, speak
                         if listening_for_chat_generation:

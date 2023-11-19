@@ -85,6 +85,7 @@ import static sp.it.util.reactive.UtilKt.attachSize;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.reactive.UtilKt.syncSize;
 import static sp.it.util.text.StringExtensionsKt.keys;
+import static sp.it.util.ui.TableViewSelectionModelExtensionsKt.clearAndSelect;
 import static sp.it.util.ui.TableViewSelectionModelExtensionsKt.selectInverse;
 import static sp.it.util.ui.TableViewSelectionModelExtensionsKt.selectNone;
 import static sp.it.util.ui.Util.layHorizontally;
@@ -134,7 +135,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 					getSelectionModel().clearSelection();
 			}
 		});
-		onChange(filteredItems, runnable(() -> sort()));
+		onChange(filteredItems, runnable(() -> { sort(); }));
 
 		var isInitialSort = new AtomicBoolean(true);
 		setSortPolicy(it -> {
@@ -152,7 +153,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 					var c = computeComparatorMemoized();
 
 					// do async only if necessary
-					if (c==SAME) {
+					if (c==SAME || fi.isEmpty()) {
 						sortedItems.setAll(fi);
 						itemsSortingWrapper.setValue(false);
 					} else {
@@ -582,6 +583,21 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			getSortOrder().clear();
 			sorts.forEach((c, s) -> c.setSortType(s==ASCENDING ? DESCENDING : ASCENDING));
 			getSortOrder().setAll(sorts.keySet());
+		}
+	}
+
+	public boolean isSortEmpty() {
+		return itemsComparator.getValue()==SAME && getSortOrder().isEmpty();
+	}
+
+	public void sortMaterialize() {
+		if (!isSortEmpty()) {
+			var selections = new ArrayList<>(getSelectionModel().getSelectedIndices());
+			var items = new ArrayList<>(sortedItems);
+			getSelectionModel().clearSelection();
+			getSortOrder().clear();
+			setItemsRaw(items);
+			clearAndSelect(getSelectionModel(), selections);
 		}
 	}
 

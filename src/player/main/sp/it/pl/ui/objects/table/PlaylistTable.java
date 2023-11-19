@@ -59,9 +59,8 @@ import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.computeIndexColumn
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.getFontOrNull;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runNew;
-import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
-import static sp.it.util.functional.Util.listRO;
+import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.syncC;
@@ -87,7 +86,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 	public static final PseudoClass STYLE_PLAYED = pseudoclass("played");
 
 	public final @NotNull V<@NotNull Boolean> scrollToPlaying = new V<>(true);
-	private double selectionLastScreenY;
+	private double selectionLastSceneY;
 	final Disposer disposer = new Disposer();
 
 	public PlaylistTable(Playlist playlist) {
@@ -121,7 +120,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		setRowFactory(t -> {
 			var row = new SpitTableRow<PlaylistSong>();
 			// remember position for moving selected rows on mouse drag
-			row.setOnMousePressed(e -> selectionLastScreenY = row.localToScreen(0.0, row.getLayoutBounds().getCenterY()).getY());
+			row.setOnMousePressed(e -> selectionLastSceneY = row.localToScene(0.0, row.getLayoutBounds().getCenterY()).getY());
 			// clear table selection on mouse released if no item
 			row.setOnMouseReleased(e -> {
 				if (row.getItem()==null)
@@ -195,24 +194,12 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		addEventFilter(MOUSE_DRAGGED, e -> {
 			if (e.getButton()!=PRIMARY || !e.isControlDown()) return;
 			if (getItems().size()!=getItemsRaw().size()) return; // no-op if filter is active
+			if (getFixedCellSize()<=0.0) return;
 
-			var dist = e.getScreenY() - selectionLastScreenY;
+			var dist = e.getSceneY() - selectionLastSceneY;
 			int by = (int) (dist/getFixedCellSize());
-			if (by!=0) {
-				// apply sorting order into items and clear sorting
-				if (itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
-					movingItems = true;
-					var itemsToMove = new ArrayList<>(getItemsRaw());
-					var indexesToMove = new ArrayList<>(getSelectionModel().getSelectedIndices());
-					setItemsRaw(listRO());
-					getSortOrder().clear();
-					setItemsRaw(itemsToMove);
-					clearAndSelect(getSelectionModel(), indexesToMove);
-					movingItems = false;
-				}
-				moveSelectedItems(by);
-				selectionLastScreenY = e.getScreenY();
-			}
+			if (by!=0) selectionLastSceneY = e.getSceneY();
+			moveSelectedItems(by);
 		});
 
 		// set key-induced actions
@@ -339,8 +326,12 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 	 * @param by distance to move items by. Negative moves back. Zero does nothing.
 	 */
 	public void moveSelectedItems(int by) {
+		if (by==0) return;
 		movingItems = true;
-		var newS = getPlaylist().moveItemsBy(getSelectionModel().getSelectedIndices(), by);
+		sortMaterialize();
+		var oldS = new ArrayList<>(getSelectionModel().getSelectedIndices());
+		clearAndSelect(getSelectionModel(), list());
+		var newS = getPlaylist().moveItemsBy(oldS, by);
 		clearAndSelect(getSelectionModel(), newS);
 		movingItems = false;
 	}

@@ -31,6 +31,6 @@ class Writer:
                 while eventPart is not None:
                     print(eventPart, end='', flush=True)
                     eventPart = self.parts_queue.get()
-                print('\n', end='', flush=True)
+                print('', end='\n', flush=True)
             else:
                 print(event, end='\n', flush=True)

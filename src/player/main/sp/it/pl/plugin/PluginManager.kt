@@ -157,12 +157,12 @@ class PluginRef<P: PluginBase>(val type: KClass<P>) {
    }
 
    /** Sets a block to be fired immediately if running and every time a plugin of this type is started (right after) until it is stopped or the returned subscription unsubscribed. */
-   fun asValue(): ObservableValue<P?> {
+   fun asValue(disposer: Disposer): ObservableValue<P?> {
       val v = vn<P>(null)
       syncWhile {
          v.value = it
          Subscription { v.value = null }
-      }
+      } on disposer
       return v
    }
 }

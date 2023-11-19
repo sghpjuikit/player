@@ -38,8 +38,8 @@ import sp.it.pl.main.showFloating
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.HueSceneType.GroupScene
 import sp.it.pl.plugin.HueSceneType.LightScene
-import sp.it.pl.plugin.impl.SpeechRecognition
-import sp.it.pl.plugin.impl.SpeechRecognition.SpeakHandler
+import sp.it.pl.plugin.impl.VoiceAssistant
+import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.runSuspendingFx
@@ -96,9 +96,9 @@ class Hue: PluginBase() {
 
    override fun start() {
       onClose += {
-         APP.plugins.use<SpeechRecognition> { it.handlers -= speechHandlers }
+         APP.plugins.use<VoiceAssistant> { it.handlers -= speechHandlers }
       }
-      onClose += APP.plugins.plugin<SpeechRecognition>().attachWhile {
+      onClose += APP.plugins.plugin<VoiceAssistant>().attachWhile {
          it.handlers += speechHandlers
          Subscription { it.handlers -= speechHandlers }
       }
@@ -106,7 +106,7 @@ class Hue: PluginBase() {
       scope.launch(FX) {
          hueBridge.init()
          hueBridge.bulbsAndGroups().net { (_, groups) ->
-            APP.plugins.use<SpeechRecognition> {
+            APP.plugins.use<VoiceAssistant> {
                it.handlers -= speechHandlers
                speechHandlers.clear()
                speechHandlers += SpeakHandler("Turn all lights on/off", "lights on|off") { text, _ ->
@@ -290,7 +290,7 @@ class Hue: PluginBase() {
       override val description =
          "Provides Phillips Hue system integration." +
             "\nManages Phillips Hue bulbs, groups & scenes." +
-            "\nAdds voice commands to ${SpeechRecognition.name} plugin." +
+            "\nAdds voice commands to ${VoiceAssistant.name} plugin." +
             "\nSee https://www.philips-hue.com"
 
       private fun JsObject.withoutNullValues() = JsObject(value.filter { it.value !is JsNull })

@@ -145,7 +145,7 @@ class Hue(widget: Widget): SimpleController(widget) {
    val groupsPane = flowPane(10.emScaled, 10.emScaled)
    val scenesPane = flowPane(10.emScaled, 10.emScaled)
    val sensorsPane = flowPane(10.emScaled, 10.emScaled)
-   val huePlugin = APP.plugins.plugin<Hue>().asValue()
+   val huePlugin = APP.plugins.plugin<Hue>().asValue(onClose)
    val hueBridge: Hue.HueBridge?
       get() {
          huePlugin.value.ifNull {

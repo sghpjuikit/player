@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+- Implement **Voice Assistant** widget (Implement Voice Assistant plugin UI)
 - Implement **Hue** plugin (for programmatic/voice control of Hue system without widget)
 - Implement **Hue** plugin settings
 - Implement **Hue** plugin voice control
@@ -27,6 +28,20 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `ScrollPaneSkin` orientation handling
 - Fix missing table skin in `Main.css`
 
+## Voice Assistant
+**Speech Recognition** plugin is renamed to **Voice Assistant** plugin.
+It has more settings and its own UI widget.
+It supports running the voice recognition on different PC.
+There are multiple UX improvements to the assistant, making it easier to use:
+- lazy usage of python modules (easier installation)
+- no installation of vlc for the python program necessary (easier installation)
+- use of actors to prevent multiple outputs mixed together
+- displaying chat output token by token during generation
+- chat model selection (supports custom compatible models (requires manual download))
+- chat session (remembers previous messages)
+- chat voice engine/voice selection (none, os, character.ai)
+- text to speech model selection (all whisper models (requires manual download))
+
 ## Http Client
 Application now provides/uses single lazy http client for all http requests. Use `APP.http.client`.
 
@@ -39,7 +54,7 @@ If enabled, application exposes `/audio` http API, which provides http access to
 This makes it possible to play the songs from different PC.
 For this end, song metadata handling over http has been improved.
 
-There is also `/speech` API, which makes it possible to run speech recognition on different PC.
+There is also `/speech` API, which makes it possible to run **Voice Assistant** on different PC.
 
 ## Singleton
 Application no longer uses RMI to delegate launched SLAVE instances to single MASTER instance.

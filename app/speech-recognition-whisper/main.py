@@ -176,6 +176,7 @@ def callback(recognizer, audio):
             # result = modelWhisper.transcribe(np.frombuffer(audio.get_raw_data(), dtype=np.int16).astype(np.float32) / 32768.0)
             # text = result['text']
 
+            chatPrompt = text.rstrip(".").strip()
             text = text.lower().rstrip(".").strip()
 
             if len(text) > 0:
@@ -192,6 +193,7 @@ def callback(recognizer, audio):
                     return
 
             # sanitize
+            chatPrompt = chatPrompt.lstrip(wake_word).lstrip(",").rstrip(".").strip()
             text = text.lstrip(wake_word).lstrip(",").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
             write('USER: ' + text)
 
@@ -266,7 +268,7 @@ def callback(recognizer, audio):
                         else:
                             listening_for_chat_generation = False
 
-                    Thread(target=generate, args=(text,), daemon=True).start()
+                    Thread(target=generate, args=(chatPrompt,), daemon=True).start()
 
             # do command
             elif text.startswith("command"):

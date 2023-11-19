@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javafx.beans.property.BooleanProperty;
@@ -137,8 +138,10 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		});
 		onChange(filteredItems, runnable(() -> { sort(); }));
 
+		var sortLock = new AtomicLong(0);
 		var isInitialSort = new AtomicBoolean(true);
 		setSortPolicy(it -> {
+			var lock = sortLock.incrementAndGet();
 			if (!isInitialSort.getAndSet(false)) {
 				// TODO retain selection
 //				if (getSortOrder().isEmpty()) {
@@ -158,9 +161,11 @@ public class FilteredTable<T> extends FieldedTable<T> {
 						itemsSortingWrapper.setValue(false);
 					} else {
 						runVT(() -> {
+							if (lock!=sortLock.get()) return null;
 							fi.sort(c);
 							return null;
 						}).ui(i -> {
+							if (lock!=sortLock.get()) return null;
 							sortedItems.setAll(fi);
 							itemsSortingWrapper.setValue(false);
 							return null;

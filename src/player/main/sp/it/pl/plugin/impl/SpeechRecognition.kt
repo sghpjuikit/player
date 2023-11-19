@@ -245,22 +245,25 @@ class SpeechRecognition: PluginBase() {
    }
 
    private fun handleInputLocal(text: String) {
-      if (text.startsWith("USER: ")) handleSpeechRaw(text.substring(6))
-      if (text.startsWith("SYS: ")) {}
-      if (text.startsWith("CHAT: ")) {}
+      if (text.startsWith("USER: ")) handleSpeechRaw(text)
+      if (text.startsWith("SYS: ")) handleSpeechRaw(text)
+      if (text.startsWith("CHAT: ")) handleSpeechRaw(text)
    }
 
    private fun handleInputHttp(text: String) {
-      if (text.startsWith("USER: ")) handleSpeechRaw(text.substring(6))
-      if (text.startsWith("SYS: ")) speak(text.substring(5))
-      if (text.startsWith("CHAT: ")) speak(text.substring(6))
+      if (text.startsWith("USER: ")) handleSpeechRaw(text)
+      if (text.startsWith("SYS: ")) speak(text)
+      if (text.startsWith("CHAT: ")) speak(text)
    }
 
    private fun handleSpeechRaw(text: String) {
-      if (handleBy.value==null)
-         runFX { handleSpeech(text) }
-      else
-         runSuspending(VTc) { APP.http.client.put { bodyJs(text) } }
+      if (handleBy.value==null) {
+         if (text.startsWith("USER: "))
+            runFX {
+               handleSpeech(text.substringAfter(":"))
+            }
+      } else
+         runSuspending(VTc) { APP.http.client.put("http://${handleBy.value}:${APP.http.url.port}/speech") { bodyJs(text) } }
    }
 
    private fun handleSpeech(text: String?) {

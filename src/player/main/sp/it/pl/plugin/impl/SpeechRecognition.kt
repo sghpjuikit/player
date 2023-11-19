@@ -22,6 +22,7 @@ import sp.it.util.access.readOnly
 import sp.it.util.access.vn
 import sp.it.util.action.IsAction
 import sp.it.util.async.VT
+import sp.it.util.async.actor.ActorVt
 import sp.it.util.async.coroutine.runSuspending
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
@@ -38,7 +39,6 @@ import sp.it.util.conf.multilineToBottom
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
-import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiConverter
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.valuesUnsealed
@@ -240,12 +240,8 @@ class SpeechRecognition: PluginBase() {
    }
 
    private fun stopSpeechRecognition() {
-      invoke("EXIT")
+      write("EXIT")
       setup = null
-   }
-
-   private fun invoke(text: String) {
-      setup?.then { it.outputStream.apply { write("$text\n".toByteArray()); flush() } }
    }
 
    private fun handleInputLocal(text: String) {
@@ -276,13 +272,19 @@ class SpeechRecognition: PluginBase() {
    /** Adjust speech text to make it more versatile and more likely to match command */
    private fun String.sanitize(): String = trim().removeSuffix(".").lowercase().words().filterNot(blacklistWordsSet::contains).joinToString(" ")
 
+   private val writing = ActorVt<Pair<Fut<Process>?, String>>("SpeechRecognition-writer") { (setup, it) ->
+      setup?.blockAndGetOrThrow()?.outputStream?.apply { write("$it\n".toByteArray()); flush() }
+   }
+
+   private fun write(text: String): Unit = writing(setup to text)
+
    @IsAction(name = "Synthesize voice", info = "Identical to \"Narrate text\"")
    fun synthesize() = speak()
 
    @IsAction(name = "Narrate text", info = "Narrates the specified text using synthesized voice")
    fun speak() = action<String>("Narrate text", "Narrates the specified text using synthesized voice", IconMA.RECORD_VOICE_OVER, BLOCK) { speak(it) }.invokeWithForm()
 
-   fun speak(text: String) = invoke("SAY: ${text.encodeBase64()}")
+   fun speak(text: String) = write("SAY: ${text.encodeBase64()}")
 
    companion object: PluginInfo, KLogging() {
       override val name = "Speech Recognition"

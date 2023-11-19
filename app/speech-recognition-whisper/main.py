@@ -13,6 +13,7 @@ import traceback
 from threading import Thread
 from typing import cast
 from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
+from gpt4all.gpt4all import empty_chat_session
 from util_tty_engines import TtyNone, TtyOs, TtyOsMac, TtyCharAi
 from util_write_engine import Writer
 
@@ -42,6 +43,10 @@ if showHelp:
     write("    - system log in format`SYS: $message`")
     write("    - recognized user speech in format `RAW: $speech`")
     write("    - recognized user speech, sanitized, in format `USER: $speech`")
+    write("    - recognized user command, in format `COM: $command`")
+    write("")
+    write("This script takes (optional) input:")
+    write("    - `SYS: $base64_encoded_text` and speaks it (if speech-engine is not `none`)")
     write("")
     write("This scrip terminates:")
     write("    - upon `CTRL+C`")
@@ -133,6 +138,7 @@ chatModelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-
 chatModel = os.path.join(chatModelDir, chatModelName)
 chat = None if chatModelName == "none" else GPT4All(chatModel)
 chatSession = None
+chat_generating = False
 
 # speak(name + " INTENT DETECTOR initializing.")
 
@@ -176,11 +182,12 @@ def callback(recognizer, audio):
 
             # cancel any ongoing chat activity
             if listening_for_chat_generation:
-                listening_for_chat_generation = False
-                return
+                if not text.startswith("system end conversation") and not text.startswith("system stop conversation"):
+                    listening_for_chat_generation = False
+                    return
 
             # sanitize
-            text = text.lstrip(wake_word).lstrip(",").rstrip(".").strip().replace(' the ', '').replace(' a ', '')
+            text = text.lstrip(wake_word).lstrip(",").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
             write('USER: ' + text)
 
             # announcement
@@ -199,7 +206,6 @@ def callback(recognizer, audio):
 
                 # initialize chat
                 chatSession = chat.chat_session()
-
                 listening_for_chat_prompt = True
                 speak('Conversing')
 
@@ -209,8 +215,12 @@ def callback(recognizer, audio):
                 # end LLM conversation
                 if text.startswith("end conversation") or text.startswith("stop conversation"):
                     listening_for_chat_prompt = False
-                    speak("Ok")
-                    chatSession.__exit__(None, None, None)
+                    if not chat_generating:
+                        speak("Ok")
+                        # chatSession.__exit__(None, None, None)
+                        chat._is_chat_session_activated = False
+                        chat.current_chat_session = empty_chat_session("")
+                        chat._current_prompt_template = "{0}"
 
                 # do LLM conversation
                 else:
@@ -221,7 +231,9 @@ def callback(recognizer, audio):
 
                     def generate(txt):
                         global listening_for_chat_generation
+                        global chat_generating
                         listening_for_chat_generation = True
+                        chat_generating = True
                         text_tokens = chat.generate(
                             txt, streaming=True, n_batch=16, max_tokens=1000, callback=stop_on_token_callback
                         )
@@ -235,12 +247,19 @@ def callback(recognizer, audio):
                             write.iterablePart(token.replace('\n', '\u2028'))
                         txt = text_all
                         write.iterableEnd()
+                        chat_generating = False
 
                         # if finished, speak
-                        if listening_for_chat_generation:
+                        if listening_for_chat_prompt is False:
+                            # chatSession.__exit__(None, None, None)
+                            chat._is_chat_session_activated = False
+                            chat.current_chat_session = empty_chat_session("")
+                            chat._current_prompt_template = "{0}"
+                            speak("Ok")
+                        elif listening_for_chat_generation:
                             speak(txt, False, False)
                         else:
-                            chatSession.__exit__(None, None, None)
+                            listening_for_chat_generation = False
 
                     Thread(target=generate, args=(text,), daemon=True).start()
 
@@ -251,7 +270,7 @@ def callback(recognizer, audio):
                 # command_output = commandModel.generate(**command_input, do_sample=True, temperature=0.1, top_p=0.1, max_new_tokens=1000)
                 # text = commandTokenizer.decode(command_output[0], skip_special_tokens=True)
                 #
-                write('SYS: ' + text.lstrip("command").strip())
+                write('COM: ' + text.lstrip("command").strip())
                 #
                 # if "ASSISTANT: <functioncall>" in text:
                 #     text = text.split("ASSISTANT: <functioncall>")[1]

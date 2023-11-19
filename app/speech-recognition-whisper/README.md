@@ -70,6 +70,10 @@ This script prints:
 - system log in format`SYS: $message`
 - recognized user speech in format `RAW: $speech`
 - recognized user speech, sanitized, in format `USER: $speech`
+- recognized user command, in format `COM: $command`
+
+### Input format (optional)
+- `SYS: $base64_encoded_text` and speaks it (if speech-engine is not `none`)
 
 ### Speach engine
 By default, system voice is used.

@@ -12,7 +12,7 @@ from PyCharacterAI import Client  # https://github.com/Xtr4F/PyCharacterAI
 
 class TtyNone:
     # noinspection PyUnusedLocal
-    def speak(text, use_cache=True):
+    def speak(self, text, use_cache=True):
         pass
 
     def stop(self):

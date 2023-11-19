@@ -144,7 +144,7 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
       return Subscription { keyComboKeys -= key }
    }
 
-   fun registered(key: KeyCode?) =
+   fun registered(key: KeyCode) =
       keyComboKeys[key]?.block
 
    fun unregister(action: Action) =

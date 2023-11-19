@@ -21,7 +21,7 @@ import sp.it.util.system.Os
 import sp.it.util.type.volatile
 
 /** Low level keyboard hook. Supports [Os.WINDOWS] only. */
-class AppMediaButtons(handlers: (KeyCode?) -> (() -> Boolean)? = APP.actions.registrar.hotkeys::registered) {
+class AppMediaButtons(handlers: (KeyCode) -> (() -> Boolean)? = APP.actions.registrar.hotkeys::registered) {
 
    /** [User32.INSTANCE] */
    private val user32 = User32.INSTANCE
@@ -32,7 +32,7 @@ class AppMediaButtons(handlers: (KeyCode?) -> (() -> Boolean)? = APP.actions.reg
       override fun callback(nCode: Int, wParam: WPARAM, lParam: KBDLLHOOKSTRUCT): LRESULT {
          Win32VK.VK_MEDIA_PLAY_PAUSE
          val key = lParam.vkCode.toFx();
-         val handler = handlers(key)
+         val handler = key?.let(handlers)
          val consume = handler?.invoke() ?: false
          return if (consume) LRESULT(1)
          else user32.CallNextHookEx(hhook, nCode, wParam, LPARAM(Pointer.nativeValue(lParam.pointer)))

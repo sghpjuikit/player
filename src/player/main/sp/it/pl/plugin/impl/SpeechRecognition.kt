@@ -134,8 +134,8 @@ class SpeechRecognition: PluginBase() {
          SpeakHandler("Pause playback", "stop music") { text, command -> if (command in text) APP.audio.pause() },
          SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) APP.audio.pause() },
          SpeakHandler("Open widget by name", "[open|show] (widget)? \$widget-name (widget)?") { text, _ ->
-            if (text.startsWith("command open")) {
-               val fName = text.removePrefix("command open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
+            if (text.startsWith("open")) {
+               val fName = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
                val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase() equalsNc fName }
                if (f!=null) ComponentLoaderStrategy.DOCK.loader(f)
             }
@@ -248,17 +248,19 @@ class SpeechRecognition: PluginBase() {
       if (text.startsWith("USER: ")) handleSpeechRaw(text)
       if (text.startsWith("SYS: ")) handleSpeechRaw(text)
       if (text.startsWith("CHAT: ")) handleSpeechRaw(text)
+      if (text.startsWith("COM: ")) handleSpeechRaw(text)
    }
 
    private fun handleInputHttp(text: String) {
       if (text.startsWith("USER: ")) handleSpeechRaw(text)
       if (text.startsWith("SYS: ")) speak(text)
       if (text.startsWith("CHAT: ")) speak(text)
+      if (text.startsWith("COM: ")) speak(text)
    }
 
    private fun handleSpeechRaw(text: String) {
       if (handleBy.value==null) {
-         if (text.startsWith("USER: "))
+         if (text.startsWith("COM: "))
             runFX {
                handleSpeech(text.substringAfter(":"))
             }

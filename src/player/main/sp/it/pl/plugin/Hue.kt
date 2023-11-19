@@ -110,12 +110,12 @@ class Hue: PluginBase() {
                it.handlers -= speechHandlers
                speechHandlers.clear()
                speechHandlers += SpeakHandler("Turn all lights on/off", "lights on|off") { text, _ ->
-                  if ("command lights on"==text || "command lights off"==text)
+                  if ("lights on"==text || "lights off"==text)
                      hueBridge.toggleBulbGroup("0").ui { refreshes(Unit) }
                }
                speechHandlers += SpeakHandler("Turn group lights on/off", "lights \$group-name on|off") { text, _ ->
-                  if (text.startsWith("command lights ")) {
-                     val gName = text.substringAfter("command lights ").removeSuffix(" on").removeSuffix(" off")
+                  if (text.startsWith("lights ")) {
+                     val gName = text.substringAfter("lights ").removeSuffix(" on").removeSuffix(" off")
                      val g = groups.find { it.name.lowercase() equalsNc gName }
                      if (g!=null) hueBridge.toggleBulbGroup(g.id).ui { refreshes(Unit) }
                   }

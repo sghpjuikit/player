@@ -7,6 +7,7 @@ import whisper  # https://github.com/openai/whisper
 import warnings
 import time
 import os
+import uuid
 import psutil
 import base64
 import traceback
@@ -76,6 +77,11 @@ if showHelp:
     write("    If speaking-engine=character-ai is used, optional voice id can be supplied")
     write("    Default: 22 (Anime Girl en-US)")
     write("")
+    write("  vlc-path=$path_to_vlc_dir")
+    write("    If speaking-engine=character-ai is used, optional path to vlc player can be specified.")
+    write("    If no path is specified and application does not find any vlc player installed, speaking will not function.")
+    write("    Default: ''")
+    write("")
     write("  speech-recognition-model=$model")
     write("    Whisper model for speech recognition")
     write("    Default: base.en.pt")
@@ -93,6 +99,7 @@ name = wake_word[0].upper() + wake_word[1:]
 speakEngineType = arg('speaking-engine', 'os')
 speakUseCharAiToken = arg('character-ai-token', '')
 speakUseCharAiVoice = int(arg('character-ai-voice', '22'))
+vlcPath = arg('vlc_path', '')
 speechRecognitionModelName = arg('speech-recognition-model', 'base.en.pt')
 chatModelName = arg('chat-model', 'none')
 
@@ -107,9 +114,9 @@ if speakEngineType == 'none':
 elif speakEngineType == 'os' and sys.platform == 'darwin':
     speakEngine = TtyOsMac()
 elif speakEngineType == 'os':
-    speakEngine = TtyOs()
+    speakEngine = TtyOs(write)
 elif speakEngineType == 'character-ai':
-    speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice)
+    speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, vlcPath, write)
 
 
 # noinspection SpellCheckingInspection
@@ -155,8 +162,6 @@ def callback(recognizer, audio):
 
     if not terminating:
         try:
-            import uuid
-
             audio_file = os.path.join(cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
             text = ''
             try:
@@ -303,7 +308,7 @@ def start_listening():
     global listening
     listening = r.listen_in_background(source, callback)
 
-    speak(name + " online.")
+    speak(name + " online")
 
 
 # noinspection PyUnusedLocal

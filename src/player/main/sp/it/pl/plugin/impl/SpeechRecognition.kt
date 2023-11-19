@@ -83,6 +83,7 @@ class SpeechRecognition: PluginBase() {
             "speaking-engine=${speechEngine.value.code}",
             "character-ai-token=${speechEngineCharAiToken.value}",
             "character-ai-voice=22",
+            "vlc-path=${APP.audio.playerVlcLocation.value.orEmpty()}",
             "chat-model=${chatModel.value}",
             "speech-recognition-model=${whisperModel.value}"
          )

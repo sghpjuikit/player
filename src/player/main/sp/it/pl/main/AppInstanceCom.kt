@@ -1,7 +1,6 @@
 package sp.it.pl.main
 
 import io.ktor.client.request.post
-import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import org.jetbrains.annotations.Blocking
@@ -9,10 +8,6 @@ import sp.it.pl.core.bodyJs
 import sp.it.pl.core.requestBodyAsJs
 import sp.it.pl.core.to
 import sp.it.util.async.coroutine.NEW
-import sp.it.util.async.coroutine.VT
-import sp.it.util.async.coroutine.asFut
-import sp.it.util.async.coroutine.launch
-import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.conf.Config
 import sp.it.util.reactive.Handler1

@@ -24,7 +24,6 @@ import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyCode.WINDOWS
 import mu.KLogging
 import sp.it.util.dev.fail
-import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Subscription

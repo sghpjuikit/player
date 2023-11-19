@@ -2,8 +2,6 @@ package sp.it.pl.main
 
 import com.drew.imaging.ImageMetadataReader
 import com.twelvemonkeys.image.ResampleOp
-import java.awt.Image
-import java.awt.image.renderable.RenderableImage
 import java.io.File
 import java.net.URISyntaxException
 import javafx.geometry.Pos.CENTER
@@ -57,7 +55,6 @@ import sp.it.util.async.runIoParallel
 import sp.it.util.async.runVT
 import sp.it.util.conf.CheckList
 import sp.it.util.conf.ConfigurableBase
-import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
@@ -83,7 +80,6 @@ import sp.it.util.file.setCreated
 import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
-import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
@@ -92,11 +88,9 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
-import sp.it.util.functional.map
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
-import sp.it.util.functional.toOption
 import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp

@@ -1,12 +1,12 @@
 package sp.it.pl.audio.tagging
 
+import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.Song
 import sp.it.pl.main.APP
+import sp.it.pl.main.isAudio
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
-import org.jetbrains.annotations.Blocking
-import sp.it.pl.main.isAudio
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.Try

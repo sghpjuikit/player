@@ -1,8 +1,8 @@
 package sp.it.pl.layout
 
 import javafx.geometry.Orientation.VERTICAL
-import sp.it.pl.layout.controller.ControllerIntro
 import sp.it.pl.layout.controller.ControllerEmpty
+import sp.it.pl.layout.controller.ControllerIntro
 import sp.it.pl.layout.controller.ControllerNode
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets.PLAYBACK

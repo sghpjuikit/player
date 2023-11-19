@@ -24,9 +24,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KLogging
 import sp.it.pl.core.InfoUi
-import sp.it.pl.core.to
 import sp.it.pl.core.bodyAsJs
 import sp.it.pl.core.bodyJs
+import sp.it.pl.core.to
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA

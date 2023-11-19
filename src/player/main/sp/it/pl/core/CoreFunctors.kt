@@ -61,8 +61,8 @@ import sp.it.util.math.StrExF
 import sp.it.util.text.Char16
 import sp.it.util.text.Char32
 import sp.it.util.text.Grapheme
-import sp.it.util.text.StringSplitParser
 import sp.it.util.text.StringSeq
+import sp.it.util.text.StringSplitParser
 import sp.it.util.text.char32At
 import sp.it.util.text.chars16
 import sp.it.util.text.chars32

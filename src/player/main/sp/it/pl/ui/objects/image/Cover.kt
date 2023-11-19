@@ -5,10 +5,10 @@ import java.io.File
 import java.util.Objects
 import javafx.scene.image.Image
 import org.jaudiotagger.tag.images.Artwork
+import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.tagging.imageOrNull
 import sp.it.pl.audio.tagging.info
 import sp.it.pl.image.ImageStandardLoader
-import org.jetbrains.annotations.Blocking
 import sp.it.util.functional.orNull
 import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.image.FitFrom.OUTSIDE

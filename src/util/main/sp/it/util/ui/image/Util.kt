@@ -26,8 +26,8 @@ import javax.imageio.event.IIOReadProgressListener
 import javax.imageio.stream.ImageInputStream
 import kotlin.concurrent.withLock
 import mu.KotlinLogging
-import sp.it.util.async.runFX
 import org.jetbrains.annotations.Blocking
+import sp.it.util.async.runFX
 import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
 import sp.it.util.file.toURLOrNull

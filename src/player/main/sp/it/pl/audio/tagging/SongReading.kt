@@ -3,12 +3,11 @@ package sp.it.pl.audio.tagging
 import javafx.concurrent.Task
 import javafx.event.EventHandler
 import javafx.scene.media.Media
-import kotlin.streams.asSequence
 import mu.KotlinLogging
+import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.main.APP
-import org.jetbrains.annotations.Blocking
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isVideo
 import sp.it.util.collections.materialize

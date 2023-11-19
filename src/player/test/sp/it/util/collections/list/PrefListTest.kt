@@ -2,8 +2,6 @@ package sp.it.util.collections.list
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldContain
-import io.kotest.matchers.sequences.contain
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import kotlin.reflect.jvm.jvmName
 

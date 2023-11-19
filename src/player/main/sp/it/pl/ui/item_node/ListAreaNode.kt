@@ -44,7 +44,6 @@ import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.EditMode
 import sp.it.util.dev.fail
 import sp.it.util.functional.FunctorPool
-import sp.it.util.functional.Functors
 import sp.it.util.functional.PF
 import sp.it.util.functional.PF0
 import sp.it.util.functional.PF1

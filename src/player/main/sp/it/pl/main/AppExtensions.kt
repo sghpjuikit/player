@@ -17,10 +17,10 @@ import sp.it.pl.core.CoreConverter
 import sp.it.pl.layout.ComponentFactory
 import sp.it.pl.layout.isExperimental
 import sp.it.pl.ui.pane.ActionPane
-import sp.it.util.async.coroutine.FX
 import sp.it.util.async.IO
-import sp.it.util.async.future.Fut
+import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.launch
+import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.async.runNew

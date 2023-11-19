@@ -1,7 +1,6 @@
 package sp.it.pl.main
 
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpTimeout
 import java.io.File
 import java.net.URI
 import java.nio.file.Path

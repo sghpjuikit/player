@@ -1,6 +1,7 @@
 package sp.it.pl.audio
 
 import java.util.UUID
+import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -11,7 +12,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
 import sp.it.util.collections.setTo
-import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull

@@ -6,7 +6,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Date
-import java.util.function.Consumer
 import javafx.scene.image.Image
 import javafx.util.Duration
 import sp.it.pl.audio.Song

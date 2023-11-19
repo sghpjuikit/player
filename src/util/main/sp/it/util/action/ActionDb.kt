@@ -3,7 +3,6 @@ package sp.it.util.action
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyCombination.NO_MATCH
-import kotlin.String
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok

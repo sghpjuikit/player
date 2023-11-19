@@ -25,6 +25,7 @@ import org.jaudiotagger.tag.mp4.Mp4FieldKey
 import org.jaudiotagger.tag.mp4.Mp4Tag
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
 import org.jaudiotagger.tag.wav.WavTag
+import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -41,13 +42,10 @@ import sp.it.pl.ui.objects.image.EmptyCover
 import sp.it.pl.ui.objects.image.FileCover
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
-import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.children
 import sp.it.util.file.parentDirOrRoot
-import sp.it.util.file.type.MimeGroup
-import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Companion.ok
 import sp.it.util.functional.andAlso

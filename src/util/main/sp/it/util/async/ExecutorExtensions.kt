@@ -6,9 +6,9 @@ import java.util.concurrent.atomic.AtomicLong
 import javafx.util.Duration
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.delay
-import sp.it.util.async.coroutine.runSuspending
 import org.jetbrains.annotations.Blocking
 import sp.it.util.async.coroutine.VT
+import sp.it.util.async.coroutine.runSuspending
 import sp.it.util.dev.ThreadSafe
 
 /** @return this executor limiting number of parallel executions to at most the specified times, after which new executions wait for [Semaphore.acquire] */

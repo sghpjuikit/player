@@ -2,8 +2,8 @@ package sp.it.util.system
 
 import java.io.InputStream
 import java.util.concurrent.TimeUnit
-import sp.it.util.async.runVT
 import org.jetbrains.annotations.Blocking
+import sp.it.util.async.runVT
 
 /** [Process.waitFor] which consumes STDIN and STDOUT on [runVT] into [String] results. Blocks. */
 @Blocking

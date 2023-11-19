@@ -15,8 +15,6 @@ import javafx.scene.layout.VBox
 import kotlin.reflect.KClass
 import mu.KLogging
 import sp.it.pl.layout.NodeFactory
-import sp.it.pl.main.WidgetTags.DEVELOPMENT
-import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.main.APP
@@ -24,6 +22,8 @@ import sp.it.pl.main.Df.PLAIN_TEXT
 import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.WidgetTags.DEVELOPMENT
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.Widgets.ICON_BROWSER_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.listBox

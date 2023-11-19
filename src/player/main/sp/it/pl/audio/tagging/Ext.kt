@@ -17,8 +17,6 @@ import org.jaudiotagger.tag.id3.AbstractID3Tag
 import org.jaudiotagger.tag.images.Artwork
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
 import sp.it.pl.main.isAudio
-import sp.it.util.file.type.MimeGroup
-import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Try
 import sp.it.util.functional.runTry
 import sp.it.util.math.clip

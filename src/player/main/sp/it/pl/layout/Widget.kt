@@ -12,11 +12,12 @@ import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.ANNOTATION_CLASS
 import kotlin.annotation.AnnotationTarget.CLASS
 import mu.KLogging
+import org.jetbrains.annotations.Blocking
 import sp.it.pl.layout.WidgetIoManager.requestWidgetIOUpdate
 import sp.it.pl.layout.controller.Controller
-import sp.it.pl.layout.controller.LegacyController
 import sp.it.pl.layout.controller.ControllerLoadError
 import sp.it.pl.layout.controller.ControllerNoFactory
+import sp.it.pl.layout.controller.LegacyController
 import sp.it.pl.layout.controller.io.IOLayer
 import sp.it.pl.layout.controller.io.Input
 import sp.it.pl.main.APP
@@ -34,7 +35,6 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
-import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf

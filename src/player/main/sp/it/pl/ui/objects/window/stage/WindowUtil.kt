@@ -44,7 +44,6 @@ import javafx.scene.input.KeyCode.F1
 import javafx.scene.input.KeyCode.F2
 import javafx.scene.input.KeyCode.F3
 import javafx.scene.input.KeyCode.F4
-import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
@@ -99,7 +98,6 @@ import sp.it.util.action.ActionManager.keyShortcutsComponent
 import sp.it.util.async.coroutine.flowTimer
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull

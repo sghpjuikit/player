@@ -4,7 +4,6 @@ import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.ComboBox
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.SOMETIMES
-import sp.it.pl.core.CoreFunctors
 import sp.it.pl.main.APP
 import sp.it.pl.main.F
 import sp.it.pl.main.appTooltip

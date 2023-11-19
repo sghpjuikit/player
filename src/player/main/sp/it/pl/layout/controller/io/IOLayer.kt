@@ -82,8 +82,8 @@ import sp.it.util.async.executor.EventReducer
 import sp.it.util.collections.map.Map2D
 import sp.it.util.collections.map.Map2D.Key
 import sp.it.util.collections.materialize
-import sp.it.util.dev.markUsed
 import sp.it.util.dev.failCase
+import sp.it.util.dev.markUsed
 import sp.it.util.functional.Util.forEachCartesianHalfNoSelf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net

@@ -27,7 +27,6 @@ import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.getAny
 import sp.it.util.functional.net
-import sp.it.util.functional.orNull
 import sp.it.util.text.Char16
 import sp.it.util.text.Char32
 import sp.it.util.text.toChar32

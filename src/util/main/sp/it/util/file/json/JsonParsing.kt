@@ -6,10 +6,20 @@ import java.io.Reader
 import java.math.BigInteger
 import java.util.LinkedList
 import kotlin.text.Charsets.UTF_8
-import sp.it.util.file.json.JsToken.*
-import sp.it.util.math.rangeBigInt
 import sp.it.util.dev.fail
-import sp.it.util.dev.printStacktrace
+import sp.it.util.file.json.JsToken.Col
+import sp.it.util.file.json.JsToken.Com
+import sp.it.util.file.json.JsToken.Eof
+import sp.it.util.file.json.JsToken.Fal
+import sp.it.util.file.json.JsToken.Lbc
+import sp.it.util.file.json.JsToken.Lbk
+import sp.it.util.file.json.JsToken.Nul
+import sp.it.util.file.json.JsToken.Num
+import sp.it.util.file.json.JsToken.Rbc
+import sp.it.util.file.json.JsToken.Rbk
+import sp.it.util.file.json.JsToken.Str
+import sp.it.util.file.json.JsToken.Tru
+import sp.it.util.math.rangeBigInt
 
 fun parseJson(input: String): JsValue =
    Parser(Lexer(input.reader())).parse()

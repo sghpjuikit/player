@@ -2,7 +2,6 @@ package sp.it.pl.ui.nodeinfo
 
 import de.jensd.fx.glyphs.GlyphIcons
 import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import java.time.Instant
 import java.time.ZoneId
 import javafx.geometry.Insets
@@ -10,6 +9,7 @@ import javafx.geometry.Side.BOTTOM
 import javafx.geometry.VPos.CENTER
 import javafx.scene.control.ContextMenu
 import javafx.scene.layout.HBox
+import javafx.scene.layout.VBox
 import sp.it.pl.core.bodyAsJs
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.APP
@@ -29,11 +29,12 @@ import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.ref.LazyR
 import sp.it.util.access.v
 import sp.it.util.access.vn
-import sp.it.util.async.*
+import sp.it.util.async.FX
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.flowTimer
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.coroutine.toSubscription
+import sp.it.util.async.invoke
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.cv
@@ -42,8 +43,8 @@ import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.dev.fail
 import sp.it.util.file.json.JsValue
+import sp.it.util.functional.asIf
 import sp.it.util.functional.net
-import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.attach

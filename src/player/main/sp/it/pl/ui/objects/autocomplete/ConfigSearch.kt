@@ -36,7 +36,6 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.util.access.Values
 import sp.it.util.access.minus
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne

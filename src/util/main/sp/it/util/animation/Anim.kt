@@ -2,9 +2,9 @@
 
 package sp.it.util.animation
 
+import kotlin.jvm.JvmField as F
 import kotlin.jvm.JvmOverloads as O
 import kotlin.jvm.JvmStatic as S
-import kotlin.jvm.JvmField as F
 import java.util.function.DoubleConsumer
 import java.util.stream.Stream
 import javafx.animation.Interpolator

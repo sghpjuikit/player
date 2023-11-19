@@ -3,11 +3,11 @@ package sp.it.util.async.future
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
 import javafx.concurrent.Task
+import org.jetbrains.annotations.Blocking
 import sp.it.util.async.future.Fut.Result
 import sp.it.util.async.future.Fut.Result.ResultFail
 import sp.it.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.util.async.future.Fut.Result.ResultOk
-import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfFxThread
 

@@ -3,11 +3,11 @@ package sp.it.util.parsing
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import kotlin.reflect.KClass
+import kotlin.reflect.jvm.jvmName
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.type.type
-import kotlin.reflect.KClass
-import kotlin.reflect.jvm.jvmName
 
 class ConverterTest: FreeSpec({
 

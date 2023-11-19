@@ -1,5 +1,6 @@
 package sp.it.pl.ui.objects.tree
 
+import sp.it.pl.ui.objects.tree.Name.Companion.DELIMITER
 import sp.it.util.HierarchicalBase
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull

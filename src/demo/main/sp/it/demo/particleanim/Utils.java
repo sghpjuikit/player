@@ -9,7 +9,11 @@ import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
-import static javafx.scene.paint.Color.*;
+import static javafx.scene.paint.Color.BLACK;
+import static javafx.scene.paint.Color.RED;
+import static javafx.scene.paint.Color.TRANSPARENT;
+import static javafx.scene.paint.Color.WHITE;
+import static javafx.scene.paint.Color.YELLOW;
 
 class Utils {
 

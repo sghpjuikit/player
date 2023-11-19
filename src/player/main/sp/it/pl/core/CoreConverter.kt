@@ -2,6 +2,9 @@ package sp.it.pl.core
 
 import java.time.format.DateTimeParseException as DTPE
 import java.util.regex.PatternSyntaxException as PSE
+import kotlin.IllegalArgumentException as IAE
+import kotlin.IndexOutOfBoundsException as OBE
+import kotlin.NumberFormatException as NFE
 import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import java.math.BigDecimal
@@ -40,6 +43,7 @@ import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.control.Skin
 import javafx.scene.effect.Effect
+import javafx.scene.image.Image
 import javafx.scene.input.MouseButton
 import javafx.scene.paint.Color
 import javafx.scene.paint.ImagePattern
@@ -58,6 +62,7 @@ import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.jvmName
+import sp.it.pl.audio.PlayerManager
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
@@ -70,11 +75,13 @@ import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.AppUi.SkinCss
+import sp.it.pl.main.Events
 import sp.it.pl.main.FileFilter
 import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginBox
+import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.table.TableColumnInfo
 import sp.it.pl.ui.objects.tree.Name
@@ -94,7 +101,6 @@ import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeGroup
 import sp.it.util.file.type.MimeType
-import sp.it.util.functional.Functors
 import sp.it.util.functional.Option
 import sp.it.util.functional.PF
 import sp.it.util.functional.Try
@@ -133,20 +139,13 @@ import sp.it.util.type.isPlatformType
 import sp.it.util.type.raw
 import sp.it.util.type.sealedSubObjects
 import sp.it.util.type.type
+import sp.it.util.ui.image.ImageSize
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
 import sp.it.util.units.durationOfHMSMs
 import sp.it.util.units.formatToSmallestUnit
 import sp.it.util.units.uri
-import kotlin.NumberFormatException as NFE
-import kotlin.IllegalArgumentException as IAE
-import kotlin.IndexOutOfBoundsException as OBE
-import javafx.scene.image.Image
-import sp.it.pl.audio.PlayerManager
-import sp.it.pl.main.Events
-import sp.it.pl.plugin.PluginInfo
-import sp.it.util.ui.image.ImageSize
 
 private typealias FromS<T> = (String) -> Try<T, String>
 

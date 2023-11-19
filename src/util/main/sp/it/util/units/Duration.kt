@@ -1,14 +1,14 @@
 package sp.it.util.units
 
 import javafx.util.Duration as Dur
+import kotlin.time.Duration as DurationKt
 import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit.NANOSECONDS
 import sp.it.util.dev.Dependency
 import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util
-import kotlin.time.Duration as DurationKt
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.DurationUnit.NANOSECONDS
 import sp.it.util.functional.runTry
 
 /** Converts to javafx [Dur] */

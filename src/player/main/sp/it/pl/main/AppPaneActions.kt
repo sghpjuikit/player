@@ -37,11 +37,11 @@ import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.clone
 import sp.it.pl.ui.pane.ActionData
+import sp.it.pl.ui.pane.ActionData.GroupApply.FOR_ALL
+import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.ActionPane
 import sp.it.pl.ui.pane.ComplexActionData
 import sp.it.pl.ui.pane.ConfigPane
-import sp.it.pl.ui.pane.ActionData.GroupApply.FOR_ALL
-import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.action
 import sp.it.pl.ui.pane.actionAll
 import sp.it.pl.ui.pane.register

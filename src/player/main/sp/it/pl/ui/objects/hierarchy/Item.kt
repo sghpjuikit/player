@@ -39,7 +39,6 @@ import sp.it.util.async.runOn
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType
-import sp.it.util.file.FileType.Companion.invoke
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.children

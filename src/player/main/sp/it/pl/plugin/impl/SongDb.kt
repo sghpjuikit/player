@@ -4,6 +4,7 @@ import java.lang.String.CASE_INSENSITIVE_ORDER
 import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
 import mu.KLogging
+import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.MetadatasDB
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
@@ -20,7 +21,6 @@ import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runNew
 import sp.it.util.async.runVT
-import org.jetbrains.annotations.Blocking
 import sp.it.util.collections.mapset.MapSetRO
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.div

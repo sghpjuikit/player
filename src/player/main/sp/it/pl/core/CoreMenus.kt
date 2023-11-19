@@ -45,8 +45,8 @@ import sp.it.pl.layout.controller.io.Input
 import sp.it.pl.layout.controller.io.InputRef
 import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.layout.controller.io.OutputRef
-import sp.it.pl.layout.controller.io.boundOutputs
 import sp.it.pl.layout.controller.io.boundInputs
+import sp.it.pl.layout.controller.io.boundOutputs
 import sp.it.pl.layout.feature.ConfiguringFeature
 import sp.it.pl.layout.feature.FileExplorerFeature
 import sp.it.pl.layout.feature.Opener

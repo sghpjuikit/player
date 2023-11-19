@@ -7,7 +7,6 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.layout.VBox
 import sp.it.pl.main.IconFA
-import sp.it.pl.main.emScaled
 import sp.it.pl.main.okIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ConfigPane

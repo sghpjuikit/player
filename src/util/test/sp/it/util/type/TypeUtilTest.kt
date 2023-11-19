@@ -5,6 +5,11 @@ import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.util.AbstractList
+import java.util.function.Consumer
+import java.util.function.Function
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.ObservableListBase
@@ -15,16 +20,6 @@ import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.input.DragEvent
 import javafx.scene.layout.Pane
-import sp.it.util.collections.ObservableListRO
-import sp.it.util.collections.stackOf
-import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
-import sp.it.util.functional.asIs
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-import java.util.AbstractList
-import java.util.function.Consumer
-import java.util.function.Function
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
@@ -40,6 +35,11 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.javaType
+import sp.it.util.collections.ObservableListRO
+import sp.it.util.collections.stackOf
+import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
+import sp.it.util.functional.asIs
 
 @Suppress("RemoveRedundantQualifierName", "RemoveExplicitTypeArguments")
 class TypeUtilTest: FreeSpec({

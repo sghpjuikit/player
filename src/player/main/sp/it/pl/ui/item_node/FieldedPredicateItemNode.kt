@@ -20,7 +20,6 @@ import sp.it.util.functional.TypeAwareF
 import sp.it.util.functional.Util
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.asIs
-import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
 import sp.it.util.type.VType

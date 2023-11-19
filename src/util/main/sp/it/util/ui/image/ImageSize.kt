@@ -1,10 +1,8 @@
 package sp.it.util.ui.image
 
 import java.awt.Dimension
-import java.util.regex.PatternSyntaxException
 import sp.it.util.functional.Try
 import sp.it.util.parsing.ConverterString
-import sp.it.util.units.NofX
 
 data class ImageSize(@JvmField val width: Double, @JvmField val height: Double) {
 

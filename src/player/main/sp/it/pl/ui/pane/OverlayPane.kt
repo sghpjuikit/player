@@ -19,9 +19,9 @@ import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
+import javafx.scene.paint.Color.TRANSPARENT
 import javafx.stage.Screen
 import javafx.stage.Stage
-import javafx.scene.paint.Color.TRANSPARENT
 import javafx.stage.StageStyle
 import javafx.stage.Window
 import javafx.stage.WindowEvent.WINDOW_SHOWN
@@ -61,6 +61,7 @@ import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach1If
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.fires
+import sp.it.util.reactive.into
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventDown1
@@ -68,14 +69,20 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.syncTo
-import sp.it.util.ui.Util.stageFMNT
+import sp.it.util.reactive.syncWhile
+import sp.it.util.system.getWallpaperFile
 import sp.it.util.ui.Util.layStack
 import sp.it.util.ui.Util.setAnchors
+import sp.it.util.ui.Util.stageFMNT
 import sp.it.util.ui.applyViewPort
+import sp.it.util.ui.bgr
 import sp.it.util.ui.containsMouse
 import sp.it.util.ui.getScreen
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.hasFocus
+import sp.it.util.ui.image.FitFrom.OUTSIDE
+import sp.it.util.ui.image.ImageSize
+import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.makeScreenShot
 import sp.it.util.ui.pane
 import sp.it.util.ui.removeFromParent
@@ -84,13 +91,6 @@ import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.toP
 import sp.it.util.units.millis
-import sp.it.util.reactive.into
-import sp.it.util.reactive.syncWhile
-import sp.it.util.system.getWallpaperFile
-import sp.it.util.ui.bgr
-import sp.it.util.ui.image.FitFrom.OUTSIDE
-import sp.it.util.ui.image.ImageSize
-import sp.it.util.ui.image.imgImplLoadFX
 
 /**
  * Pane laying 'above' standard content.

@@ -16,15 +16,12 @@ import java.nio.file.WatchKey
 import java.nio.file.WatchService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Predicate
-import kotlin.concurrent.thread
 import mu.KLogging
 import sp.it.util.async.VT
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
 import sp.it.util.async.runOn
-import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription

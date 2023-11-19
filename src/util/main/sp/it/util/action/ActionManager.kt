@@ -1,9 +1,7 @@
 package sp.it.util.action
 
-import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent
 import java.util.concurrent.ConcurrentHashMap
 import javafx.application.Platform
-import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ALT_GRAPH
 import javafx.scene.input.KeyCode.COMMA
 import javafx.scene.input.KeyCode.PERIOD
@@ -19,13 +17,11 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.dev.fail
-import sp.it.util.functional.orNull
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.syncNonNullWhile
-import sp.it.util.type.volatile
 
 object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
 

@@ -2,7 +2,6 @@ package sp.it.pl.ui.objects
 
 import javafx.geometry.Side
 import javafx.scene.input.Clipboard
-import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
 import sp.it.pl.main.IconMD

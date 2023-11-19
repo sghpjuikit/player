@@ -1,8 +1,8 @@
 package sp.it.util.time
 
+import javafx.util.Duration as DurationFx
 import java.time.Instant
 import java.time.temporal.TemporalAmount
-import javafx.util.Duration as DurationFx
 
 fun Instant.isOlderThan(time: TemporalAmount): Boolean = Instant.now().isAfter(plus(time))
 

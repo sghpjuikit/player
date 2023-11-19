@@ -27,11 +27,11 @@ import mu.KLogging
 import sp.it.pl.layout.ContainerSwitch
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetSource.OPEN
-import sp.it.pl.main.AppSettings.ui.skin
 import sp.it.pl.main.AppSettings.ui.overlay.actionViewer.closeWhenActionEnds
 import sp.it.pl.main.AppSettings.ui.overlay.overlayArea
 import sp.it.pl.main.AppSettings.ui.overlay.overlayBackground
 import sp.it.pl.main.AppSettings.ui.overlay.shortcutViewer.hideUnassignedShortcuts
+import sp.it.pl.main.AppSettings.ui.skin
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.picker.FontPickerContent
 import sp.it.pl.ui.objects.rating.Rating

@@ -15,8 +15,6 @@ import com.sun.jna.platform.win32.WinUser.WH_KEYBOARD_LL
 import javafx.scene.input.KeyCode
 import mu.KLogging
 import sp.it.util.async.NEW
-import sp.it.util.async.runFX
-import sp.it.util.bool.Bool2
 import sp.it.util.system.Os
 import sp.it.util.type.volatile
 

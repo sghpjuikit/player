@@ -109,7 +109,6 @@ import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.show
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.x
-import sp.it.util.ui.x2
 
 private val logger = KotlinLogging.logger { }
 

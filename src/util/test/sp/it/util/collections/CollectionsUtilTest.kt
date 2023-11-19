@@ -3,8 +3,8 @@ package sp.it.util.collections
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import java.io.Serializable
-import java.util.AbstractList
 import java.util.AbstractCollection
+import java.util.AbstractList
 import java.util.Optional
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.createType

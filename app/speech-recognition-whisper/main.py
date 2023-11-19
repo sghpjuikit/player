@@ -168,7 +168,6 @@ def callback(recognizer, audio):
             text = text.lower().rstrip(".").strip()
 
             if len(text) > 0:
-                write('')  # helps log separate event loops & sometimes previous loop is still running/writing
                 write('RAW: ' + text)
 
             # ignore speech recognition noise
@@ -191,8 +190,12 @@ def callback(recognizer, audio):
                 else:
                     speak('Yes')
 
+            # start LLM conversation (fail)
+            elif listening_for_chat_prompt is False and "start conversation" in text and chat is None:
+                speak('No conversation model is loaded')
+
             # start LLM conversation
-            elif not listening_for_chat_prompt and chat is not None and "start conversation" in text:
+            elif listening_for_chat_prompt is False and "start conversation" in text:
 
                 # initialize chat
                 chatSession = chat.chat_session()
@@ -207,6 +210,7 @@ def callback(recognizer, audio):
                 if text.startswith("end conversation") or text.startswith("stop conversation"):
                     listening_for_chat_prompt = False
                     speak("Ok")
+                    chatSession.__exit__(None, None, None)
 
                 # do LLM conversation
                 else:

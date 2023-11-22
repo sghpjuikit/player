@@ -12,7 +12,7 @@
     -skin-def-font-color-hover: green;
     -skin-def-font-color-transparent: rgba(0,255,0, 0.2);
     -skin-value-font-color: green;
-    -skin-window-bgr-blur-color: rgba(0,11,0, 0.90);
-    -skin-window-bgr-color-content-free: rgba(0,5,0, 0.95);
-    -skin-window-bgr-color-content-free-blur: rgba(0,5,0, 0.90);
+    -skin-window-bgr-blur-color: rgba(0,11,0, 0.80);
+    -skin-window-bgr-color-content-free: rgba(0,5,0, 0.85);
+    -skin-window-bgr-color-content-free-blur: rgba(0,5,0, 0.80);
 }

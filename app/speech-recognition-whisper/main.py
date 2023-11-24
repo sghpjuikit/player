@@ -155,22 +155,23 @@ commandModel = None  # AutoModelForCausalLM.from_pretrained("glaiveai/glaive-fun
 
 
 # noinspection PyUnusedLocal
-def callback(recognizer, audio):
+def callback(recognizer, audio_data):
     global chatSession
     global listening_for_chat_prompt
     global listening_for_chat_generation
 
     if not terminating:
         try:
-            audio_file = os.path.join(cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
-            text = ''
-            try:
-                with open(audio_file, "wb") as f:
-                    f.write(audio.get_wav_data())
-                    f.flush()
-                text = whisperModel.transcribe(audio_file)['text']
-            finally:
-                os.remove(audio_file)
+            import io
+            import numpy as np
+            import soundfile as sf
+            import torch
+            wav_bytes = audio_data.get_wav_data(convert_rate=16000) # 16 kHz https://github.com/openai/whisper/blob/28769fcfe50755a817ab922a7bc83483159600a9/whisper/audio.py#L98-L99
+            wav_stream = io.BytesIO(wav_bytes)
+            audio_array, sampling_rate = sf.read(wav_stream)
+            audio_array = audio_array.astype(np.float32)
+            text = whisperModel.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
+
 
             # import numpy as np
             # result = modelWhisper.transcribe(np.frombuffer(audio.get_raw_data(), dtype=np.int16).astype(np.float32) / 32768.0)

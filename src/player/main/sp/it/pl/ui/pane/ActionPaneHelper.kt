@@ -197,7 +197,7 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
       }
    }
 
-   fun invokeWithForm() {
+   fun invokeWithForm(block: Config<*>.() -> Unit = {}) {
       val context = ActContext(null, null, null, null, null)
       when {
          type.raw.isObject && !type.isNullable -> invokeFutAndProcess(context, type.raw.objectInstance.asIs())
@@ -227,7 +227,7 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
                }
             }
 
-            receiver.configure(nameWithDots) { invokeFutAndProcess(context, it.value.asIs()) }
+            receiver.apply(block).configure(nameWithDots) { invokeFutAndProcess(context, it.value.asIs()) }
          }
       }
    }

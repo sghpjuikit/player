@@ -25,6 +25,8 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY
+import javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
+import javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN
 import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode.ENTER
@@ -499,7 +501,7 @@ fun <T: Any> tableViewForClass(type: KClass<T>, block: FilteredTable<T>.() -> Un
          isResizable = true
       }
    }
-   columnResizePolicy = if (fields.any { it!==INDEX }) UNCONSTRAINED_RESIZE_POLICY else CONSTRAINED_RESIZE_POLICY
+   columnResizePolicy = if (fields.any { it!==INDEX }) UNCONSTRAINED_RESIZE_POLICY else CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
    columnState = defaultColumnInfo
    block()
 //   sceneProperty().flatMap { it.windowProperty() }.syncNonNullWhile { w -> w.onIsShowing1st { autoResizeColumns() } }

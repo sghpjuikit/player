@@ -53,6 +53,9 @@ import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.div
 import sp.it.util.file.json.toPrettyS
+import sp.it.util.functional.Try
+import sp.it.util.functional.Try.Error
+import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
@@ -110,15 +113,20 @@ class Hue: PluginBase() {
                it.handlers -= speechHandlers
                speechHandlers.clear()
                speechHandlers += SpeakHandler("Turn all lights on/off", "lights on|off") { text, _ ->
-                  if ("lights on"==text || "lights off"==text)
+                  if ("lights on"==text || "lights off"==text) {
                      hueBridge.toggleBulbGroup("0").ui { refreshes(Unit) }
+                     Ok("Ok")
+                  } else
+                     null
                }
                speechHandlers += SpeakHandler("Turn group lights on/off", "lights \$group-name on|off") { text, _ ->
                   if (text.startsWith("lights ")) {
                      val gName = text.substringAfter("lights ").removeSuffix(" on").removeSuffix(" off")
                      val g = groups.find { it.name.lowercase() equalsNc gName }
                      if (g!=null) hueBridge.toggleBulbGroup(g.id).ui { refreshes(Unit) }
-                  }
+                     if (g!=null) Ok("Ok") else Error("No Light Group $gName available")
+                  } else
+                     null
                }
                it.handlers += speechHandlers
             }

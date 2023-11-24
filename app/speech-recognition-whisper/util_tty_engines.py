@@ -2,36 +2,189 @@
 import os
 import threading
 import asyncio
+import uuid
 import util_dir_cache
 from util_write_engine import Writer
 from typing import cast
 from queue import Queue
 
+class VlcActor:
+
+    def __init__(self, vlc_path: str, write: Writer):
+        self.vlc_path = vlc_path
+        self.write = write
+        self.queue = Queue()
+        threading.Thread(target=self.loop, daemon=True).start()
+
+    def loop(self):
+        # initialize vlc
+        if len(self.vlc_path)>0 and os.path.exists(self.vlc_path):
+            os.environ['PYTHON_VLC_MODULE_PATH'] = self.vlc_path
+            os.environ['PYTHON_VLC_LIB_PATH'] = os.path.join(self.vlc_path, "libvlc.dll")
+        try:
+            import vlc
+            import ctypes
+        except ImportError as e:
+            self.write("Vlc player or vlc python module failed to load")
+            return
+
+        # loop
+        vlcInstance = None
+        vlcPlayer = None
+        while True:
+            type, audio = self.queue.get()
+
+            # initialize vlc once lazily
+            if vlcInstance is None:
+                vlcInstance = vlc.Instance()
+                vlcPlayer = vlcInstance.media_player_new()
+
+            # play audio file
+            if type == 'f':
+                media = vlcInstance.media_new(audio)
+            # play audio data
+            if type == 'b':
+
+                # Define the read callback function
+                def read_callback(data, n, p_buffer):
+                    # Convert the audio data to bytes and copy it to the buffer
+                    p_buffer[0] = audio_data.tobytes()
+                    return len(audio_data) * audio_data.itemsize
+
+                def seek_callback(opaque, offset):
+                    return 0
+
+                def close_callback(opaque):
+                    pass
+
+                media = instance.media_new_callbacks(
+                    read_callback,
+                    seek_callback,
+                    close_callback,
+                    len(audio)
+                )
+
+            vlcPlayer.set_media(media)
+            vlcPlayer.play()
+
+            # Wait to finish
+            while vlcPlayer.get_state() != vlc.State.Ended:
+                pass
+
+        # dispose
+        if vlcPlayer is not None:
+            player.stop()
+            player.release()
+        if vlcInstance is not None:
+            vlcInstance.release()
+
+    def stop(self):
+        pass
+
+
+class Tty:
+    def __init__(self, tty):
+        self.tty = tty
+        self.sentence = None
+        self.sentence_mode = False
+        self.sentence_queue = Queue()
+        self.speeches_queue = Queue()
+
+    def iterableStart(self):
+        self.sentence = ''
+        self.sentence_mode = True
+
+    def iterablePart(self, text: str):
+        self.sentence = self.sentence + text
+        while len(self.sentence) >= 30:
+            index = -1
+            if index==-1:
+                index = self.sentence.rfind('.')
+            if index==-1:
+                index = self.sentence.rfind('\n')
+            if index==-1:
+                break
+            else:
+                sentence = self.sentence[:index]
+                self.sentence = self.sentence[index+1:]
+                if len(sentence)>0:
+                    self.sentence_queue.put(sentence+'.')
+                    self.process()
+
+    def iterableEnd(self):
+        if len(self.sentence)>0:
+            self.sentence_queue.put(self.sentence)
+            self.process()
+        self.sentence = ''
+        self.sentence_mode = False
+        self.process()
+
+    def iterableSkip(self):
+        while not self.sentence_queue.empty():
+            try:
+                self.sentence_queue.get(block=False)
+            except Exception:
+                break
+        self.tty.skip()
+
+    def speak(self, text: str, use_cache=True):
+        self.speeches_queue.put((text, use_cache))
+        self.process()
+
+    def process(self):
+        if self.sentence_mode:
+            while not self.sentence_queue.empty():
+                try:
+                    text = self.sentence_queue.get(block=False)
+                    self.tty.speak(text, skippable=True, use_cache=False)
+                except Exception:
+                    break
+        else:
+            while not self.speeches_queue.empty():
+                try:
+                    text, use_cache = self.speeches_queue.get(block=False)
+                    self.tty.speak(text, skippable=False, use_cache=use_cache)
+                except Exception:
+                    break
+
+    def skip(self):
+        self.tty.skip()
+
+    def stop(self):
+        self.tty.stop()
+
 
 class TtyNone:
     # noinspection PyUnusedLocal
-    def speak(self, text, use_cache=True):
+    def speak(self, text, skippable, use_cache=True):
         pass
 
     def stop(self):
         pass
 
 class TtyOsMac:
-    allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?!-_$:+-/ ")
-
     def __init__(self):
+        self.allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?!-_$:+-/ ")
+        self.skip_ = False
         self.queue = Queue()
         threading.Thread(target=self.loop, daemon=True).start()
 
     # noinspection PyUnusedLocal
-    def speak(self, text, use_cache=True):
-        self.queue.put(text)
+    def speak(self, text, skippable, use_cache=True):
+        self.queue.put((text, skippable))
 
     def loop(self):
         while True:
-            textRaw = self.queue.get()
-            text = ''.join(c for c in textRaw if c in allowed_chars)
+            textRaw, skippable = self.queue.get()
+            if self.skip_ and skippable:
+                continue
+            else:
+                self.skip_ = False
+            text = ''.join(c for c in textRaw if c in self.allowed_chars)
             os.system(f"say '{text}'")
+
+    def skip(self):
+        skipping = True
 
     def stop(self):
         pass
@@ -39,12 +192,13 @@ class TtyOsMac:
 class TtyOs:
     def __init__(self, write: Writer):
         self.write = write
+        self.skip_ = False
         self.queue = Queue()
         threading.Thread(target=self.loop, daemon=True).start()
 
     # noinspection PyUnusedLocal
-    def speak(self, text, use_cache=True):
-        self.queue.put(text)
+    def speak(self, text, skippable, use_cache=True):
+        self.queue.put((text, skippable))
 
     def loop(self):
         # initialize pyttsx3
@@ -55,7 +209,11 @@ class TtyOs:
             return
 
         while True:
-            text = self.queue.get()
+            text, skippable = self.queue.get()
+            if self.skip_ and skippable:
+                continue
+            else:
+                self.skip_ = False
 
             engine = pyttsx3.init()
 
@@ -70,49 +228,52 @@ class TtyOs:
             engine.stop()
             del engine
 
+    def skip(self):
+        skip = True
+
     def stop(self):
         pass
 
 
 class TtyCharAi:
-    token = None
-    audioTmpFile = "voice.mp3"  # Path to the directory where you want to save the audio
-    cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache")
-
-    def __init__(self, token: str, voice: int, vlc_path: str, write: Writer):
+    def __init__(self, token: str, voice: int, vlcActor: VlcActor, write: Writer):
+        self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "charai")
         self.token = token
         self.voice = voice
-        self.vlc_path = vlc_path
+        self.vlcActor = vlcActor
         self.write = write
+        self.skip_ = False
         self.queue = Queue()
         threading.Thread(target=self.process_queue_start, daemon=True).start()
 
-    def speak(self, text, use_cache=True):
-        self.queue.put((text, use_cache))
+    def speak(self, text, skippable, use_cache=True):
+        self.queue.put((text, skippable, use_cache))
 
     def process_queue_start(self):
         asyncio.run(self.loop())
 
     async def loop(self):
-        # initialize vlc
-        if len(self.vlc_path)>0 and os.path.exists(self.vlc_path):
-            os.environ['PYTHON_VLC_MODULE_PATH'] = self.vlc_path
-            os.environ['PYTHON_VLC_LIB_PATH'] = os.path.join(self.vlc_path, "libvlc.dll")
+        # initialize character.ai https://github.com/Xtr4F/PyCharacterAI
+        if len(self.token)==0:
+            self.write("Character.ai speech engine token missing")
+            return
         try:
-            import vlc
+            from PyCharacterAI import Client
         except ImportError as e:
-            self.write("Vlc player or vlc python module faile to load")
+            self.write("Character.ai python module failed to load")
             return
 
-        # initialize character.ai https://github.com/Xtr4F/PyCharacterAI
-        from PyCharacterAI import Client
+        # loop
         client = None
-
         while True:
-            text, cache_requested = self.queue.get()
+            text, skippable, cache_requested = self.queue.get()
+            if self.skip_ and skippable:
+                continue
+            else:
+                self.skip_ = False
             audio_cache_file, audio_cache_file_exists = util_dir_cache.cache_file(text, self.cache_dir)
             cache_used = cache_requested and len(text) < 100
-            audio_file = audio_cache_file if cache_used else self.audioTmpFile
+            audio_file = audio_cache_file if cache_used else os.path.join(self.cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
 
             # generate audio
             if not cache_used or not audio_cache_file_exists:
@@ -126,9 +287,85 @@ class TtyCharAi:
                 with open(audio_file, 'wb') as f:
                     f.write(audio.read())
 
-            # play audio
-            audio_player = vlc.MediaPlayer(audio_file)
-            audio_player.play()
+            self.vlcActor.queue.put(('f', audio_file))
+
+    def skip(self):
+        skip_ = True
+
+    def stop(self):
+        pass
+
+# https://pypi.org/project/TTS/
+class TtyCoqui:
+    def __init__(self, voice: str, vlcActor: VlcActor, write: Writer):
+        self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "coqui")
+        self.voice = os.path.join("voices-coqui", "Ann_Daniels.flac")
+        self.vlcActor = vlcActor
+        self.write = write
+        self.skip_ = False
+        self.queue = Queue()
+        threading.Thread(target=self.loop, daemon=True).start()
+
+    def speak(self, text, skippable, use_cache=True):
+        self.queue.put((text, skippable, use_cache))
+
+    def loop(self):
+        # initialize torch
+        try:
+            import torch
+            import numpy
+        except ImportError:
+            self.write("Torch python module failed to load")
+            return
+        try:
+            assert torch.cuda.is_available(), "CUDA is not availabe on this machine."
+        except Exception:
+            self.write("Torch cuda not available. Make sure you have cuda compatible hardware and software")
+            return
+        # initialize coqui
+        try:
+            from TTS.api import TTS
+        except ImportError:
+            self.write("Coqui TTS python module failed to load")
+            return
+
+        # loop
+        model = None
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        while True:
+            audioTmpFile = os.path.join(self.cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
+            text, skippable, cache_requested = self.queue.get()
+            if self.skip_ and skippable:
+                continue
+            else:
+                self.skip_ = False
+            audio_cache_file, audio_cache_file_exists = util_dir_cache.cache_file(text, self.cache_dir)
+            cache_used = cache_requested and len(text) < 100
+            audio_file = audio_cache_file if cache_used else os.path.join(self.cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
+
+            # generate audio
+            if not cache_used or not audio_cache_file_exists:
+                # load model once lazily
+                if model is None:
+                    model = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
+                # generate
+                if cache_used:
+                    class Segment:
+                        def segment(self, text):
+                            return [text]
+                    model.synthesizer.seg = Segment()
+                    model.tts_to_file(text=text, file_path=audio_file, speed=1.5, speaker_wav=self.voice, language="en")
+                    self.vlcActor.queue.put(('f', audio_file))
+                else:
+                    model.tts_to_file(text=text, file_path=audio_file, speed=1.5, speaker_wav=self.voice, language="en")
+                    self.vlcActor.queue.put(('f', audio_file))
+                    # audio = model.tts(text=text, speed=1.5, speaker_wav=self.voice, language="en")
+                    # self.vlcActor.queue.put(('b', numpy.array(audio, dtype=numpy.uint8).tobytes()))
+            else:
+                self.vlcActor.queue.put(('f', audio_file))
+
+    def skip(self):
+        skip_ = True
 
     def stop(self):
         pass

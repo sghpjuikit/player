@@ -6,8 +6,13 @@ import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.util.regex.Pattern
 import javafx.geometry.Pos.CENTER
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
 import mu.KLogging
+import org.jetbrains.kotlin.utils.addToStdlib.butIf
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.core.bodyJs
@@ -21,6 +26,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppHttp
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
+import sp.it.pl.main.IconMD
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.emScaled
 import sp.it.pl.plugin.PluginBase
@@ -39,6 +45,8 @@ import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runNew
 import sp.it.util.async.runOn
+import sp.it.util.conf.Constraint
+import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
@@ -56,6 +64,10 @@ import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
 import sp.it.util.file.children
 import sp.it.util.file.div
+import sp.it.util.functional.Try
+import sp.it.util.functional.Try.Error
+import sp.it.util.functional.Try.Ok
+import sp.it.util.functional.getAny
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
@@ -65,6 +77,7 @@ import sp.it.util.reactive.chan
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChangeAndNow
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
@@ -131,7 +144,10 @@ class VoiceAssistant: PluginBase() {
             stderr = it
                .filter { it.isNotEmpty() }
                .map { it.ansi() }
-               .onEach { runFX { speakingStdout.value = (speakingStdout.value ?: "") + it } }
+               .onEach { runFX {
+                  speakingStdout.value = (speakingStdout.value ?: "") + it
+                  onLocalInput(it)
+               } }
                .joinToString("")
          }
          runNew {
@@ -153,15 +169,18 @@ class VoiceAssistant: PluginBase() {
 
    /** Speech handlers called when user has spoken. */
    val handlers by cList(
-         SpeakHandler("Resume playback", "play music") { text, command -> if (command in text) APP.audio.resume() },
-         SpeakHandler("Resume playback", "start music") { text, command -> if (command in text) APP.audio.resume() },
-         SpeakHandler("Pause playback", "stop music") { text, command -> if (command in text) APP.audio.pause() },
-         SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) APP.audio.pause() },
+         SpeakHandler("Resume playback", "play music") { text, command -> if (command in text) { APP.audio.resume(); Ok(null) } else null },
+         SpeakHandler("Resume playback", "start music") { text, command -> if (command in text) { APP.audio.resume(); Ok(null) } else null },
+         SpeakHandler("Pause playback", "stop music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
+         SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
          SpeakHandler("Open widget by name", "[open|show] (widget)? \$widget-name (widget)?") { text, _ ->
             if (text.startsWith("open")) {
                val fName = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
                val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase() equalsNc fName }
                if (f!=null) ComponentLoaderStrategy.DOCK.loader(f)
+               if (f!=null) Ok("Ok") else Error("No widget $fName available")
+            } else {
+               null
             }
          },
       )
@@ -275,6 +294,12 @@ class VoiceAssistant: PluginBase() {
       setup = null
    }
 
+   @IsAction(name = "Restart Voice Assistant", info = "Restarts Voice Assistant python program")
+   fun restart() {
+      startSpeechRecognition()
+      startSpeechRecognition()
+   }
+
    private fun handleInputLocal(text: String) {
       if (text.startsWith("RAW: ")) Unit
       if (text.startsWith("USER: ")) handleSpeechRaw(text)
@@ -302,7 +327,9 @@ class VoiceAssistant: PluginBase() {
    private fun handleSpeech(text: String?) {
       if (!isRunning) return
       speakingTextW.value = text
-      text.orEmpty().sanitize().let { handlers.forEach { h -> h.action(it, h.commandUi) } }
+      var textSanitized = text.orEmpty().sanitize()
+      var result = handlers.firstNotNullOfOrNull { h -> h.action(textSanitized, h.commandUi) } ?: Error<String?>("Unrecognized command: $text")
+      result.getAny().ifNotNull(::speak)
    }
 
    /** Adjust speech text to make it more versatile and more likely to match command */
@@ -318,21 +345,22 @@ class VoiceAssistant: PluginBase() {
    fun synthesize() = speak()
 
    @IsAction(name = "Narrate text", info = "Narrates the specified text using synthesized voice")
-   fun speak() = action<String>("Narrate text", "Narrates the specified text using synthesized voice", IconMA.RECORD_VOICE_OVER, BLOCK) { speak(it) }.invokeWithForm()
+   fun speak() = action<String>("Narrate text", "Narrates the specified text using synthesized voice", IconMA.RECORD_VOICE_OVER, BLOCK) { speak(it) }.invokeWithForm { addConstraints(Multiline) }
 
    fun speak(text: String) = write("SAY: ${text.encodeBase64()}")
 
    enum class SpeechEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
       NONE("none", "None", "No voice"),
-      SYSTEM("os", "System", "System voice"),
-      CHARACTER_AI("character-ai", "Character.ai", "Voice using www.character.ai. Requires free account and access token");
+      SYSTEM("os", "System", "System voice. Fully offline"),
+      CHARACTER_AI("character-ai", "Character.ai", "Voice using www.character.ai. Requires free account and access token"),
+      COQUI("coqui", "Coqui", "Voice using huggingface.co/coqui/XTTS-v2. Fully offline"),
    }
 
-   /** Speech event handler */
-   data class SpeakHandler(val name: String, val commandUi: String, val action: (String, String) -> Unit)
+   /** Speech event handler. In ui shown as `"$name -> $commandUi"`. Action returns Try with text to speak or null if none. */
+   data class SpeakHandler(val name: String, val commandUi: String, val action: (String, String) -> Try<String?, String?>?)
 
    companion object: PluginInfo, KLogging() {
-      override val name = "Speech Recognition"
+      override val name = "Voice Assistant"
       override val description = "Provides speech recognition, synthesis, LLM chat and voice control capabilities.\nSee https://github.com/openai/whisper"
       override val isSupported = true
       override val isSingleton = true
@@ -360,9 +388,9 @@ class VoiceAssistant: PluginBase() {
          root.consumeScrolling()
          root.lay += vBox(null, CENTER) {
             lay += hBox(null, CENTER) {
-               lay += Icon(IconFA.COG).onClickDo {
-                  APP.actions.app.openSettings("plugins.voice_assistant")
-               }
+               lay += Icon(IconFA.COG).onClickDo { APP.actions.app.openSettings("plugins.voice_assistant") }
+               lay += Icon(IconFA.REFRESH).onClickDo { plugin.value?.restart() }
+               lay += Icon(IconMD.TEXT_TO_SPEECH).onClickDo { plugin.value?.speak() }
                lay += Icon().apply {
                   isMouseTransparent = true
                   isFocusTraversable = false
@@ -373,6 +401,9 @@ class VoiceAssistant: PluginBase() {
                }
             }
             lay(ALWAYS) += textArea {
+               isEditable = false
+               isWrapText = true
+               onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
                plugin.syncNonNullWhile { it.onLocalInput attach ::appendText }
                plugin.syncNonNullWhile { it.onHttpInput attach ::appendText }
             }

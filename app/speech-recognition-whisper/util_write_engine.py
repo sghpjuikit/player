@@ -27,10 +27,12 @@ class Writer:
         while True:
             event = self.event_queue.get()
             if event is None:
-                eventPart = self.parts_queue.get()
-                while eventPart is not None:
-                    print(eventPart, end='', flush=True)
+                while True:
                     eventPart = self.parts_queue.get()
+                    if eventPart is None:
+                        break
+                    else:
+                        print(eventPart, end='', flush=True)
                 print('', end='\n', flush=True)
             else:
                 print(event, end='\n', flush=True)

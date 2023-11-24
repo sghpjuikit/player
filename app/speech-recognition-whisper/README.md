@@ -26,7 +26,6 @@ This is a speech recognition python script using OpenAI Whisper. Features:
     pip install psutil
     pip install python-vlc
     pip install gpt4all
-    pip install PyCharacterAI
     ```
 3. Install ffmpeg
     ```
@@ -77,6 +76,17 @@ This script prints:
 
 ### Speach engine
 By default, system voice is used.
+
+#### coqui
+```
+pip install torch
+pip install TTS
+```
+
+#### character.ai
+```
+pip install PyCharacterAI
+```
 
 Supports [character.ai](https://beta.character.ai) voice generation (requires free account and access token)
 using [PyCharacterAi](https://pypi.org/project/PyCharacterAI/), read details there.

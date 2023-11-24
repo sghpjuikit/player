@@ -7,7 +7,6 @@ import whisper  # https://github.com/openai/whisper
 import warnings
 import time
 import os
-import uuid
 import psutil
 import base64
 import traceback
@@ -15,7 +14,7 @@ from threading import Thread
 from typing import cast
 from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
 from gpt4all.gpt4all import empty_chat_session
-from util_tty_engines import TtyNone, TtyOs, TtyOsMac, TtyCharAi
+from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui, VlcActor
 from util_write_engine import Writer
 
 # util: print engine actor, non-blocking
@@ -66,7 +65,7 @@ if showHelp:
     write("    Default: system")
     write("")
     write("  speaking-engine=$engine")
-    write("    Engine for speaking. Use 'none', 'os' or 'character-ai'")
+    write("    Engine for speaking. Use 'none', 'os', 'character-ai' or 'coqui'")
     write("    Default: system")
     write("")
     write("  character-ai-token=$token")
@@ -116,8 +115,11 @@ elif speakEngineType == 'os' and sys.platform == 'darwin':
 elif speakEngineType == 'os':
     speakEngine = TtyOs(write)
 elif speakEngineType == 'character-ai':
-    speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, vlcPath, write)
+    speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, VlcActor(vlcPath, write), write)
+elif speakEngineType == 'coqui':
+    speakEngine = TtyCoqui('speakUseCharAiVoice', VlcActor(vlcPath, write), write)
 
+speakEngine = Tty(speakEngine)
 
 # noinspection SpellCheckingInspection
 def speak(text, use_cache=True, use_write=True):
@@ -134,9 +136,7 @@ if not os.path.exists(cache_dir):
 
 whisperModelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-whisper")
 whisperModel = whisper.load_model(os.path.join(whisperModelDir, speechRecognitionModelName))
-r = speech_recognition.Recognizer()
 listening = None
-source = speech_recognition.Microphone()
 warnings.filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
 
 
@@ -225,7 +225,6 @@ def callback(recognizer, audio_data):
                     listening_for_chat_prompt = False
                     if not chat_generating:
                         speak("Ok")
-                        # chatSession.__exit__(None, None, None)
                         chat._is_chat_session_activated = False
                         chat.current_chat_session = empty_chat_session("")
                         chat._current_prompt_template = "{0}"
@@ -247,27 +246,28 @@ def callback(recognizer, audio_data):
                         )
 
                         # generate & stream response
+                        speak = speakEngine
                         text_all = ''
+                        speak.iterableStart()
                         write.iterableStart()
                         write.iterablePart('CHAT: ')
                         for token in text_tokens:
                             text_all = text_all + token
                             write.iterablePart(token.replace('\n', '\u2028'))
+                            speak.iterablePart(token)
                         txt = text_all
                         write.iterableEnd()
+                        speak.iterableEnd()
+                        speak.iterableSkip()
                         chat_generating = False
 
-                        # if finished, speak
+                        # end LLM conversation (if cancelled by user)
                         if listening_for_chat_prompt is False:
-                            # chatSession.__exit__(None, None, None)
                             chat._is_chat_session_activated = False
                             chat.current_chat_session = empty_chat_session("")
                             chat._current_prompt_template = "{0}"
                             speak("Ok")
-                        elif listening_for_chat_generation:
-                            speak(txt, False, False)
-                        else:
-                            listening_for_chat_generation = False
+                        listening_for_chat_generation = False
 
                     Thread(target=generate, args=(chatPrompt,), daemon=True).start()
 
@@ -278,7 +278,7 @@ def callback(recognizer, audio_data):
                 # command_output = commandModel.generate(**command_input, do_sample=True, temperature=0.1, top_p=0.1, max_new_tokens=1000)
                 # text = commandTokenizer.decode(command_output[0], skip_special_tokens=True)
                 #
-                write('COM: ' + text.lstrip("command").strip())
+                write('COM: ' + text.lstrip("command").lstrip('.').lstrip(',').strip())
                 #
                 # if "ASSISTANT: <functioncall>" in text:
                 #     text = text.split("ASSISTANT: <functioncall>")[1]
@@ -346,7 +346,10 @@ def start_input_handler():
         try:
             m = input()
             if m.startswith("SAY: "):
-                speak(base64.b64decode(m[5:]).decode('utf-8'), True, False)
+                speakEngine.iterableStart()
+                for text in base64.b64decode(m[5:]).decode('utf-8').split(' '):
+                    speakEngine.iterablePart(text + ' ')
+                speakEngine.iterableEnd()
             elif m == "EXIT":
                 sys.exit(0)
         except EOFError as _:

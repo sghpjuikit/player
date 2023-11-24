@@ -32,15 +32,18 @@ All notable changes to this project will be documented in this file. Format base
 **Speech Recognition** plugin is renamed to **Voice Assistant** plugin.
 It has more settings and its own UI widget.
 It supports running the voice recognition on different PC.
+It supports command output speaking
 There are multiple UX improvements to the assistant, making it easier to use:
-- lazy usage of python modules (easier installation)
-- no installation of vlc for the python program necessary (easier installation)
-- use of actors to prevent multiple outputs mixed together
-- displaying chat output token by token during generation
+- lazy usage of python modules (easier/modular installation)
+- player's vlc player is reused for python (easier installation)
+- use of actors to prevent multiple text/speech/chat inputs/outputs mixed together and event guarantee order
+- use of iterables for real-time output (chat/speech/player do not wait for entire result)
+- speech to text model selection (all whisper models (requires manual download))
 - chat model selection (supports custom compatible models (requires manual download))
 - chat session (remembers previous messages)
-- chat voice engine/voice selection (none, os, character.ai)
-- text to speech model selection (all whisper models (requires manual download))
+- text to speech engine/voice selection (none, os, character.ai, coqui)
+  - coqui supports fully offline text-to-speech
+  - coqui supports voice cloning
 
 ## Http Client
 Application now provides/uses single lazy http client for all http requests. Use `APP.http.client`.

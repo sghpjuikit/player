@@ -91,7 +91,7 @@ allprojects {
          implementation(kotlin("compiler-embeddable"))
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.3")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.7.3")
-         implementation("org.jetbrains", "annotations", "24.0.1")
+         implementation("org.jetbrains", "annotations", "24.1.0")
       }
 
       "lib" group {
@@ -142,13 +142,13 @@ allprojects {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
          implementation("org.apache.pdfbox", "pdfbox", "3.0.0") // https://pdfbox.apache.org
-         implementation("com.ezylang", "EvalEx", "3.0.5")
+         implementation("com.ezylang", "EvalEx", "3.1.0")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
          implementation("ch.obermuhlner", "big-math", "2.3.2")
       }
 
       "Image" group {
-         implementation("com.drewnoakes", "metadata-extractor", "2.18.0")
+         implementation("com.drewnoakes", "metadata-extractor", "2.19.0")
          fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.10.1")
          imageIO("bmp")
          imageIO("clippath")

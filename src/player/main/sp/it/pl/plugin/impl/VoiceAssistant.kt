@@ -388,9 +388,9 @@ class VoiceAssistant: PluginBase() {
          root.consumeScrolling()
          root.lay += vBox(null, CENTER) {
             lay += hBox(null, CENTER) {
-               lay += Icon(IconFA.COG).onClickDo { APP.actions.app.openSettings("plugins.voice_assistant") }
-               lay += Icon(IconFA.REFRESH).onClickDo { plugin.value?.restart() }
-               lay += Icon(IconMD.TEXT_TO_SPEECH).onClickDo { plugin.value?.speak() }
+               lay += Icon(IconFA.COG).tooltip("Settings").onClickDo { APP.actions.app.openSettings("plugins.voice_assistant") }
+               lay += Icon(IconFA.REFRESH).tooltip("Restart voice assistent").onClickDo { plugin.value?.restart() }
+               lay += Icon(IconMD.TEXT_TO_SPEECH).tooltip("Speak text").onClickDo { plugin.value?.speak() }
                lay += Icon().apply {
                   isMouseTransparent = true
                   isFocusTraversable = false

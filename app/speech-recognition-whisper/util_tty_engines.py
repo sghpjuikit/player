@@ -1,10 +1,11 @@
-
+import collections.abc
 import os
 import threading
 import asyncio
 import uuid
 import util_dir_cache
 from util_write_engine import Writer
+from collections.abc import Iterator
 from typing import cast
 from queue import Queue
 
@@ -13,6 +14,7 @@ class VlcActor:
     def __init__(self, vlc_path: str, write: Writer):
         self.vlc_path = vlc_path
         self.write = write
+        self.skip_ = False
         self.queue = Queue()
         threading.Thread(target=self.loop, daemon=True).start()
 
@@ -32,7 +34,14 @@ class VlcActor:
         vlcInstance = None
         vlcPlayer = None
         while True:
-            type, audio = self.queue.get()
+            type, audio, skippable = self.queue.get()
+
+            if self.skip_ and skippable:
+                if vlcPlayer is not None:
+                    player.stop()
+                continue
+            else:
+                self.skip_ = False
 
             # initialize vlc once lazily
             if vlcInstance is None:
@@ -78,25 +87,50 @@ class VlcActor:
         if vlcInstance is not None:
             vlcInstance.release()
 
+    def skip(self):
+        self.skip_ = True
+
     def stop(self):
         pass
 
 
 class Tty:
-    def __init__(self, tty):
+    def __init__(self, tty, write: Writer):
+        self.sentence_min_length = 40 # shorter == faster feedback, longer == less audio hallucinations in short audio
         self.tty = tty
+        self.write = write
         self.sentence = None
         self.sentence_mode = False
         self.sentence_queue = Queue()
         self.speeches_queue = Queue()
 
-    def iterableStart(self):
-        self.sentence = ''
-        self.sentence_mode = True
+    def __call__(self, event: str, use_cache=True):
+        if isinstance(event, str):
+            self.speak(event, use_cache)
+
+        elif isinstance(event, list):
+            self.__call__(iter(event), use_cache)
+
+        elif isinstance(event, Iterator):
+
+            # iterableStart
+            self.sentence = ''
+            self.sentence_mode = True
+
+            for e in event:
+                self.iterablePart(e)
+
+            # iterableEnd
+            if len(self.sentence)>0:
+                self.sentence_queue.put(self.sentence)
+                self.process()
+            self.sentence = ''
+            self.sentence_mode = False
+            self.process()
 
     def iterablePart(self, text: str):
         self.sentence = self.sentence + text
-        while len(self.sentence) >= 30:
+        while len(self.sentence) >= self.sentence_min_length:
             index = -1
             if index==-1:
                 index = self.sentence.rfind('.')
@@ -111,14 +145,6 @@ class Tty:
                     self.sentence_queue.put(sentence+'.')
                     self.process()
 
-    def iterableEnd(self):
-        if len(self.sentence)>0:
-            self.sentence_queue.put(self.sentence)
-            self.process()
-        self.sentence = ''
-        self.sentence_mode = False
-        self.process()
-
     def iterableSkip(self):
         while not self.sentence_queue.empty():
             try:
@@ -128,6 +154,7 @@ class Tty:
         self.tty.skip()
 
     def speak(self, text: str, use_cache=True):
+        self.write('SYS: ' + text)
         self.speeches_queue.put((text, use_cache))
         self.process()
 
@@ -170,7 +197,7 @@ class TtyOsMac:
         threading.Thread(target=self.loop, daemon=True).start()
 
     # noinspection PyUnusedLocal
-    def speak(self, text, skippable, use_cache=True):
+    def speak(self, text, skippable, use_cache):
         self.queue.put((text, skippable))
 
     def loop(self):
@@ -197,7 +224,7 @@ class TtyOs:
         threading.Thread(target=self.loop, daemon=True).start()
 
     # noinspection PyUnusedLocal
-    def speak(self, text, skippable, use_cache=True):
+    def speak(self, text, skippable, use_cache):
         self.queue.put((text, skippable))
 
     def loop(self):
@@ -246,7 +273,7 @@ class TtyCharAi:
         self.queue = Queue()
         threading.Thread(target=self.process_queue_start, daemon=True).start()
 
-    def speak(self, text, skippable, use_cache=True):
+    def speak(self, text, skippable, use_cache):
         self.queue.put((text, skippable, use_cache))
 
     def process_queue_start(self):
@@ -287,7 +314,7 @@ class TtyCharAi:
                 with open(audio_file, 'wb') as f:
                     f.write(audio.read())
 
-            self.vlcActor.queue.put(('f', audio_file))
+            self.vlcActor.queue.put(('f', audio_file, skippable))
 
     def skip(self):
         skip_ = True
@@ -306,7 +333,7 @@ class TtyCoqui:
         self.queue = Queue()
         threading.Thread(target=self.loop, daemon=True).start()
 
-    def speak(self, text, skippable, use_cache=True):
+    def speak(self, text, skippable, use_cache):
         self.queue.put((text, skippable, use_cache))
 
     def loop(self):
@@ -329,9 +356,11 @@ class TtyCoqui:
             self.write("Coqui TTS python module failed to load")
             return
 
-        # loop
-        model = None
+        # load model once lazily
         device = "cuda" if torch.cuda.is_available() else "cpu"
+        model = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
+
+        # loop
         while True:
             audioTmpFile = os.path.join(self.cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
             text, skippable, cache_requested = self.queue.get()
@@ -343,29 +372,27 @@ class TtyCoqui:
             cache_used = cache_requested and len(text) < 100
             audio_file = audio_cache_file if cache_used else os.path.join(self.cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
 
-            # generate audio
+            # generate
             if not cache_used or not audio_cache_file_exists:
-                # load model once lazily
-                if model is None:
-                    model = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
-                # generate
                 if cache_used:
                     class Segment:
                         def segment(self, text):
                             return [text]
                     model.synthesizer.seg = Segment()
-                    model.tts_to_file(text=text, file_path=audio_file, speed=1.5, speaker_wav=self.voice, language="en")
-                    self.vlcActor.queue.put(('f', audio_file))
+                    model.tts_to_file(text=text, file_path=audio_file, speed = 1.5, speaker_wav=self.voice, language="en")
+                    self.vlcActor.queue.put(('f', audio_file, skippable))
                 else:
-                    model.tts_to_file(text=text, file_path=audio_file, speed=1.5, speaker_wav=self.voice, language="en")
-                    self.vlcActor.queue.put(('f', audio_file))
+                    model.tts_to_file(text=text, file_path=audio_file, speed = 1.5, speaker_wav=self.voice, language="en")
+                    self.vlcActor.queue.put(('f', audio_file, skippable))
+                    # avoid file and play from ram
                     # audio = model.tts(text=text, speed=1.5, speaker_wav=self.voice, language="en")
-                    # self.vlcActor.queue.put(('b', numpy.array(audio, dtype=numpy.uint8).tobytes()))
+                    # self.vlcActor.queue.put(('b', numpy.array(audio, dtype=numpy.uint8).tobytes(), skippapable))
             else:
-                self.vlcActor.queue.put(('f', audio_file))
+                self.vlcActor.queue.put(('f', audio_file, skippable))
 
     def skip(self):
         skip_ = True
+        self.vlcActor.skip()
 
     def stop(self):
         pass

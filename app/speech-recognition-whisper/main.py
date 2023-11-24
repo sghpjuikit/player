@@ -10,12 +10,13 @@ import os
 import psutil
 import base64
 import traceback
+from itertools import chain
 from threading import Thread
 from typing import cast
-from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
-from gpt4all.gpt4all import empty_chat_session
 from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui, VlcActor
+from util_llm import Llm
 from util_write_engine import Writer
+from util_itr import teeThreadSafe
 
 # util: print engine actor, non-blocking
 write = Writer()
@@ -119,13 +120,7 @@ elif speakEngineType == 'character-ai':
 elif speakEngineType == 'coqui':
     speakEngine = TtyCoqui('speakUseCharAiVoice', VlcActor(vlcPath, write), write)
 
-speakEngine = Tty(speakEngine)
-
-# noinspection SpellCheckingInspection
-def speak(text, use_cache=True, use_write=True):
-    if use_write:
-        write('SYS: ' + text)
-    speakEngine.speak(text, use_cache)
+speak = Tty(speakEngine, write)
 
 
 speak(name + " initializing")
@@ -143,9 +138,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module='whisper.transcri
 chatUseCharAi = False
 chatModelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-llm")
 chatModel = os.path.join(chatModelDir, chatModelName)
-chat = None if chatModelName == "none" else GPT4All(chatModel)
-chatSession = None
-chat_generating = False
+chat = None if chatModelName == "none" else Llm(chatModel)
 
 # speak(name + " INTENT DETECTOR initializing.")
 
@@ -156,7 +149,6 @@ commandModel = None  # AutoModelForCausalLM.from_pretrained("glaiveai/glaive-fun
 
 # noinspection PyUnusedLocal
 def callback(recognizer, audio_data):
-    global chatSession
     global listening_for_chat_prompt
     global listening_for_chat_generation
 
@@ -211,65 +203,45 @@ def callback(recognizer, audio_data):
 
             # start LLM conversation
             elif listening_for_chat_prompt is False and "start conversation" in text:
-
-                # initialize chat
-                chatSession = chat.chat_session()
+                chat.chatStart()
                 listening_for_chat_prompt = True
                 speak('Conversing')
 
-            # if no speech, report to user
+            # end LLM conversation
+            elif listening_for_chat_prompt is True and (text.startswith("end conversation") or text.startswith("stop conversation")):
+                listening_for_chat_prompt = False
+                if not chat.generating:
+                    chat.chatStop()
+                    speak.iterableSkip()
+                    speak("Ok")
+
+            # do LLM conversation
             elif listening_for_chat_prompt is True:
+                # noinspection PyUnusedLocal
+                def stop_on_token_callback(token_id, token_string):
+                    return listening_for_chat_generation
 
-                # end LLM conversation
-                if text.startswith("end conversation") or text.startswith("stop conversation"):
-                    listening_for_chat_prompt = False
-                    if not chat_generating:
-                        speak("Ok")
-                        chat._is_chat_session_activated = False
-                        chat.current_chat_session = empty_chat_session("")
-                        chat._current_prompt_template = "{0}"
+                def generate(txt):
+                    global listening_for_chat_generation
+                    listening_for_chat_generation = True
+                    chat.generating = True
 
-                # do LLM conversation
-                else:
+                    # generate & stream response
+                    tokens = chat.llm.generate(txt, streaming=True, n_batch=16, max_tokens=1000, callback=stop_on_token_callback)
+                    tokensWrite, tokensSpeech, tokensText = teeThreadSafe(tokens, 3)
+                    write(chain(['CHAT: '], tokensWrite))
+                    speak(tokensSpeech, False)
+                    text_all = ''.join(tokensText)
+                    chat.generating = False
 
-                    # noinspection PyUnusedLocal
-                    def stop_on_token_callback(token_id, token_string):
-                        return listening_for_chat_generation
-
-                    def generate(txt):
-                        global listening_for_chat_generation
-                        global chat_generating
-                        listening_for_chat_generation = True
-                        chat_generating = True
-                        text_tokens = chat.generate(
-                            txt, streaming=True, n_batch=16, max_tokens=1000, callback=stop_on_token_callback
-                        )
-
-                        # generate & stream response
-                        speak = speakEngine
-                        text_all = ''
-                        speak.iterableStart()
-                        write.iterableStart()
-                        write.iterablePart('CHAT: ')
-                        for token in text_tokens:
-                            text_all = text_all + token
-                            write.iterablePart(token.replace('\n', '\u2028'))
-                            speak.iterablePart(token)
-                        txt = text_all
-                        write.iterableEnd()
-                        speak.iterableEnd()
+                    # end LLM conversation (if cancelled by user)
+                    if listening_for_chat_prompt is False:
+                        chat.chatStop()
                         speak.iterableSkip()
-                        chat_generating = False
+                        speak("Ok")
+                    listening_for_chat_generation = False
 
-                        # end LLM conversation (if cancelled by user)
-                        if listening_for_chat_prompt is False:
-                            chat._is_chat_session_activated = False
-                            chat.current_chat_session = empty_chat_session("")
-                            chat._current_prompt_template = "{0}"
-                            speak("Ok")
-                        listening_for_chat_generation = False
-
-                    Thread(target=generate, args=(chatPrompt,), daemon=True).start()
+                Thread(target=generate, args=(chatPrompt,), daemon=True).start()
 
             # do command
             elif text.startswith("command"):
@@ -305,12 +277,19 @@ def callback(recognizer, audio_data):
 
 
 def start_listening():
-    with source as s:
-        r.adjust_for_ambient_noise(s, duration=1)
-
     global listening
-    listening = r.listen_in_background(source, callback)
-
+    r = speech_recognition.Recognizer()
+    r.pause_threshold = 0.8
+    r.phrase_threshold = 0.3
+    r.energy_threshold = 120
+    r.dynamic_energy_threshold = False
+    try:
+        source = speech_recognition.Microphone()
+        # with source:
+        #     r.adjust_for_ambient_noise(source, duration=3)
+        listening = r.listen_in_background(source, callback)
+    except Exception:
+        speak(name + " partially online. Voice recognition disabled. No microphone found.")
     speak(name + " online")
 
 
@@ -324,7 +303,7 @@ def stop(*args):
         if listening is not None:
             cast(callable, listening)(False)
 
-        speakEngine.stop()
+        speak.stop()
 
 
 def start_exit_invoker():
@@ -346,10 +325,8 @@ def start_input_handler():
         try:
             m = input()
             if m.startswith("SAY: "):
-                speakEngine.iterableStart()
-                for text in base64.b64decode(m[5:]).decode('utf-8').split(' '):
-                    speakEngine.iterablePart(text + ' ')
-                speakEngine.iterableEnd()
+                text = base64.b64decode(m[5:]).decode('utf-8')
+                speak(map(lambda x: x + ' ', text.split(' ')), False)
             elif m == "EXIT":
                 sys.exit(0)
         except EOFError as _:

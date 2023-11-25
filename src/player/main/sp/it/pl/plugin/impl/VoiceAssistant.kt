@@ -47,6 +47,7 @@ import sp.it.util.async.runNew
 import sp.it.util.async.runOn
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.Multiline
+import sp.it.util.conf.Constraint.MultilineRows
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
@@ -345,7 +346,9 @@ class VoiceAssistant: PluginBase() {
    fun synthesize() = speak()
 
    @IsAction(name = "Narrate text", info = "Narrates the specified text using synthesized voice")
-   fun speak() = action<String>("Narrate text", "Narrates the specified text using synthesized voice", IconMA.RECORD_VOICE_OVER, BLOCK) { speak(it) }.invokeWithForm { addConstraints(Multiline) }
+   fun speak() = action<String>("Narrate text", "Narrates the specified text using synthesized voice", IconMA.RECORD_VOICE_OVER, BLOCK) { speak(it) }.invokeWithForm {
+      addConstraints(Multiline).addConstraints(MultilineRows(10))
+   }
 
    fun speak(text: String) = write("SAY: ${text.encodeBase64()}")
 

@@ -10,7 +10,7 @@ import sp.it.util.ui.lay
 class WeatherInfoForecastMeteors: StackPane() {
 
    init {
-      val t = tableViewForClass(Shower::class) {
+      val t = tableViewForClass<Shower>() {
          itemsRaw setTo data()
       }
       lay += t.root

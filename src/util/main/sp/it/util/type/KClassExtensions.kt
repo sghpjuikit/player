@@ -56,6 +56,10 @@ val KClass<*>.isValueClass: Boolean
 val KClass<*>.isDataClass: Boolean
    get() = runTry { isData && objectInstance==null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
 
+/** True iff this class is [Class.isRecord] */
+val KClass<*>.isRecordClass: Boolean
+   get() = java.isRecord
+
 /** Equivalent to [KClass.companionObject]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
 val KClass<*>.companionObj: Any?
    get() = runTry { companionObject }.orNull() // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
@@ -71,9 +75,10 @@ fun KClass<*>.resolveAnonymous(): KClass<*> {
          else this
 }
 
-/** @return data class component properties in declaration order (unlike [KClass.declaredMemberProperties]). Fails for non data class. */
-fun <T: Any> KClass<T>.dataComponentProperties(): List<KProperty1<T, *>> {
-   failIf(!isData) { "Class $this must be data class to return its components" }
-   val ps = primaryConstructor!!.parameters.withIndex().associate { (i, p) -> p.name to i }
-   return declaredMemberProperties.filter { it.name in ps }.sortedBy { ps[it.name] }
-}
+/** @return data/record class component properties in declaration order (unlike [KClass.declaredMemberProperties]). Fails for non data class. */
+fun <T: Any> KClass<T>.dataComponentProperties(): List<KProperty1<T, *>> =
+   if (isDataClass || isRecordClass) {
+      val ps = primaryConstructor!!.parameters.withIndex().associate { (i, p) -> p.name to i }
+      declaredMemberProperties.filter { it.name in ps }.sortedBy { ps[it.name] }
+   } else
+      fail { "Class $this must be data or record class to return its components" }

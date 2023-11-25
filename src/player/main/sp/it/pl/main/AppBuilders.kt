@@ -24,9 +24,7 @@ import javafx.scene.control.OverrunStyle.LEADING_ELLIPSIS
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS
 import javafx.scene.control.SelectionMode
-import javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY
 import javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
-import javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN
 import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode.ENTER
@@ -57,6 +55,8 @@ import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.spinner.Spinner
+import sp.it.pl.ui.objects.table.FieldedTable
+import sp.it.pl.ui.objects.table.FieldedTable.UNCONSTRAINED_RESIZE_POLICY_FIELDED
 import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.tablerow.SpitTableRow
@@ -72,6 +72,7 @@ import sp.it.util.Na
 import sp.it.util.Named
 import sp.it.util.access.fieldvalue.ColumnField.INDEX
 import sp.it.util.access.fieldvalue.ObjectField
+import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldOfDataClass
 import sp.it.util.access.toggle
 import sp.it.util.access.toggleNext
@@ -134,13 +135,18 @@ import sp.it.util.text.lengthInChars
 import sp.it.util.text.lengthInCodePoints
 import sp.it.util.text.lengthInGraphemes
 import sp.it.util.text.toChar32
+import sp.it.util.type.VType
+import sp.it.util.type.argOf
 import sp.it.util.type.createTypeStar
 import sp.it.util.type.dataComponentProperties
 import sp.it.util.type.isDataClass
+import sp.it.util.type.isRecordClass
 import sp.it.util.type.isSubtypeOf
+import sp.it.util.type.isValueClass
 import sp.it.util.type.kTypeNothingNonNull
 import sp.it.util.type.raw
 import sp.it.util.type.type
+import sp.it.util.type.typeOrAny
 import sp.it.util.ui.button
 import sp.it.util.ui.hBox
 import sp.it.util.ui.hyperlink
@@ -471,15 +477,43 @@ fun computeDataInfoUi(data: Any?): Fut<List<Named>> = (data as? Fut<*> ?: Fut.fu
 
 fun contextMenuFor(o: Any?): ContextMenu = ValueContextMenu<Any?>().apply { setItemsFor(o) }
 
-fun <T: Any> tableViewForClass(type: KClass<T>, block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> = object: FilteredTable<T>(type.java, null) {
-   override fun computeMainField(field: ObjectField<T, *>?) = field ?: fields.first { it.type.isSubtypeOf<String>() } ?: fields.firstOrNull()
-   override fun computeFieldsAll() = computeFieldsAllRecursively(type)?.plus(INDEX)?.apply { toStringPretty() } ?: APP.classFields[type].toList().plus(INDEX)
+fun <T: Any> tableViewForClassJava(type: KClass<T>, block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> = tableViewForClass<Any>(type.asIs(), block.asIs()).asIs()
+
+inline fun <reified T: Any> tableViewForClass(type: KClass<T> = T::class, block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> = object: FilteredTable<T>(type.java, null) {
+   override fun computeMainField(field: ObjectField<T, *>?) =
+      field ?: fields.first { it.type.isSubtypeOf<String>() } ?: fields.firstOrNull()
+
+   override fun computeFieldsAll() =
+      (computeFieldsAllRecursively(type) ?: APP.classFields[type].toList()).plus(INDEX)
+
+   val typeExact = type<T>()
+
    private fun <T: Any> computeFieldsAllRecursively(type: KClass<T>): List<ObjectField<T, *>>? =
-      if (type.isDataClass)
-         type.dataComponentProperties()
-            .map { ObjectFieldOfDataClass(it) { it.toUi() } }
-            .flatMap { f -> computeFieldsAllRecursively(f.type.raw)?.map { f.flatMap(it.asIs()) } ?: listOf(f) }
-      else null
+      when {
+         type == Map.Entry::class ->
+            listOf<ObjectField<Map.Entry<Any?,Any?>, Any?>>(
+               object: ObjectFieldBase<Map.Entry<Any?,Any?>, Any?>(VType<Any?>(typeExact.type.argOf(Map.Entry::class, 0).typeOrAny), { it -> it.key }, "Key", "Key", { it, or -> it?.toUi() ?: or }) {},
+               object: ObjectFieldBase<Map.Entry<Any?,Any?>, Any?>(VType<Any?>(typeExact.type.argOf(Map.Entry::class, 0).typeOrAny), { it -> it.value }, "Value", "Value", { it, or -> it?.toUi() ?: or }) {}
+            ).asIs()
+         type.isDataClass || type.isRecordClass -> {
+            val properties = type.dataComponentProperties()
+            println("SIZE")
+            println(properties.size)
+            if (properties.size==1)
+               // data class designed as value class must not have subfields
+               null
+            else
+               properties.map { ObjectFieldOfDataClass(it) { it.toUi() } }
+                  .flatMap { f -> computeFieldsAllRecursively(f.type.raw)?.map { f.flatMap(it.asIs()) } ?: listOf(f) }
+                  .asIs()
+         }
+         // value class !have subfields
+         type.isValueClass ->
+            null
+         // ordinary class !have subfields
+         else ->
+            null
+      }
 }.apply {
    selectionModel.selectionMode = SelectionMode.MULTIPLE
    rowFactory = Callback {
@@ -501,7 +535,7 @@ fun <T: Any> tableViewForClass(type: KClass<T>, block: FilteredTable<T>.() -> Un
          isResizable = true
       }
    }
-   columnResizePolicy = if (fields.any { it!==INDEX }) UNCONSTRAINED_RESIZE_POLICY else CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
+   columnResizePolicy = if (fields.any { it===INDEX }) UNCONSTRAINED_RESIZE_POLICY_FIELDED else CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
    columnState = defaultColumnInfo
    block()
 //   sceneProperty().flatMap { it.windowProperty() }.syncNonNullWhile { w -> w.onIsShowing1st { autoResizeColumns() } }

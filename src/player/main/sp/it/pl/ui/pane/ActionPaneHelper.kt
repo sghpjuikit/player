@@ -197,7 +197,9 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
       }
    }
 
-   fun invokeWithForm(block: Config<*>.() -> Unit = {}) {
+   fun invokeWithForm() = invokeWithForm {  }
+
+   fun invokeWithForm(block: Config<*>.() -> Unit) {
       val context = ActContext(null, null, null, null, null)
       when {
          type.raw.isObject && !type.isNullable -> invokeFutAndProcess(context, type.raw.objectInstance.asIs())
@@ -274,6 +276,8 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
    enum class Threading {
       UI, BLOCK
    }
+
+   @JvmInline value class UiResult(val ui: Node)
 }
 
 /** [ActionData] that executes synchronously - simply consumes the input. */

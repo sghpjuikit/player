@@ -32,6 +32,7 @@ import sp.it.pl.main.AppSettings.ui.overlay.actionViewer;
 import sp.it.pl.ui.objects.icon.CheckIcon;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.table.FilteredTable;
+import sp.it.pl.ui.pane.ActionData.UiResult;
 import sp.it.util.access.V;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.KClassListMap;
@@ -60,7 +61,7 @@ import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.animShowNodes;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
-import static sp.it.pl.main.AppBuildersKt.tableViewForClass;
+import static sp.it.pl.main.AppBuildersKt.tableViewForClassJava;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.autoResizeColumns;
@@ -352,11 +353,7 @@ public class ActionPane extends OverlayPane<Object> {
 			showIcons(data);
 		} else {
 			setDataInfo(null, false);
-			// obtain data & invoke again
-			data = withProgress(
-				((Fut<?>) data).useBy(FX, this::setData),
-				dataProgress
-			);
+			data = withProgress(((Fut<?>) data).useBy(FX, this::setData), dataProgress); // obtain data & invoke again
 		}
 	}
 
@@ -367,12 +364,14 @@ public class ActionPane extends OverlayPane<Object> {
 
 	@SuppressWarnings({"unchecked", "AccessStaticViaInstance"})
 	private void setDataInfo(Object data, boolean computed) {
-		dataInfo.setText(computeDataInfo(data, computed));
+		dataInfo.setText(data instanceof UiResult ? null : computeDataInfo(data, computed));
 		dataTablePane.getChildren().clear();
 		var gap = 0.0;
 		var priority = NEVER;
 
 		var dataAsS = (String) null;
+		if (data instanceof ActionData.UiResult)
+			dataAsS = null;
 		if (data instanceof String dataS && dataS.length()>40)
 			dataAsS = dataS;
 		else if (data instanceof Throwable t)
@@ -394,7 +393,7 @@ public class ActionPane extends OverlayPane<Object> {
 		var dataAsC = (Collection<?>) null;
 		if (data instanceof Collection<?> items && !items.isEmpty()) {
 			var itemType = (KClass<Object>) getKotlinClass(getElementClass(items));
-			dataTable = tableViewForClass(itemType, consumer(t -> {
+			dataTable = tableViewForClassJava(itemType, consumer(t -> {
 				t.getSelectedItems().addListener((Change<?> c) -> {
 					if (insteadIcons==null) {
 						dataInfo.setText(computeDataInfo(collectionUnwrap(t.getSelectedOrAllItemsCopy()), true));
@@ -444,13 +443,13 @@ public class ActionPane extends OverlayPane<Object> {
 		if (use_registered_actions) actions.getElementsOfSuper(dataType).iterator().forEachRemaining(actionsData::add);
 		actionsData.removeIf(a -> !a.invokeIsDoable(d));
 
-		if (!showIcons) {
+		if (!showIcons || data instanceof ActionData.UiResult) {
 			dataInfo.setOpacity(1.0);
 			dataTablePane.setOpacity(1.0);
 			descFull.setOpacity(1.0);
 			descTitle.setOpacity(1.0);
 			iconPaneComplex.setOpacity(1.0);
-			showCustomActionUi();
+			showCustomActionUi((data instanceof ActionData.UiResult x) ? x.getUi() : insteadIcons.get());
 			insteadIcons = null;
 			showIcons = true;
 			return;
@@ -517,10 +516,10 @@ public class ActionPane extends OverlayPane<Object> {
 		iconPaneComplex.getChildren().clear();
 	}
 
-	private void showCustomActionUi() {
+	private void showCustomActionUi(Node node) {
 		iconPaneComplex.getParent().getChildrenUnmodifiable().forEach(n -> n.setVisible(false));
 		iconPaneComplex.setVisible(true);
-		iconPaneComplex.getChildren().setAll(insteadIcons.get());
+		iconPaneComplex.getChildren().setAll(node);
 	}
 
 }

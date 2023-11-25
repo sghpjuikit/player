@@ -191,8 +191,8 @@
 .tree-table-view > .virtual-flow > .scroll-bar:horizontal > .thumb {
     -fx-padding: 0;
     -fx-background-color: -skin-def-font-color;
-    -fx-background-insets: 0.45em;
-    -fx-background-radius: 1em; /* 3px */
+    -fx-background-insets: 0.75em;
+    -fx-background-radius: 0em; /* 3px */
     -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
 }
 .scroll-bar > .thumb,
@@ -210,7 +210,7 @@
 .tree-table-view > .virtual-flow > .scroll-bar:vertical > .thumb {
     -fx-padding: 0;
     -fx-background-color: -skin-def-font-color;
-    -fx-background-insets: 0.45em;
+    -fx-background-insets: 0.75em;
     -fx-background-radius: 0em;
     -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
 }

@@ -89,10 +89,8 @@ open class SpitScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane
 
    fun initConsumeScrolling() {
       node.onEventDown(ScrollEvent.ANY) {
-         fun ScrollBar?.isScrollingNeeded() = this!=null && visibleAmount<max
          val vsb = Util.getScrollBar(skinnable, VERTICAL)
          val hsb = Util.getScrollBar(skinnable, HORIZONTAL)
-
          if (vsb.isScrollingNeeded() || hsb.isScrollingNeeded())
             it.consume()
       }
@@ -141,13 +139,17 @@ open class SpitScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane
       }
    }
 
+   private fun ScrollBar?.isScrollingNeeded() = this!=null && visibleAmount<max
 
-   private fun orient(): Orient =
-           if ( skinnable.isFitToWidth &&  skinnable.isFitToHeight) Orient.NONE
-      else if (!skinnable.isFitToWidth &&  skinnable.isFitToHeight) Orient.HOR
-      else if ( skinnable.isFitToWidth && !skinnable.isFitToHeight) Orient.VER
-      else if (!skinnable.isFitToWidth && !skinnable.isFitToHeight) Orient.BOTH
-      else fail { "Forbidden" }
+   private fun orient(): Orient {
+      val vsb = Util.getScrollBar(skinnable, VERTICAL)
+      val hsb = Util.getScrollBar(skinnable, HORIZONTAL)
+      return if (!vsb.isScrollingNeeded() && !hsb.isScrollingNeeded()) Orient.NONE
+        else if (!vsb.isScrollingNeeded() &&  hsb.isScrollingNeeded()) Orient.HOR
+        else if ( vsb.isScrollingNeeded() && !hsb.isScrollingNeeded()) Orient.VER
+        else if ( vsb.isScrollingNeeded() &&  hsb.isScrollingNeeded()) Orient.BOTH
+        else fail { "Forbidden" }
+   }
 
    private sealed interface OrientUni {
       infix fun <T> T.o(t: T): T = if (this@OrientUni==Orient.HOR) this else t

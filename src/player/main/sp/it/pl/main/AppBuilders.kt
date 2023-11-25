@@ -25,7 +25,6 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
-import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
@@ -55,7 +54,6 @@ import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.spinner.Spinner
-import sp.it.pl.ui.objects.table.FieldedTable
 import sp.it.pl.ui.objects.table.FieldedTable.UNCONSTRAINED_RESIZE_POLICY_FIELDED
 import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.objects.table.buildFieldedCell
@@ -91,8 +89,9 @@ import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.getElementType
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setToOne
-import sp.it.util.collections.toStringPretty
+import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.Constraint.RepeatableAction
 import sp.it.util.conf.ValueConfig
 import sp.it.util.conf.nonEmpty
 import sp.it.util.dev.Dsl
@@ -657,6 +656,14 @@ fun showConfirmation(text: String, shower: Shower = WINDOW_ACTIVE(CENTER), actio
    }
 }
 
+/**
+ * Shows popup with [form] content and run action icon.
+ * When action returns [Fut], it is considered asynchronous.
+ * Asynchronous action displays progress indicator.
+ * The popup closes upon successful action completion, unless [RepeatableAction] constraint is used (supported only if this is [Config].
+ *
+ * @param action action which can be invoked by user once input data pass validation. The action takes this configurable and returns any result.
+ */
 fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_ACTIVE(CENTER), action: (C) -> Any?) {
    PopWindow().apply {
       val form = form(this@configure) {
@@ -669,7 +676,10 @@ fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_
          result
       }.apply {
          editorUi syncBiFrom APP.ui.formLayout on onHidden.asDisposer()
-         onExecuteDone = { if (it.isOk && isShowing) hide() }
+         onExecuteDone = {
+            val needsClose = it.isOk && isShowing && !(this@configure is Config<*> && this@configure.hasConstraint<RepeatableAction>())
+            if (needsClose) hide()
+         }
       }
 
       content.value = form
@@ -682,8 +692,9 @@ fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_
    }
 }
 
-fun configureString(title: String, inputName: String, action: (String) -> Any?) {
-   ValueConfig(type(), inputName, "", "").constrain { nonEmpty() }.configure(title) {
+/** Calls [configure] with simple [ValueConfig] and [nonEmpty] */
+fun configureString(titleText: String, inputName: String, shower: Shower = WINDOW_ACTIVE(CENTER), action: (String) -> Any?) {
+   ValueConfig(type(), inputName, "", "").constrain { nonEmpty() }.configure(titleText) {
       action(it.value)
    }
 }

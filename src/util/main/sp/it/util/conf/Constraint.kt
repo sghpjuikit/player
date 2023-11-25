@@ -131,6 +131,9 @@ interface Constraint<in T> {
       override fun message() = "Collection size must be must be at least ${toUiConverter.toS(min)} and at most ${toUiConverter.toS(max)}"
    }
 
+   /** Hints ui not to close after action finishes. */
+   object RepeatableAction: MarkerConstraint()
+
    /** Hints ui editor for [Config.isEnumerable] to use original order of the enumeration, i.e. no sort will be applied. */
    object PreserveOrder: MarkerConstraint()
 

@@ -22,7 +22,6 @@ import sp.it.pl.core.Core
 import sp.it.pl.core.NameUi
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
-import sp.it.util.collections.toStringPretty
 import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
@@ -138,7 +137,6 @@ class AppHttp(
                      else -> it.sizeInBytes() - 1
                   }
                } ?: 0..it.sizeInBytes() - 1
-               e.requestHeaders.toStringPretty().printIt()
                val contentLength = range.endInclusive - range.start + 1
                e.responseHeaders["Content-Type"] = it.mimeType().name
                e.responseHeaders["Content-Length"] = contentLength.toString()

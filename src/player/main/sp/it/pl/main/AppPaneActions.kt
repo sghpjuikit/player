@@ -104,6 +104,7 @@ object ActionsPaneGenericActions {
          AppActionsAppTest,
          AppActionsComponent,
          AppActionsString,
+         AppActionsFile,
          AppActionsUnit,
          AppActionsWindow,
       ).forEach { actionHolder ->

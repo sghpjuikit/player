@@ -132,6 +132,8 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    val component = AppActionsComponent
    /** [AppActionsString] */
    val string = AppActionsString
+   /** [AppActionsFile] */
+   val file = AppActionsFile
    /** [AppActionsUnit] */
    val unit = AppActionsUnit
    /** [AppActionsWindow] */

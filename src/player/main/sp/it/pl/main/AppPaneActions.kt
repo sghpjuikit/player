@@ -393,10 +393,10 @@ private fun addToLibraryConsumer(actionPane: ActionPane) =
                            is Try.Ok<AddSongsToLibResult> -> {
                               if (conf.editInTagger.value) {
                                  val tagger = runBlocking { APP.widgetManager.factories.getFactory(SONG_TAGGER.id).orNone().create() }
-                                 val songs = if (conf.editOnlyAdded.value) r.value.converted else r.value.all
+                                 val songsToRead = if (conf.editOnlyAdded.value) r.value.converted else r.value.all
                                  loadContent {
                                     tagger.load().apply {
-                                       tagger.controller.asIf<SongReader>()?.read(songs)
+                                       tagger.controller.asIf<SongReader>()?.read(songsToRead)
                                     }
                                  }
                               }

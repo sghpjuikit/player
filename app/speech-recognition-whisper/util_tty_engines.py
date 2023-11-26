@@ -163,14 +163,16 @@ class Tty:
             while not self.sentence_queue.empty():
                 try:
                     text = self.sentence_queue.get(block=False)
-                    self.tty.speak(text, skippable=True, use_cache=False)
+                    if (len(text)>0):
+                        self.tty.speak(text, skippable=True, use_cache=False)
                 except Exception:
                     break
         else:
             while not self.speeches_queue.empty():
                 try:
                     text, use_cache = self.speeches_queue.get(block=False)
-                    self.tty.speak(text, skippable=False, use_cache=use_cache)
+                    if (len(text)>0):
+                        self.tty.speak(text, skippable=False, use_cache=use_cache)
                 except Exception:
                     break
 
@@ -326,7 +328,7 @@ class TtyCharAi:
 class TtyCoqui:
     def __init__(self, voice: str, vlcActor: VlcActor, write: Writer):
         self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "coqui")
-        self.voice = os.path.join("voices-coqui", "Ann_Daniels.flac")
+        self.voice = voice
         self.vlcActor = vlcActor
         self.write = write
         self.skip_ = False
@@ -374,19 +376,23 @@ class TtyCoqui:
 
             # generate
             if not cache_used or not audio_cache_file_exists:
-                if cache_used:
-                    class Segment:
-                        def segment(self, text):
-                            return [text]
-                    model.synthesizer.seg = Segment()
-                    model.tts_to_file(text=text, file_path=audio_file, speed = 1.5, speaker_wav=self.voice, language="en")
-                    self.vlcActor.queue.put(('f', audio_file, skippable))
+                voiceFile = os.path.join("voices-coqui", self.voice)
+                if not os.path.exists(voiceFile):
+                   self.write("Voice " + self.voice + "does not exist")
                 else:
-                    model.tts_to_file(text=text, file_path=audio_file, speed = 1.5, speaker_wav=self.voice, language="en")
-                    self.vlcActor.queue.put(('f', audio_file, skippable))
-                    # avoid file and play from ram
-                    # audio = model.tts(text=text, speed=1.5, speaker_wav=self.voice, language="en")
-                    # self.vlcActor.queue.put(('b', numpy.array(audio, dtype=numpy.uint8).tobytes(), skippapable))
+                    if cache_used:
+                        class Segment:
+                            def segment(self, text):
+                                return [text]
+                        model.synthesizer.seg = Segment()
+                        model.tts_to_file(text=text, file_path=audio_file, speed = 1.5, speaker_wav=voiceFile, language="en")
+                        self.vlcActor.queue.put(('f', audio_file, skippable))
+                    else:
+                        model.tts_to_file(text=text, file_path=audio_file, speed = 1.5, speaker_wav=voiceFile, language="en")
+                        self.vlcActor.queue.put(('f', audio_file, skippable))
+                        # avoid file and play from ram
+                        # audio = model.tts(text=text, speed=1.5, speaker_wav=self.voice, language="en")
+                        # self.vlcActor.queue.put(('b', numpy.array(audio, dtype=numpy.uint8).tobytes(), skippapable))
             else:
                 self.vlcActor.queue.put(('f', audio_file, skippable))
 

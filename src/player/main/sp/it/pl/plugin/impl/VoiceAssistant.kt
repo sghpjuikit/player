@@ -2,6 +2,7 @@ package sp.it.pl.plugin.impl
 
 import sp.it.util.async.coroutine.VT as VTc
 import io.ktor.client.request.put
+import java.io.File
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.util.regex.Pattern
@@ -29,6 +30,7 @@ import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.isAudio
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.objects.icon.Icon
@@ -48,6 +50,7 @@ import sp.it.util.async.runOn
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
+import sp.it.util.conf.Constraint.RepeatableAction
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
@@ -74,6 +77,7 @@ import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.Subscribed
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.chan
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
@@ -81,6 +85,7 @@ import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
@@ -117,9 +122,10 @@ class VoiceAssistant: PluginBase() {
             "speaking-engine=${speechEngine.value.code}",
             "character-ai-token=${speechEngineCharAiToken.value}",
             "character-ai-voice=22",
+            "coqui-voice=${speechEngineCoquiVoice.value}",
             "vlc-path=${APP.audio.playerVlcLocation.value.orEmpty()}",
             "chat-model=${chatModel.value}",
-            "speech-recognition-model=${whisperModel.value}"
+            "speech-recognition-model=${whisperModel.value}",
          )
          val command = EnvironmentContext.runAsProgramArgsTransformer(commandRaw)
          val process = ProcessBuilder(command)
@@ -225,6 +231,11 @@ class VoiceAssistant: PluginBase() {
    val speechEngineCharAiToken by cvn<String>(null).password()
       .def(name = "Speech engine > character.ai > token", info = "Access token for character.ai account used when speech engine is Character.ai.")
 
+   /** Access token for character.ai account used when speech engine is Character.ai */
+   val speechEngineCoquiVoice by cv("Ann_Daniels.flac")
+      .valuesUnsealed { (dir / "voices-coqui").children().filter { it.isAudio() }.map { it.name }.toList() }
+      .def(name = "Speech engine > coqui > voice", info = "Sample file of the voice to be used. User can add more audio samples to ${(dir / "voices-coqui").absolutePath}. Should be 3-10s long.")
+
    /** Engine used to generate voice. May require additional configuration */
    val chatModel by cv("none")
       .valuesUnsealed { dir.div("models-llm").children().map { it.name }.filter { it.endsWith("gguf") }.toList() + "none" }
@@ -270,6 +281,8 @@ class VoiceAssistant: PluginBase() {
    override fun start() {
       /** Triggers event when process arg changes */
       val processChange = wakeUpWord.chan() + whisperModel.chan() + chatModel.chan() + speechEngine.chan() + speechEngineCharAiToken.chan()
+
+      speechEngineCoquiVoice.chan().throttleToLast(2.seconds) subscribe { write("coqui-voice=$it") }
 
       startSpeechRecognition()
       APP.sysEvents.subscribe { startSpeechRecognition() } on onClose // restart on audio device change
@@ -347,7 +360,7 @@ class VoiceAssistant: PluginBase() {
 
    @IsAction(name = "Narrate text", info = "Narrates the specified text using synthesized voice")
    fun speak() = action<String>("Narrate text", "Narrates the specified text using synthesized voice", IconMA.RECORD_VOICE_OVER, BLOCK) { speak(it) }.invokeWithForm {
-      addConstraints(Multiline).addConstraints(MultilineRows(10))
+      addConstraints(Multiline).addConstraints(MultilineRows(10)).addConstraints(RepeatableAction)
    }
 
    fun speak(text: String) = write("SAY: ${text.encodeBase64()}")
@@ -391,7 +404,9 @@ class VoiceAssistant: PluginBase() {
          root.consumeScrolling()
          root.lay += vBox(null, CENTER) {
             lay += hBox(null, CENTER) {
-               lay += Icon(IconFA.COG).tooltip("Settings").onClickDo { APP.actions.app.openSettings("plugins.voice_assistant") }
+               lay += Icon(IconFA.COG).tooltip("Settings").onClickDo { APP.actions.app.openSettings(plugin.value?.configurableGroupPrefix) }.apply {
+                  disableProperty() syncFrom plugin.map { it==null }
+               }
                lay += Icon(IconFA.REFRESH).tooltip("Restart voice assistent").onClickDo { plugin.value?.restart() }
                lay += Icon(IconMD.TEXT_TO_SPEECH).tooltip("Speak text").onClickDo { plugin.value?.speak() }
                lay += Icon().apply {

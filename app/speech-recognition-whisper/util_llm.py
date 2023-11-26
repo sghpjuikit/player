@@ -13,7 +13,7 @@ class Llm:
         self.chatSession = self.llm.chat_session()
 
     def chatStop(self):
-        self.chat._is_chat_session_activated = False
-        self.chat.current_chat_session = empty_chat_session("")
-        self.chat._current_prompt_template = "{0}"
+        self.llm._is_chat_session_activated = False
+        self.llm.current_chat_session = empty_chat_session("")
+        self.llm._current_prompt_template = "{0}"
         self.chatSession = None

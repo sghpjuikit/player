@@ -6,6 +6,7 @@ import java.io.File
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.util.regex.Pattern
+import javafx.beans.InvalidationListener
 import javafx.geometry.Pos.CENTER
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ENTER
@@ -81,6 +82,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.chan
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.plus
@@ -95,6 +97,7 @@ import sp.it.util.text.equalsNc
 import sp.it.util.text.lines
 import sp.it.util.text.useStrings
 import sp.it.util.text.words
+import sp.it.util.type.volatile
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -176,11 +179,14 @@ class VoiceAssistant: PluginBase() {
 
    /** Speech handlers called when user has spoken. */
    val handlers by cList(
+         SpeakHandler("Help", "help") { text, command -> if (command == text) Ok("You can list commands by saying ${wakeUpWord.value} list commands") else null },
+         SpeakHandler("Help Commands", "list commands") { text, command -> if (command == text) Ok(handlersHelpText()) else null },
+         SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
          SpeakHandler("Resume playback", "play music") { text, command -> if (command in text) { APP.audio.resume(); Ok(null) } else null },
          SpeakHandler("Resume playback", "start music") { text, command -> if (command in text) { APP.audio.resume(); Ok(null) } else null },
          SpeakHandler("Pause playback", "stop music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
          SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
-         SpeakHandler("Open widget by name", "[open|show] (widget)? \$widget-name (widget)?") { text, _ ->
+         SpeakHandler("Open widget by name", "[open|show] [widget]? \$widget-name [widget]?") { text, _ ->
             if (text.startsWith("open")) {
                val fName = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
                val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase() equalsNc fName }
@@ -193,6 +199,10 @@ class VoiceAssistant: PluginBase() {
       )
       .noPersist().readOnly().butElement { uiConverter { "${it.name} -> ${it.commandUi}" } }
       .def(name = "Commands", info = "Shows active voice speech recognition commands.")
+
+   /** [handlers] help text */
+   private fun handlersHelpText(): String =
+         handlers.mapIndexed { i, h -> "$i. ${h.name}; activate by saying ${h.commandUi}" }.joinToString("\n", prefix = "Here is list of currently active commands:")
 
    /** Last spoken text - writable */
    private val speakingTextW = vn<String>(null)

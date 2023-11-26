@@ -254,6 +254,15 @@ def callback(recognizer, audio_data):
 
                 Thread(target=generate, args=(chatPrompt,), daemon=True).start()
 
+            # do help
+            elif text == "help":
+                speak('I am an AI assistant. Talk to me by calling ' + wake_word + '.')
+                speak('You can start conversation by saying ' + wake_word + ' start conversation.')
+                speak('You can stop active conversation by saying ' + wake_word + 'stop or end conversation.')
+                speak('You can ask for help by saying ' + wake_word + ' help.')
+                speak('You can run command by saying ' + wake_word + ' and saying the command.')
+                write('COM: help')  # allows application to customize the help output
+
             # do command
             else:
                 # command_prompt = intention_prompt + text

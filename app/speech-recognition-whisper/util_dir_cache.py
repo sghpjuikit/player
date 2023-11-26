@@ -17,7 +17,7 @@ def sanitize_filename(text):
 
 def cache_file(text, cache_dir):
     sanitized_text = sanitize_filename(text)
-    cache_path = os.path.join(cache_dir, sanitized_text)
+    cache_path = os.path.join(cache_dir, sanitized_text + ".wav")
 
     # Find the appropriate file
     return cache_path, os.path.exists(cache_path)

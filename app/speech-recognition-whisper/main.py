@@ -22,17 +22,23 @@ from util_itr import teeThreadSafe
 write = Writer()
 
 # util: print ex with flush (avoids no console output)
-def write_ex(text, exception):
+def write_ex(text: str, exception):
     print(text, exception, flush=True)
 
 # util: arg parsing
-def arg(arg_name, fallback):
+def arg(arg_name: str, fallback: str) -> str:
     a = next((x for x in sys.argv if x.startswith(arg_name + '=')), None)
     if a is None:
         return fallback
     else:
-        return a.split("=", 1)[-1]
+        return prop(a, arg_name, fallback)
 
+# util: prop parsing
+def prop(text: str, arg_name: str, fallback: str) -> str:
+    if text.startswith(arg_name + '='):
+        return text.split("=", 1)[-1]
+    else:
+        return fallback
 
 # help
 showHelp = '--help' in sys.argv or '-h' in sys.argv
@@ -77,6 +83,10 @@ if showHelp:
     write("    If speaking-engine=character-ai is used, optional voice id can be supplied")
     write("    Default: 22 (Anime Girl en-US)")
     write("")
+    write("  coqui-voice=$voice")
+    write("    If speaking-engine=coqui is used, required name of voice file must be specified and exist in ./coqui-voices dir")
+    write("    Default: Ann_Daniels.flac")
+    write("")
     write("  vlc-path=$path_to_vlc_dir")
     write("    If speaking-engine=character-ai is used, optional path to vlc player can be specified.")
     write("    If no path is specified and application does not find any vlc player installed, speaking will not function.")
@@ -99,6 +109,7 @@ name = wake_word[0].upper() + wake_word[1:]
 speakEngineType = arg('speaking-engine', 'os')
 speakUseCharAiToken = arg('character-ai-token', '')
 speakUseCharAiVoice = int(arg('character-ai-voice', '22'))
+speakUseCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
 vlcPath = arg('vlc_path', '')
 speechRecognitionModelName = arg('speech-recognition-model', 'base.en.pt')
 chatModelName = arg('chat-model', 'none')
@@ -118,7 +129,7 @@ elif speakEngineType == 'os':
 elif speakEngineType == 'character-ai':
     speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, VlcActor(vlcPath, write), write)
 elif speakEngineType == 'coqui':
-    speakEngine = TtyCoqui('speakUseCharAiVoice', VlcActor(vlcPath, write), write)
+    speakEngine = TtyCoqui(speakUseCoquiVoice, VlcActor(vlcPath, write), write)
 
 speak = Tty(speakEngine, write)
 
@@ -327,6 +338,9 @@ def start_input_handler():
             if m.startswith("SAY: "):
                 text = base64.b64decode(m[5:]).decode('utf-8')
                 speak(map(lambda x: x + ' ', text.split(' ')), False)
+            elif m.startswith("coqui-voice=") and isinstance(speak.tty, TtyCoqui):
+                cast(speak.tty, TtyCoqui).voice = prop(m, "coqui-voice=", speakUseCoquiVoice)
+                speak(name + " voice changed", use_cache=False)
             elif m == "EXIT":
                 sys.exit(0)
         except EOFError as _:

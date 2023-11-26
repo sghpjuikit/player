@@ -2,9 +2,6 @@
 import sys
 import atexit
 import signal
-import speech_recognition  # https://github.com/Uberi/speech_recognition
-import whisper  # https://github.com/openai/whisper
-import warnings
 import time
 import os
 import psutil
@@ -13,8 +10,10 @@ import traceback
 from itertools import chain
 from threading import Thread
 from typing import cast
-from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui, VlcActor
+from util_play_engine import SdActor, VlcActor
+from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui
 from util_llm import Llm
+from util_mic import Mic, Whisper
 from util_write_engine import Writer
 from util_itr import teeThreadSafe
 
@@ -94,7 +93,8 @@ if showHelp:
     write("")
     write("  speech-recognition-model=$model")
     write("    Whisper model for speech recognition")
-    write("    Default: base.en.pt")
+    write("    Values: tiny.en, tiny, base.en, base, small.en, small, medium.en, medium, large-v1, large-v2, large")
+    write("    Default: base.en")
     write("")
     write("  chat-model=$model")
     write("    LLM model for chat or none for no LLM chat functionality")
@@ -111,8 +111,12 @@ speakUseCharAiToken = arg('character-ai-token', '')
 speakUseCharAiVoice = int(arg('character-ai-voice', '22'))
 speakUseCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
 vlcPath = arg('vlc_path', '')
-speechRecognitionModelName = arg('speech-recognition-model', 'base.en.pt')
+speechRecognitionModelName = arg('speech-recognition-model', 'base.en')
 chatModelName = arg('chat-model', 'none')
+
+cache_dir = "cache"
+if not os.path.exists(cache_dir):
+    os.makedirs(cache_dir)
 
 intention_prompt = base64.b64decode(arg('intent-prompt', '')).decode('utf-8')
 listening_for_chat_prompt = False
@@ -129,22 +133,9 @@ elif speakEngineType == 'os':
 elif speakEngineType == 'character-ai':
     speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, VlcActor(vlcPath, write), write)
 elif speakEngineType == 'coqui':
-    speakEngine = TtyCoqui(speakUseCoquiVoice, VlcActor(vlcPath, write), write)
+    speakEngine = TtyCoqui(speakUseCoquiVoice, SdActor(), write)
 
 speak = Tty(speakEngine, write)
-
-
-speak(name + " initializing")
-
-cache_dir = "cache"
-if not os.path.exists(cache_dir):
-    os.makedirs(cache_dir)
-
-whisperModelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-whisper")
-whisperModel = whisper.load_model(os.path.join(whisperModelDir, speechRecognitionModelName))
-listening = None
-warnings.filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
-
 
 chatUseCharAi = False
 chatModelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-llm")
@@ -152,173 +143,145 @@ chatModel = os.path.join(chatModelDir, chatModelName)
 chat = None if chatModelName == "none" else Llm(chatModel)
 
 # speak(name + " INTENT DETECTOR initializing.")
-
 # https://huggingface.co/glaiveai/glaive-function-calling-v1
-commandTokenizer = None  # AutoTokenizer.from_pretrained("glaiveai/glaive-function-calling-v1", revision="6ade959", trust_remote_code=True)
-commandModel = None  # AutoModelForCausalLM.from_pretrained("glaiveai/glaive-function-calling-v1", revision="6ade959", trust_remote_code=True).half().cuda()
+# commandTokenizer = None  # AutoTokenizer.from_pretrained("glaiveai/glaive-function-calling-v1", revision="6ade959", trust_remote_code=True)
+# commandModel = None  # AutoModelForCausalLM.from_pretrained("glaiveai/glaive-function-calling-v1", revision="6ade959", trust_remote_code=True).half().cuda()
 
-
-# noinspection PyUnusedLocal
-def callback(recognizer, audio_data):
+def callback(text):
     global listening_for_chat_prompt
     global listening_for_chat_generation
 
-    if not terminating:
-        try:
-            import io
-            import numpy as np
-            import soundfile as sf
-            import torch
-            wav_bytes = audio_data.get_wav_data(convert_rate=16000) # 16 kHz https://github.com/openai/whisper/blob/28769fcfe50755a817ab922a7bc83483159600a9/whisper/audio.py#L98-L99
-            wav_stream = io.BytesIO(wav_bytes)
-            audio_array, sampling_rate = sf.read(wav_stream)
-            audio_array = audio_array.astype(np.float32)
-            text = whisperModel.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
+    if terminating:
+        return
 
-
-            # import numpy as np
-            # result = modelWhisper.transcribe(np.frombuffer(audio.get_raw_data(), dtype=np.int16).astype(np.float32) / 32768.0)
-            # text = result['text']
-
-            chatPrompt = text.rstrip(".").strip()
-            text = text.lower().rstrip(".").strip()
-
-            if len(text) > 0:
-                write('RAW: ' + text)
-
-            # ignore speech recognition noise
-            if not text.startswith(wake_word):
-                return
-
-            # cancel any ongoing chat activity
-            if listening_for_chat_generation:
-                if not text.startswith("system end conversation") and not text.startswith("system stop conversation"):
-                    listening_for_chat_generation = False
-                    return
-
-            # sanitize
-            chatPrompt = chatPrompt.lstrip(wake_word).lstrip(",").rstrip(".").strip()
-            text = text.lstrip(wake_word).lstrip(",").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
-            write('USER: ' + text)
-
-            # announcement
-            if len(text) == 0:
-                if listening_for_chat_prompt:
-                    speak('Yes, conversation is ongoing')
-                else:
-                    speak('Yes')
-
-            # start LLM conversation (fail)
-            elif listening_for_chat_prompt is False and "start conversation" in text and chat is None:
-                speak('No conversation model is loaded')
-
-            # start LLM conversation
-            elif listening_for_chat_prompt is False and "start conversation" in text:
-                chat.chatStart()
-                listening_for_chat_prompt = True
-                speak('Conversing')
-
-            # end LLM conversation
-            elif listening_for_chat_prompt is True and (text.startswith("end conversation") or text.startswith("stop conversation")):
-                listening_for_chat_prompt = False
-                if not chat.generating:
-                    chat.chatStop()
-                    speak.iterableSkip()
-                    speak("Ok")
-
-            # do LLM conversation
-            elif listening_for_chat_prompt is True:
-                # noinspection PyUnusedLocal
-                def stop_on_token_callback(token_id, token_string):
-                    return listening_for_chat_generation
-
-                def generate(txt):
-                    global listening_for_chat_generation
-                    listening_for_chat_generation = True
-                    chat.generating = True
-
-                    # generate & stream response
-                    tokens = chat.llm.generate(txt, streaming=True, n_batch=16, max_tokens=1000, callback=stop_on_token_callback)
-                    tokensWrite, tokensSpeech, tokensText = teeThreadSafe(tokens, 3)
-                    write(chain(['CHAT: '], tokensWrite))
-                    speak(tokensSpeech, False)
-                    text_all = ''.join(tokensText)
-                    chat.generating = False
-
-                    # end LLM conversation (if cancelled by user)
-                    if listening_for_chat_prompt is False:
-                        chat.chatStop()
-                        speak.iterableSkip()
-                        speak("Ok")
-                    listening_for_chat_generation = False
-
-                Thread(target=generate, args=(chatPrompt,), daemon=True).start()
-
-            # do help
-            elif text == "help":
-                speak('I am an AI assistant. Talk to me by calling ' + wake_word + '.')
-                speak('You can start conversation by saying ' + wake_word + ' start conversation.')
-                speak('You can stop active conversation by saying ' + wake_word + 'stop or end conversation.')
-                speak('You can ask for help by saying ' + wake_word + ' help.')
-                speak('You can run command by saying ' + wake_word + ' and saying the command.')
-                write('COM: help')  # allows application to customize the help output
-
-            # do command
-            else:
-                # command_prompt = intention_prompt + text
-                # command_input = commandTokenizer(command_prompt, return_tensors="pt").to(commandModel.device)
-                # command_output = commandModel.generate(**command_input, do_sample=True, temperature=0.1, top_p=0.1, max_new_tokens=1000)
-                # text = commandTokenizer.decode(command_output[0], skip_special_tokens=True)
-                #
-                write('COM: ' + text.strip())
-                #
-                # if "ASSISTANT: <functioncall>" in text:
-                #     text = text.split("ASSISTANT: <functioncall>")[1]
-                #     write('USER: ' + text)
-                # else:
-                #     write('SYS: No command detected')
-
-        except Exception as e:
-            traceback.print_exc()
-            write_ex("Error: ", e)
-            speak(name + " encountered an error. Please speak again.")
-
-
-def start_listening():
-    global listening
-    r = speech_recognition.Recognizer()
-    r.pause_threshold = 0.8
-    r.phrase_threshold = 0.3
-    r.energy_threshold = 120
-    r.dynamic_energy_threshold = False
     try:
-        source = speech_recognition.Microphone()
-        # with source:
-        #     r.adjust_for_ambient_noise(source, duration=3)
-        listening = r.listen_in_background(source, callback)
-    except Exception:
-        speak(name + " partially online. Voice recognition disabled. No microphone found.")
-    speak(name + " online")
+        chatPrompt = text.rstrip(".").strip()
+        text = text.lower().rstrip(".").strip()
+
+        if len(text) > 0:
+            write('RAW: ' + text)
+
+        # ignore speech recognition noise
+        if not text.startswith(wake_word):
+            return
+
+        # cancel any ongoing chat activity
+        if listening_for_chat_generation and not text.startswith("system end conversation") and not text.startswith("system stop conversation"):
+            listening_for_chat_generation = False
+            speak.skip()
+            return
+
+        # sanitize
+        chatPrompt = chatPrompt.lstrip(wake_word).lstrip(",").rstrip(".").strip()
+        text = text.lstrip(wake_word).lstrip(",").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
+        write('USER: ' + text)
+
+        # announcement
+        if len(text) == 0:
+            if listening_for_chat_prompt:
+                speak('Yes, conversation is ongoing')
+            else:
+                speak('Yes')
+
+        # start LLM conversation (fail)
+        elif listening_for_chat_prompt is False and "start conversation" in text and chat is None:
+            speak('No conversation model is loaded')
+
+        # start LLM conversation
+        elif listening_for_chat_prompt is False and "start conversation" in text:
+            chat.chatStart()
+            listening_for_chat_prompt = True
+            speak('Conversing')
+
+        # end LLM conversation
+        elif listening_for_chat_prompt is True and (text.startswith("end conversation") or text.startswith("stop conversation")):
+            listening_for_chat_prompt = False
+            if not chat.generating:
+                chat.chatStop()
+                speak.skip()
+                speak("Ok")
+
+        # do LLM conversation
+        elif listening_for_chat_prompt is True:
+            # noinspection PyUnusedLocal
+            def stop_on_token_callback(token_id, token_string):
+                return listening_for_chat_generation
+
+            def generate(txt):
+                global listening_for_chat_generation
+                listening_for_chat_generation = True
+                chat.generating = True
+
+                # generate & stream response
+                tokens = chat.llm.generate(txt, streaming=True, n_batch=16, max_tokens=1000, callback=stop_on_token_callback)
+                tokensWrite, tokensSpeech, tokensText = teeThreadSafe(tokens, 3)
+                write(chain(['CHAT: '], tokensWrite))
+                speak(tokensSpeech, False)
+                text_all = ''.join(tokensText)
+                chat.generating = False
+
+                # end LLM conversation (if cancelled by user)
+                if listening_for_chat_prompt is False:
+                    chat.chatStop()
+                    speak.skip()
+                    speak("Ok")
+                listening_for_chat_generation = False
+
+            Thread(target=generate, args=(chatPrompt,), daemon=True).start()
+
+        # do help
+        elif text == "help":
+            speak('I am an AI assistant. Talk to me by calling ' + wake_word + '.')
+            speak('Start conversation by saying, start conversation.')
+            speak('Stop active conversation by saying, stop or end conversation.')
+            speak('Ask for help by saying, help.')
+            speak('Run command by saying the command.')
+            write('COM: help')  # allows application to customize the help output
+
+        # do command
+        else:
+            # command_prompt = intention_prompt + text
+            # command_input = commandTokenizer(command_prompt, return_tensors="pt").to(commandModel.device)
+            # command_output = commandModel.generate(**command_input, do_sample=True, temperature=0.1, top_p=0.1, max_new_tokens=1000)
+            # text = commandTokenizer.decode(command_output[0], skip_special_tokens=True)
+            #
+            write('COM: ' + text.strip())
+            #
+            # if "ASSISTANT: <functioncall>" in text:
+            #     text = text.split("ASSISTANT: <functioncall>")[1]
+            #     write('USER: ' + text)
+            # else:
+            #     write('SYS: No command detected')
+
+    except Exception as e:
+        traceback.print_exc()
+        write_ex("ERR: ", e)
+        speak(name + " encountered an error. Please speak again.")
 
 
-# noinspection PyUnusedLocal
-def stop(*args):
+def start_exit_invoker():
+    if parentProcess==-1:
+        return
+
+    def monitor():
+        # wait until parent dies or listen forever
+        while not terminating and psutil.pid_exists(parentProcess):
+            time.sleep(1)
+        sys.exit(0)
+
+    Thread(name='Process-Monitor', target=monitor, daemon=True).start()
+
+
+def stop(*args):  # pylint: disable=unused-argument
     global terminating
     if not terminating:
         terminating = True
         speak(name + ' offline')
 
-        if listening is not None:
-            cast(callable, listening)(False)
-
+        mic.stop()
+        whisper.stop()
         speak.stop()
-
-
-def start_exit_invoker():
-    # wait until parent dies or listen forever
-    while not terminating and (parentProcess == -1 or psutil.pid_exists(parentProcess)):
-        time.sleep(1)
-    sys.exit(0)
+        write.stop()
 
 
 def install_exit_handler():
@@ -328,23 +291,36 @@ def install_exit_handler():
     signal.signal(signal.SIGBREAK, stop)
     signal.signal(signal.SIGABRT, stop)
 
+
 def start_input_handler():
     while True:
         try:
             m = input()
+            # talk command
             if m.startswith("SAY: "):
                 text = base64.b64decode(m[5:]).decode('utf-8')
                 speak(map(lambda x: x + ' ', text.split(' ')), False)
+            # chat command
+            if m.startswith("CHAT: "):
+                text = base64.b64decode(m[6:]).decode('utf-8')
+                chat(text)
+            # changing settings commands
             elif m.startswith("coqui-voice=") and isinstance(speak.tty, TtyCoqui):
                 cast(speak.tty, TtyCoqui).voice = prop(m, "coqui-voice=", speakUseCoquiVoice)
                 speak(name + " voice changed", use_cache=False)
+            # exit command
             elif m == "EXIT":
                 sys.exit(0)
         except EOFError as _:
             sys.exit(0)
 
 
+whisper = Whisper(target=callback, model=speechRecognitionModelName)
+mic = Mic(whisper.queue)
+speak.start()
+whisper.start()
+mic.start()
 install_exit_handler()
-Thread(target=start_exit_invoker, daemon=True).start()
-Thread(target=start_listening, daemon=True).start()
-Thread(target=start_input_handler, daemon=False).start()
+start_exit_invoker()
+speak(name + " online")
+start_input_handler()

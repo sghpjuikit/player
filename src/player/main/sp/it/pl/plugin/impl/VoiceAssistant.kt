@@ -65,6 +65,7 @@ import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
 import sp.it.util.conf.uiNoOrder
+import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
 import sp.it.util.file.children
@@ -179,7 +180,7 @@ class VoiceAssistant: PluginBase() {
 
    /** Speech handlers called when user has spoken. */
    val handlers by cList(
-         SpeakHandler("Help", "help") { text, command -> if (command == text) Ok("You can list commands by saying ${wakeUpWord.value} list commands") else null },
+         SpeakHandler("Help", "help") { text, command -> if (command == text) Ok("List commands by saying, list commands") else null },
          SpeakHandler("Help Commands", "list commands") { text, command -> if (command == text) Ok(handlersHelpText()) else null },
          SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
          SpeakHandler("Resume playback", "play music") { text, command -> if (command in text) { APP.audio.resume(); Ok(null) } else null },
@@ -202,7 +203,7 @@ class VoiceAssistant: PluginBase() {
 
    /** [handlers] help text */
    private fun handlersHelpText(): String =
-         handlers.mapIndexed { i, h -> "$i. ${h.name}; activate by saying ${h.commandUi}" }.joinToString("\n", prefix = "Here is list of currently active commands:")
+         handlers.mapIndexed { i, h -> "\n$i. ${h.name}, activate by saying ${h.commandUi}" }.joinToString("", prefix = "Here is list of currently active commands:")
 
    /** Last spoken text - writable */
    private val speakingTextW = vn<String>(null)
@@ -229,8 +230,9 @@ class VoiceAssistant: PluginBase() {
       )
 
    /** Engine used to generate voice. May require additional configuration */
-   val whisperModel by cv("base.en.pt")
-      .valuesUnsealed { dir.div("models-whisper").children().map { it.name }.filter { it.endsWith("pt") }.toList() }
+   val whisperModel by cv("base.en")
+      .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large-v1", "large-v2", "large") }
+      .uiNoOrder()
       .def(name = "Speech recognition model", info = "Whisper model for speech recognition.")
 
    /** Engine used to generate voice. May require additional configuration */
@@ -295,8 +297,8 @@ class VoiceAssistant: PluginBase() {
       speechEngineCoquiVoice.chan().throttleToLast(2.seconds) subscribe { write("coqui-voice=$it") }
 
       startSpeechRecognition()
-      APP.sysEvents.subscribe { startSpeechRecognition() } on onClose // restart on audio device change
-      processChange.throttleToLast(2.seconds).subscribe { startSpeechRecognition() } on onClose
+      APP.sysEvents.subscribe { restart() } on onClose // restart on audio device change
+      processChange.throttleToLast(2.seconds).subscribe { restart() } on onClose
       isRunning = true
       httpEnabled.sync(httpApi::subscribe)
    }
@@ -305,6 +307,7 @@ class VoiceAssistant: PluginBase() {
       isRunning = false
       httpApi.unsubscribe()
       stopSpeechRecognition()
+      writing.closeAndWait()
       onClose()
    }
 
@@ -320,7 +323,7 @@ class VoiceAssistant: PluginBase() {
 
    @IsAction(name = "Restart Voice Assistant", info = "Restarts Voice Assistant python program")
    fun restart() {
-      startSpeechRecognition()
+      stopSpeechRecognition()
       startSpeechRecognition()
    }
 

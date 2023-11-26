@@ -16,6 +16,8 @@ app/speech-recognition-whisper/models-llm/**
 !app/speech-recognition-whisper/models-llm/README.md
 app/speech-recognition-whisper/models-whisper/**
 !app/speech-recognition-whisper/models-whisper/README.md
+app/speech-recognition-whisper/models-coqui/**
+!app/speech-recognition-whisper/models-coqui/README.md
 private/
 *.log
 

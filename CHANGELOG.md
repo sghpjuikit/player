@@ -30,20 +30,25 @@ All notable changes to this project will be documented in this file. Format base
 
 ## Voice Assistant
 **Speech Recognition** plugin is renamed to **Voice Assistant** plugin.
-It has more settings and its own UI widget.
-It supports running the voice recognition on different PC.
-It supports command output speaking
 There are multiple UX improvements to the assistant, making it easier to use:
-- lazy usage of python modules (easier/modular installation)
-- player's vlc player is reused for python (easier installation)
-- use of actors to prevent multiple text/speech/chat inputs/outputs mixed together and event guarantee order
-- use of iterables for real-time output (chat/speech/player do not wait for entire result)
-- speech to text model selection (all whisper models (requires manual download))
-- chat model selection (supports custom compatible models (requires manual download))
-- chat session (remembers previous messages)
-- text to speech engine/voice selection (none, os, character.ai, coqui)
-  - coqui supports fully offline text-to-speech
-  - coqui supports voice cloning
+- Better UX
+  - Voice recognition on different PC (experimental UX).
+  - Command output to speach (better success/error interaction)
+  - More commands, easier commands, better help command
+  - Chat session (remembers previous messages)
+- Easier installation
+  - Lazy usage of python modules
+  - Player's vlc player is reused for python if needed
+- Concurrency, performance
+  - Use of actors to prevent multiple text/speech/chat inputs/outputs mixed together and event guarantee order
+  - Use of iterables for real-time output (chat/speech/player do not wait for entire result)
+    - Llm text generation stream > text sentence stream > voice generation audio stream > gapless playback as stream
+- More settings and its own UI widget.
+  - Speech to text model selection (whisper models (requires manual download))
+  - Chat model selection (supports custom compatible models (requires manual download))
+  - Text to speech engine/voice selection (none, os, character.ai, coqui)
+    - Coqui supports fully offline text-to-speech
+    - Coqui supports voice cloning
 
 ## Http Client
 Application now provides/uses single lazy http client for all http requests. Use `APP.http.client`.

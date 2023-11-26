@@ -9,6 +9,9 @@ class Llm:
     def __init__(self, chatModel: str):
         self.llm = GPT4All(chatModel)
 
+    def __call__(self, prompt: str):
+        pass
+
     def chatStart(self):
         self.chatSession = self.llm.chat_session()
 

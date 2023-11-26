@@ -33,7 +33,7 @@ This is a speech recognition python script using OpenAI Whisper. Features:
     sudo apt update && sudo apt install ffmpeg
     
     // Arch Linux
-    sudo pacman -S ffmpeg
+    sudo pacman -S ff[tos_agreed.txt](models-coqui%2Ftos_agreed.txt)mpeg
     
     // MaxOS
     brew install ffmpeg
@@ -45,13 +45,23 @@ This is a speech recognition python script using OpenAI Whisper. Features:
     ```
     brew install portaudio
     ```
-5. Download OpenAi Whisper [models](https://github.com/openai/whisper#available-models-and-languages)
-   - `tiny-en`, `base-en`
-   - into the [models-whisper](models-whisper) directory
-   - from [official source](https://github.com/openai/whisper/blob/f296bcd3fac41525f1c5ab467062776f8e13e4d0/whisper/__init__.py)
-6. Download LLM model for [GPT4All](https://gpt4all.io/index.html)
-   - into the [models-llm](models-llm) directory
-   - for example from [official source](https://gpt4all.io/models/models.json)
+5. Download OpenAi Whisper [models](https://github.com/openai/whisper#available-models-and-languages) (optional)
+   - model will be downloaded automatically, but you can do so manually
+       - into the [models-whisper](models-whisper) directory
+       - from [official source](https://github.com/openai/whisper/blob/f296bcd3fac41525f1c5ab467062776f8e13e4d0/whisper/__init__.py)
+6. Download LLM model for [GPT4All](https://gpt4all.io/index.html) (optional)
+   - model is required only for conversation feature 
+       - into the [models-llm](models-llm) directory
+       - for example from [official source](https://gpt4all.io/models/models.json)
+7. Download XTTSv2 model (optional)
+   - required only when using coqui speaking engine
+       - the following files into [models-coqui](models-coqui) directory
+           - `config.json`
+           - `hash.md5`
+           - `model.pth`
+           - `vocab.json`
+       - agree to the terms and conditions in [models-coqui](models-coqui) directory by
+           - creating `tos_agreed.txt` file with content `I have read, understood and agreed to the Terms and Conditions.`
 
 ## Running
 
@@ -74,7 +84,9 @@ This script prints:
 ### Input format (optional)
 - `SYS: $base64_encoded_text` and speaks it (if speech-engine is not `none`)
 
-### Speach engine
+### Whisper
+
+### Speach
 By default, system voice is used.
 
 #### coqui

@@ -1,0 +1,1 @@
+Directory for model https://huggingface.co/reach-vb/XTTS-v2/tree/main

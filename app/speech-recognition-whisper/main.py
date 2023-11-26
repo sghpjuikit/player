@@ -255,31 +255,19 @@ def callback(recognizer, audio_data):
                 Thread(target=generate, args=(chatPrompt,), daemon=True).start()
 
             # do command
-            elif text.startswith("command"):
+            else:
                 # command_prompt = intention_prompt + text
                 # command_input = commandTokenizer(command_prompt, return_tensors="pt").to(commandModel.device)
                 # command_output = commandModel.generate(**command_input, do_sample=True, temperature=0.1, top_p=0.1, max_new_tokens=1000)
                 # text = commandTokenizer.decode(command_output[0], skip_special_tokens=True)
                 #
-                write('COM: ' + text.lstrip("command").lstrip('.').lstrip(',').strip())
+                write('COM: ' + text.strip())
                 #
                 # if "ASSISTANT: <functioncall>" in text:
                 #     text = text.split("ASSISTANT: <functioncall>")[1]
                 #     write('USER: ' + text)
                 # else:
                 #     write('SYS: No command detected')
-
-            # do help
-            elif text == "help":
-                speak('I am an AI assistant. Talk to me by calling ' + wake_word + '.')
-                speak('You can start conversation by saying ' + wake_word + ' start conversation.')
-                speak('You can stop active conversation by saying ' + wake_word + 'stop or end conversation.')
-                speak('You can ask for help by saying ' + wake_word + ' help.')
-                speak('You can run command by saying ' + wake_word + ' command and saying the command.')
-
-            # generic response
-            else:
-                speak('Yes')
 
         except Exception as e:
             traceback.print_exc()

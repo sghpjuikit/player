@@ -94,13 +94,16 @@ object FileMimes {
 }
 
 object Events {
+
    data class ActionEvent(val action: Action) {
       override fun toString() = "ActionEvent(${action.name})"
    }
+
    sealed interface FileEvent {
       data class Create(val file: File): FileEvent
       data class Delete(val file: File): FileEvent
    }
+
    sealed interface AppEvent {
       sealed interface AppXGroundEvent: AppEvent {
          /** [java.awt.desktop.AppForegroundListener.appRaisedToForeground]. Raised on FX thread. */
@@ -135,6 +138,7 @@ object Events {
       /** [java.awt.desktop.AppReopenedListener.appReopened]. Raised on FX thread. */
       data object AppReopenedEvent: AppEvent
    }
+
 }
 
 object HelpEntries {

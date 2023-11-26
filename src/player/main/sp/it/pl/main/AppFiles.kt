@@ -105,6 +105,21 @@ object `AppLocation`: Dir(File("").absolutePath) {
          
          object `Icon512_ico`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.ico")
 
+         /** File. Windows taskbar icon, previous song, 32px. */
+         val `taskbar-1-icon_ico` = `Taskbar-1-icon_ico`
+         
+         object `Taskbar-1-icon_ico`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "taskbar-1-icon.ico")
+
+         /** File. Windows taskbar icon, play/resume, 32px. */
+         val `taskbar-2-icon_ico` = `Taskbar-2-icon_ico`
+         
+         object `Taskbar-2-icon_ico`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "taskbar-2-icon.ico")
+
+         /** File. Windows taskbar icon, next song, 32px. */
+         val `taskbar-3-icon_ico` = `Taskbar-3-icon_ico`
+         
+         object `Taskbar-3-icon_ico`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "taskbar-3-icon.ico")
+
       }
    }
    

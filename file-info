@@ -36,6 +36,12 @@ app {
       icon512.png
       # Icon, 512px.
       icon512.ico
+      # Windows taskbar icon, previous song, 32px.
+      taskbar-1-icon.ico
+      # Windows taskbar icon, play/resume, 32px.
+      taskbar-2-icon.ico
+      # Windows taskbar icon, next song, 32px.
+      taskbar-3-icon.ico
     }
   }
   # Directory containing application skins.

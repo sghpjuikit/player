@@ -13,7 +13,12 @@ import java.awt.desktop.AppReopenedListener
 import java.awt.desktop.ScreenSleepListener
 import java.awt.desktop.SystemSleepListener
 import java.awt.desktop.UserSessionListener
+import javafx.stage.Stage
+import mu.KLogging
+import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.main.APP
+import sp.it.pl.main.COM
+import sp.it.pl.main.CacheHICON
 import sp.it.pl.main.Events
 import sp.it.pl.main.Events.AppEvent.AppHidingEvent.AppHidden
 import sp.it.pl.main.Events.AppEvent.AppHidingEvent.AppUnHidden
@@ -22,20 +27,45 @@ import sp.it.pl.main.Events.AppEvent.AppXGroundEvent.AppMovedToBackground
 import sp.it.pl.main.Events.AppEvent.ScreenSleepEvent
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
 import sp.it.pl.main.Events.AppEvent.UserSessionEvent
+import sp.it.pl.main.THUMBBUTTON
+import sp.it.pl.main.WindowsTaskbarInternal
+import sp.it.pl.main.WndProcCallbackOverride
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.textColon
+import sp.it.pl.main.toContiguousMemoryArray
 import sp.it.pl.main.toUi
+import sp.it.pl.ui.objects.window.stage.lookupHwnd
+import sp.it.util.async.NEW
 import sp.it.util.async.runFX
+import sp.it.util.dev.fail
+import sp.it.util.file.div
 import sp.it.util.file.traverseParents
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
 import sp.it.util.system.EnvironmentContext
+import sp.it.util.system.Os
+import sp.it.util.text.lengthInChars
+import sp.it.util.type.volatile
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
+import sp.it.util.units.seconds
 
-object CoreEnv: Core {
+object CoreEnv: Core, KLogging() {
+
    override fun init() {
+      initEnvironmentContext()
+      initAppEventListeners()
+      initWindowsTaskbarButtons()
+   }
+
+   override fun dispose() {
+      disposeWindowsTaskbarButtons()
+   }
+
+   private fun initEnvironmentContext() {
       EnvironmentContext.defaultChooseFileDir = APP.location
       EnvironmentContext.onFileRecycled = { APP.actionStream(Events.FileEvent.Delete(it)) }
       EnvironmentContext.onNonExistentFileBrowse = { f ->
@@ -54,7 +84,9 @@ object CoreEnv: Core {
             }
          }
       }
+   }
 
+   private fun initAppEventListeners() =
       Desktop.getDesktop().addAppEventListener(
          object: AppForegroundListener, AppHiddenListener, AppReopenedListener, ScreenSleepListener, SystemSleepListener, UserSessionListener {
             override fun appRaisedToForeground(e: AppForegroundEvent) = runFX { APP.actionStream(AppMovedToBackground) }.toUnit()
@@ -75,5 +107,64 @@ object CoreEnv: Core {
             override fun userSessionDeactivated(e: UserSessionEventFX) = runFX { APP.actionStream(UserSessionEvent.Stop) }.toUnit()
          }
       )
+
+   private var taskbarEventHandler: Any? by volatile(null)
+
+   private fun initWindowsTaskbarButtons() {
+      if (Os.WINDOWS.isCurrent) {
+         runFX(10.seconds) {
+            // TODO: observe main window and install without delay
+            APP.windowManager.getMain()?.stage?.ifNotNull { wMain ->
+               NEW("taskbar-icon-installer") {
+                  runTry {
+                     val hwnd = runFX { wMain.lookupHwnd()!! }.blockAndGetOrThrow()
+                     val buttons = listOf(
+                        THUMBBUTTON(
+                           THUMBBUTTON.THB_ICON or THUMBBUTTON.THB_TOOLTIP or THUMBBUTTON.THB_FLAGS,
+                           1,
+                           0,
+                           CacheHICON create (APP.location.resources.icons/"taskbar-1-icon.ico").absolutePath,
+                           CharArray(260).apply { System.arraycopy("Previous".toCharArray(), 0, this, 0, "Previous".lengthInChars) },
+                           THUMBBUTTON.THBF_DISMISSONCLICK or THUMBBUTTON.THBF_ENABLED
+                        ),
+                        THUMBBUTTON(
+                           THUMBBUTTON.THB_ICON or THUMBBUTTON.THB_TOOLTIP or THUMBBUTTON.THB_FLAGS,
+                           2,
+                           0,
+                           CacheHICON create (APP.location.resources.icons/"taskbar-2-icon.ico").absolutePath,
+                           CharArray(260).apply { System.arraycopy("Play/Pause".toCharArray(), 0, this, 0, "Play/Pause".lengthInChars) },
+                           THUMBBUTTON.THBF_DISMISSONCLICK or THUMBBUTTON.THBF_ENABLED
+                        ),
+                        THUMBBUTTON(
+                           THUMBBUTTON.THB_ICON or THUMBBUTTON.THB_TOOLTIP or THUMBBUTTON.THB_FLAGS,
+                           3,
+                           0,
+                           CacheHICON create (APP.location.resources.icons/"taskbar-3-icon.ico").absolutePath,
+                           CharArray(260).apply { System.arraycopy("Next".toCharArray(), 0, this, 0, "Next".lengthInChars) },
+                           THUMBBUTTON.THBF_DISMISSONCLICK or THUMBBUTTON.THBF_ENABLED
+                        )
+                     )
+
+                     taskbarEventHandler = WndProcCallbackOverride(hwnd) {
+                        when (it) {
+                           1 -> PlaylistManager.playPreviousItem()
+                           2 -> APP.audio.pauseResume()
+                           3 -> PlaylistManager.playNextItem()
+                        }
+                     }
+                     WindowsTaskbarInternal.INSTANCE.ThumbBarAddButtons(hwnd, buttons.size, buttons.toContiguousMemoryArray())
+                  }.ifError {
+                     logger.error(it) { "Failed to install windows taskbar icons" }
+                  }
+               }
+            }
+         }
+      }
    }
+
+   private fun disposeWindowsTaskbarButtons() {
+      taskbarEventHandler = null
+      CacheHICON.disposeAll()
+   }
+
 }

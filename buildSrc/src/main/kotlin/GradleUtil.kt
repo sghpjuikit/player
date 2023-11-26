@@ -157,28 +157,30 @@ open class GenerateKtFileHierarchy: DefaultTask() {
                val name = l.substringBeforeLast("{").trim()
                val isFile = !l.endsWith('{')
                val descDoc = descriptionLines.joinToString("\n") { " * $it" }
-               val descVal = descriptionLines.map { it.trim() }.filter { it.isNotBlank() }.joinToString(" ")
                val defName = if (hierarchy.isEmpty()) """`${name.capital()}Location`""" else """`${name.capital().replace('.', '_')}`"""
                val defType = if (isFile) "Fil" else "Dir"
-               val defTypeName = if (isFile) "file" else "directory"
+               val defTypeName = if (isFile) "File." else "Directory."
                val path = if (isRoot) paths.peek() else (paths + sequenceOf("\"$name\"")).joinToString(""" + separator + """)
-               val def = """
-                  |/** ${defTypeName.capital()} child [$defName]. */
-                  |val ${defName.lowercase()} = $defName
-                  |
-                  |/**
-                  | * Compile-time object representing $defTypeName `${paths.joinToString("/")}`, usable in annotations.
-                  | * 
-                  |$descDoc
-                  | */
-                  |object $defName: $defType($path) {
-                  |
-                  |${outIndent}/** Same as [getName]. Compile-time constant. `$name`.*/
-                  |${outIndent}const val fileName: String = ${'"'}${'"'}${'"'}$name${'"'}${'"'}${'"'}
-                  |${outIndent}/** Description of this file. Compile-time constant. Same as documentation for this object. */
-                  |${outIndent}const val fileDescription: String = ${'"'}${'"'}${'"'}$descVal${'"'}${'"'}${'"'}
-                  |
-                  """.trimMargin()
+               val def =
+                  if (descDoc.lines().count()>1)
+                     """
+                     |
+                     |/**
+                     | * $defTypeName
+                     |$descDoc
+                     | */
+                     |val ${defName.lowercase()} = $defName
+                     |
+                     |object $defName: $defType($path) {
+                     """.trimMargin()
+                  else
+                     """
+                     |
+                     |/** $defTypeName ${descDoc.substring(3)} */
+                     |val ${defName.lowercase()} = $defName
+                     |
+                     |object $defName: $defType($path) {
+                     """.trimMargin()
 
                def.lineSequence().forEach { sb.appendIndent().appendLine(it) }
                if (isFile) sb.appendIndent().appendLine("}").appendLine()
@@ -193,8 +195,10 @@ open class GenerateKtFileHierarchy: DefaultTask() {
 
          }
 
+      fun String.removeEmptyParen() = replace(Regex(" \\{\\s*\\n\\s*\\}"), "")
+      fun String.removeNlNl() = replace(Regex("\\n\\s*\\n\\s*\\n"), "\n\n")
       if (outFileHierarchy.exists()) outFileHierarchy.delete().orFailIO { "Failed to delete $outFileHierarchy" }
-      outFileHierarchy.writeText(sb.toString(), UTF_8)
+      outFileHierarchy.writeText(sb.toString().removeEmptyParen().removeNlNl().trim(), UTF_8)
       outFileHierarchy.setReadOnly().orFailIO { "Failed to make $outFileHierarchy read only" }
    }
 }

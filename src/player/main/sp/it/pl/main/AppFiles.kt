@@ -21,102 +21,102 @@ open class Dir(path: String): File(path) {
 }
 
 /** Directory. Application location. Working directory of the project. */
-val `AppLocation` = `AppLocationObj`
+val `applocation` = `AppLocation`
 
-object `AppLocationObj`: Dir(File("").absolutePath) {
+object `AppLocation`: Dir(File("").absolutePath) {
    
    /** Directory. Directory containing application documentation. */
-   val `documentation` = `documentationObj`
+   val `documentation` = `Documentation`
    
-   object `documentationObj`: Dir(File("").absolutePath + separator + "documentation")
+   object `Documentation`: Dir(File("").absolutePath + separator + "documentation")
    
    /** Directory. Directory containing Java Development Kit (JDK). */
-   val `java` = `javaObj`
+   val `java` = `Java`
    
-   object `javaObj`: Dir(File("").absolutePath + separator + "java")
+   object `Java`: Dir(File("").absolutePath + separator + "java")
    
    /** Directory. Directory containing application libraries. */
-   val `lib` = `libObj`
+   val `lib` = `Lib`
    
-   object `libObj`: Dir(File("").absolutePath + separator + "lib")
+   object `Lib`: Dir(File("").absolutePath + separator + "lib")
    
    /** Directory. Directory containing application plugins. */
-   val `plugins` = `pluginsObj`
+   val `plugins` = `Plugins`
    
-   object `pluginsObj`: Dir(File("").absolutePath + separator + "plugins")
+   object `Plugins`: Dir(File("").absolutePath + separator + "plugins")
    
    /** Directory. Directory containing application resources. */
-   val `resources` = `resourcesObj`
+   val `resources` = `Resources`
    
-   object `resourcesObj`: Dir(File("").absolutePath + separator + "resources") {
+   object `Resources`: Dir(File("").absolutePath + separator + "resources") {
       
       /** File. Contains predefined audio mood tag values. Value per line. UTF8. For autocompletion. */
-      val `moods_yml` = `moods_ymlObj`
+      val `moods_yml` = `Moods_yml`
       
-      object `moods_ymlObj`: Fil(File("").absolutePath + separator + "resources" + separator + "moods.yml")
+      object `Moods_yml`: Fil(File("").absolutePath + separator + "resources" + separator + "moods.yml")
 
       /** File. Contains predefined classes' fully qualified names. Value per line. UTF8. For autocompletion. */
-      val `classes_yml` = `classes_ymlObj`
+      val `classes_yml` = `Classes_yml`
       
-      object `classes_ymlObj`: Fil(File("").absolutePath + separator + "resources" + separator + "classes.yml")
+      object `Classes_yml`: Fil(File("").absolutePath + separator + "resources" + separator + "classes.yml")
 
       /** Directory. Directory containing application icons. */
-      val `icons` = `iconsObj`
+      val `icons` = `Icons`
       
-      object `iconsObj`: Dir(File("").absolutePath + separator + "resources" + separator + "icons") {
+      object `Icons`: Dir(File("").absolutePath + separator + "resources" + separator + "icons") {
          
          /** File. Icon, 16px. */
-         val `icon16_png` = `icon16_pngObj`
+         val `icon16_png` = `Icon16_png`
          
-         object `icon16_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon16.png")
+         object `Icon16_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon16.png")
 
          /** File. Icon, 24px. */
-         val `icon24_png` = `icon24_pngObj`
+         val `icon24_png` = `Icon24_png`
          
-         object `icon24_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon24.png")
+         object `Icon24_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon24.png")
 
          /** File. Icon, 32px. */
-         val `icon32_png` = `icon32_pngObj`
+         val `icon32_png` = `Icon32_png`
          
-         object `icon32_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon32.png")
+         object `Icon32_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon32.png")
 
          /** File. Icon, 48px. */
-         val `icon48_png` = `icon48_pngObj`
+         val `icon48_png` = `Icon48_png`
          
-         object `icon48_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon48.png")
+         object `Icon48_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon48.png")
 
          /** File. Icon, 128px. */
-         val `icon128_png` = `icon128_pngObj`
+         val `icon128_png` = `Icon128_png`
          
-         object `icon128_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon128.png")
+         object `Icon128_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon128.png")
 
          /** File. Icon, 256px. */
-         val `icon256_png` = `icon256_pngObj`
+         val `icon256_png` = `Icon256_png`
          
-         object `icon256_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon256.png")
+         object `Icon256_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon256.png")
 
          /** File. Icon, 512px. */
-         val `icon512_png` = `icon512_pngObj`
+         val `icon512_png` = `Icon512_png`
          
-         object `icon512_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.png")
+         object `Icon512_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.png")
 
          /** File. Icon, 512px. */
-         val `icon512_ico` = `icon512_icoObj`
+         val `icon512_ico` = `Icon512_ico`
          
-         object `icon512_icoObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.ico")
+         object `Icon512_ico`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.ico")
 
       }
    }
    
    /** Directory. Directory containing application skins. */
-   val `skins` = `skinsObj`
+   val `skins` = `Skins`
    
-   object `skinsObj`: Dir(File("").absolutePath + separator + "skins")
+   object `Skins`: Dir(File("").absolutePath + separator + "skins")
    
    /** Directory. Directory containing initial ui templates - persisted user ui bundled with the application. */
-   val `templates` = `templatesObj`
+   val `templates` = `Templates`
    
-   object `templatesObj`: Dir(File("").absolutePath + separator + "templates")
+   object `Templates`: Dir(File("").absolutePath + separator + "templates")
    
    /**
     * Directory.
@@ -125,35 +125,35 @@ object `AppLocationObj`: Dir(File("").absolutePath) {
     * Moving content of this directory to another application installation (of the same version) will effectively move
     * the 'state' of the application to the new installation.
     */
-   val `user` = `userObj`
+   val `user` = `User`
    
-   object `userObj`: Dir(File("").absolutePath + separator + "user") {
+   object `User`: Dir(File("").absolutePath + separator + "user") {
       
       /** Directory. Directory containing persisted user ui and custom templates. */
-      val `layouts` = `layoutsObj`
+      val `layouts` = `Layouts`
       
-      object `layoutsObj`: Dir(File("").absolutePath + separator + "user" + separator + "layouts") {
+      object `Layouts`: Dir(File("").absolutePath + separator + "user" + separator + "layouts") {
          
          /** Directory. Last persisted application ui state. */
-         val `current` = `currentObj`
+         val `current` = `Current`
          
-         object `currentObj`: Dir(File("").absolutePath + separator + "user" + separator + "layouts" + separator + "current")
+         object `Current`: Dir(File("").absolutePath + separator + "user" + separator + "layouts" + separator + "current")
       }
       
       /** Directory. Directory containing libraries. I.e., audio library, playlists, etc. */
-      val `library` = `libraryObj`
+      val `library` = `Library`
       
-      object `libraryObj`: Dir(File("").absolutePath + separator + "user" + separator + "library")
+      object `Library`: Dir(File("").absolutePath + separator + "user" + separator + "library")
       
       /** Directory. Directory for application logging output. */
-      val `log` = `logObj`
+      val `log` = `Log`
       
-      object `logObj`: Dir(File("").absolutePath + separator + "user" + separator + "log")
+      object `Log`: Dir(File("").absolutePath + separator + "user" + separator + "log")
       
       /** Directory. Directory for plugin user data. */
-      val `plugins` = `pluginsObj`
+      val `plugins` = `Plugins`
       
-      object `pluginsObj`: Dir(File("").absolutePath + separator + "user" + separator + "plugins")
+      object `Plugins`: Dir(File("").absolutePath + separator + "user" + separator + "plugins")
       
       /**
        * Directory.
@@ -161,50 +161,50 @@ object `AppLocationObj`: Dir(File("").absolutePath) {
        * 
        * It is safe to delete all contents (when application is not running).
        */
-      val `tmp` = `tmpObj`
+      val `tmp` = `Tmp`
       
-      object `tmpObj`: Dir(File("").absolutePath + separator + "user" + separator + "tmp")
+      object `Tmp`: Dir(File("").absolutePath + separator + "user" + separator + "tmp")
       
       /** Directory. Directory for widget user data. */
-      val `widgets` = `widgetsObj`
+      val `widgets` = `Widgets`
       
-      object `widgetsObj`: Dir(File("").absolutePath + separator + "user" + separator + "widgets")
+      object `Widgets`: Dir(File("").absolutePath + separator + "user" + separator + "widgets")
       
       /** File. File for application configuration. */
-      val `application_json` = `application_jsonObj`
+      val `application_json` = `Application_json`
       
-      object `application_jsonObj`: Fil(File("").absolutePath + separator + "user" + separator + "application.json")
+      object `Application_json`: Fil(File("").absolutePath + separator + "user" + separator + "application.json")
 
    }
    
    /** Directory. Optional directory containing Vlc player installation. */
-   val `vlc` = `vlcObj`
+   val `vlc` = `Vlc`
    
-   object `vlcObj`: Dir(File("").absolutePath + separator + "vlc")
+   object `Vlc`: Dir(File("").absolutePath + separator + "vlc")
    
    /** Directory. Directory containing widgets - source files, class files and widget's resources. */
-   val `widgets` = `widgetsObj`
+   val `widgets` = `Widgets`
    
-   object `widgetsObj`: Dir(File("").absolutePath + separator + "widgets")
+   object `Widgets`: Dir(File("").absolutePath + separator + "widgets")
    
    /** File. File containing application source code and main class. Executed by java.exe when started. */
-   val `SpitPlayer_jar` = `SpitPlayer_jarObj`
+   val `spitplayer_jar` = `SpitPlayer_jar`
    
-   object `SpitPlayer_jarObj`: Fil(File("").absolutePath + separator + "SpitPlayer.jar")
+   object `SpitPlayer_jar`: Fil(File("").absolutePath + separator + "SpitPlayer.jar")
 
    /** File. Windows executable file that opens this application as gui application. */
-   val `SpitPlayer_com` = `SpitPlayer_comObj`
+   val `spitplayer_com` = `SpitPlayer_com`
    
-   object `SpitPlayer_comObj`: Fil(File("").absolutePath + separator + "SpitPlayer.com")
+   object `SpitPlayer_com`: Fil(File("").absolutePath + separator + "SpitPlayer.com")
 
    /** File. Windows executable file that opens this application as console application. */
-   val `SpitPlayer_exe` = `SpitPlayer_exeObj`
+   val `spitplayer_exe` = `SpitPlayer_exe`
    
-   object `SpitPlayer_exeObj`: Fil(File("").absolutePath + separator + "SpitPlayer.exe")
+   object `SpitPlayer_exe`: Fil(File("").absolutePath + separator + "SpitPlayer.exe")
 
    /** File. Linux/Mac executable file that opens this application. */
-   val `SpitPlayer_sh` = `SpitPlayer_shObj`
+   val `spitplayer_sh` = `SpitPlayer_sh`
    
-   object `SpitPlayer_shObj`: Fil(File("").absolutePath + separator + "SpitPlayer.sh")
+   object `SpitPlayer_sh`: Fil(File("").absolutePath + separator + "SpitPlayer.sh")
 
 }

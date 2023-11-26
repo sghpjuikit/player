@@ -20,567 +20,191 @@ open class Dir(path: String): File(path) {
    override fun isFile() = false
 }
 
-/** Directory child [`AppLocation`]. */
-val `applocation` = `AppLocation`
+/** Directory. Application location. Working directory of the project. */
+val `AppLocation` = `AppLocationObj`
 
-/**
- * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
- * 
- * Application location. Working directory of the project.
- */
-object `AppLocation`: Dir(File("").absolutePath) {
-
-   /** Same as [getName]. Compile-time constant. `app`.*/
-   const val fileName: String = """app"""
-   /** Description of this file. Compile-time constant. Same as documentation for this object. */
-   const val fileDescription: String = """Application location. Working directory of the project."""
-
-   /** Directory child [`Documentation`]. */
-   val `documentation` = `Documentation`
+object `AppLocationObj`: Dir(File("").absolutePath) {
    
-   /**
-    * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
-    * Directory containing application documentation.
-    */
-   object `Documentation`: Dir(File("").absolutePath + separator + "documentation") {
+   /** Directory. Directory containing application documentation. */
+   val `documentation` = `documentationObj`
    
-      /** Same as [getName]. Compile-time constant. `documentation`.*/
-      const val fileName: String = """documentation"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Directory containing application documentation."""
+   object `documentationObj`: Dir(File("").absolutePath + separator + "documentation")
    
-   }
-   /** Directory child [`Java`]. */
-   val `java` = `Java`
+   /** Directory. Directory containing Java Development Kit (JDK). */
+   val `java` = `javaObj`
    
-   /**
-    * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
-    * Directory containing Java Development Kit (JDK).
-    */
-   object `Java`: Dir(File("").absolutePath + separator + "java") {
+   object `javaObj`: Dir(File("").absolutePath + separator + "java")
    
-      /** Same as [getName]. Compile-time constant. `java`.*/
-      const val fileName: String = """java"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Directory containing Java Development Kit (JDK)."""
+   /** Directory. Directory containing application libraries. */
+   val `lib` = `libObj`
    
-   }
-   /** Directory child [`Lib`]. */
-   val `lib` = `Lib`
+   object `libObj`: Dir(File("").absolutePath + separator + "lib")
    
-   /**
-    * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
-    * Directory containing application libraries.
-    */
-   object `Lib`: Dir(File("").absolutePath + separator + "lib") {
+   /** Directory. Directory containing application plugins. */
+   val `plugins` = `pluginsObj`
    
-      /** Same as [getName]. Compile-time constant. `lib`.*/
-      const val fileName: String = """lib"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Directory containing application libraries."""
+   object `pluginsObj`: Dir(File("").absolutePath + separator + "plugins")
    
-   }
-   /** Directory child [`Plugins`]. */
-   val `plugins` = `Plugins`
+   /** Directory. Directory containing application resources. */
+   val `resources` = `resourcesObj`
    
-   /**
-    * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
-    * Directory containing application plugins.
-    */
-   object `Plugins`: Dir(File("").absolutePath + separator + "plugins") {
-   
-      /** Same as [getName]. Compile-time constant. `plugins`.*/
-      const val fileName: String = """plugins"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Directory containing application plugins."""
-   
-   }
-   /** Directory child [`Resources`]. */
-   val `resources` = `Resources`
-   
-   /**
-    * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
-    * Directory containing application resources.
-    */
-   object `Resources`: Dir(File("").absolutePath + separator + "resources") {
-   
-      /** Same as [getName]. Compile-time constant. `resources`.*/
-      const val fileName: String = """resources"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Directory containing application resources."""
-   
-      /** File child [`Moods_yml`]. */
-      val `moods_yml` = `Moods_yml`
+   object `resourcesObj`: Dir(File("").absolutePath + separator + "resources") {
       
-      /**
-       * Compile-time object representing file `File("").absolutePath/"resources"`, usable in annotations.
-       * 
-       * Contains predefined audio mood tag values. Value per line. UTF8. For autocompletion.
-       */
-      object `Moods_yml`: Fil(File("").absolutePath + separator + "resources" + separator + "moods.yml") {
+      /** File. Contains predefined audio mood tag values. Value per line. UTF8. For autocompletion. */
+      val `moods_yml` = `moods_ymlObj`
       
-         /** Same as [getName]. Compile-time constant. `moods.yml`.*/
-         const val fileName: String = """moods.yml"""
-         /** Description of this file. Compile-time constant. Same as documentation for this object. */
-         const val fileDescription: String = """Contains predefined audio mood tag values. Value per line. UTF8. For autocompletion."""
+      object `moods_ymlObj`: Fil(File("").absolutePath + separator + "resources" + separator + "moods.yml")
+
+      /** File. Contains predefined classes' fully qualified names. Value per line. UTF8. For autocompletion. */
+      val `classes_yml` = `classes_ymlObj`
       
-      }
+      object `classes_ymlObj`: Fil(File("").absolutePath + separator + "resources" + separator + "classes.yml")
 
-      /** File child [`Classes_yml`]. */
-      val `classes_yml` = `Classes_yml`
+      /** Directory. Directory containing application icons. */
+      val `icons` = `iconsObj`
       
-      /**
-       * Compile-time object representing file `File("").absolutePath/"resources"`, usable in annotations.
-       * 
-       * Contains predefined classes' fully qualified names. Value per line. UTF8. For autocompletion.
-       */
-      object `Classes_yml`: Fil(File("").absolutePath + separator + "resources" + separator + "classes.yml") {
-      
-         /** Same as [getName]. Compile-time constant. `classes.yml`.*/
-         const val fileName: String = """classes.yml"""
-         /** Description of this file. Compile-time constant. Same as documentation for this object. */
-         const val fileDescription: String = """Contains predefined classes' fully qualified names. Value per line. UTF8. For autocompletion."""
-      
-      }
+      object `iconsObj`: Dir(File("").absolutePath + separator + "resources" + separator + "icons") {
+         
+         /** File. Icon, 16px. */
+         val `icon16_png` = `icon16_pngObj`
+         
+         object `icon16_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon16.png")
 
-      /** Directory child [`Icons`]. */
-      val `icons` = `Icons`
-      
-      /**
-       * Compile-time object representing directory `File("").absolutePath/"resources"`, usable in annotations.
-       * 
-       * Directory containing application icons.
-       */
-      object `Icons`: Dir(File("").absolutePath + separator + "resources" + separator + "icons") {
-      
-         /** Same as [getName]. Compile-time constant. `icons`.*/
-         const val fileName: String = """icons"""
-         /** Description of this file. Compile-time constant. Same as documentation for this object. */
-         const val fileDescription: String = """Directory containing application icons."""
-      
-         /** File child [`Icon16_png`]. */
-         val `icon16_png` = `Icon16_png`
+         /** File. Icon, 24px. */
+         val `icon24_png` = `icon24_pngObj`
          
-         /**
-          * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
-          * Icon, 16px.
-          */
-         object `Icon16_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon16.png") {
-         
-            /** Same as [getName]. Compile-time constant. `icon16.png`.*/
-            const val fileName: String = """icon16.png"""
-            /** Description of this file. Compile-time constant. Same as documentation for this object. */
-            const val fileDescription: String = """Icon, 16px."""
-         
-         }
+         object `icon24_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon24.png")
 
-         /** File child [`Icon24_png`]. */
-         val `icon24_png` = `Icon24_png`
+         /** File. Icon, 32px. */
+         val `icon32_png` = `icon32_pngObj`
          
-         /**
-          * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
-          * Icon, 24px.
-          */
-         object `Icon24_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon24.png") {
-         
-            /** Same as [getName]. Compile-time constant. `icon24.png`.*/
-            const val fileName: String = """icon24.png"""
-            /** Description of this file. Compile-time constant. Same as documentation for this object. */
-            const val fileDescription: String = """Icon, 24px."""
-         
-         }
+         object `icon32_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon32.png")
 
-         /** File child [`Icon32_png`]. */
-         val `icon32_png` = `Icon32_png`
+         /** File. Icon, 48px. */
+         val `icon48_png` = `icon48_pngObj`
          
-         /**
-          * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
-          * Icon, 32px.
-          */
-         object `Icon32_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon32.png") {
-         
-            /** Same as [getName]. Compile-time constant. `icon32.png`.*/
-            const val fileName: String = """icon32.png"""
-            /** Description of this file. Compile-time constant. Same as documentation for this object. */
-            const val fileDescription: String = """Icon, 32px."""
-         
-         }
+         object `icon48_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon48.png")
 
-         /** File child [`Icon48_png`]. */
-         val `icon48_png` = `Icon48_png`
+         /** File. Icon, 128px. */
+         val `icon128_png` = `icon128_pngObj`
          
-         /**
-          * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
-          * Icon, 48px.
-          */
-         object `Icon48_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon48.png") {
-         
-            /** Same as [getName]. Compile-time constant. `icon48.png`.*/
-            const val fileName: String = """icon48.png"""
-            /** Description of this file. Compile-time constant. Same as documentation for this object. */
-            const val fileDescription: String = """Icon, 48px."""
-         
-         }
+         object `icon128_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon128.png")
 
-         /** File child [`Icon128_png`]. */
-         val `icon128_png` = `Icon128_png`
+         /** File. Icon, 256px. */
+         val `icon256_png` = `icon256_pngObj`
          
-         /**
-          * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
-          * Icon, 128px.
-          */
-         object `Icon128_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon128.png") {
-         
-            /** Same as [getName]. Compile-time constant. `icon128.png`.*/
-            const val fileName: String = """icon128.png"""
-            /** Description of this file. Compile-time constant. Same as documentation for this object. */
-            const val fileDescription: String = """Icon, 128px."""
-         
-         }
+         object `icon256_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon256.png")
 
-         /** File child [`Icon256_png`]. */
-         val `icon256_png` = `Icon256_png`
+         /** File. Icon, 512px. */
+         val `icon512_png` = `icon512_pngObj`
          
-         /**
-          * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
-          * Icon, 256px.
-          */
-         object `Icon256_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon256.png") {
-         
-            /** Same as [getName]. Compile-time constant. `icon256.png`.*/
-            const val fileName: String = """icon256.png"""
-            /** Description of this file. Compile-time constant. Same as documentation for this object. */
-            const val fileDescription: String = """Icon, 256px."""
-         
-         }
+         object `icon512_pngObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.png")
 
-         /** File child [`Icon512_png`]. */
-         val `icon512_png` = `Icon512_png`
+         /** File. Icon, 512px. */
+         val `icon512_ico` = `icon512_icoObj`
          
-         /**
-          * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
-          * Icon, 512px.
-          */
-         object `Icon512_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.png") {
-         
-            /** Same as [getName]. Compile-time constant. `icon512.png`.*/
-            const val fileName: String = """icon512.png"""
-            /** Description of this file. Compile-time constant. Same as documentation for this object. */
-            const val fileDescription: String = """Icon, 512px."""
-         
-         }
-
-         /** File child [`Icon512_ico`]. */
-         val `icon512_ico` = `Icon512_ico`
-         
-         /**
-          * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
-          * Icon, 512px.
-          */
-         object `Icon512_ico`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.ico") {
-         
-            /** Same as [getName]. Compile-time constant. `icon512.ico`.*/
-            const val fileName: String = """icon512.ico"""
-            /** Description of this file. Compile-time constant. Same as documentation for this object. */
-            const val fileDescription: String = """Icon, 512px."""
-         
-         }
+         object `icon512_icoObj`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.ico")
 
       }
    }
-   /** Directory child [`Skins`]. */
-   val `skins` = `Skins`
+   
+   /** Directory. Directory containing application skins. */
+   val `skins` = `skinsObj`
+   
+   object `skinsObj`: Dir(File("").absolutePath + separator + "skins")
+   
+   /** Directory. Directory containing initial ui templates - persisted user ui bundled with the application. */
+   val `templates` = `templatesObj`
+   
+   object `templatesObj`: Dir(File("").absolutePath + separator + "templates")
    
    /**
-    * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
-    * Directory containing application skins.
-    */
-   object `Skins`: Dir(File("").absolutePath + separator + "skins") {
-   
-      /** Same as [getName]. Compile-time constant. `skins`.*/
-      const val fileName: String = """skins"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Directory containing application skins."""
-   
-   }
-   /** Directory child [`Templates`]. */
-   val `templates` = `Templates`
-   
-   /**
-    * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
-    * Directory containing initial ui templates - persisted user ui bundled with the application.
-    */
-   object `Templates`: Dir(File("").absolutePath + separator + "templates") {
-   
-      /** Same as [getName]. Compile-time constant. `templates`.*/
-      const val fileName: String = """templates"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Directory containing initial ui templates - persisted user ui bundled with the application."""
-   
-   }
-   /** Directory child [`User`]. */
-   val `user` = `User`
-   
-   /**
-    * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
+    * Directory.
     * Directory containing all user data created by application use; such as settings, customizations, library, etc.
     * 
     * Moving content of this directory to another application installation (of the same version) will effectively move
     * the 'state' of the application to the new installation.
     */
-   object `User`: Dir(File("").absolutePath + separator + "user") {
+   val `user` = `userObj`
    
-      /** Same as [getName]. Compile-time constant. `user`.*/
-      const val fileName: String = """user"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Directory containing all user data created by application use; such as settings, customizations, library, etc. Moving content of this directory to another application installation (of the same version) will effectively move the 'state' of the application to the new installation."""
-   
-      /** Directory child [`Layouts`]. */
-      val `layouts` = `Layouts`
+   object `userObj`: Dir(File("").absolutePath + separator + "user") {
       
-      /**
-       * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
-       * 
-       * Directory containing persisted user ui and custom templates.
-       */
-      object `Layouts`: Dir(File("").absolutePath + separator + "user" + separator + "layouts") {
+      /** Directory. Directory containing persisted user ui and custom templates. */
+      val `layouts` = `layoutsObj`
       
-         /** Same as [getName]. Compile-time constant. `layouts`.*/
-         const val fileName: String = """layouts"""
-         /** Description of this file. Compile-time constant. Same as documentation for this object. */
-         const val fileDescription: String = """Directory containing persisted user ui and custom templates."""
-      
-         /** Directory child [`Current`]. */
-         val `current` = `Current`
+      object `layoutsObj`: Dir(File("").absolutePath + separator + "user" + separator + "layouts") {
          
-         /**
-          * Compile-time object representing directory `File("").absolutePath/"user"/"layouts"`, usable in annotations.
-          * 
-          * Last persisted application ui state.
-          */
-         object `Current`: Dir(File("").absolutePath + separator + "user" + separator + "layouts" + separator + "current") {
+         /** Directory. Last persisted application ui state. */
+         val `current` = `currentObj`
          
-            /** Same as [getName]. Compile-time constant. `current`.*/
-            const val fileName: String = """current"""
-            /** Description of this file. Compile-time constant. Same as documentation for this object. */
-            const val fileDescription: String = """Last persisted application ui state."""
-         
-         }
+         object `currentObj`: Dir(File("").absolutePath + separator + "user" + separator + "layouts" + separator + "current")
       }
-      /** Directory child [`Library`]. */
-      val `library` = `Library`
+      
+      /** Directory. Directory containing libraries. I.e., audio library, playlists, etc. */
+      val `library` = `libraryObj`
+      
+      object `libraryObj`: Dir(File("").absolutePath + separator + "user" + separator + "library")
+      
+      /** Directory. Directory for application logging output. */
+      val `log` = `logObj`
+      
+      object `logObj`: Dir(File("").absolutePath + separator + "user" + separator + "log")
+      
+      /** Directory. Directory for plugin user data. */
+      val `plugins` = `pluginsObj`
+      
+      object `pluginsObj`: Dir(File("").absolutePath + separator + "user" + separator + "plugins")
       
       /**
-       * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
-       * 
-       * Directory containing libraries. I.e., audio library, playlists, etc.
-       */
-      object `Library`: Dir(File("").absolutePath + separator + "user" + separator + "library") {
-      
-         /** Same as [getName]. Compile-time constant. `library`.*/
-         const val fileName: String = """library"""
-         /** Description of this file. Compile-time constant. Same as documentation for this object. */
-         const val fileDescription: String = """Directory containing libraries. I.e., audio library, playlists, etc."""
-      
-      }
-      /** Directory child [`Log`]. */
-      val `log` = `Log`
-      
-      /**
-       * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
-       * 
-       * Directory for application logging output.
-       */
-      object `Log`: Dir(File("").absolutePath + separator + "user" + separator + "log") {
-      
-         /** Same as [getName]. Compile-time constant. `log`.*/
-         const val fileName: String = """log"""
-         /** Description of this file. Compile-time constant. Same as documentation for this object. */
-         const val fileDescription: String = """Directory for application logging output."""
-      
-      }
-      /** Directory child [`Plugins`]. */
-      val `plugins` = `Plugins`
-      
-      /**
-       * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
-       * 
-       * Directory for plugin user data.
-       */
-      object `Plugins`: Dir(File("").absolutePath + separator + "user" + separator + "plugins") {
-      
-         /** Same as [getName]. Compile-time constant. `plugins`.*/
-         const val fileName: String = """plugins"""
-         /** Description of this file. Compile-time constant. Same as documentation for this object. */
-         const val fileDescription: String = """Directory for plugin user data."""
-      
-      }
-      /** Directory child [`Tmp`]. */
-      val `tmp` = `Tmp`
-      
-      /**
-       * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
-       * 
+       * Directory.
        * Both temporary and home directory (`java.io.tmpdir` and `user.home` redirect here).
        * 
        * It is safe to delete all contents (when application is not running).
        */
-      object `Tmp`: Dir(File("").absolutePath + separator + "user" + separator + "tmp") {
+      val `tmp` = `tmpObj`
       
-         /** Same as [getName]. Compile-time constant. `tmp`.*/
-         const val fileName: String = """tmp"""
-         /** Description of this file. Compile-time constant. Same as documentation for this object. */
-         const val fileDescription: String = """Both temporary and home directory (`java.io.tmpdir` and `user.home` redirect here). It is safe to delete all contents (when application is not running)."""
+      object `tmpObj`: Dir(File("").absolutePath + separator + "user" + separator + "tmp")
       
-      }
-      /** Directory child [`Widgets`]. */
-      val `widgets` = `Widgets`
+      /** Directory. Directory for widget user data. */
+      val `widgets` = `widgetsObj`
       
-      /**
-       * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
-       * 
-       * Directory for widget user data.
-       */
-      object `Widgets`: Dir(File("").absolutePath + separator + "user" + separator + "widgets") {
+      object `widgetsObj`: Dir(File("").absolutePath + separator + "user" + separator + "widgets")
       
-         /** Same as [getName]. Compile-time constant. `widgets`.*/
-         const val fileName: String = """widgets"""
-         /** Description of this file. Compile-time constant. Same as documentation for this object. */
-         const val fileDescription: String = """Directory for widget user data."""
+      /** File. File for application configuration. */
+      val `application_json` = `application_jsonObj`
       
-      }
-      /** File child [`Application_json`]. */
-      val `application_json` = `Application_json`
-      
-      /**
-       * Compile-time object representing file `File("").absolutePath/"user"`, usable in annotations.
-       * 
-       * File for application configuration.
-       */
-      object `Application_json`: Fil(File("").absolutePath + separator + "user" + separator + "application.json") {
-      
-         /** Same as [getName]. Compile-time constant. `application.json`.*/
-         const val fileName: String = """application.json"""
-         /** Description of this file. Compile-time constant. Same as documentation for this object. */
-         const val fileDescription: String = """File for application configuration."""
-      
-      }
+      object `application_jsonObj`: Fil(File("").absolutePath + separator + "user" + separator + "application.json")
 
    }
-   /** Directory child [`Vlc`]. */
-   val `vlc` = `Vlc`
    
-   /**
-    * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
-    * Optional directory containing Vlc player installation.
-    */
-   object `Vlc`: Dir(File("").absolutePath + separator + "vlc") {
+   /** Directory. Optional directory containing Vlc player installation. */
+   val `vlc` = `vlcObj`
    
-      /** Same as [getName]. Compile-time constant. `vlc`.*/
-      const val fileName: String = """vlc"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Optional directory containing Vlc player installation."""
+   object `vlcObj`: Dir(File("").absolutePath + separator + "vlc")
    
-   }
-   /** Directory child [`Widgets`]. */
-   val `widgets` = `Widgets`
+   /** Directory. Directory containing widgets - source files, class files and widget's resources. */
+   val `widgets` = `widgetsObj`
    
-   /**
-    * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
-    * Directory containing widgets - source files, class files and widget's resources.
-    */
-   object `Widgets`: Dir(File("").absolutePath + separator + "widgets") {
+   object `widgetsObj`: Dir(File("").absolutePath + separator + "widgets")
    
-      /** Same as [getName]. Compile-time constant. `widgets`.*/
-      const val fileName: String = """widgets"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Directory containing widgets - source files, class files and widget's resources."""
+   /** File. File containing application source code and main class. Executed by java.exe when started. */
+   val `SpitPlayer_jar` = `SpitPlayer_jarObj`
    
-   }
-   /** File child [`SpitPlayer_jar`]. */
-   val `spitplayer_jar` = `SpitPlayer_jar`
-   
-   /**
-    * Compile-time object representing file `File("").absolutePath`, usable in annotations.
-    * 
-    * File containing application source code and main class. Executed by java.exe when started.
-    */
-   object `SpitPlayer_jar`: Fil(File("").absolutePath + separator + "SpitPlayer.jar") {
-   
-      /** Same as [getName]. Compile-time constant. `SpitPlayer.jar`.*/
-      const val fileName: String = """SpitPlayer.jar"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """File containing application source code and main class. Executed by java.exe when started."""
-   
-   }
+   object `SpitPlayer_jarObj`: Fil(File("").absolutePath + separator + "SpitPlayer.jar")
 
-   /** File child [`SpitPlayer_com`]. */
-   val `spitplayer_com` = `SpitPlayer_com`
+   /** File. Windows executable file that opens this application as gui application. */
+   val `SpitPlayer_com` = `SpitPlayer_comObj`
    
-   /**
-    * Compile-time object representing file `File("").absolutePath`, usable in annotations.
-    * 
-    * Windows executable file that opens this application as gui application.
-    */
-   object `SpitPlayer_com`: Fil(File("").absolutePath + separator + "SpitPlayer.com") {
-   
-      /** Same as [getName]. Compile-time constant. `SpitPlayer.com`.*/
-      const val fileName: String = """SpitPlayer.com"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Windows executable file that opens this application as gui application."""
-   
-   }
+   object `SpitPlayer_comObj`: Fil(File("").absolutePath + separator + "SpitPlayer.com")
 
-   /** File child [`SpitPlayer_exe`]. */
-   val `spitplayer_exe` = `SpitPlayer_exe`
+   /** File. Windows executable file that opens this application as console application. */
+   val `SpitPlayer_exe` = `SpitPlayer_exeObj`
    
-   /**
-    * Compile-time object representing file `File("").absolutePath`, usable in annotations.
-    * 
-    * Windows executable file that opens this application as console application.
-    */
-   object `SpitPlayer_exe`: Fil(File("").absolutePath + separator + "SpitPlayer.exe") {
-   
-      /** Same as [getName]. Compile-time constant. `SpitPlayer.exe`.*/
-      const val fileName: String = """SpitPlayer.exe"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Windows executable file that opens this application as console application."""
-   
-   }
+   object `SpitPlayer_exeObj`: Fil(File("").absolutePath + separator + "SpitPlayer.exe")
 
-   /** File child [`SpitPlayer_sh`]. */
-   val `spitplayer_sh` = `SpitPlayer_sh`
+   /** File. Linux/Mac executable file that opens this application. */
+   val `SpitPlayer_sh` = `SpitPlayer_shObj`
    
-   /**
-    * Compile-time object representing file `File("").absolutePath`, usable in annotations.
-    * 
-    * Linux/Mac executable file that opens this application.
-    */
-   object `SpitPlayer_sh`: Fil(File("").absolutePath + separator + "SpitPlayer.sh") {
-   
-      /** Same as [getName]. Compile-time constant. `SpitPlayer.sh`.*/
-      const val fileName: String = """SpitPlayer.sh"""
-      /** Description of this file. Compile-time constant. Same as documentation for this object. */
-      const val fileDescription: String = """Linux/Mac executable file that opens this application."""
-   
-   }
+   object `SpitPlayer_shObj`: Fil(File("").absolutePath + separator + "SpitPlayer.sh")
 
 }

@@ -126,17 +126,9 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
    @JvmField val isLong: Boolean = isLong
    @JvmField val action: Act<TN> = action
 
-   @JvmField var isComplex = false
    @JvmField var preventClosing = false
-   @JvmField var complexData: ((ActionPane) -> ComplexActionData<TN, *>)? = null
 
    fun preventClosing() = apply {
-      preventClosing = true
-   }
-
-   fun preventClosing(action: (ActionPane) -> ComplexActionData<TN, *>) = apply {
-      isComplex = true
-      complexData = action
       preventClosing = true
    }
 
@@ -248,9 +240,6 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
       }
    }
 
-   @Suppress("UNCHECKED_CAST")
-   fun prepInputExact(data: Any?): TN = prepInput(data) as TN
-
    fun prepInput(data: Any?): Any? = when (groupApply) {
       FOR_ALL -> collectionWrap(data)
       FOR_EACH -> fail { "Action with $groupApply should never get here" }
@@ -277,7 +266,7 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
       UI, BLOCK
    }
 
-   @JvmInline value class UiResult(val ui: Node)
+   data class UiResult(val info: String, val ui: Node)
 }
 
 /** [ActionData] that executes synchronously - simply consumes the input. */

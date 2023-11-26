@@ -4,9 +4,9 @@ import java.io.File
 import java.net.URI
 
 /** Simplest [Song] implementation. Wraps [java.net.URI]. */
-class SimpleSong(resource: URI): Song() {
+class SimpleSong(uri: URI): Song() {
 
-   override val uri: URI = resource
+   override val uri: URI = uri
 
    constructor(resource: File): this(resource.toURI())
 

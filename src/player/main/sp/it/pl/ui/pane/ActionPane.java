@@ -283,14 +283,11 @@ public class ActionPane extends OverlayPane<Object> {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private <DATA, NEW_DATA> void doneHide(ActionData<?, DATA> action, Object result) {
-		if (action.isComplex) {
-			var complexAction = (ComplexActionData<DATA, NEW_DATA>) action.complexData.invoke(this);
+		if (result instanceof UiResult uir) {
 			showIcons = false;
-			insteadIcons = () -> (Node) complexAction.gui.invoke((NEW_DATA) action.prepInput(getData()));
-			var newData = complexAction.input.invoke(action.prepInputExact(getData()));
-			show(newData);
+			insteadIcons = () -> uir.getUi();
+			show(result);
 		} else if (!action.isResultUnit(result)) {
 			show(result);
 		} else if (!action.preventClosing) {
@@ -337,7 +334,7 @@ public class ActionPane extends OverlayPane<Object> {
 			return d;
 	}
 
-	private void setData(Object d) {
+	public void setData(Object d) {
 		failIfNotFxThread();
 
 		// clear content
@@ -364,13 +361,13 @@ public class ActionPane extends OverlayPane<Object> {
 
 	@SuppressWarnings({"unchecked", "AccessStaticViaInstance"})
 	private void setDataInfo(Object data, boolean computed) {
-		dataInfo.setText(data instanceof UiResult ? null : computeDataInfo(data, computed));
+		dataInfo.setText(computeDataInfo(data, computed));
 		dataTablePane.getChildren().clear();
 		var gap = 0.0;
 		var priority = NEVER;
 
 		var dataAsS = (String) null;
-		if (data instanceof ActionData.UiResult)
+		if (data instanceof UiResult)
 			dataAsS = null;
 		if (data instanceof String dataS && dataS.length()>40)
 			dataAsS = dataS;
@@ -431,6 +428,7 @@ public class ActionPane extends OverlayPane<Object> {
 	}
 
 	private String computeDataInfo(Object data, boolean computed) {
+		if (data instanceof UiResult uir) return uir.getInfo();
 		if (computed) return getOr(AppBuildersKt.computeDataInfo(data).getDone().toTry(), "Failed to obtain data information.");
 	    else return "Data: n/a\nType: n/a\n";
 	}
@@ -443,13 +441,13 @@ public class ActionPane extends OverlayPane<Object> {
 		if (use_registered_actions) actions.getElementsOfSuper(dataType).iterator().forEachRemaining(actionsData::add);
 		actionsData.removeIf(a -> !a.invokeIsDoable(d));
 
-		if (!showIcons || data instanceof ActionData.UiResult) {
+		if (!showIcons || data instanceof UiResult) {
 			dataInfo.setOpacity(1.0);
 			dataTablePane.setOpacity(1.0);
 			descFull.setOpacity(1.0);
 			descTitle.setOpacity(1.0);
 			iconPaneComplex.setOpacity(1.0);
-			showCustomActionUi((data instanceof ActionData.UiResult x) ? x.getUi() : insteadIcons.get());
+			showCustomActionUi((data instanceof UiResult x) ? x.getUi() : insteadIcons.get());
 			insteadIcons = null;
 			showIcons = true;
 			return;

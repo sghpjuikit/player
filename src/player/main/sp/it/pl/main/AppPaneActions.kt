@@ -1,6 +1,7 @@
 package sp.it.pl.main
 
 import java.io.File
+import java.net.URI
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import javafx.concurrent.Worker.State.READY
@@ -39,6 +40,7 @@ import sp.it.pl.ui.objects.window.stage.clone
 import sp.it.pl.ui.pane.ActionData
 import sp.it.pl.ui.pane.ActionData.GroupApply.FOR_ALL
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
+import sp.it.pl.ui.pane.ActionData.Threading.UI
 import sp.it.pl.ui.pane.ActionPane
 import sp.it.pl.ui.pane.ComplexActionData
 import sp.it.pl.ui.pane.ConfigPane
@@ -50,6 +52,7 @@ import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.FX
+import sp.it.util.async.VT
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.runAndGet
 import sp.it.util.async.runVT
@@ -146,6 +149,13 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          constriction = { it!=null && it !is App && !it::class.isObject }
       ) { f -> APP.widgetManager.widgets.use<Opener>(ANY) { it.open(f) } }   // TODO: make sure it opens Converter or support multiple Opener types
    )
+   ap.register<SongToAdd>(
+      actionAll<SongToAdd>(
+         "Add to library",
+         "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
+         IconMD.DATABASE_PLUS
+      ) { addToLibraryConsumer(apOrApp) },
+   )
    ap.register<Song>(
       actionAll(
          "Add to new playlist",
@@ -168,12 +178,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Add to library",
          "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
          IconMD.DATABASE_PLUS
-      ) { }.preventClosing { op ->
-         ComplexActionData(
-            { songs -> fut(songs.mapNotNull { it.getFile() }) },
-            addToLibraryConsumer(op).gui
-         )
-      },
+      ) { it.map { SongToAdd(it.uri, APP.db.exists(it)) } },
       actionAll(
          "Remove from library",
          "Removes all specified songs from library. After this library will contain none of these songs.",
@@ -237,15 +242,15 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconMD.FILE_FIND,
          BLOCK
       ) { fs ->
-         FileFlatter.FILES.flatten(fs).map { CachingFile(it) }.toList()
+         FileFlatter.FILES.flatten(fs).map(::CachingFile).toList()
       },
       actionAll<File>(
          "Add to library",
          "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
-         IconMD.DATABASE_PLUS,
-         BLOCK,
-         { }
-      ).preventClosing { addToLibraryConsumer(it) },
+         IconMD.DATABASE_PLUS
+      ) {
+         findAudio(it).asSequence().map { it.toURI() }.map { SongToAdd(it, APP.db.exists(it)) }
+      },
       actionAll(
          "Add to existing playlist",
          "Add songs to existing playlist widget if possible or to a new one if not.",
@@ -318,96 +323,100 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
    )
 }
 
-private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, Collection<File>> = ComplexActionData(
-   { files -> runVT { findAudio(files).map { CachingFile(it) }.toList() } },
-   { audioFiles ->
-      val executed = v(false)
-      val conf = object: ConfigurableBase<Boolean>() {
-         val makeWritable by cv(true).readOnlyIf(executed).def(name = "Make files writable if read-only", group = "1")
-         val editInTagger by cv(false).def(name = "Edit in ${Widgets.SONG_TAGGER_NAME}", group = "2")
-         val editOnlyAdded by cv(false).readOnlyUnless(editInTagger).def(name = "Edit only added files", group = "3")
-         val enqueue by cv(false).def(name = "Enqueue in playlist", group = "4")
-      }
-      val task = Song.addToLibTask(audioFiles.map { SimpleSong(it) })
-      val info = object: Any() {
-         private val computeProgress = { it: Number ->
-            when (task.state) {
-               SCHEDULED, READY -> 1.0
-               else -> it.toDouble()
-            }
+private fun addToLibraryConsumer(actionPane: ActionPane) =
+   actionPane.data.asIs<List<SongToAdd>>().let { songsToAdd ->
+         val songs = songsToAdd.map { SimpleSong(it.uri) }
+         val executed = v(false)
+         val conf = object: ConfigurableBase<Boolean>() {
+            val makeWritable by cv(true).readOnlyIf(executed).def(name = "Make files writable if read-only", group = "1")
+            val editInTagger by cv(false).def(name = "Edit in ${Widgets.SONG_TAGGER_NAME}", group = "2")
+            val editOnlyAdded by cv(false).readOnlyUnless(editInTagger).def(name = "Edit only added files", group = "3")
+            val enqueue by cv(false).def(name = "Enqueue in playlist", group = "4")
          }
-         val message = label { textProperty() syncFrom task.messageProperty() }
-         val state = label { task.stateProperty() sync { text = "State: ${enumToHuman(it)}" } }
-         val progress = appProgressIndicator().apply {
-            task.progressProperty() sync { progress = computeProgress(it) }
-            task.stateProperty() sync { if (it==SCHEDULED || it==READY) progress = 1.0 }
-         }
-      }
-
-      hBox(50, CENTER) {
-         val content = this
-         lay(ALWAYS) += vBox(50, CENTER) {
-            lay += ConfigPane(conf)
-            lay += vBox(10, CENTER_LEFT) {
-               opacity = 0.0
-
-               lay += info.state
-               lay += hBox(10, CENTER_LEFT) {
-                  lay += info.message
-                  lay += info.progress
+         val task = Song.addToLibTask(songs)
+         val info = object: Any() {
+            private val computeProgress = { it: Number ->
+               when (task.state) {
+                  SCHEDULED, READY -> 1.0
+                  else -> it.toDouble()
                }
             }
-            lay += formIcon(IconFA.CHECK, "Execute") {
-               executed.value = true
+            val message = label { textProperty() syncFrom task.messageProperty() }
+            val state = label { task.stateProperty() sync { text = "State: ${enumToHuman(it)}" } }
+            val progress = appProgressIndicator().apply {
+               task.progressProperty() sync { progress = computeProgress(it) }
+               task.stateProperty() sync { if (it==SCHEDULED || it==READY) progress = 1.0 }
+            }
+         }
 
-               anim(500.millis) {
-                  content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(0)?.opacity = (1 - it)*(1 - it)
-                  content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(1)?.opacity = it*it
-                  content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(2)?.opacity = (1 - it)*(1 - it)
-               }.play()
+         ActionData.UiResult(
+            "Adding songs to library",
+            hBox(50, CENTER) {
+               val content = this
+               lay(ALWAYS) += vBox(50, CENTER) {
+                  lay += ConfigPane(conf)
+                  lay += vBox(10, CENTER_LEFT) {
+                     opacity = 0.0
 
-               fun loadContent(block: () -> Node) {
-                  anim(500.millis) {
-                     content.children[0].opacity = it*it
-                     content.children[1].opacity = it*it
-                  }.apply {
-                     playAgainIfFinished = false
-                  }.playCloseDoOpen {
-                     content.children[1].asIs<Pane>().lay += block()
+                     lay += info.state
+                     lay += hBox(10, CENTER_LEFT) {
+                        lay += info.message
+                        lay += info.progress
+                     }
                   }
-               }
+                  lay += formIcon(IconFA.CHECK, "Execute") {
+                     executed.value = true
 
-               runVT {
-                  val nonWritable = if (conf.makeWritable.value) audioFiles.filter { !it.setWritable(true) } else listOf()
-                  if (nonWritable.isNotEmpty()) Try.error(nonWritable)
-                  else Try.ok(task.runAndGet())
-               }.withAppProgress(task.title).withProgress(actionPane.actionProgress).onDone(FX) {
-                  when (val r = it.toTry().flatten()) {
-                     is Try.Ok<AddSongsToLibResult> -> {
-                        if (conf.editInTagger.value) {
-                           val tagger = runBlocking { APP.widgetManager.factories.getFactory(SONG_TAGGER.id).orNone().create() }
-                           val songs = if (conf.editOnlyAdded.value) r.value.converted else r.value.all
-                           loadContent {
-                              tagger.load().apply {
-                                 tagger.controller.asIf<SongReader>()?.read(songs)
-                              }
-                           }
-                        }
-                        if (conf.enqueue.value && r.value.all.isNotEmpty()) {
-                           APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(r.value.all) }
+                     anim(500.millis) {
+                        content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(0)?.opacity = (1 - it)*(1 - it)
+                        content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(1)?.opacity = it*it
+                        content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(2)?.opacity = (1 - it)*(1 - it)
+                     }.play()
+
+                     fun loadContent(block: () -> Node) {
+                        anim(500.millis) {
+                           content.children[0].opacity = it*it
+                           content.children[1].opacity = it*it
+                        }.apply {
+                           playAgainIfFinished = false
+                        }.playCloseDoOpen {
+                           content.children[1].asIs<Pane>().lay += block()
                         }
                      }
-                     else -> actionPane.show(r)
+
+                     runVT {
+                        val nonWritable = if (conf.makeWritable.value) songs.filter { it.isFileBased() && !it.getFile()!!.setWritable(true) } else listOf()
+                        if (nonWritable.isNotEmpty()) Try.error(nonWritable)
+                        else Try.ok(task.runAndGet())
+                     }.withAppProgress(task.title).withProgress(actionPane.actionProgress).onDone(FX) {
+                        when (val r = it.toTry().flatten()) {
+                           is Try.Ok<AddSongsToLibResult> -> {
+                              if (conf.editInTagger.value) {
+                                 val tagger = runBlocking { APP.widgetManager.factories.getFactory(SONG_TAGGER.id).orNone().create() }
+                                 val songs = if (conf.editOnlyAdded.value) r.value.converted else r.value.all
+                                 loadContent {
+                                    tagger.load().apply {
+                                       tagger.controller.asIf<SongReader>()?.read(songs)
+                                    }
+                                 }
+                              }
+                              if (conf.enqueue.value && r.value.all.isNotEmpty()) {
+                                 APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(r.value.all) }
+                              }
+                           }
+                           else -> actionPane.show(r)
+                        }
+                     }
+                  }.apply {
+                     disableProperty() syncFrom executed
                   }
                }
-            }.apply {
-               disableProperty() syncFrom executed
+               lay += stackPane()
             }
-         }
-         lay += stackPane()
+         )
       }
-   }
-)
+
+data class SongToAdd(val uri: URI, val isInDb: Boolean)
 
 /** Denotes action pane data representing multiple files for browse actions. */
 class MultipleFiles(val files: Set<File>) {

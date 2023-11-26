@@ -42,6 +42,7 @@ object AppActionsFile {
       }
 
       UiResult(
+         "Largest files in ${dir.absolutePath}:",
          tableViewForClass<LargestFile>() {
             runIO { traverseFiles { itemsRaw setTo it } }
          }

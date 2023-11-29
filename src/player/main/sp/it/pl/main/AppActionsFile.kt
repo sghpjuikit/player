@@ -1,6 +1,7 @@
 package sp.it.pl.main
 
 import java.io.File
+import java.io.IOException
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -33,12 +34,15 @@ object AppActionsFile {
                sortedMap[fileName] = fileSize
                count++
                if (count % 100 == 0) {
-                  runFX { callback(sortedMap.entries.take(100).map { (a,b) -> LargestFile(a, b) }) }
+                  val data = sortedMap.entries.take(100).map { (a,b) -> LargestFile(a, b) }
+                  runFX { callback(data) }
                }
                return FileVisitResult.CONTINUE
             }
+            override fun visitFileFailed(file: Path, exc: IOException) = FileVisitResult.SKIP_SUBTREE
          })
-         runFX { callback(sortedMap.entries.map { (a,b) -> LargestFile(a, b) }) }
+         val data = sortedMap.entries.map { (a,b) -> LargestFile(a, b) }
+         runFX { callback(data) }
       }
 
       UiResult(

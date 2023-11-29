@@ -496,8 +496,6 @@ inline fun <reified T: Any> tableViewForClass(type: KClass<T> = T::class, block:
             ).asIs()
          type.isDataClass || type.isRecordClass -> {
             val properties = type.dataComponentProperties()
-            println("SIZE")
-            println(properties.size)
             if (properties.size==1)
                // data class designed as value class must not have subfields
                null

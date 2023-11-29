@@ -7,6 +7,7 @@ import sp.it.util.async.runFX
 import sp.it.util.functional.orNull
 import sp.it.util.system.saveFile
 import sp.it.util.text.decodeBase64
+import sp.it.util.text.encodeBase64
 import sp.it.util.text.isBase64
 
 /** Denotes actions for [String] */
@@ -32,6 +33,10 @@ object AppActionsString {
 
    val decodeBase64 = action<String>("Decode base64", "Decode Base64", IconFA.EXCHANGE, BLOCK, { it.isBase64() }) {
       it.decodeBase64().orNull().detectContent()
+   }
+
+   val encodeBase64 = action<String>("Encode base64", "Encode Base64", IconFA.EXCHANGE, BLOCK) {
+      it.encodeBase64().detectContent()
    }
 
 }

@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
    kotlin("jvm") version "2.0.0-Beta1"
    application
-   id("com.github.ben-manes.versions") version "0.49.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
+   id("com.github.ben-manes.versions") version "0.50.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.3"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
 }
 
@@ -116,7 +116,7 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
-         implementation("ch.qos.logback", "logback-classic", "1.4.11") // https://logback.qos.ch/news.html
+         implementation("ch.qos.logback", "logback-classic", "1.4.13") // https://logback.qos.ch/news.html
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
@@ -141,7 +141,7 @@ allprojects {
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
-         implementation("org.apache.pdfbox", "pdfbox", "3.0.0") // https://pdfbox.apache.org
+         implementation("org.apache.pdfbox", "pdfbox", "3.0.1") // https://pdfbox.apache.org
          implementation("com.ezylang", "EvalEx", "3.1.0")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
          implementation("ch.obermuhlner", "big-math", "2.3.2")

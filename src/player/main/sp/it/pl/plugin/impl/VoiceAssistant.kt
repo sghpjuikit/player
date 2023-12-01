@@ -2,19 +2,16 @@ package sp.it.pl.plugin.impl
 
 import sp.it.util.async.coroutine.VT as VTc
 import io.ktor.client.request.put
-import java.io.File
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
+import java.time.LocalDate
+import java.time.LocalTime
 import java.util.regex.Pattern
-import javafx.beans.InvalidationListener
 import javafx.geometry.Pos.CENTER
-import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ENTER
-import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
 import mu.KLogging
-import org.jetbrains.kotlin.utils.addToStdlib.butIf
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.core.bodyJs
@@ -32,12 +29,16 @@ import sp.it.pl.main.IconMD
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.isAudio
+import sp.it.pl.main.toS
+import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.pl.ui.pane.action
+import sp.it.pl.voice.toVoiceS
 import sp.it.util.access.readOnly
 import sp.it.util.access.vn
 import sp.it.util.action.IsAction
@@ -48,7 +49,6 @@ import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runNew
 import sp.it.util.async.runOn
-import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
 import sp.it.util.conf.Constraint.RepeatableAction
@@ -68,6 +68,7 @@ import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
+import sp.it.util.dev.printStacktrace
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.functional.Try
@@ -75,6 +76,7 @@ import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.getAny
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
@@ -83,11 +85,11 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.chan
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
-import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.throttleToLast
@@ -98,7 +100,6 @@ import sp.it.util.text.equalsNc
 import sp.it.util.text.lines
 import sp.it.util.text.useStrings
 import sp.it.util.text.words
-import sp.it.util.type.volatile
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -122,6 +123,8 @@ class VoiceAssistant: PluginBase() {
          val commandRaw = listOf(
             "python", whisper.absolutePath,
             "wake-word=${wakeUpWord.value}",
+            "printRaw=${printRaw.value}",
+            "mic-on=${micOn.value}",
             "parent-process=${ProcessHandle.current().pid()}",
             "speaking-engine=${speechEngine.value.code}",
             "character-ai-token=${speechEngineCharAiToken.value}",
@@ -182,11 +185,15 @@ class VoiceAssistant: PluginBase() {
    val handlers by cList(
          SpeakHandler("Help", "help") { text, command -> if (command == text) Ok("List commands by saying, list commands") else null },
          SpeakHandler("Help Commands", "list commands") { text, command -> if (command == text) Ok(handlersHelpText()) else null },
+         SpeakHandler("Time", "what time is it") { text, command -> if (command == text) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
+         SpeakHandler("Time", "what date is it") { text, command -> if (command == text) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
          SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
          SpeakHandler("Resume playback", "play music") { text, command -> if (command in text) { APP.audio.resume(); Ok(null) } else null },
          SpeakHandler("Resume playback", "start music") { text, command -> if (command in text) { APP.audio.resume(); Ok(null) } else null },
          SpeakHandler("Pause playback", "stop music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
          SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
+         SpeakHandler("Play previous song", "play previous song") { text, command -> if (command == text) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
+         SpeakHandler("Play next song", "play next song") { text, command -> if (command == text) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
          SpeakHandler("Open widget by name", "[open|show] [widget]? \$widget-name [widget]?") { text, _ ->
             if (text.startsWith("open")) {
                val fName = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
@@ -214,6 +221,14 @@ class VoiceAssistant: PluginBase() {
    /** Console output */
    val speakingStdout by cvnro(vn<String>(null)).multilineToBottom(20).noPersist()
       .def(name = "Speech recognition output", info = "Shows console output of the speech recognition Whisper AI process", editable = EditMode.APP)
+
+   /** Whether `RAW: $text` values will be shown. */
+   val micOn by cv(true)
+      .def(name = "Microphone enabled", info = "Whether microphone listening is enabled.")
+
+   /** Whether `RAW: $text` values will be shown. */
+   val printRaw by cv(true)
+      .def(name = "Print raw", info = "Whether `RAW: \$text` values will be shown.")
 
    /** Invoked for every voice assistant local process input token. */
    val onLocalInput = Handler1<String>()
@@ -295,6 +310,8 @@ class VoiceAssistant: PluginBase() {
       val processChange = wakeUpWord.chan() + whisperModel.chan() + chatModel.chan() + speechEngine.chan() + speechEngineCharAiToken.chan()
 
       speechEngineCoquiVoice.chan().throttleToLast(2.seconds) subscribe { write("coqui-voice=$it") }
+      printRaw attach { write("print-raw=$it") }
+      micOn attach { write("mic-on=$it") }
 
       startSpeechRecognition()
       APP.sysEvents.subscribe { restart() } on onClose // restart on audio device change
@@ -378,6 +395,13 @@ class VoiceAssistant: PluginBase() {
 
    fun speak(text: String) = write("SAY: ${text.encodeBase64()}")
 
+   @IsAction(name = "Write chat", info = "Writes to voice assistant chat")
+   fun chat() = action<String>("Write chat", "Writes to voice assistant chat", IconMA.CHAT, BLOCK) { chat(it) }.invokeWithForm {
+      addConstraints(Multiline).addConstraints(MultilineRows(10)).addConstraints(RepeatableAction)
+   }
+
+   fun chat(text: String) = write("CHAT: ${(wakeUpWord.value + " " + text).encodeBase64()}")
+
    enum class SpeechEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
       NONE("none", "None", "No voice"),
       SYSTEM("os", "System", "System voice. Fully offline"),
@@ -417,19 +441,33 @@ class VoiceAssistant: PluginBase() {
          root.consumeScrolling()
          root.lay += vBox(null, CENTER) {
             lay += hBox(null, CENTER) {
-               lay += Icon(IconFA.COG).tooltip("Settings").onClickDo { APP.actions.app.openSettings(plugin.value?.configurableGroupPrefix) }.apply {
+               lay += Icon(IconFA.COG).tooltip("Settings").apply {
                   disableProperty() syncFrom plugin.map { it==null }
+                  onClickDo { APP.actions.app.openSettings(plugin.value?.configurableGroupPrefix) }
                }
-               lay += Icon(IconFA.REFRESH).tooltip("Restart voice assistent").onClickDo { plugin.value?.restart() }
-               lay += Icon(IconMD.TEXT_TO_SPEECH).tooltip("Speak text").onClickDo { plugin.value?.speak() }
-               lay += Icon().apply {
-                  isMouseTransparent = true
-                  isFocusTraversable = false
-                  plugin.sync { icon(it!=null, IconMA.MIC, IconMA.MIC_OFF) }
+               lay += CheckIcon().icons(IconMD.FILTER, IconMD.FILTER_REMOVE_OUTLINE).apply {
+                  disableProperty() syncFrom plugin.map { it==null }
+                  selected syncFrom plugin.flatMap { it!!.printRaw }.orElse(true)
+                  selected attach { plugin.value?.printRaw?.value = it }
+                  tooltip("Hide debug and raw output")
+               }
+               lay += Icon(IconFA.REFRESH).tooltip("Restart voice assistent")
+                  .onClickDo { plugin.value?.restart() }
+               lay += label("   ")
+               lay += CheckIcon().icons(IconMA.MIC, IconMA.MIC_OFF).apply {
+                  disableProperty() syncFrom plugin.map { it==null }
+                  selected syncFrom plugin.flatMap { it!!.micOn }.orElse(true)
+                  selected attach { plugin.value?.micOn?.value = it }
+                  tooltip("Enable/disable microphone")
                }
                lay += label {
                   plugin.sync { text = if (it!=null) "Active" else "Inactive" }
                }
+               lay += label("   ")
+               lay += Icon(IconMA.RECORD_VOICE_OVER).tooltip("Speak text")
+                  .onClickDo { plugin.value?.speak() }
+               lay += Icon(IconMA.CHAT).tooltip("Chat")
+                  .onClickDo { plugin.value?.chat() }
             }
             lay(ALWAYS) += textArea {
                isEditable = false

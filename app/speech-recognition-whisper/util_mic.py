@@ -14,9 +14,10 @@ import whisper # https://github.com/openai/whisper
 
 
 class Mic:
-    def __init__(self, whisper: Queue):
+    def __init__(self, micOn: bool, whisper: Queue):
         self.listening = None
         self.whisper = whisper
+        self.micOn = micOn
 
     def start(self):
         r = Recognizer()
@@ -25,12 +26,14 @@ class Mic:
         r.energy_threshold = 120
         r.dynamic_energy_threshold = False
 
-        source = Microphone()
+        source = Microphone(sample_rate=whisper.audio.SAMPLE_RATE)
+        source.SAMPLE_RATE
         # with source:
         #     r.adjust_for_ambient_noise(source, duration=3)
 
         def callback(recognizer, audio_data):
-            self.whisper.put(audio_data)
+            if (self.micOn):
+                self.whisper.put(audio_data)
 
         self.listening = r.listen_in_background(source, callback)
 
@@ -61,13 +64,14 @@ class Whisper:
 
         while not self._stop:
             audio_data = self.queue.get()
-            wav_bytes = audio_data.get_wav_data(convert_rate=16000) # 16 kHz https://github.com/openai/whisper/blob/28769fcfe50755a817ab922a7bc83483159600a9/whisper/audio.py#L98-L99
+            wav_bytes = audio_data.get_wav_data() # must be 16kHz
             wav_stream = io.BytesIO(wav_bytes)
             audio_array, sampling_rate = sf.read(wav_stream)
             audio_array = audio_array.astype(np.float32)
             text = model.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
 
-            self._target(text)
+            if not self._stop:
+                self._target(text)
 
     def stop(self):
         self._stop = True

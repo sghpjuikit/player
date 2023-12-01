@@ -2,7 +2,7 @@ import os
 from threading import Thread
 import asyncio
 import uuid
-from util_itr import teeThreadSafe
+from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_dir_cache import cache_file
 from util_write_engine import Writer
 from util_play_engine import SdActor, VlcActor
@@ -18,93 +18,66 @@ class Tty:
         self.sentence_min_length = 40 # shorter == faster feedback, longer == less audio hallucinations in short audio
         self.tty = tty
         self.write = write
-        self.sentence = None
-        self.sentence_mode = False
-        self.sentence_queue = Queue()
-        self.speeches_queue = Queue()
+        self._stop = False
+        self._skip = False
+        self.ignored_chars = set(".,?!-: ")
+        self.queue = Queue()
 
     def start(self):
+        Thread(name='Tty', target=self._loop, daemon=True).start()
         self.tty.start()
 
     def stop(self):
+        self._stop = True
         self.tty.stop()
 
     def skip(self):
-        self.sentence_mode = False
-        while not self.sentence_queue.empty():
-            try:
-                self.sentence_queue.get(block=False)
-            except Exception:
-                break
+        self._skip = True
         self.tty.skip()
 
-    def __call__(self, event: str, use_cache=True):
-
-        if isinstance(event, list):
-            event = iter(event)
-
+    def __call__(self, event: str):
         if isinstance(event, str):
             self.write('SYS: ' + event)
-            self.speeches_queue.put((event, use_cache))
-            self.process()
+            self.queue.put((iter(map(lambda x: x + ' ', event.split(' '))), False))
 
         elif isinstance(event, Iterator):
+            self.queue.put((event, True))
 
-            # iterableStart
-            self.sentence = ''
-            self.sentence_mode = True
+    def _loop(self):
+        while not self._stop:
+            event, skippable = self.queue.get()
+            self._skip = False
+            sentence = ''
 
-            # iterablePart
             for e in event:
-                if not self.sentence_mode:
+
+                # skip skippable
+                while self._skip and skippable:
                     continue
 
-                self.sentence = self.sentence + e
-                while len(self.sentence) >= self.sentence_min_length:
+                sentence = sentence + e
+                while len(sentence) >= self.sentence_min_length:
                     index = -1
                     if index==-1:
-                        index = self.sentence.rfind('. ')
+                        index = sentence.rfind('. ')
                     if index==-1:
-                        index = self.sentence.rfind('\n')
+                        index = sentence.rfind('\n')
                     if index==-1:
                         break
                     else:
-                        sentence = self.sentence[:index]
-                        self.sentence = self.sentence[index+1:]
-                        if len(sentence)>0:
-                            self.sentence_queue.put(sentence+'. ')
-                            self.process()
+                        s = sentence[:index]
+                        self.process(s+'. ', skippable, end=False)
+                        sentence = sentence[index+1:]
 
-            # iterableEnd
-            if len(self.sentence)>0:
-                self.sentence_queue.put(self.sentence)
-                self.process()
-            self.sentence = ''
-            self.sentence_mode = False
-            self.process()
+            self.process(sentence, skippable, end=True)
+            sentence = ''
 
-    def speak(self, text: str, use_cache=True):
-        self.write('SYS: ' + text)
-        self.speeches_queue.put((text, use_cache))
-        self.process()
-
-    def process(self):
-        if self.sentence_mode:
-            while not self.sentence_queue.empty():
-                try:
-                    text = self.sentence_queue.get(block=False)
-                    if (len(text)>0):
-                        self.tty.speak(text, skippable=True, use_cache=False)
-                except Exception:
-                    break
-        else:
-            while not self.speeches_queue.empty():
-                try:
-                    text, use_cache = self.speeches_queue.get(block=False)
-                    if (len(text)>0):
-                        self.tty.speak(text, skippable=False, use_cache=use_cache)
-                except Exception:
-                    break
+    def process(self, s: str, skippable: bool, end: bool):
+        ss = ''.join(c for c in s if c not in self.ignored_chars)
+        if (len(ss)>0):
+            self.tty.speak(s, skippable=skippable)
+        if end:
+            self.tty.speak(None, skippable=False)
 
 
 class TtyBase:
@@ -128,26 +101,27 @@ class TtyBase:
         """
         _skip = True
 
-    def speak(self, text: str, skippable: bool, use_cache: bool):
+    def speak(self, text: str, skippable: bool):
         """
         Adds the text to queue
         """
-        self.queue.put((text, skippable, use_cache))
+        self.queue.put((text, skippable))
 
     def get_next_element(self):
         """
         :return: next element from queue, skipping over skippable elements if _skip=True, blocks until then
         """
-        textRaw, skippable, use_cache = self.queue.get()
+        textRaw, skippable = self.queue.get()
 
         # skip skippable
         while self._skip and skippable:
             continue
-
-        # stop skipping
         self._skip = False
 
-        return (textRaw, skippable, use_cache)
+        if textRaw is None:
+            return self.get_next_element()
+
+        return (textRaw, skippable)
 
 
 class TtyNone(TtyBase):
@@ -160,7 +134,7 @@ class TtyNone(TtyBase):
     def stop(self):
         pass
 
-    def speak(self, text: str, skippable: bool, use_cache: bool): # pylint: disable=unused-argument
+    def speak(self, text: str, skippable: bool): # pylint: disable=unused-argument
         pass
 
 
@@ -174,7 +148,7 @@ class TtyOsMac(TtyBase):
 
     def _loop(self):
         while not self._stop:
-            textRaw, skippable, use_cache = self.get_next_element()
+            textRaw, skippable = self.get_next_element()
             text = ''.join(c for c in textRaw if c in self.allowed_chars)
             os.system(f"say '{text}'")
 
@@ -196,7 +170,7 @@ class TtyOs(TtyBase):
             return
 
         while not self._stop:
-            text, skippable, use_cache = self.get_next_element()
+            text, skippable = self.get_next_element()
 
             engine = pyttsx3.init()
 
@@ -245,9 +219,9 @@ class TtyCharAi(TtyBase):
             self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "charai", str(self.voice).replace('.','-'))
             if not os.path.exists(self.cache_dir):
                 os.makedirs(self.cache_dir)
-            text, skippable, cache_requested = self.get_next_element()
+            text, skippable = self.get_next_element()
             audio_cache_file, audio_cache_file_exists = cache_file(text, self.cache_dir)
-            cache_used = cache_requested and len(text) < 100
+            cache_used = len(text) < 100
             audio_file = audio_cache_file if cache_used else os.path.join(self.cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
 
             # generate audio
@@ -346,30 +320,28 @@ class TtyCoqui(TtyBase):
             self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "coqui", self.voice.replace('.','-'))
             if not os.path.exists(self.cache_dir):
                 os.makedirs(self.cache_dir)
-            text, skippable, cache_requested = self.get_next_element()
+            text, skippable = self.get_next_element()
             audio_cache_file, audio_cache_file_exists = cache_file(text, self.cache_dir)
-            cache_used = cache_requested and len(text) < 100
+            cache_used = len(text) < 100
             audio_file = audio_cache_file if cache_used else os.path.join(self.cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
-
-            cache_used = False # currently blocks processing for some reason and audio stutters
 
             # generate
             if not cache_used or not audio_cache_file_exists:
 
                 # wait for init
                 loadModelThread.join()
-
                 # generate
                 audio_chunks = self.model.inference_stream(text, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
-                audio_chunks_play, audio_chunks_cache = teeThreadSafe(audio_chunks, 2)
+                consumer, audio_chunks_play, audio_chunks_cache = teeThreadSafeEager(audio_chunks, 2)
 
                 # play
-                self.play.playWavChunk(map(lambda x: x.squeeze().unsqueeze(0).cpu().squeeze().numpy(), audio_chunks_play), skippable)
+                self.play.playWavChunk(map(lambda x: x.squeeze().cpu().numpy(), audio_chunks_play), skippable)
+                consumer()
 
                 # update cache
                 if cache_used:
                     audio_chunks_all = []
-                    for audio_chunk in audio_chunks_play:
+                    for audio_chunk in audio_chunks_cache:
                         audio_chunks_all.append(audio_chunk)
 
                     wav = torch.cat(audio_chunks_all, dim=0)

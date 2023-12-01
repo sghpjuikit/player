@@ -15,7 +15,7 @@ from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui
 from util_llm import Llm
 from util_mic import Mic, Whisper
 from util_write_engine import Writer
-from util_itr import teeThreadSafe
+from util_itr import teeThreadSafe, teeThreadSafeEager
 
 # util: print engine actor, non-blocking
 write = Writer()
@@ -62,6 +62,16 @@ if showHelp:
     write("")
     write("Args:")
     write("")
+    write("  print-raw=$bool")
+    write("    Optional bool whether RAW values should be print")
+    write("    Default: True")
+    write("")
+    write("  mic-on=$bool")
+    write("    Optional bool whether microphone listening should be enabled.")
+    write("    When false, speech recognition will receive no input and will not do anything.")
+    write("    Interacting with the program is still fully possible through stdin `CHAT: ` command.")
+    write("    Default: True")
+    write("")
     write("  parent-process=$pid")
     write("    Optional parent process pid. This script terminates when the specified process terminates")
     write("    Default: None")
@@ -104,8 +114,13 @@ if showHelp:
 
 # args
 parentProcess = int(arg('parent-process', -1))
+
 wake_word = arg('wake-word', 'system')
 name = wake_word[0].upper() + wake_word[1:]
+
+micOn = arg('mic-on', "true")=="true"
+printRaw = arg('printRaw', "true")=="true"
+
 speakEngineType = arg('speaking-engine', 'os')
 speakUseCharAiToken = arg('character-ai-token', '')
 speakUseCharAiVoice = int(arg('character-ai-voice', '22'))
@@ -158,7 +173,7 @@ def callback(text):
         chatPrompt = text.rstrip(".").strip()
         text = text.lower().rstrip(".").strip()
 
-        if len(text) > 0:
+        if len(text) > 0 and printRaw:
             write('RAW: ' + text)
 
         # ignore speech recognition noise
@@ -213,10 +228,12 @@ def callback(text):
                 chat.generating = True
 
                 # generate & stream response
-                tokens = chat.llm.generate(txt, streaming=True, n_batch=16, max_tokens=1000, callback=stop_on_token_callback)
-                tokensWrite, tokensSpeech, tokensText = teeThreadSafe(tokens, 3)
+                suffix = "\n\nBe short. You are in conversation with person, using voice synthesis on top of your output. Act like a person."
+                tokens = chat.llm.generate(txt + suffix, streaming=True, n_batch=16, max_tokens=1000, callback=stop_on_token_callback)
+                consumer, tokensWrite, tokensSpeech, tokensText = teeThreadSafeEager(tokens, 3)
                 write(chain(['CHAT: '], tokensWrite))
-                speak(tokensSpeech, False)
+                speak(tokensSpeech)
+                consumer()
                 text_all = ''.join(tokensText)
                 chat.generating = False
 
@@ -292,35 +309,44 @@ def install_exit_handler():
     signal.signal(signal.SIGABRT, stop)
 
 
-def start_input_handler():
-    while True:
-        try:
-            m = input()
-            # talk command
-            if m.startswith("SAY: "):
-                text = base64.b64decode(m[5:]).decode('utf-8')
-                speak(map(lambda x: x + ' ', text.split(' ')), False)
-            # chat command
-            if m.startswith("CHAT: "):
-                text = base64.b64decode(m[6:]).decode('utf-8')
-                chat(text)
-            # changing settings commands
-            elif m.startswith("coqui-voice=") and isinstance(speak.tty, TtyCoqui):
-                cast(speak.tty, TtyCoqui).voice = prop(m, "coqui-voice=", speakUseCoquiVoice)
-                speak(name + " voice changed", use_cache=False)
-            # exit command
-            elif m == "EXIT":
-                sys.exit(0)
-        except EOFError as _:
-            sys.exit(0)
-
-
 whisper = Whisper(target=callback, model=speechRecognitionModelName)
-mic = Mic(whisper.queue)
+mic = Mic(micOn, whisper.queue)
 speak.start()
 whisper.start()
 mic.start()
 install_exit_handler()
 start_exit_invoker()
 speak(name + " online")
-start_input_handler()
+
+while True:
+    try:
+        m = input()
+
+        # talk command
+        if m.startswith("SAY: "):
+            text = base64.b64decode(m[5:]).decode('utf-8')
+            speak(iter(map(lambda x: x + ' ', text.split(' '))))
+
+        # chat command
+        if m.startswith("CHAT: "):
+            text = base64.b64decode(m[6:]).decode('utf-8')
+            callback(text)
+
+        # changing settings commands
+        elif m.startswith("min-on="):
+            micOn = prop(m, "min-on", "true").lower() == "true"
+            mic.micOn = micOn
+
+        elif m.startswith("print-raw="):
+            printRaw = prop(m, "print-raw", "true").lower() == "true"
+
+        elif m.startswith("coqui-voice=") and isinstance(speak.tty, TtyCoqui):
+            cast(speak.tty, TtyCoqui).voice = prop(m, "coqui-voice", speakUseCoquiVoice)
+            speak(name + " voice changed", use_cache=False)
+
+        # exit command
+        elif m == "EXIT":
+            sys.exit(0)
+
+    except EOFError as _:
+        sys.exit(0)

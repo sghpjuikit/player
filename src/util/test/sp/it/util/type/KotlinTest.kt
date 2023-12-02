@@ -19,6 +19,8 @@ class KotlinTest: FreeSpec({
    }
    // https://youtrack.jetbrains.com/issue/KT-22792
    "KT-22792".config(enabled = false) {
+      (TestObject::class.objectInstance!=null) shouldBe true
+      (TestDataObject::class.objectInstance!=null) shouldBe true
       TestObject::class.isObject shouldBe true
       TestDataObject::class.isObject shouldBe true
    }
@@ -31,3 +33,5 @@ class KotlinTest: FreeSpec({
 
 private object TestObject
 private data object TestDataObject
+
+

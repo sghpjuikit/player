@@ -24,7 +24,10 @@ import sp.it.util.functional.runTry
 import sp.it.util.system.Os
 
 /** @return true iff this string is equal to the specified string, ignoring the case */
-infix fun String.equalsNc(other: String) = this.equals(other, ignoreCase = true)
+infix fun String.equalsNc(other: String): Boolean = equals(other, ignoreCase = true)
+
+/** @return true iff this string is equal to the specified string, ignoring the case and spaces */
+infix fun String.equalsNcs(other: String): Boolean = replace(" ", "") equalsNc other.replace(" ", "")
 
 /** @return sequence of all [Char16] (typed version of [String.chars]) */
 fun String.chars16(): Sequence<Char16> = chars().asSequence().map { it.toChar16() }

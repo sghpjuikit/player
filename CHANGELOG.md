@@ -71,7 +71,8 @@ Instead, http client and server is used.
 ## Hue
 **Hue Scenes** widget is now split into widget (ui) and plugin (functionality).
 This allows programmatic control of the **Phillips Hue** system without requiring the widget to be open.
-The plugin now supports voice control using `SpeechRecognition` plugin.
+The plugin now supports voice control using `SpeechRecognition` plugin - turning lights and light groups on/off,
+applying scenes, listing groups/scenes.
 
 ## [7.9.0] 2023 10 27
 - Update Java to 21

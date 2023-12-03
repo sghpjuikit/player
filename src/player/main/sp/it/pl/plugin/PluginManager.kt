@@ -184,7 +184,9 @@ interface PluginInfo: Locatable {
    val version: KotlinVersion get() = APP.version
    /** Author of the plugin. Default empty. */
    val author: String get() = ""
+
    override val location get() = APP.location.plugins/name
+
    override val userLocation get() = APP.location.user.plugins/name
 }
 

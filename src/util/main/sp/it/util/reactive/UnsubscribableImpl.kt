@@ -78,6 +78,18 @@ fun Subscription?.orEmpty() = this ?: Subscription()
 /** @return [Unsubscribable] that unsubscribes subscription on [onEventDown1] using the specified event type */
 infix fun Window.fires(eventType: EventType<WindowEvent>): Unsubscriber = { s -> onEventDown1(eventType) { s.unsubscribe() } }
 
+/** @return [Subscription] that removes the newly added specified element from this list*/
+infix fun <T> MutableCollection<T>.addRem(element: T): Subscription {
+   this += element
+   return Subscription { this -= element }
+}
+
+/** @return [Subscription] that removes the newly added specified elements from this list*/
+infix fun <T> MutableCollection<T>.addRem(elements: List<T>): Subscription {
+   this += elements
+   return Subscription { this -= elements }
+}
+
 /** @return [Unsubscribable] that unsubscribes subscription on [sync1If] using the specified value condition */
 infix fun <T> ObservableValue<T>.fires(condition: (T) -> Boolean): Unsubscriber = { s -> sync1If(condition) { s.unsubscribe() } }
 

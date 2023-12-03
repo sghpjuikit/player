@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.CopyOnWriteArrayList
 import sp.it.util.async.runFX
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.addRem
 
 /**
  * Stream that self-inserts as [System.out], but instead of redirecting it, it continues
@@ -22,10 +23,8 @@ class SystemOutListener private constructor(private val stream: SystemOutDuplica
    }
 
    /** Add listener that will receive the stream data (always on fx thread). */
-   fun addListener(listener: (String) -> Unit): Subscription {
-      stream.listeners += listener
-      return Subscription { stream.listeners -= listener }
-   }
+   fun addListener(listener: (String) -> Unit): Subscription =
+      stream.listeners addRem listener
 
    fun removeListener(listener: (String) -> Unit) {
       stream.listeners -= listener

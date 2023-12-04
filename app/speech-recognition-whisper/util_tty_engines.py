@@ -1,11 +1,10 @@
 import os
 from threading import Thread
 import asyncio
-import uuid
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_dir_cache import cache_file
 from util_write_engine import Writer
-from util_play_engine import SdActor, VlcActor
+from util_play_engine import SdActor
 from collections.abc import Iterator
 from typing import cast
 from queue import Queue
@@ -14,13 +13,14 @@ from TTS.tts.models.xtts import Xtts
 
 
 class Tty:
-    def __init__(self, tty, write: Writer):
+    def __init__(self, speakOn: bool, tty, write: Writer):
         self.sentence_min_length = 40 # shorter == faster feedback, longer == less audio hallucinations in short audio
         self.tty = tty
+        self.speakOn = speakOn
         self.write = write
         self._stop = False
         self._skip = False
-        self.ignored_chars = set(".,?!-: ")
+        self.ignored_chars = set(".,?!-: #\n\r\t")
         self.queue = Queue()
 
     def start(self):
@@ -36,6 +36,9 @@ class Tty:
         self.tty.skip()
 
     def __call__(self, event: str):
+        if not self.speakOn:
+            return
+
         if isinstance(event, str):
             self.write('SYS: ' + event)
             self.queue.put((iter(map(lambda x: x + ' ', event.split(' '))), False))
@@ -49,28 +52,33 @@ class Tty:
             self._skip = False
             sentence = ''
 
+            self.tty.speak(None, skippable=False)
             for e in event:
 
                 # skip skippable
-                while self._skip and skippable:
-                    continue
+                if self._skip and skippable:
+                    break
 
                 sentence = sentence + e
                 while len(sentence) >= self.sentence_min_length:
                     index = -1
+                    c = ''
                     if index==-1:
                         index = sentence.rfind('. ')
+                        c = '. '
                     if index==-1:
                         index = sentence.rfind('\n')
+                        c = '\n '
                     if index==-1:
                         break
                     else:
                         s = sentence[:index]
-                        self.process(s+'. ', skippable, end=False)
+                        self.process(s+c, skippable, end=False)
                         sentence = sentence[index+1:]
 
-            self.process(sentence, skippable, end=True)
-            sentence = ''
+            if not self._skip or not skippable:
+                self.process(sentence, skippable, end=True)
+                sentence = ''
 
     def process(self, s: str, skippable: bool, end: bool):
         ss = ''.join(c for c in s if c not in self.ignored_chars)
@@ -107,21 +115,32 @@ class TtyBase:
         """
         self.queue.put((text, skippable))
 
-    def get_next_element(self):
+    def get_next_element(self) -> (str, bool):
         """
         :return: next element from queue, skipping over skippable elements if _skip=True, blocks until then
         """
-        textRaw, skippable = self.queue.get()
+        while not self._stop:
+            textRaw, skippable = self.queue.get()
 
-        # skip skippable
-        while self._skip and skippable:
-            continue
-        self._skip = False
+            # skip skippable
+            if self._skip and skippable:
+                continue
 
-        if textRaw is None:
-            return self.get_next_element()
+            self._skip = False
 
-        return (textRaw, skippable)
+            # skip boundary value
+            if textRaw is None:
+                self._boundary()
+                continue
+
+            # skip empty value
+            if len(textRaw.strip()) == 0:
+                continue
+
+            return (textRaw, skippable)
+
+    def _boundary(self):
+        pass
 
 
 class TtyNone(TtyBase):
@@ -188,7 +207,7 @@ class TtyOs(TtyBase):
 
 # https://github.com/Xtr4F/PyCharacterAI
 class TtyCharAi(TtyBase):
-    def __init__(self, token: str, voice: int, play: VlcActor, write: Writer):
+    def __init__(self, token: str, voice: int, play: SdActor, write: Writer):
         super().__init__()
         self.token = token
         self.voice = voice
@@ -219,24 +238,32 @@ class TtyCharAi(TtyBase):
             self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "charai", str(self.voice).replace('.','-'))
             if not os.path.exists(self.cache_dir):
                 os.makedirs(self.cache_dir)
+
             text, skippable = self.get_next_element()
-            audio_cache_file, audio_cache_file_exists = cache_file(text, self.cache_dir)
+            audio_file, audio_file_exists = cache_file(text, self.cache_dir)
             cache_used = len(text) < 100
-            audio_file = audio_cache_file if cache_used else os.path.join(self.cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
 
             # generate audio
-            if not cache_used or not audio_cache_file_exists:
+            if not cache_used or not audio_file_exists:
                 # login once lazily
                 if client is None:
                     client = Client()
                     await client.authenticate_with_token(self.token)
-                # generate
-                audio = await client.generate_voice(self.voice, text[:4094])
-                # save
-                with open(audio_file, 'wb') as f:
-                    f.write(audio.read())
 
-            self.play.queue.put(('f', audio_file, skippable))
+                # generate
+                audio_data = await client.generate_voice(self.voice, text[:4094])
+
+                # play
+                self.play.playWavChunk(audio_data, skippable)
+
+                # update cache
+                if cache_used:
+                    sf.write(audio_file, audio_data, 24000)
+            else:
+                self.play.playFile(audio_file, skippable)
+
+    def _boundary(self):
+        self.play.boundary()
 
     def skip(self):
         super().skip()
@@ -320,16 +347,17 @@ class TtyCoqui(TtyBase):
             self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "coqui", self.voice.replace('.','-'))
             if not os.path.exists(self.cache_dir):
                 os.makedirs(self.cache_dir)
+
             text, skippable = self.get_next_element()
-            audio_cache_file, audio_cache_file_exists = cache_file(text, self.cache_dir)
+            audio_file, audio_file_exists = cache_file(text, self.cache_dir)
             cache_used = len(text) < 100
-            audio_file = audio_cache_file if cache_used else os.path.join(self.cache_dir, "user_" + str(uuid.uuid4()) + ".wav")
 
             # generate
-            if not cache_used or not audio_cache_file_exists:
+            if not cache_used or not audio_file_exists:
 
                 # wait for init
                 loadModelThread.join()
+
                 # generate
                 audio_chunks = self.model.inference_stream(text, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
                 consumer, audio_chunks_play, audio_chunks_cache = teeThreadSafeEager(audio_chunks, 2)
@@ -349,6 +377,9 @@ class TtyCoqui(TtyBase):
 
             else:
                 self.play.playFile(audio_file, skippable)
+
+    def _boundary(self):
+        self.play.boundary()
 
     def skip(self):
         super().skip()

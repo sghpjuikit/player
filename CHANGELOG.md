@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+- Implement Windows taskbar icons
+- Implement media key support (also possible to control playback through bluetooth heaphones)
 - Implement **Voice Assistant** widget (Implement Voice Assistant plugin UI)
 - Implement **Hue** plugin (for programmatic/voice control of Hue system without widget)
 - Implement **Hue** plugin settings
@@ -12,7 +14,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement app http server settings
 - Implement app http `/audio` API
 - Implement app http `/speech` API
-- Implement media key support
+- Implement find largest files action
 - Improve thread use (`Default` dispatcher avoids allocating threads)
 - Improve thread use (use virtual threads in more situations)
 - Improve app start performance (make `CoreFunctors` lazy)
@@ -27,25 +29,30 @@ All notable changes to this project will be documented in this file. Format base
 - Fix errors reading audio metadata for non audio files
 - Fix `ScrollPaneSkin` orientation handling
 - Fix missing table skin in `Main.css`
+- Fix styling issues (ScrollBar)
+- Fix issues wit generic table with some classes
 
 ## Voice Assistant
-**Speech Recognition** plugin is renamed to **Voice Assistant** plugin.
-There are multiple UX improvements to the assistant, making it easier to use:
+This update is all about adopting AI functionalities.
+Primarily, the goal is to allow voice control, but the plugin already supports much more than that.
+**Speech Recognition** plugin is thus now **Voice Assistant** plugin. The improvements are:
 - Better UX
-  - Voice recognition on different PC (experimental UX).
-  - Command output to speach (better success/error interaction)
+  - UI widget
+  - Command output invokes speach (better interaction)
   - More commands, easier commands, better help command
   - Chat session (remembers previous messages)
+  - Voice recognition on different PC (experimental UX).
 - Easier installation
   - Lazy usage of python modules
-  - Player's vlc player is reused for python if needed
+- Easier integration
+  - Support for OpenAI-compatible llm servers
 - Concurrency, performance
   - Use of actors to prevent multiple text/speech/chat inputs/outputs mixed together and event guarantee order
   - Use of iterables for real-time output (chat/speech/player do not wait for entire result)
     - Llm text generation stream > text sentence stream > voice generation audio stream > gapless playback as stream
 - More settings and its own UI widget.
+  - Microphone, speech, chat, etc settings
   - Speech to text model selection (whisper models (requires manual download))
-  - Chat model selection (supports custom compatible models (requires manual download))
   - Text to speech engine/voice selection (none, os, character.ai, coqui)
     - Coqui supports fully offline text-to-speech
     - Coqui supports voice cloning

@@ -10,9 +10,9 @@ import traceback
 from itertools import chain
 from threading import Thread
 from typing import cast
-from util_play_engine import SdActor, VlcActor
+from util_play_engine import SdActor
 from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui
-from util_llm import Llm
+from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_mic import Mic, Whisper
 from util_write_engine import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
@@ -42,101 +42,168 @@ def prop(text: str, arg_name: str, fallback: str) -> str:
 # help
 showHelp = '--help' in sys.argv or '-h' in sys.argv
 if showHelp:
-    write("This is a speech recognition python script using OpenAI Whisper.")
-    write("Prints recognized user speech in format `USER: $speech` and system log in format`SYS: $message`.")
-    write("")
-    write("This script prints:")
-    write("    - system log in format`SYS: $message`")
-    write("    - recognized user speech in format `RAW: $speech`")
-    write("    - recognized user speech, sanitized, in format `USER: $speech`")
-    write("    - recognized user command, in format `COM: $command`")
-    write("")
-    write("This script takes (optional) input:")
-    write("    - `SYS: $base64_encoded_text` and speaks it (if speech-engine is not `none`)")
-    write("")
-    write("This scrip terminates:")
-    write("    - upon `CTRL+C`")
-    write("    - when parent process terminates, if launched with `parent-process=$pid` argument")
-    write("    - when receives `EXIT` on input stream")
-    write("It is possible to exit gracefully (on any platform) by writing 'EXIT' to stdin")
-    write("")
-    write("Args:")
-    write("")
-    write("  print-raw=$bool")
-    write("    Optional bool whether RAW values should be print")
-    write("    Default: True")
-    write("")
-    write("  mic-on=$bool")
-    write("    Optional bool whether microphone listening should be enabled.")
-    write("    When false, speech recognition will receive no input and will not do anything.")
-    write("    Interacting with the program is still fully possible through stdin `CHAT: ` command.")
-    write("    Default: True")
-    write("")
-    write("  parent-process=$pid")
-    write("    Optional parent process pid. This script terminates when the specified process terminates")
-    write("    Default: None")
-    write("")
-    write("  wake-word=$wake-word")
-    write("    Optional wake word to interact with this script")
-    write("    Default: system")
-    write("")
-    write("  speaking-engine=$engine")
-    write("    Engine for speaking. Use 'none', 'os', 'character-ai' or 'coqui'")
-    write("    Default: system")
-    write("")
-    write("  character-ai-token=$token")
-    write("    If speaking-engine=character-ai is used, authentication token for character.ai is required")
-    write("    Default: None")
-    write("")
-    write("  character-ai-voice=$voice")
-    write("    If speaking-engine=character-ai is used, optional voice id can be supplied")
-    write("    Default: 22 (Anime Girl en-US)")
-    write("")
-    write("  coqui-voice=$voice")
-    write("    If speaking-engine=coqui is used, required name of voice file must be specified and exist in ./coqui-voices dir")
-    write("    Default: Ann_Daniels.flac")
-    write("")
-    write("  vlc-path=$path_to_vlc_dir")
-    write("    If speaking-engine=character-ai is used, optional path to vlc player can be specified.")
-    write("    If no path is specified and application does not find any vlc player installed, speaking will not function.")
-    write("    Default: ''")
-    write("")
-    write("  speech-recognition-model=$model")
-    write("    Whisper model for speech recognition")
-    write("    Values: tiny.en, tiny, base.en, base, small.en, small, medium.en, medium, large-v1, large-v2, large")
-    write("    Default: base.en")
-    write("")
-    write("  chat-model=$model")
-    write("    LLM model for chat or none for no LLM chat functionality")
-    write("    Default: none")
-    write("")
+    write(
+"""
+This is a speech recognition python script using OpenAI Whisper.
+
+This script outputs to stdout (token by token):
+    - system log in format`SYS: $message`
+    - recognized user speech in format `RAW: $speech`
+    - recognized user speech, sanitized, in format `USER: $speech`
+    - recognized user command, in format `COM: $command`
+
+This script takes (optional) input:
+    - `SAY-LINE: $line-of-text` and speaks it (if `speech-engine` is not `none`)
+    - `SAY: $base64_encoded_text` and speaks it (if `speech-engine` is not `none`)
+    - `CHAT: $base64_encoded_text` and send it to chat (if `llm-engine` is not `none`)
+
+This scrip terminates:
+    - upon `CTRL+C`
+    - when parent process terminates, if launched with `parent-process=$pid` argument
+    - when receives `EXIT` on input stream
+It is possible to exit gracefully (on any platform) by writing 'EXIT' to stdin
+
+Args:
+
+  print-raw=$bool
+    Optional bool whether RAW values should be print
+    Default: True
+
+  mic-on=$bool
+    Optional bool whether microphone listening should be allowed.
+    When false, speech recognition will receive no input and will not do anything.
+    Interacting with the program is still fully possible through stdin `CHAT: ` command.
+    Default: True
+    
+  mic-energy=$int(0,inf)
+    Microphone energy treshold. ANything above this volume is considered potential voice.
+    Use `mic-energy-debug=True` to figure out what value to use, as default may cause speech recognition to not work.
+    Default: 120
+    
+  mic-energy-debug=$bool
+    Optional bool whether microphone should be printing energy level.
+    When true, microphone listening is not active. Use only to determine optimal energy treshold for voice detection.
+    Default: False
+
+  parent-process=$pid
+    Optional parent process pid. This script terminates when the specified process terminates
+    Default: None
+
+  wake-word=$wake-word
+    Optional wake word to interact with this script
+    Default: system
+
+  speech-recognition-model=$model
+    Whisper model for speech recognition
+    Values: tiny.en, tiny, base.en, base, small.en, small, medium.en, medium, large, large-v1, large-v2, large-v3
+    Default: base.en
+
+  speech-on=$bool
+    Optional bool whether speech synthesis should be allowed.
+    When false, speech synthesis will receive no input and will not do anything.
+    Default: True
+
+  speech-engine=$engine
+    Engine for speaking.
+    - Use 'none' for no text to speech
+    - Use 'os' to use built-in OS text-to-speech (offline, high performance, low quality)
+    - Use 'character-ai' to use character.ai online service client (requires login)
+      requires specifying character-ai-token, optionally character-ai-voice
+    - Use 'coqui' to use xttsv2 model (offline, low performance, realistic quality)
+      optionally specify coqui-voice
+    Default: os
+
+  character-ai-token=$token
+    If speaking-engine=character-ai is used, authentication token for character.ai is required
+    Default: None
+
+  character-ai-voice=$voice
+    If speaking-engine=character-ai is used, optional voice id can be supplied
+    Default: 22 (Anime Girl en-US)
+
+  coqui-voice=$voice
+    If speaking-engine=coqui is used, required name of voice file must be specified and exist in ./coqui-voices dir
+    Default: Ann_Daniels.flac
+
+  llm-engine=$engine
+    Llm engine for chat. Use 'none', 'gpt4all', 'openai'
+    - Use 'none' to disable chat
+    - Use 'gpt4all' to use Gpt4All (https://github.com/nomic-ai/gpt4all/tree/main/gpt4all-bindings/python) python bindings
+      requires specifying llm-gpt4all-model
+    - Use 'openai' to use OpenAI http client (https://github.com/openai/openai-python), requires access or custom local server is also possible, e.g. LmStudio )
+      requires specifying llm-openai-url, llm-openai-bearer, llm-openai-model
+    Default: none
+
+  llm-gpt4all-model=$model
+    Name of the model in ./models-llm compatible with Gpt4All
+    Default: none
+
+  llm-openai-url=$url
+    Url of the OpenAI or OpenAI-compatible server
+    Default: none
+
+  llm-openai-bearer=$bearer_token
+    The user authorization of the OpenAI or OpenAI-compatible server
+    Default: none
+
+  llm-openai-model=$model
+    The llm model of the OpenAI or OpenAI-compatible server
+    Default: none
+
+  llm-chat-sys-prompt=$prompt
+    The llm model of the OpenAI or OpenAI-compatible server
+    Default: 400
+    
+  llm-chat-max-tokens=$int
+    The llm model of the OpenAI or OpenAI-compatible server
+    Default: 400
+    
+  llm-chat-temp=$float(0.0-1.0)
+    The llm model of the OpenAI or OpenAI-compatible server
+    Default: 0.5
+
+  llm-chat-topp=float(0.0-1.0)
+    The llm model of the OpenAI or OpenAI-compatible server
+    Default: 0.95
+
+  llm-chat-topk=$int(1-inf)
+    The llm model of the OpenAI or OpenAI-compatible server
+    Default: 40
+"""
+    )
     quit()
 
 # args
-parentProcess = int(arg('parent-process', -1))
-
 wake_word = arg('wake-word', 'system')
 name = wake_word[0].upper() + wake_word[1:]
+printRaw = arg('printRaw', "true")=="true"
+parentProcess = int(arg('parent-process', -1))
 
 micOn = arg('mic-on', "true")=="true"
-printRaw = arg('printRaw', "true")=="true"
+micEnergy = int(arg('mic-energy', "120"))
+micEnergyDebug = arg('mic-energy-debug', "false")=="true"
 
-speakEngineType = arg('speaking-engine', 'os')
+speakOn = arg('speech-on', "true")=="true"
+speakEngineType = arg('speech-engine', 'os')
 speakUseCharAiToken = arg('character-ai-token', '')
 speakUseCharAiVoice = int(arg('character-ai-voice', '22'))
 speakUseCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
-vlcPath = arg('vlc_path', '')
 speechRecognitionModelName = arg('speech-recognition-model', 'base.en')
-chatModelName = arg('chat-model', 'none')
 
-cache_dir = "cache"
-if not os.path.exists(cache_dir):
-    os.makedirs(cache_dir)
+llmEngine = arg('llm-engine', 'none')
+llmGpt4AllModelName = arg('llm-gpt4all-model', 'none')
+llmOpenAiUrl = arg('llm-openai-url', 'none')
+llmOpenAiBearer = arg('llm-openai-bearer', 'none')
+llmOpenAiModelName = arg('llm-openai-model', 'none')
+llmSysPrompt = arg('llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')
+llmChatMaxTokens = int(arg('llm-chat-max-tokens', '400'))
+llmChatTemp = float(arg('llm-chat-temp', '0.5'))
+llmChatTopp = float(arg('llm-chat-topp', '0.95'))
+llmChatTopk = int(arg('llm-chat-topk', '40'))
 
-intention_prompt = base64.b64decode(arg('intent-prompt', '')).decode('utf-8')
-listening_for_chat_prompt = False
-listening_for_chat_generation = False
 terminating = False
+cache_dir = "cache"
+if not os.path.exists(cache_dir): os.makedirs(cache_dir)
 
 # speak engine actor, non-blocking
 if speakEngineType == 'none':
@@ -146,31 +213,39 @@ elif speakEngineType == 'os' and sys.platform == 'darwin':
 elif speakEngineType == 'os':
     speakEngine = TtyOs(write)
 elif speakEngineType == 'character-ai':
-    speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, VlcActor(vlcPath, write), write)
+    speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, SdActor(), write)
 elif speakEngineType == 'coqui':
     speakEngine = TtyCoqui(speakUseCoquiVoice, SdActor(), write)
+else:
+    speakEngine = TtyNone()
+speak = Tty(speakOn, speakEngine, write)
 
-speak = Tty(speakEngine, write)
-
-chatUseCharAi = False
-chatModelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-llm")
-chatModel = os.path.join(chatModelDir, chatModelName)
-chat = None if chatModelName == "none" else Llm(chatModel)
+# llm actor, non-blocking
+llm = LlmNone()
+if llmEngine == 'none':
+    pass
+elif llmEngine == "gpt4all":
+    llmModelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-llm")
+    llmModel = os.path.join(llmModelDir, llmModelName)
+    llm = LlmGpt4All(llmGpt4AllModelName, speak, write, llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk)
+elif llmEngine == "openai":
+    llm = LlmHttpOpenAi(llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModelName, speak, write, llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk)
+else:
+    pass
 
 # speak(name + " INTENT DETECTOR initializing.")
+# intention_prompt = base64.b64decode(arg('intent-prompt', '')).decode('utf-8')
 # https://huggingface.co/glaiveai/glaive-function-calling-v1
 # commandTokenizer = None  # AutoTokenizer.from_pretrained("glaiveai/glaive-function-calling-v1", revision="6ade959", trust_remote_code=True)
 # commandModel = None  # AutoModelForCausalLM.from_pretrained("glaiveai/glaive-function-calling-v1", revision="6ade959", trust_remote_code=True).half().cuda()
 
 def callback(text):
-    global listening_for_chat_prompt
-    global listening_for_chat_generation
 
     if terminating:
         return
 
     try:
-        chatPrompt = text.rstrip(".").strip()
+        llmPrompt = text.rstrip(".").strip()
         text = text.lower().rstrip(".").strip()
 
         if len(text) > 0 and printRaw:
@@ -181,70 +256,44 @@ def callback(text):
             return
 
         # cancel any ongoing chat activity
-        if listening_for_chat_generation and not text.startswith("system end conversation") and not text.startswith("system stop conversation"):
-            listening_for_chat_generation = False
+        if llm.listening_for_chat_generation and not text.startswith("system end conversation") and not text.startswith("system stop conversation"):
+            llm.listening_for_chat_generation = False
             speak.skip()
             return
 
         # sanitize
-        chatPrompt = chatPrompt.lstrip(wake_word).lstrip(",").rstrip(".").strip()
+        llmPrompt = llmPrompt.lstrip(wake_word).lstrip(",").rstrip(".").strip()
         text = text.lstrip(wake_word).lstrip(",").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
         write('USER: ' + text)
 
         # announcement
         if len(text) == 0:
-            if listening_for_chat_prompt:
+            if llm.listening_for_chat_prompt:
                 speak('Yes, conversation is ongoing')
             else:
                 speak('Yes')
 
         # start LLM conversation (fail)
-        elif listening_for_chat_prompt is False and "start conversation" in text and chat is None:
+        elif llm.listening_for_chat_prompt is False and "start conversation" in text and isinstance(llm, LlmNone):
             speak('No conversation model is loaded')
 
         # start LLM conversation
-        elif listening_for_chat_prompt is False and "start conversation" in text:
-            chat.chatStart()
-            listening_for_chat_prompt = True
+        elif llm.listening_for_chat_prompt is False and "start conversation" in text:
+            llm.chatStart()
+            llm.listening_for_chat_prompt = True
             speak('Conversing')
 
         # end LLM conversation
-        elif listening_for_chat_prompt is True and (text.startswith("end conversation") or text.startswith("stop conversation")):
-            listening_for_chat_prompt = False
-            if not chat.generating:
-                chat.chatStop()
+        elif llm.listening_for_chat_prompt is True and (text.startswith("end conversation") or text.startswith("stop conversation")):
+            llm.listening_for_chat_prompt = False
+            if not llm.generating:
+                llm.chatStop()
                 speak.skip()
                 speak("Ok")
 
         # do LLM conversation
-        elif listening_for_chat_prompt is True:
-            # noinspection PyUnusedLocal
-            def stop_on_token_callback(token_id, token_string):
-                return listening_for_chat_generation
-
-            def generate(txt):
-                global listening_for_chat_generation
-                listening_for_chat_generation = True
-                chat.generating = True
-
-                # generate & stream response
-                suffix = "\n\nBe short. You are in conversation with person, using voice synthesis on top of your output. Act like a person."
-                tokens = chat.llm.generate(txt + suffix, streaming=True, n_batch=16, max_tokens=1000, callback=stop_on_token_callback)
-                consumer, tokensWrite, tokensSpeech, tokensText = teeThreadSafeEager(tokens, 3)
-                write(chain(['CHAT: '], tokensWrite))
-                speak(tokensSpeech)
-                consumer()
-                text_all = ''.join(tokensText)
-                chat.generating = False
-
-                # end LLM conversation (if cancelled by user)
-                if listening_for_chat_prompt is False:
-                    chat.chatStop()
-                    speak.skip()
-                    speak("Ok")
-                listening_for_chat_generation = False
-
-            Thread(target=generate, args=(chatPrompt,), daemon=True).start()
+        elif llm.listening_for_chat_prompt is True:
+            llm(llmPrompt)
 
         # do help
         elif text == "help":
@@ -295,6 +344,7 @@ def stop(*args):  # pylint: disable=unused-argument
         terminating = True
         speak(name + ' offline')
 
+        llm.stop()
         mic.stop()
         whisper.stop()
         speak.stop()
@@ -310,10 +360,11 @@ def install_exit_handler():
 
 
 whisper = Whisper(target=callback, model=speechRecognitionModelName)
-mic = Mic(micOn, whisper.queue)
+mic = Mic(None, micOn, whisper.queue, speak, write, micEnergy, micEnergyDebug)
 speak.start()
 whisper.start()
 mic.start()
+llm.start()
 install_exit_handler()
 start_exit_invoker()
 speak(name + " online")
@@ -323,26 +374,57 @@ while True:
         m = input()
 
         # talk command
+        if m.startswith("SAY-LINE: "):
+            text = m[11:]
+            speak(iter(map(lambda x: x + ' ', text.split(' '))))
+
+        # talk command
         if m.startswith("SAY: "):
             text = base64.b64decode(m[5:]).decode('utf-8')
             speak(iter(map(lambda x: x + ' ', text.split(' '))))
 
         # chat command
         if m.startswith("CHAT: "):
+            if not llm.listening_for_chat_prompt:
+                llm.listening_for_chat_prompt = True
+                llm.chatStart()
             text = base64.b64decode(m[6:]).decode('utf-8')
             callback(text)
 
         # changing settings commands
         elif m.startswith("min-on="):
-            micOn = prop(m, "min-on", "true").lower() == "true"
-            mic.micOn = micOn
+            mic.micOn = prop(m, "min-on", "true").lower() == "true"
+
+        elif m.startswith("mic-energy"):
+            mic.micEnergy = int(prop(m, "mic-energy", "120"))
+
+        elif m.startswith("mic-energy-debug"):
+            mic.micEnergyDebug = prop(m, "mic-energy-debug", "false").lower() == "true"
+
+        elif m.startswith("speech-on="):
+            speak.speakOn = prop(m, "speech-on", "true").lower() == "true"
 
         elif m.startswith("print-raw="):
             printRaw = prop(m, "print-raw", "true").lower() == "true"
 
         elif m.startswith("coqui-voice=") and isinstance(speak.tty, TtyCoqui):
             cast(speak.tty, TtyCoqui).voice = prop(m, "coqui-voice", speakUseCoquiVoice)
-            speak(name + " voice changed", use_cache=False)
+            speak(name + " voice changed")
+
+        elif m.startswith("llm-chat-sys-prompt="):
+            llm.sysPrompt = arg('llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')
+
+        elif m.startswith("llm-chat-max-tokens="):
+            llm.maxTokens = int(prop(m, "llm-chat-max-tokens", "300"))
+
+        elif m.startswith("llm-chat-temp="):
+            llm.temp = float(prop(m, "llm-chat-temp", "0.5"))
+
+        elif m.startswith("llm-chat-topp="):
+            llm.topp = float(prop(m, "llm-chat-topp", "0.95"))
+
+        elif m.startswith("llm-chat-topk="):
+            llm.topk = int(prop(m, "llm-chat-topk", "40"))
 
         # exit command
         elif m == "EXIT":

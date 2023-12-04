@@ -1,5 +1,6 @@
 package sp.it.pl.ui
 
+import javafx.beans.value.WritableValue
 import javafx.scene.control.ToggleButton
 import javafx.scene.control.ToggleGroup
 import javafx.scene.input.KeyCode.ENTER
@@ -9,6 +10,7 @@ import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.HBox
+import sp.it.util.access.V
 import sp.it.util.access.v
 import sp.it.util.access.vx
 import sp.it.util.reactive.attach
@@ -16,9 +18,9 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.ui.lay
 
 @Suppress("UNCHECKED_CAST")
-class ValueToggleButtonGroup<T>(val initialValue: T, val values: List<T>, val customizer: ToggleButton.(T) -> Unit = {}): HBox() {
+class ValueToggleButtonGroup<T>(val value: V<T>, val initialValue: T = value.value, val values: List<T>, val customizer: ToggleButton.(T) -> Unit = {}): HBox() {
+
    val isEditable = v(true)
-   val value = vx(initialValue)
 
    init {
       styleClass += "toggle-button-group"
@@ -41,5 +43,15 @@ class ValueToggleButtonGroup<T>(val initialValue: T, val values: List<T>, val cu
       }
       value.attach { t -> group.selectToggle(group.toggles.find { it.userData== t }!!) }
       group.selectedToggleProperty() attach { value.value = it.userData as T }
+   }
+
+   companion object {
+
+      fun <T> ofValue(initialValue: T, values: List<T>, customizer: ToggleButton.(T) -> Unit = {}): ValueToggleButtonGroup<T> =
+         ValueToggleButtonGroup(vx(initialValue), initialValue, values, customizer)
+
+      fun <T> ofObservableValue(value: V<T>, values: List<T>, customizer: ToggleButton.(T) -> Unit = {}): ValueToggleButtonGroup<T> =
+         ValueToggleButtonGroup(value, value.value, values, customizer)
+
    }
 }

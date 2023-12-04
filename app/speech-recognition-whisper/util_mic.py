@@ -2,8 +2,9 @@ from threading import Thread
 from queue import Queue
 from collections.abc import Iterator
 from time import sleep
-from speech_recognition import Recognizer, Microphone # https://github.com/Uberi/speech_recognition
-from typing import cast
+from speech_recognition import Recognizer, Microphone, WaitTimeoutError # https://github.com/Uberi/speech_recognition
+from util_tty_engines import Tty
+from util_write_engine import Writer
 import os
 import io
 import numpy as np
@@ -14,32 +15,113 @@ import whisper # https://github.com/openai/whisper
 
 
 class Mic:
-    def __init__(self, micOn: bool, whisper: Queue):
+    def __init__(self, micName: str | None, micOn: bool, whisper: Queue, speak: Tty, write: Writer, micEnergy: int, micEnergyDebug: bool):
         self.listening = None
         self.whisper = whisper
+        self.speak = speak
+        self.write = write
+        self.micName = micName
+        self.micEnergy = 120
+        self.micEnergyDebug = False
         self.micOn = micOn
+        self._stop = False
 
     def start(self):
+        Thread(name='Mic', target=self._loop, daemon=True).start()
+
+    def _loop(self):
         r = Recognizer()
         r.pause_threshold = 0.8
         r.phrase_threshold = 0.3
-        r.energy_threshold = 120
-        r.dynamic_energy_threshold = False
+        r.energy_threshold = self.micEnergy
+        r.dynamic_energy_threshold = False # does not work that well, instead we provide self.micEnergyDebug
 
-        source = Microphone(sample_rate=whisper.audio.SAMPLE_RATE)
-        source.SAMPLE_RATE
-        # with source:
-        #     r.adjust_for_ambient_noise(source, duration=3)
+        while not self._stop:
 
-        def callback(recognizer, audio_data):
-            if (self.micOn):
-                self.whisper.put(audio_data)
+            # reconnect microphone
+            source = None
+            sourceI = 0
+            while not self._stop:
+                sourceI = sourceI+1
 
-        self.listening = r.listen_in_background(source, callback)
+                # wait till mic is on
+                if not self.micOn:
+                    sleep(1)
+                    continue
+
+                source = None
+                try:
+                    if self.micName is None:
+                        source = Microphone(sample_rate=whisper.audio.SAMPLE_RATE)
+                        # this helps retain mic after reconnecting
+                        audio = source.pyaudio_module.PyAudio()
+                        self.micName = audio.get_default_input_device_info()['name']
+                        self.write(f"RAW: Using microphone: {self.micName}")
+                        audio.terminate()
+                    else:
+                        for i, microphone_name in enumerate(Microphone.list_microphone_names()):
+                            if microphone_name == self.micName:
+                                source = Microphone(device_index=i, sample_rate=whisper.audio.SAMPLE_RATE)
+                        if source is None:
+                            if sourceI==1: self.write(f"ERR: no microphone {self.micName} found. Use one of")
+                            for i, microphone_name in enumerate(Microphone.list_microphone_names()):
+                                if sourceI==1: self.write(f"RAW: Available microphone: {microphone_name}")
+                except Exception as e:
+                    if sourceI==1:
+                        self.speak("Failed to use microphone. See log for details")
+                        self.write(e)
+
+                # mic connected
+                if source is not None:
+                    if sourceI>1: self.speak("Microphone back online.")
+                    break
+
+                # keep reconnecting microphone
+                else:
+                    sleep(1)
+                    continue
+
+            # does not work that well, instead we provide self.micEnergyDebug
+            # r.adjust_for_ambient_noise(source, duration=2)
+
+            try:
+                with source:
+                    while not self._stop:
+
+                        # sensitivity debug
+                        while self.micEnergyDebug:
+                            import audioop
+                            buffer = source.stream.read(source.CHUNK)
+                            if len(buffer) == 0: break
+                            energy = audioop.rms(buffer, source.SAMPLE_WIDTH)
+                            self.write(f"Mic energy_treshold={r.energy_threshold} energy_current={energy}")
+
+                        # listen to mic
+                        try:
+                            audio_data = r.listen(source, timeout=1)
+
+                            # speech recognition
+                            if (self.micOn):
+                                self.whisper.put(audio_data)
+
+                        # ignore silence
+                        except WaitTimeoutError:
+                            pass
+
+            # go reconnect mic
+            except OSError as e:
+                if e.errno == -9988: self.speak("Microphone offline. Please check your microphone connection.")
+                else: self.write("ERR: Other OSError occurred:", str(e))
+                pass
+
+            # go reconnect mic
+            except Exception as e:
+                self.write("ERR: Error occurred:", str(e))
+                pass
 
     def stop(self):
-        if self.listening is not None:
-            cast(callable, self.listening)(False)
+        self.micEnergyDebug = False
+        self._stop = True
 
 
 class Whisper:

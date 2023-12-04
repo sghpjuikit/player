@@ -493,7 +493,7 @@ class ValueToggleButtonGroupCE<T>(c: Config<T>, val values: List<T>, customizer:
    private val v = getObservableValue(c)
    private var isObservable = v!=null
    private val uiConverter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: { it.toUi() }
-   override val editor = ValueToggleButtonGroup(config.value, values) {
+   override val editor = ValueToggleButtonGroup.ofValue(config.value, values) {
       text = uiConverter(it)
       customizer(it)
    }

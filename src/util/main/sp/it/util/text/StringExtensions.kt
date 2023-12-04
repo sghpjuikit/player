@@ -105,7 +105,7 @@ val String.lengthInGraphemes: Int get() {
    return count
 }
 
-/** Length of this string in lines, see [lineSequence] */
+/** Length of this string in lines, see [lineSequence]. Empty text is single line. */
 val String.lengthInLines: Int get() = lineSequence().count()
 
 /** Length of this string in words */

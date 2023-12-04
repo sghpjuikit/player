@@ -1,5 +1,7 @@
 import os
 import numpy as np
+import sounddevice as sd
+import soundfile as sf
 from threading import Thread
 from util_write_engine import Writer
 from queue import Queue
@@ -20,6 +22,7 @@ class SdActorPlayback:
 
     def skip(self):
         self._skip = True
+        pass
 
     def stop(self):
         self._stop = True
@@ -27,25 +30,22 @@ class SdActorPlayback:
             self.stream.stop()
 
     def _loop(self):
-        # initialize sounddevice, soundfile, numpy
-        try:
-            import sounddevice as sd
-            import soundfile as sf
-        except ImportError:
-            self.write("ERR: Sounddevice or soundfile or python module failed to load")
-            return
-
         self.stream = sd.OutputStream(channels=1, samplerate=24000)
         Thread(name='SdActorPlayback-stream', target=self.stream.start, daemon=True).start()
 
+        # loop
         while not self._stop:
             try:
-                type, audio, skippable = self.queue.get(timeout=1)
+                type, audio, skippable = self.queue.get()
 
                 # skip
-                while self._skip and skippable:
-                    type, audio, skippable = self.queue.get(timeout=1)
-                self._skip = False
+                if self._skip and skippable:
+                    continue
+
+                # skip stop at boundary
+                if type=='boundary':
+                    self._skip = False
+                    continue
 
                 # play file
                 if type=='w':
@@ -79,6 +79,9 @@ class SdActor:
         self.play.start()
         Thread(name='SdActor', target=self._loop, daemon=True).start()
 
+    def boundary(self):
+        self.queue.put(('boundary', None, False))
+
     def playFile(self, audio: str, skippable: bool):
         self.queue.put(('f', audio, skippable))
 
@@ -90,9 +93,15 @@ class SdActor:
         while not self._stop:
             type, audio, skippable = self.queue.get()
 
-            while self._skip and skippable:
+            # skip
+            if self._skip and skippable:
                 continue
-            self._skip = False
+
+            # skip stop at boundary
+            if type=='boundary':
+                self._skip = False
+                self.play.queue.put(('boundary', None, False))
+                continue
 
             # play file
             if type=='f':
@@ -115,71 +124,3 @@ class SdActor:
     def stop(self):
         self._stop = True
         self.play.stop()
-
-class VlcActor:
-
-    def __init__(self, vlc_path: str, write: Writer):
-        self.vlc_path = vlc_path
-        self.write = write
-        self.skip_ = False
-        self.queue = Queue()
-
-    def start(self):
-        Thread(name='VlcActor', target=self._loop, daemon=True).start()
-
-    def _loop(self):
-        # initialize vlc
-        if len(self.vlc_path)>0 and os.path.exists(self.vlc_path):
-            os.environ['PYTHON_VLC_MODULE_PATH'] = self.vlc_path
-            os.environ['PYTHON_VLC_LIB_PATH'] = os.path.join(self.vlc_path, "libvlc.dll")
-        try:
-            import vlc
-            import ctypes
-        except ImportError as e:
-            self.write("Vlc player or vlc python module failed to load")
-            return
-
-        # loop
-        vlcInstance = None
-        vlcPlayer = None
-        while not self._stop:
-            type, audio, skippable = self.queue.get()
-
-            if self.skip_ and skippable:
-                if vlcPlayer is not None:
-                    player.stop()
-                continue
-            else:
-                self.skip_ = False
-
-            # initialize vlc once lazily
-            if vlcInstance is None:
-                vlcInstance = vlc.Instance()
-                vlcPlayer = vlcInstance.media_player_new()
-
-            # play audio file
-            if type == 'f':
-                media = vlcInstance.media_new(audio)
-            # play audio data
-            if type == 'b':
-                write("ERR: wav chunk playback unsupported")
-
-            vlcPlayer.set_media(media)
-            vlcPlayer.play()
-
-            # Wait to finish
-            while vlcPlayer.get_state() != vlc.State.Ended:
-                pass
-
-        # dispose
-        if vlcPlayer is not None:
-            player.stop()
-            player.release()
-        if vlcInstance is not None:
-            vlcInstance.release()
-
-    def skip(self):
-        self.skip_ = True
-
-    def stop(self):
-        self._stop = True

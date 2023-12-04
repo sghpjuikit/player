@@ -141,6 +141,13 @@ class TextUtilTest: FreeSpec({
        "🇺🇸👨‍👩‍👧‍👦".graphemes().toList() shouldBe listOf("🇺🇸", "👨‍👩‍👧‍👦")
    }
 
+   String::lengthInLines.name - {
+      "".lengthInLines shouldBe 1
+      "a".lengthInLines shouldBe 1
+      "a\nb".lengthInLines shouldBe 2
+      "\na\nb\n".lengthInLines shouldBe 4
+   }
+
    String::capital.name - {
       "basic" {
          "lol".capital() shouldBe "Lol"

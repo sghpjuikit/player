@@ -5,6 +5,7 @@ from time import sleep
 from speech_recognition import Recognizer, Microphone, WaitTimeoutError # https://github.com/Uberi/speech_recognition
 from util_tty_engines import Tty
 from util_write_engine import Writer
+import audioop
 import os
 import io
 import numpy as np
@@ -22,7 +23,7 @@ class Mic:
         self.write = write
         self.micName = micName
         self.micEnergy = 120
-        self.micEnergyDebug = False
+        self.micEnergyDebug = micEnergyDebug
         self.micOn = micOn
         self._stop = False
 
@@ -88,9 +89,13 @@ class Mic:
                 with source:
                     while not self._stop:
 
+                        # wait till mic is on
+                        while not self._stop and not self.micOn:
+                            sleep(0.1)
+                            continue
+
                         # sensitivity debug
-                        while self.micEnergyDebug:
-                            import audioop
+                        while not self._stop and self.micEnergyDebug:
                             buffer = source.stream.read(source.CHUNK)
                             if len(buffer) == 0: break
                             energy = audioop.rms(buffer, source.SAMPLE_WIDTH)
@@ -125,24 +130,28 @@ class Mic:
 
 
 class Whisper:
-    def __init__(self, target, model: str):
+    def __init__(self, target, whisperOn: bool, model: str):
         self.queue = Queue()
         self._target = target
         self._stop = False
         self.model=model
+        self.whisperOn=whisperOn
 
     def start(self):
         Thread(name='Whisper', target=self._loop, daemon=True).start()
 
     def _loop(self):
+        # wait till whisper is on
+        while not self.whisperOn and self._target is None:
+            if self._stop: return
+            sleep(0.1)
+            continue
+
         modelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-whisper")
         if not os.path.exists(modelDir):
             os.makedirs(modelDir)
         model = whisper.load_model(self.model, download_root=modelDir, in_memory=True)
         warnings.filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
-
-        while not self._stop and self._target is None:
-            sleep(0.1)
 
         while not self._stop:
             audio_data = self.queue.get()

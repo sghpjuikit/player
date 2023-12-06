@@ -359,7 +359,7 @@ def install_exit_handler():
     signal.signal(signal.SIGABRT, stop)
 
 
-whisper = Whisper(target=callback, model=speechRecognitionModelName)
+whisper = Whisper(callback, micOn, speechRecognitionModelName)
 mic = Mic(None, micOn, whisper.queue, speak, write, micEnergy, micEnergyDebug)
 speak.start()
 whisper.start()
@@ -394,6 +394,7 @@ while True:
         # changing settings commands
         elif m.startswith("min-on="):
             mic.micOn = prop(m, "min-on", "true").lower() == "true"
+            whisper.whisperOn = mic.micOn
 
         elif m.startswith("mic-energy"):
             mic.micEnergy = int(prop(m, "mic-energy", "120"))

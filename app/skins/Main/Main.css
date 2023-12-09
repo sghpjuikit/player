@@ -819,7 +819,12 @@ TextFlow > * {
 .text-area:focused .content {
     -fx-background-color:  transparent;
     -fx-background-insets: 0;
-    -fx-padding: 0em 0em 0.25em 0em;
+}
+
+.text-area .content,
+.text-area:hover .content,
+.text-area:focused .content {
+    -fx-padding: 0.5em 0 -1.5em 0;
 }
 
 /********************************* ComboBox ***********************************/

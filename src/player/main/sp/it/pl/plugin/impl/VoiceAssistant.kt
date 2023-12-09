@@ -7,14 +7,17 @@ import java.lang.ProcessBuilder.Redirect.PIPE
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.regex.Pattern
+import javafx.geometry.Pos
 import javafx.geometry.Pos.BOTTOM_RIGHT
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.scene.control.ScrollPane
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.layout.Priority.NEVER
 import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
@@ -577,11 +580,26 @@ class VoiceAssistant: PluginBase() {
                lay += label {
                   plugin.sync { text = if (it!=null) "Active" else "Inactive" }
                }
+               lay += label("   ")
+               lay += ValueToggleButtonGroup.ofObservableValue(mode, listOf("Raw", "Speak", "Chat")) {
+                  tooltip = appTooltip(
+                     when (it) {
+                        "Raw" -> "Send the text to the Voice Assestant as if user wrote it in console"
+                        "Speak" -> "Narrates the specified text using synthesized voice"
+                        "Chat" -> "Send the text to the Voice Assestant as if user spoke it"
+                        else -> fail { "Illegal value" }
+                     }
+                  )
+               }.apply {
+                  alignment = CENTER
+               }
             }
-            lay += hBox(5.emScaled, CENTER) {
-               lay += vBox(5.emScaled, CENTER) {
+            lay(ALWAYS) += hBox(5.emScaled, CENTER) {
+               lay(ALWAYS) += vBox(5.emScaled, CENTER) {
                   lay(ALWAYS) += textArea {
+                     id = "output"
                      isEditable = false
+                     isFocusTraversable = false
                      isWrapText = true
                      prefColumnCount = 100
 
@@ -595,23 +613,13 @@ class VoiceAssistant: PluginBase() {
                      plugin.syncNonNullWhile { it.onLocalInput attach ::appendText }
                      plugin.syncNonNullWhile { it.onHttpInput attach ::appendText }
                   }
-                  lay += vBox(5.emScaled, CENTER) {
-                     lay += ValueToggleButtonGroup.ofObservableValue(mode, listOf("Raw", "Speak", "Chat")) {
-                        tooltip = appTooltip(
-                           when (it) {
-                              "Raw" -> "Send the text to the Voice Assestant as if user wrote it in console"
-                              "Speak" -> "Narrates the specified text using synthesized voice"
-                              "Chat" -> "Send the text to the Voice Assestant as if user spoke it"
-                              else -> fail { "Illegal value" }
-                           }
-                        )
-                     }.apply {
-                        alignment = CENTER
-                     }
-                     lay += stackPane {
-                        lay += textArea("") {
+                  lay += stackPane {
+                     lay(CENTER) += hBox(null, CENTER) {
+                        lay(ALWAYS) += textArea("") {
+                           id = "input"
                            isWrapText = true
                            prefColumnCount = 100
+                           promptText = "${ENTER.nameUi} to send, ${SHIFT.nameUi} + ${ENTER.nameUi} for new line"
                            textProperty() sync { prefRowCount = (it.orEmpty().lengthInLines.min(2)-1)*9+1 }
                            run = {
                               when (mode.value) {
@@ -622,10 +630,9 @@ class VoiceAssistant: PluginBase() {
                            }
                            onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) appendText("\n") else run() }
                         }
-                        lay(TOP_RIGHT) += Icon(IconFA.COG).onClickDo { chatSettings.toggle() }
-                        lay(BOTTOM_RIGHT) += Icon(IconFA.SEND).onClickDo { run() }
+                        lay(NEVER) += CheckIcon(chatSettings).icons(IconFA.COG, IconFA.COG)
+                        lay(NEVER) += Icon(IconFA.SEND).onClickDo { run() }
                      }
-                     lay += label("${ENTER.nameUi} to send, ${SHIFT.nameUi} + ${ENTER.nameUi} for new line")
                   }
                }
                lay += stackPane {

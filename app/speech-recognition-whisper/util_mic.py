@@ -64,9 +64,8 @@ class Mic:
                             if microphone_name == self.micName:
                                 source = Microphone(device_index=i, sample_rate=whisper.audio.SAMPLE_RATE)
                         if source is None:
-                            if sourceI==1: self.write(f"ERR: no microphone {self.micName} found. Use one of")
-                            for i, microphone_name in enumerate(Microphone.list_microphone_names()):
-                                if sourceI==1: self.write(f"RAW: Available microphone: {microphone_name}")
+                            if sourceI==1:
+                                self.write(chain([f'ERR: no microphone {self.micName} found. Use one of:'], map(lambda name: '\t' + name, Microphone.list_microphone_names())))
                 except Exception as e:
                     if sourceI==1:
                         self.speak("Failed to use microphone. See log for details")

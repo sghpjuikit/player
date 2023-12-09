@@ -260,7 +260,7 @@ class VoiceAssistant: PluginBase() {
 
    /** Whether microphone listening is allowed. */
    val micOn by cv(true)
-      .def(name = "Microphone enabled", info = "Whether microphone listening is allowed.")
+      .def(name = "Microphone enabled", info = "Whether microphone listening is allowed. In general, this also prevents initial loading of Whisper speech-to-text AI model until enabled.")
 
    val micEnergy by cv(120).min(0)
       .def(name = "Microphone energy", info = "Whether microphone listening is allowed.")
@@ -287,7 +287,7 @@ class VoiceAssistant: PluginBase() {
 
    /** Whether speech is allowed. */
    val speechOn by cv(true)
-      .def(name = "Speech enabled", info = "Whether speech is allowed.")
+      .def(name = "Speech enabled", info = "Whether speech is allowed. In general, this also prevents initial loading of speech AI model until enabled.")
 
    /** Engine used to generate voice. May require additional configuration */
    val speechEngine by cv(SpeechEngine.SYSTEM).uiNoOrder()

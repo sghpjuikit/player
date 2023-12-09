@@ -5,6 +5,7 @@ import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.control.ScrollBar
 import javafx.scene.control.ScrollPane
+import javafx.scene.control.TextArea
 import javafx.scene.control.skin.ScrollPaneSkin
 import javafx.scene.input.ScrollEvent
 import javafx.scene.input.ScrollEvent.SCROLL
@@ -36,7 +37,9 @@ import sp.it.util.reactive.sync
 import sp.it.util.time.isOlderThanFx
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.ui.Util
+import sp.it.util.ui.pickTopMostAt
 import sp.it.util.ui.size
+import sp.it.util.ui.traverseParents
 import sp.it.util.units.millis
 
 /** ScrollPaneSkin skin that adds animations, fade effect and consumes scroll events (if the content does not fit). */
@@ -105,6 +108,11 @@ open class SpitScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane
 
       skinnable.onEventUp(SCROLL) {
          if (!skinnable.isPannable && (it.deltaY!=0.0 || it.deltaX!=0.0)) {
+            val containsScrollable = skinnable.pickTopMostAt(it.sceneX, it.sceneY) { it.isVisible }
+               ?.traverseParents()?.takeWhile { it != skinnable }
+               ?.any { it is TextArea || it is ScrollPane }
+               ?: false
+            if (containsScrollable) return@onEventUp
             with(if (oRaw is OrientUni) oRaw else if (!it.isShiftDown) Orient.VER else Orient.HOR) {
                val scrollAmount = 0.25
                val isNecessary = true==skinnable.content?.net { it.layoutBounds.size.o > skinnable.size.o }

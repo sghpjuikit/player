@@ -730,7 +730,7 @@ TextFlow > * {
     -fx-background-radius: 0;
     -fx-padding: 0.25em;
     -fx-text-fill: -skin-def-font-color;
-    -fx-prompt-text-fill: -skin-def-font-color;
+    -fx-prompt-text-fill: derive(-skin-def-font-color,-30%);
     -fx-highlight-fill: -skin-focus-bgr-color;
     -fx-highlight-text-fill: -fx-focus-color;
     -fx-effect: null;
@@ -750,7 +750,7 @@ TextFlow > * {
     -fx-background-radius: 0;
     -fx-padding: 0.25em;
     -fx-text-fill: -skin-def-font-color;
-    -fx-prompt-text-fill: -skin-def-font-color;
+    -fx-prompt-text-fill: derive(-skin-def-font-color,-30%);
     -fx-highlight-fill: -skin-focus-bgr-color;
     -fx-highlight-text-fill: -fx-focus-color;
     -fx-effect: null;

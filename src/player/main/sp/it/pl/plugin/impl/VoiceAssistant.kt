@@ -51,7 +51,7 @@ import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.action.IsAction
-import sp.it.util.async.VT
+import sp.it.util.async.NEW
 import sp.it.util.async.actor.ActorVt
 import sp.it.util.async.coroutine.runSuspending
 import sp.it.util.async.future.Fut
@@ -140,7 +140,7 @@ class VoiceAssistant: PluginBase() {
    private var setup: Fut<Process>? = null
    private fun setup(): Fut<Process> {
       fun doOnError(e: Throwable?, text: String?) = logger.error(e) { "Starting whisper failed.\n${text.wrap()}" }.toUnit()
-      return runOn(VT("SpeechRecognition")) {
+      return runOn(NEW("SpeechRecognition")) {
          val whisper = dir / "main.py"
          val commandRaw = listOf(
             "python", whisper.absolutePath,
@@ -530,7 +530,7 @@ class VoiceAssistant: PluginBase() {
 
       /** @return consumes this input stream on virtual thread with the specified name by the block taking sequence of strings as written to the stream */
       private fun InputStream.consume(name: String, block: (Sequence<String>) -> Unit) =
-         runOn(VT(name)) { useStrings(1024*1024, block = block) }
+         runOn(NEW(name)) { useStrings(1024*1024, block = block) }
 
       /** @return speech text adjusted to make it more versatile and more likely to match command */
       internal fun String.sanitize(blacklistWordsSet: Set<String>): String =

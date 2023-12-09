@@ -375,7 +375,7 @@ class VoiceAssistant: PluginBase() {
          it.requestBodyAsJs().asJsStringValue().ifNotNull { text ->
             runFX { httpInput.value = (httpInput.value ?: "") + "\n" + text }
             handleInputHttp(text)
-            onHttpInput(text)
+            onHttpInput(text + "\n")
          }
       }
    }
@@ -478,7 +478,9 @@ class VoiceAssistant: PluginBase() {
       addConstraints(Multiline).addConstraints(MultilineRows(10)).addConstraints(RepeatableAction)
    }
 
-   fun speak(text: String) = write("SAY: ${text.encodeBase64()}")
+   fun speak(text: String) =
+      if (handleBy.value!=null) handleSpeechRaw("SYS: $text")
+      else write("SAY: ${text.encodeBase64()}")
 
    @IsAction(name = "Write chat", info = "Writes to voice assistant chat")
    fun chat() = action<String>("Write chat", "Writes to voice assistant chat", IconMA.CHAT, BLOCK) { chat(it) }.invokeWithForm {

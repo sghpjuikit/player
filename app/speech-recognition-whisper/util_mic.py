@@ -5,6 +5,7 @@ from time import sleep
 from speech_recognition import Recognizer, Microphone, WaitTimeoutError # https://github.com/Uberi/speech_recognition
 from util_tty_engines import Tty
 from util_write_engine import Writer
+from itertools import chain
 import audioop
 import os
 import io
@@ -12,6 +13,7 @@ import numpy as np
 import soundfile as sf
 import torch
 import warnings
+import traceback
 import whisper # https://github.com/openai/whisper
 
 
@@ -65,11 +67,11 @@ class Mic:
                                 source = Microphone(device_index=i, sample_rate=whisper.audio.SAMPLE_RATE)
                         if source is None:
                             if sourceI==1:
-                                self.write(chain([f'ERR: no microphone {self.micName} found. Use one of:'], map(lambda name: '\t' + name, Microphone.list_microphone_names())))
+                                self.write(chain([f'ERR: no microphone {self.micName} found. Use one of:'], map(lambda name: '\n\t' + name, Microphone.list_microphone_names())))
                 except Exception as e:
                     if sourceI==1:
                         self.speak("Failed to use microphone. See log for details")
-                        self.write(e)
+                        traceback.print_exc(e)
 
                 # mic connected
                 if source is not None:
@@ -80,9 +82,6 @@ class Mic:
                 else:
                     sleep(1)
                     continue
-
-            # does not work that well, instead we provide self.micEnergyDebug
-            # r.adjust_for_ambient_noise(source, duration=2)
 
             try:
                 with source:
@@ -105,7 +104,7 @@ class Mic:
                             audio_data = r.listen(source, timeout=1)
 
                             # speech recognition
-                            if (self.micOn):
+                            if not self._stop and self.micOn:
                                 self.whisper.put(audio_data)
 
                         # ignore silence
@@ -114,13 +113,17 @@ class Mic:
 
             # go reconnect mic
             except OSError as e:
-                if e.errno == -9988: self.speak("Microphone offline. Please check your microphone connection.")
-                else: self.write("ERR: Other OSError occurred:", str(e))
+                if e.errno == -9988:
+                    self.speak("Microphone offline. Check your microphone connection please.")
+                else:
+                    self.write("ERR: Other OSError occurred:" + str(e))
+                    traceback.print_exc(e)
                 pass
 
             # go reconnect mic
             except Exception as e:
-                self.write("ERR: Error occurred:", str(e))
+                self.write("ERR: Error occurred:" + str(e))
+                traceback.print_exc(e)
                 pass
 
     def stop(self):
@@ -128,6 +131,7 @@ class Mic:
         self._stop = True
 
 
+# home https://github.com/openai/whisper
 class Whisper:
     def __init__(self, target, whisperOn: bool, model: str):
         self.queue = Queue()
@@ -158,10 +162,10 @@ class Whisper:
             wav_stream = io.BytesIO(wav_bytes)
             audio_array, sampling_rate = sf.read(wav_stream)
             audio_array = audio_array.astype(np.float32)
-            text = model.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
-
-            if not self._stop:
-                self._target(text)
+            if not self._stop and self.whisperOn:
+                text = model.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
+                if not self._stop and self.whisperOn:
+                    self._target(text)
 
     def stop(self):
         self._stop = True

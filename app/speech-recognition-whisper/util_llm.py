@@ -54,6 +54,7 @@ class LlmNone(LlmBase):
         pass
 
 
+# home: https://github.com/nomic-ai/gpt4all
 # doc https://docs.gpt4all.io/gpt4all_python.html
 class LlmGpt4All(LlmBase):
 
@@ -80,7 +81,7 @@ class LlmGpt4All(LlmBase):
             if llm is None: llm = GPT4All(model, allow_download=False)
 
             if isinstance(e, ChatStart):
-                with llm.chat_session():
+                with llm.chat_session(self.sysPrompt):
                     while not self._stop:
                         t = self.queue.get()
 
@@ -93,7 +94,7 @@ class LlmGpt4All(LlmBase):
                         if isinstance(t, str):
 
                             def stop_on_token_callback(token_id, token_string):
-                                return self.listening_for_chat_generation
+                                return not self._stop and self.listening_for_chat_generation
 
                             # generate & stream response
                             self.listening_for_chat_generation = True
@@ -148,14 +149,15 @@ class LlmHttpOpenAi(LlmBase):
             e = self.queue.get()
             if isinstance(e, ChatStart):
                 while not self._stop:
-                    message1 = { "role": "system", "content": self.sysPrompt }
-                    messages = [ message1 ]
                     t = self.queue.get()
 
                     if isinstance(t, ChatStop):
+                        messages = [ ]
                         break
 
                     if isinstance(t, ChatStart):
+                        message1 = { "role": "system", "content": self.sysPrompt }
+                        messages = [ message1 ]
                         pass
 
                     if isinstance(t, str):
@@ -168,7 +170,7 @@ class LlmHttpOpenAi(LlmBase):
                                 stream = client.chat.completions.create(model=self.modelName, messages=messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp, stream=True)
                                 try:
                                     for chunk in stream:
-                                        if self.listening_for_chat_generation:
+                                        if not self._stop and self.listening_for_chat_generation:
                                             if chunk.choices[0].delta.content is not None:
                                                 yield chunk.choices[0].delta.content
                                         else:

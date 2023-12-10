@@ -91,6 +91,7 @@ Whisper small + Coqui + 8B (Q4) LLM model (CPU mode) work flawlessly on Nvidia 4
 ##### Multitasking
 Since voice generation is running simultaneously with chat LLM generation (and potentially whisper as well),
 the requirements on hw (particularly gpu) may scale up fast. Experiment and see what works for you.
+It may be better to run LLM purely on CPU to free GPU for text-to-speech and speech-to-text. 
 
 #### Idle
 To reduce GPU/CPU load, simply do not use any functionality.

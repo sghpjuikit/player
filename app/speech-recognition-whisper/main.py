@@ -392,8 +392,8 @@ while True:
             callback(text)
 
         # changing settings commands
-        elif m.startswith("min-on="):
-            mic.micOn = prop(m, "min-on", "true").lower() == "true"
+        elif m.startswith("mic-on="):
+            mic.micOn = prop(m, "mic-on", "true").lower() == "true"
             whisper.whisperOn = mic.micOn
 
         elif m.startswith("mic-energy"):

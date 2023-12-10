@@ -68,7 +68,7 @@ class Tty:
                         c = '. '
                     if index==-1:
                         index = sentence.rfind('\n')
-                        c = '\n '
+                        c = '\n'
                     if index==-1:
                         break
                     else:
@@ -90,6 +90,7 @@ class Tty:
 
 class TtyBase:
     def __init__(self):
+        self.max_text_length = 400
         self._skip = False
         self._stop = False
         self.queue = Queue()
@@ -136,6 +137,17 @@ class TtyBase:
             # skip empty value
             if len(textRaw.strip()) == 0:
                 continue
+
+            # gather all elements that are already ready (may improve tts quality)
+            if skippable:
+                ts = textRaw
+                while True:
+                    if self.queue.not_empty: break
+                    t, s = self.queue[0]
+                    if t is None or not s: break
+                    if len(ts) + len(t) > self.max_text_length: break
+                    ts = ts + t
+                    self.queue.get_nowait()
 
             return (textRaw, skippable)
 

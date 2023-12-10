@@ -283,6 +283,7 @@ class TtyCoqui(TtyBase):
         self._voice = voice
         self.play = play
         self.write = write
+        self.model: Xtts | None = None
 
     def start(self):
         Thread(name='TtyCoqui', target=self._loop, daemon=True).start()

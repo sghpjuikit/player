@@ -106,14 +106,14 @@ class Hue: PluginBase() {
 
    private fun installSpeechHandlers() {
       val speechHandlers = listOf(
-         SpeakHandler("Turn hue lights on/off", "[turn]? lights on|off") { text, _ ->
+         SpeakHandler("Turn hue lights on/off", "[turn]? lights on|off") { text ->
             if ("lights on"==text || "lights off"==text || "turn lights on"==text || "turn lights off"==text) {
                hueBridge.toggleBulbGroup("0").ui { refreshes(Unit) }
                Ok("Ok")
             } else
                null
          },
-         SpeakHandler("List hue light scenes", "list light scenes") { text, _ ->
+         SpeakHandler("List hue light scenes", "list light scenes") { text ->
             if (text == "list light scenes") {
                scope.launch(FX) {
                   val t = hueBridge.init().scenes().joinToString(prefix = "The available light scenes are: ", separator = ", ") { it.name }
@@ -123,7 +123,7 @@ class Hue: PluginBase() {
             } else
                null
          },
-         SpeakHandler("Turn hue lights scene on", "lights scene \$scene-name") { text, _ ->
+         SpeakHandler("Turn hue lights scene on", "lights scene \$scene-name") { text ->
             if (text.startsWith("lights scene ")) {
                val sName = text.substringAfter("lights scene ").removeSuffix(" on").removeSuffix(" off")
                scope.launch(FX) {
@@ -137,7 +137,7 @@ class Hue: PluginBase() {
             } else
                null
          },
-         SpeakHandler("List hue light groups", "list light groups") { text, _ ->
+         SpeakHandler("List hue light groups", "list light groups") { text ->
             if (text == "list light groups") {
                scope.launch(FX) {
                   val t = hueBridge.init().bulbsAndGroups().second.joinToString(prefix = "The available light groups are: ", separator = ", ") { it.name }
@@ -147,7 +147,7 @@ class Hue: PluginBase() {
             } else
                null
          },
-         SpeakHandler("Turn hue lights group on/off", "[turn]? lights \$group-name on|off") { text, _ ->
+         SpeakHandler("Turn hue lights group on/off", "[turn]? lights \$group-name on|off") { text ->
             if (text.startsWith("lights ") || text.startsWith("turn lights ")) {
                val gName = text.substringAfter("lights ").removeSuffix(" on").removeSuffix(" off")
                scope.launch(FX) {

@@ -121,6 +121,7 @@ import sp.it.util.text.equalsNc
 import sp.it.util.text.lengthInLines
 import sp.it.util.text.lines
 import sp.it.util.text.nameUi
+import sp.it.util.text.sentences
 import sp.it.util.text.useStrings
 import sp.it.util.text.words
 import sp.it.util.ui.hBox
@@ -219,18 +220,15 @@ class VoiceAssistant: PluginBase() {
 
    /** Speech handlers called when user has spoken. Matched in order. */
    val handlers by cList(
-         SpeakHandler("Help", "help") { text, command -> if (command == text) Ok("List commands by saying, list commands") else null },
-         SpeakHandler("Help Commands", "list commands") { text, command -> if (command == text) Ok(handlersHelpText()) else null },
-         SpeakHandler("Current time", "what time is it") { text, command -> if (command == text) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
-         SpeakHandler("Current date", "what date is it") { text, command -> if (command == text) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
-         SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
-         SpeakHandler("Resume playback", "play music") { text, command -> if (command in text) { APP.audio.resume(); Ok(null) } else null },
-         SpeakHandler("Resume playback", "start music") { text, command -> if (command in text) { APP.audio.resume(); Ok(null) } else null },
-         SpeakHandler("Pause playback", "stop music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
-         SpeakHandler("Pause playback", "end music") { text, command -> if (command in text) { APP.audio.pause(); Ok(null) } else null },
-         SpeakHandler("Play previous song", "play previous song") { text, command -> if (command == text) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
-         SpeakHandler("Play next song", "play next song") { text, command -> if (command == text) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
-         SpeakHandler("Open widget by name", "[open|show] [widget]? \$widget-name [widget]?") { text, _ ->
+         SpeakHandler("Help",                "help")                                      { if (matches(it)) Ok("List commands by saying, list commands") else null },
+         SpeakHandler("Help Commands",       "list commands")                             { if (matches(it)) Ok(handlersHelpText()) else null },
+         SpeakHandler("Current time",        "what time is it")                           { if (matches(it)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
+         SpeakHandler("Current date",        "what date is it")                           { if (matches(it)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
+         SpeakHandler("Resume playback",     "play|start|resume|continue music|playback") { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
+         SpeakHandler("Pause playback",      "stop|end|pause music|playback")             { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
+         SpeakHandler("Play previous song",  "play previous song")                        { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
+         SpeakHandler("Play next song",      "play next song")                            { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
+         SpeakHandler("Open widget by name", "open|show widget? \$widget-name widget?")   { text ->
             if (text.startsWith("open")) {
                val fName = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
                val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase() equalsNc fName }
@@ -463,7 +461,7 @@ class VoiceAssistant: PluginBase() {
       if (!isRunning) return
       speakingTextW.value = text
       var textSanitized = text.orEmpty().sanitize(speechBlacklistWords_)
-      var result = handlers.firstNotNullOfOrNull { h -> h.action(textSanitized, h.commandUi) } ?: Error<String?>("Unrecognized command: $text")
+      var result = handlers.firstNotNullOfOrNull { h -> with(h) { action(textSanitized) } } ?: Error<String?>("Unrecognized command: $text")
       result.getAny().ifNotNull(::speak)
    }
 
@@ -507,8 +505,27 @@ class VoiceAssistant: PluginBase() {
       OPENAI("openai", "OpenAi", "OpenAI http client (requires access, but custom local server is also possible, e.g. LmStudio )"),
    }
 
-   /** Speech event handler. In ui shown as `"$name -> $commandUi"`. Action returns Try with text to speak or null if none. */
-   data class SpeakHandler(val name: String, val commandUi: String, val action: (String, String) -> Try<String?, String?>?)
+   /** Speech event handler. In ui shown as `"$name -> $commandUi"`. Action returns Try (with text to speak or null if none) or null if no match. */
+   data class SpeakHandler(val name: String, val commandUi: String, val action: SpeakHandler.(String) -> Try<String?, String?>?) {
+      fun matches(text: String): Boolean = regex.matches(text)
+
+      /** [commandUi] turned into regex */
+      val regex by lazy {
+         Regex(
+            commandUi.net {
+               fun String.ss(i: Int) = if (i==0) this else " $this"
+               fun String.rr() = replace("(", "").replace(")", "").replace("?", "")
+               it.split(" ").mapIndexed { i, p ->
+                  when {
+                     p.endsWith("?") -> p.rr().net { "(${it.ss(i)})?" }
+                     p.contains("|") -> p.rr().net { "($it)".ss(i) }
+                     else -> p.rr().ss(i)
+                  }
+               }.joinToString("")
+            }
+         )
+      }
+   }
 
    companion object: PluginInfo, KLogging() {
       override val name = "Voice Assistant"
@@ -538,6 +555,7 @@ class VoiceAssistant: PluginBase() {
       /** @return speech text adjusted to make it more versatile and more likely to match command */
       internal fun String.sanitize(blacklistWordsSet: Set<String>): String =
          trim().removeSuffix(".").lowercase().words().filterNot(blacklistWordsSet::contains).joinToString(" ")
+
    }
 
    class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {

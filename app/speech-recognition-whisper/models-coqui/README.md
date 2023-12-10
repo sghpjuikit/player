@@ -1,1 +1,1 @@
-Directory for model https://huggingface.co/reach-vb/XTTS-v2/tree/main
+Directory for model https://huggingface.co/coqui/XTTS-v2/tree/main

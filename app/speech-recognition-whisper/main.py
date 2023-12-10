@@ -409,7 +409,7 @@ while True:
             printRaw = prop(m, "print-raw", "true").lower() == "true"
 
         elif m.startswith("coqui-voice=") and isinstance(speak.tty, TtyCoqui):
-            cast(speak.tty, TtyCoqui).voice = prop(m, "coqui-voice", speakUseCoquiVoice)
+            speak.tty.voice = prop(m, "coqui-voice", speakUseCoquiVoice)
             speak(name + " voice changed")
 
         elif m.startswith("llm-chat-sys-prompt="):

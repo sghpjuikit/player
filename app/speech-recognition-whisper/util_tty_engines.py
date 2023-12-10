@@ -344,12 +344,12 @@ class TtyCoqui(TtyBase):
 
         # loop
         while not self._stop:
-            loadVoiceIfNew()
+            text, skippable = self.get_next_element()
+
             self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "coqui", self.voice.replace('.','-'))
             if not os.path.exists(self.cache_dir):
                 os.makedirs(self.cache_dir)
 
-            text, skippable = self.get_next_element()
             audio_file, audio_file_exists = cache_file(text, self.cache_dir)
             cache_used = len(text) < 100
 
@@ -358,6 +358,7 @@ class TtyCoqui(TtyBase):
 
                 # wait for init
                 loadModelThread.join()
+                loadVoiceIfNew()
 
                 # generate
                 audio_chunks = self.model.inference_stream(text, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
@@ -378,6 +379,7 @@ class TtyCoqui(TtyBase):
 
             else:
                 self.play.playFile(audio_file, skippable)
+
 
     def _boundary(self):
         self.play.boundary()

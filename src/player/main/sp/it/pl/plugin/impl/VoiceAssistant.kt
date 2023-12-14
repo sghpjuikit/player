@@ -18,6 +18,9 @@ import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
+import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.Line
+import javax.sound.sampled.TargetDataLine
 import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
@@ -82,6 +85,7 @@ import sp.it.util.conf.noPersist
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
+import sp.it.util.conf.uiNoCustomUnsealedValue
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
@@ -151,6 +155,7 @@ class VoiceAssistant: PluginBase() {
             "wake-word=${wakeUpWord.value}",
             "printRaw=${printRaw.value}",
             "mic-on=${micOn.value}",
+            "mic-name=${micName.value ?: ""}",
             "mic-energy=${micEnergy.value}",
             "mic-energy-debug=${micEnergyDebug.value}",
             "parent-process=${ProcessHandle.current().pid()}",
@@ -259,6 +264,16 @@ class VoiceAssistant: PluginBase() {
    /** Whether microphone listening is allowed. */
    val micOn by cv(true)
       .def(name = "Microphone enabled", info = "Whether microphone listening is allowed. In general, this also prevents initial loading of Whisper speech-to-text AI model until enabled.")
+
+   /** Microphone to be used. Null if auto. */
+   val micName by cvn<String>(null)
+      .valuesUnsealed {
+         AudioSystem.getMixerInfo()
+            .filter { AudioSystem.getMixer(it).net { m -> m.targetLineInfo.isNotEmpty() && m.isLineSupported(Line.Info(TargetDataLine::class.java)) } }
+            .map { it.name }
+      }
+      .uiNoCustomUnsealedValue()
+      .def(name = "Microphone name", info = "Microphone to be used. Null causes automatic microphone selection.")
 
    val micEnergy by cv(120).min(0)
       .def(name = "Microphone energy", info = "Whether microphone listening is allowed.")
@@ -400,7 +415,9 @@ class VoiceAssistant: PluginBase() {
       startSpeechRecognition()
       APP.sysEvents.subscribe { restart() } on onClose // restart on audio device change
 
-      val processChangeVals = listOf<V<*>>(wakeUpWord, whisperModel, speechEngine, speechEngineCharAiToken, llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel)
+      val processChangeVals = listOf<V<*>>(
+         wakeUpWord, micName, whisperModel, speechEngine, speechEngineCharAiToken, llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel
+      )
       val processChange = processChangeVals.map { it.chan() }.reduce { a, b -> a + b }
       processChange.throttleToLast(2.seconds).subscribe { restart() } on onClose
 

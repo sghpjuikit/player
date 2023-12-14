@@ -180,6 +180,7 @@ printRaw = arg('printRaw', "true")=="true"
 parentProcess = int(arg('parent-process', -1))
 
 micOn = arg('mic-on', "true")=="true"
+micName = arg('mic-name', '')
 micEnergy = int(arg('mic-energy', "120"))
 micEnergyDebug = arg('mic-energy-debug', "false")=="true"
 
@@ -360,7 +361,7 @@ def install_exit_handler():
 
 
 whisper = Whisper(callback, micOn, speechRecognitionModelName)
-mic = Mic(None, micOn, whisper.queue, speak, write, micEnergy, micEnergyDebug)
+mic = Mic(None if len(micName)==0 else micName, micOn, whisper.queue, speak, write, micEnergy, micEnergyDebug)
 speak.start()
 whisper.start()
 mic.start()

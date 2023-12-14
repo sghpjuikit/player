@@ -23,6 +23,7 @@ import javafx.util.Duration.ZERO
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.Line
 import javax.sound.sampled.Mixer
 import javax.sound.sampled.TargetDataLine
 import kotlin.concurrent.withLock
@@ -93,7 +94,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    val inputDevice by cv("Primary Sound Capture").attach { audioEngine.restartOnNewThread() } // support refresh on audio device add/remove, see https://stackoverflow.com/questions/29667565/jna-detect-audio-device-arrival-remove
       .valuesUnsealed {
          AudioSystem.getMixerInfo()
-            .filter { AudioSystem.getMixer(it).targetLines.any { it.lineInfo.lineClass==TargetDataLine::class.java } }
+            .filter { AudioSystem.getMixer(it).net { m -> m.targetLineInfo.isNotEmpty() && m.isLineSupported(Line.Info(TargetDataLine::class.java)) } }
             .map { it.name }
       }
       .uiNoCustomUnsealedValue()

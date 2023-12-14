@@ -30,7 +30,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `ScrollPaneSkin` orientation handling
 - Fix missing table skin in `Main.css`
 - Fix styling issues (ScrollBar)
-- Fix issues wit generic table with some classes
+- Fix issues with generic table with some classes
 
 ## Voice Assistant
 This update is all about adopting AI functionalities.
@@ -53,6 +53,8 @@ Primarily, the goal is to allow voice control, but the plugin already supports m
 - More settings and its own UI widget.
   - Microphone, speech, chat, etc settings
   - Speech to text model selection (whisper models (requires manual download))
+  - Chat engine
+    - Gpt4All/OpenAI and OpenAI-compatible server support
   - Text to speech engine/voice selection (none, os, character.ai, coqui)
     - Coqui supports fully offline text-to-speech
     - Coqui supports voice cloning

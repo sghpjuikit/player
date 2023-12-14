@@ -116,12 +116,12 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
-         implementation("ch.qos.logback", "logback-classic", "1.4.13") // https://logback.qos.ch/news.html
+         implementation("ch.qos.logback", "logback-classic", "1.4.14") // https://logback.qos.ch/news.html
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
       "Native" group {
-         implementation("net.java.dev.jna", "jna-platform", "5.13.0")
+         implementation("net.java.dev.jna", "jna-platform", "5.14.0")
          implementation("com.github.kwhat", "jnativehook", "2.2.2")
       }
 
@@ -137,7 +137,7 @@ allprojects {
          implementation("com.github.f4b6a3", "uuid-creator", "5.3.5")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
-         implementation("com.github.oshi", "oshi-core", "6.4.7")  // https://github.com/oshi/oshi/releases
+         implementation("com.github.oshi", "oshi-core", "6.4.9")  // https://github.com/oshi/oshi/releases
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }

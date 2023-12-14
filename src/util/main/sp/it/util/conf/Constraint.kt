@@ -181,7 +181,7 @@ interface Constraint<in T> {
    }
 
    /**
-    * Hint for ui to forbid custom value editing. Only affects [ValueSealedSet].
+    * Hint for ui to forbid custom value editing. Only affects [ValueUnsealedSet].
     * This makes it similar to [ValueSealedSet] with [ValueSealedSetIfNotIn.Strategy.USE_AND_ADD], but
     * * does not trigger value set evaluation at deserialization time (since it may not be ready)
     * * does not trigger in-set validation, albeit unsafe, allowing various tricks or usage of programmatic-only values

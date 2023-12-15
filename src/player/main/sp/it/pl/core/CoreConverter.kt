@@ -21,8 +21,10 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.OffsetDateTime
 import java.time.Year
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ISO_DATE
 import java.time.format.DateTimeFormatter.ISO_DATE_TIME
@@ -201,9 +203,12 @@ object CoreConverter: Core {
          is Action -> o.nameUi + o.keysUi().nullIfBlank()?.net { " (${o.keysUi()})" }.orEmpty()
          is Locale -> o.getDisplayName(APP.locale.value)
          is Charset -> o.displayName(APP.locale.value)
+         is OffsetDateTime -> o.format(dateTimeFormatter)
+         is ZonedDateTime -> o.format(dateTimeFormatter)
          is LocalDateTime -> o.format(dateTimeFormatter)
          is LocalDate -> o.format(dateFormatter)
          is LocalTime -> o.format(timeFormatter)
+         is Instant -> o.toLocalDateTime().toUi()
          is Duration -> o.formatToSmallestUnit()
          is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
          is FileSize -> FileSize.toUiS(o, APP.locale.value)

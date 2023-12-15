@@ -492,18 +492,18 @@ class VoiceAssistant: PluginBase() {
    fun synthesize() = speak()
 
    @IsAction(name = "Narrate text", info = "Narrates the specified text using synthesized voice")
-   fun speak() = action<String>("Narrate text", "Narrates the specified text using synthesized voice", IconMA.RECORD_VOICE_OVER, BLOCK) { speak(it) }.invokeWithForm {
-      addConstraints(Multiline).addConstraints(MultilineRows(10)).addConstraints(RepeatableAction)
-   }
+   fun speak() = action<String>("Narrate text", "Narrates the specified text using synthesized voice", IconMA.RECORD_VOICE_OVER, BLOCK) { speak(it) }.apply {
+      constraintsN += listOf(Multiline, MultilineRows(10), RepeatableAction)
+   }.invokeWithForm()
 
    fun speak(text: String) =
       if (handleBy.value!=null) handleSpeechRaw("SYS: $text")
       else write("SAY: ${text.encodeBase64()}")
 
    @IsAction(name = "Write chat", info = "Writes to voice assistant chat")
-   fun chat() = action<String>("Write chat", "Writes to voice assistant chat", IconMA.CHAT, BLOCK) { chat(it) }.invokeWithForm {
-      addConstraints(Multiline).addConstraints(MultilineRows(10)).addConstraints(RepeatableAction)
-   }
+   fun chat() = action<String>("Write chat", "Writes to voice assistant chat", IconMA.CHAT, BLOCK) { chat(it) }.apply {
+      constraintsN += listOf(Multiline, MultilineRows(10), RepeatableAction)
+   }.invokeWithForm()
 
    fun chat(text: String) = write("CHAT: ${(wakeUpWord.value + " " + text).encodeBase64()}")
 

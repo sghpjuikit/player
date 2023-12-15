@@ -127,6 +127,7 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
    @JvmField val action: Act<TN> = action
 
    @JvmField var preventClosing = false
+   @JvmField var constraintsN = mutableListOf<Constraint<TN?>>()
 
    fun preventClosing() = apply {
       preventClosing = true
@@ -189,9 +190,7 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
       }
    }
 
-   fun invokeWithForm() = invokeWithForm {  }
-
-   fun invokeWithForm(block: Config<*>.() -> Unit) {
+   fun invokeWithForm() {
       val context = ActContext(null, null, null, null, null)
       when {
          type.raw.isObject && !type.isNullable -> invokeFutAndProcess(context, type.raw.objectInstance.asIs())
@@ -217,11 +216,11 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
                      Any::class -> VType(String::class.java, type.isNullable).asIs()  // Any::class does not have an editor, but String editor is still plenty useful
                      else -> type
                   }
-                  ValueConfig(tn, "Input", "Input", null, "", description, EditMode.USER).constrain { but(buildConstraintN()) }
+                  ValueConfig(tn, "Input", "Input", null, "", description, EditMode.USER).constrain { but(buildConstraintN()); but(*constraintsN.toTypedArray()) }
                }
             }
 
-            receiver.apply(block).configure(nameWithDots) { invokeFutAndProcess(context, it.value.asIs()) }
+            receiver.configure(nameWithDots) { invokeFutAndProcess(context, it.value.asIs()) }
          }
       }
    }

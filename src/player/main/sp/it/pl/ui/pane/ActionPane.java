@@ -366,17 +366,15 @@ public class ActionPane extends OverlayPane<Object> {
 		var gap = 0.0;
 		var priority = NEVER;
 
-		var dataAsS = (String) null;
-		if (data instanceof UiResult)
-			dataAsS = null;
-		if (data instanceof String dataS && dataS.length()>40)
-			dataAsS = dataS;
-		else if (data instanceof Throwable t)
-			dataAsS = DebugKt.getStacktraceAsString(t);
-		else if (data instanceof JsValue json)
-			dataAsS = toPrettyS(json, "  ", "\n");
-		else if (data instanceof Jwt || (data!=null && getKotlinClass(data.getClass()).isData()))
-			dataAsS = APP.getConverter().ui.toS(data);
+		var dataAsS = switch (data) {
+			case UiResult dataUi -> null;
+			case String dataS when dataS.length()>40 -> dataS;
+			case Throwable t -> DebugKt.getStacktraceAsString(t);
+			case JsValue dataJs -> toPrettyS(dataJs, "  ", "\n");
+			case Jwt dataJwt -> APP.getConverter().ui.toS(dataJwt);
+			case Object	dataO when getKotlinClass(dataO.getClass()).isData() -> APP.getConverter().ui.toS(data);
+			default -> null;
+		};
 
 		if (dataAsS!=null) {
 			dataTextArea = new TextArea();
@@ -388,7 +386,9 @@ public class ActionPane extends OverlayPane<Object> {
 		}
 
 		var dataAsC = (Collection<?>) null;
-		if (data instanceof Collection<?> items && !items.isEmpty()) {
+		if (data instanceof UiResult) {
+			dataTable = null;
+		} else if (data instanceof Collection<?> items && !items.isEmpty()) {
 			var itemType = (KClass<Object>) getKotlinClass(getElementClass(items));
 			dataTable = tableViewForClassJava(itemType, consumer(t -> {
 				t.getSelectedItems().addListener((Change<?> c) -> {

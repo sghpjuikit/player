@@ -1,4 +1,5 @@
 # Project
+.kotlin
 .kotlintest
 app/ffmpeg/
 app/lib

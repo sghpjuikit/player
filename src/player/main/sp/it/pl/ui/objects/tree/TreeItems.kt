@@ -39,6 +39,7 @@ import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.layout.Component
+import sp.it.pl.layout.ComponentFactory
 import sp.it.pl.layout.Container
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetFactory
@@ -47,6 +48,7 @@ import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.layout.feature.ConfiguringFeature
 import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
+import sp.it.pl.main.Df
 import sp.it.pl.main.Df.FILES
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.contextMenuFor
@@ -172,7 +174,7 @@ fun treeApp(): TreeItem<Any> {
    return tree("App",
       tree("Behavior",
          tree("Widgets",
-            tree("Types", APP.widgetManager.factories.getFactoriesObservable().toJavaFx().sorted { a,b -> a.name compareTo b.name }),
+            tree("Types", APP.widgetManager.factories.getComponentFactoriesObservable().toJavaFx().sorted { a,b -> a.name compareTo b.name }),
             tree("Open", { APP.widgetManager.widgets.findAll(OPEN).sortedBy { it.name } }),
             tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
          ),
@@ -197,14 +199,17 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
    }
    onEventUp(KEY_PRESSED, C, false) { e ->
       if (e.isShortcutDown && !selectionModel.isEmpty) {
-         val items = selectionModel.selectedItems.asSequence()
+         val items = selectionModel.selectedItems
+         val strings = items
+            .map { computeTreeCellText(it.value) }
+         val files = items.asSequence()
             .map { it.value }
             .filterIsInstance<File>()
             .toList()
-         if (items.isNotEmpty()) {
-            sysClipboard[FILES] = items
-            e.consume()
-         }
+
+         if (strings.isNotEmpty()) sysClipboard[Df.PLAIN_TEXT] = strings.joinToString("\n")
+         if (files.isNotEmpty()) sysClipboard[FILES] = files
+         e.consume()
       }
    }
    onEventUp(KEY_PRESSED, DELETE, false) { e ->
@@ -279,6 +284,39 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
 
 }
 
+fun computeTreeCellText(o: Any?): String = when (o) {
+   null -> "<none>"
+   is File -> when {
+      // root file shows system name of the file
+      o.parentFile == null -> FileSystemView.getFileSystemView().getSystemDisplayName(o).orEmpty().ifBlank { o.nameOrRoot }
+      // parent is not visible -> we want absolute path
+      // treeItem.parent?.value?.let { it is File && it.isParentOf(o) } != true -> o.absolutePath
+      else -> o.nameOrRoot
+   }
+   is Node -> o.toUi() + (if (o.parent==null && o===o.scene?.root) " (root)" else "")
+   is Tooltip -> "Tooltip"
+   is MetadataGroup -> "Library songs"
+   is PlaylistSongGroup -> "Playlist songs"
+   is Image -> "Image"
+   is PopupWindow -> "Popup"
+   is Scene -> "Scene"
+   is ComponentFactory<*> -> o.name
+   is WindowFX -> {
+      val w = o.asAppWindow()
+      if (w==null) {
+         o.asIf<Stage>()?.title.nullIfBlank() ?: "Window (generic)"
+      } else {
+         val ws = w.layout?.getAllWidgets().orEmpty().take(2).toList()
+         var n = if (ws.size==1) ws.first().name else "Window " + APP.windowManager.windows.indexOf(w)
+         if (w.isMainWindow()) n += " (main)"
+         if (w.isDockWindow()) n += " (dock)"
+         n
+      }
+   }
+   is HierarchicalBase<*, *> -> computeTreeCellText(o.value)
+   else -> o.toUi()
+}
+
 @Suppress("UNUSED_PARAMETER")
 fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
    init {
@@ -312,41 +350,16 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       }
    }
 
-   private fun computeText(o: Any?): String = when (o) {
-      null -> "<none>"
-      is File -> {
-         fun File.needsAbsolute() = treeItem.parent?.value?.let { it is File && it.isParentOf(o) } != true
-         when {
-            // root file shows system name of the file
-            o.parentFile == null -> FileSystemView.getFileSystemView().getSystemDisplayName(o).orEmpty().ifBlank { o.nameOrRoot }
-            // parent is not visible -> we want absolute path
-            treeItem.parent?.value?.let { it is File && it.isParentOf(o) } != true ->  o.absolutePath
-            else -> o.nameOrRoot
-         }
+   fun computeText(o: Any?): String = when (o) {
+      is File -> when {
+         // root file shows system name of the file
+         o.parentFile == null -> FileSystemView.getFileSystemView().getSystemDisplayName(o).orEmpty().ifBlank { o.nameOrRoot }
+         // parent is not visible -> we want absolute path
+         treeItem.parent?.value?.let { it is File && it.isParentOf(o) } != true -> o.absolutePath
+         else -> o.nameOrRoot
       }
-      is Node -> o.toUi() + (if (o.parent==null && o===o.scene?.root) " (root)" else "")
-      is Tooltip -> "Tooltip"
-      is MetadataGroup -> "Library songs"
-      is PlaylistSongGroup -> "Playlist songs"
-      is Image -> "Image"
-      is PopupWindow -> "Popup"
-      is Scene -> "Scene"
-      is WindowFX -> {
-         val w = o.asAppWindow()
-         if (w==null) {
-            o.asIf<Stage>()?.title.nullIfBlank() ?: "Window (generic)"
-         } else {
-            val ws = w.layout?.getAllWidgets().orEmpty().take(2).toList()
-            var n = if (ws.size==1) ws.first().name else "Window " + APP.windowManager.windows.indexOf(w)
-            if (w.isMainWindow()) n += " (main)"
-            if (w.isDockWindow()) n += " (dock)"
-            n
-         }
-      }
-      is HierarchicalBase<*, *> -> computeText(o.value)
-      else -> o.toUi()
+      else -> computeTreeCellText(o)
    }
-
 
    private fun computeGraphics(p: Any): Node? = when (p) {
       is Path -> computeGraphics(p.toFile())

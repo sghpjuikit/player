@@ -411,7 +411,6 @@ class VoiceAssistant: PluginBase() {
                  llmChatTopK.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-topk=$it") }
 
       startSpeechRecognition()
-      APP.sysEvents.subscribe { restart() } on onClose // restart on audio device change
 
       val processChangeVals = listOf<V<*>>(
          wakeUpWord, micName, whisperModel, speechEngine, speechEngineCharAiToken, llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel

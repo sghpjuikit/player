@@ -47,7 +47,7 @@ class Tty:
             self.queue.put((event, True))
 
     def _loop(self):
-        while not self._stop:
+        while not self._stop and self.speakOn:
             event, skippable = self.queue.get()
             self._skip = False
             sentence = ''

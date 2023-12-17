@@ -143,6 +143,7 @@ class LlmHttpOpenAi(LlmBase):
             self.write("OpenAi python module failed to load")
             return
 
+        messages = [ ]
         client = OpenAI(api_key=self.bearer, base_url=self.url)
 
         while not self._stop:

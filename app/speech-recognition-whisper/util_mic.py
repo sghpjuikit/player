@@ -157,15 +157,19 @@ class Whisper:
         warnings.filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
 
         while not self._stop:
-            audio_data = self.queue.get()
-            wav_bytes = audio_data.get_wav_data() # must be 16kHz
-            wav_stream = io.BytesIO(wav_bytes)
-            audio_array, sampling_rate = sf.read(wav_stream)
-            audio_array = audio_array.astype(np.float32)
-            if not self._stop and self.whisperOn:
-                text = model.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
+            try:
+                audio_data = self.queue.get()
+                wav_bytes = audio_data.get_wav_data() # must be 16kHz
+                wav_stream = io.BytesIO(wav_bytes)
+                audio_array, sampling_rate = sf.read(wav_stream)
+                audio_array = audio_array.astype(np.float32)
                 if not self._stop and self.whisperOn:
-                    self._target(text)
+                    text = model.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
+                    if not self._stop and self.whisperOn:
+                        self._target(text)
+            except Exception as e:
+                self.write("ERR: Error occurred:" + str(e))
+                traceback.print_exc(e)
 
     def stop(self):
         self._stop = True

@@ -434,3 +434,5 @@ while True:
 
     except EOFError as _:
         sys.exit(0)
+    except Exception as e:
+        write("ERR: Error occurred:" + str(e))

@@ -7,15 +7,14 @@ import java.lang.ProcessBuilder.Redirect.PIPE
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.regex.Pattern
-import javafx.geometry.Pos
-import javafx.geometry.Pos.BOTTOM_RIGHT
 import javafx.geometry.Pos.CENTER
-import javafx.geometry.Pos.CENTER_RIGHT
-import javafx.geometry.Pos.TOP_RIGHT
+import javafx.scene.control.IndexRange
+import javafx.scene.control.ScrollBar
 import javafx.scene.control.ScrollPane
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javax.sound.sampled.AudioSystem
@@ -40,7 +39,6 @@ import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.isAudio
-import sp.it.pl.main.showFloating
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.ValueToggleButtonGroup
@@ -53,7 +51,6 @@ import sp.it.pl.ui.pane.action
 import sp.it.pl.voice.toVoiceS
 import sp.it.util.access.V
 import sp.it.util.access.readOnly
-import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.action.IsAction
@@ -90,6 +87,7 @@ import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.functional.Try
@@ -100,7 +98,6 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.supplyIf
 import sp.it.util.functional.toUnit
-import sp.it.util.math.clip
 import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
@@ -108,6 +105,7 @@ import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.chan
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
@@ -125,9 +123,9 @@ import sp.it.util.text.equalsNc
 import sp.it.util.text.lengthInLines
 import sp.it.util.text.lines
 import sp.it.util.text.nameUi
-import sp.it.util.text.sentences
 import sp.it.util.text.useStrings
 import sp.it.util.text.words
+import sp.it.util.ui.appendTextSmart
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -638,15 +636,9 @@ class VoiceAssistant: PluginBase() {
                      isWrapText = true
                      prefColumnCount = 100
 
-                     fun appendTextPreserveSelection(text: String) {
-                        val s = selection
-                        appendText(text)
-                        if (s.length>0) selectRange(s.start, s.end)
-                     }
-
                      onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
-                     plugin.syncNonNullWhile { it.onLocalInput attach ::appendText }
-                     plugin.syncNonNullWhile { it.onHttpInput attach ::appendText }
+                     plugin.syncNonNullWhile { it.onLocalInput attach ::appendTextSmart }
+                     plugin.syncNonNullWhile { it.onHttpInput attach ::appendTextSmart }
                   }
                   lay += stackPane {
                      lay(CENTER) += hBox(null, CENTER) {

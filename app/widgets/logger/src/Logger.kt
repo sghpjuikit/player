@@ -31,6 +31,7 @@ import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.system.open
+import sp.it.util.ui.appendTextSmart
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
@@ -44,7 +45,7 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
    private val area = TextArea()
    private val wrapText by cv(false, { area.wrapTextProperty().apply { value = it } }).def(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
    private val stdoutReader = Subscribed {
-      APP.systemOut.addListener { area.appendText(it) }
+      APP.systemOut.addListener { area.appendTextSmart(it) }
    }
 
    init {

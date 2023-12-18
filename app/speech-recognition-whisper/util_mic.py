@@ -15,7 +15,20 @@ import torch
 import warnings
 import traceback
 import whisper # https://github.com/openai/whisper
+import pyaudio
 
+def get_microphone_index_by_name(name):
+    p = pyaudio.PyAudio()
+    device_index = None
+
+    for i in range(p.get_device_count()):
+        device_info = p.get_device_info_by_index(i)
+        if name == device_info['name']:
+            device_index = i
+            break
+
+    p.terminate()
+    return device_index
 
 class Mic:
     def __init__(self, micName: str | None, micOn: bool, whisper: Queue, speak: Tty, write: Writer, micEnergy: int, micEnergyDebug: bool):
@@ -44,7 +57,7 @@ class Mic:
             # reconnect microphone
             source = None
             sourceI = 0
-            while not self._stop:
+            while not self._stop and source is None:
                 sourceI = sourceI+1
 
                 # wait till mic is on
@@ -52,7 +65,6 @@ class Mic:
                     sleep(1)
                     continue
 
-                source = None
                 try:
                     if self.micName is None:
                         source = Microphone(sample_rate=whisper.audio.SAMPLE_RATE)
@@ -62,16 +74,17 @@ class Mic:
                         self.write(f"RAW: Using microphone: {self.micName}")
                         audio.terminate()
                     else:
-                        for i, microphone_name in enumerate(Microphone.list_microphone_names()):
-                            if microphone_name == self.micName:
-                                source = Microphone(device_index=i, sample_rate=whisper.audio.SAMPLE_RATE)
-                        if source is None:
+                        i = get_microphone_index_by_name(self.micName)
+                        if i is not None:
+                            source = Microphone(device_index=i, sample_rate=whisper.audio.SAMPLE_RATE)
+                            self.write(f"RAW: Using microphone: {self.micName}")
+                        else:
                             if sourceI==1:
                                 self.write(chain([f'ERR: no microphone {self.micName} found. Use one of:'], map(lambda name: '\n\t' + name, Microphone.list_microphone_names())))
                 except Exception as e:
                     if sourceI==1:
                         self.speak("Failed to use microphone. See log for details")
-                        traceback.print_exc(e)
+                        traceback.print_exc()
 
                 # mic connected
                 if source is not None:
@@ -113,17 +126,18 @@ class Mic:
 
             # go reconnect mic
             except OSError as e:
+                source = None
                 if e.errno == -9988:
                     self.speak("Microphone offline. Check your microphone connection please.")
                 else:
                     self.write("ERR: Other OSError occurred:" + str(e))
-                    traceback.print_exc(e)
+                    traceback.print_exc()
                 pass
 
             # go reconnect mic
             except Exception as e:
                 self.write("ERR: Error occurred:" + str(e))
-                traceback.print_exc(e)
+                traceback.print_exc()
                 pass
 
     def stop(self):
@@ -169,7 +183,7 @@ class Whisper:
                         self._target(text)
             except Exception as e:
                 self.write("ERR: Error occurred:" + str(e))
-                traceback.print_exc(e)
+                traceback.print_exc()
 
     def stop(self):
         self._stop = True

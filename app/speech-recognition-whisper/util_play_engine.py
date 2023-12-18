@@ -47,7 +47,7 @@ class SdActorPlayback:
                     self._skip = False
                     continue
 
-                # play file
+                # play pause
                 if type=='w':
                     samples_count = int(1 * self.sample_rate)
                     samples = np.zeros(samples_count)
@@ -56,9 +56,16 @@ class SdActorPlayback:
                 # play file
                 if type=='f':
                     audio_data, fs = sf.read(audio, dtype='float32')
-                    if fs!=self.sample_rate:
-                        continue
-                    self.stream.write(audio_data)
+                    if fs!=self.sample_rate: continue
+                    chunk_size = 1024
+                    audio_length = len(audio_data)
+                    start_pos = 0
+                    while start_pos < audio_length:
+                        if (self._skip and skippable) or self._stop: break
+                        end_pos = min(start_pos + chunk_size, audio_length)
+                        chunk = audio_data[start_pos:end_pos]
+                        self.stream.write(chunk)
+                        start_pos = end_pos
 
                 # play wav chunk
                 if type=='b':
@@ -110,12 +117,10 @@ class SdActor:
 
             # play iterator of wav chunks
             if type=='b':
-                # must be consumed as soon as possible
                 for wav_chunk in audio:
-                    if not self._skip or not skippable:
-                        self.play.queue.put((type, wav_chunk, skippable))
-                if not self._skip or not skippable:
-                    self.play.queue.put(('w', None, True))
+                    if self._skip and skippable: break
+                    self.play.queue.put((type, wav_chunk, skippable))
+                self.play.queue.put(('w', None, True))
 
     def skip(self):
         self._skip = True

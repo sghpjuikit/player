@@ -35,7 +35,10 @@ class Tty:
         self._skip = True
         self.tty.skip()
 
-    def __call__(self, event: str):
+    def skippable(self, event: str):
+        self(iter(map(lambda x: x + ' ', event.split(' '))))
+
+    def __call__(self, event: str | Iterator):
         if not self.speakOn:
             return
 
@@ -82,10 +85,8 @@ class Tty:
 
     def process(self, s: str, skippable: bool, end: bool):
         ss = ''.join(c for c in s if c not in self.ignored_chars)
-        if (len(ss)>0):
-            self.tty.speak(s, skippable=skippable)
-        if end:
-            self.tty.speak(None, skippable=False)
+        if (len(ss)>0): self.tty.speak(s, skippable=skippable)
+        if end: self.tty.speak(None, skippable=False)
 
 
 class TtyBase:

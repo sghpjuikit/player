@@ -323,13 +323,13 @@ class AssistStandard:
 
         # do command
         else:
-            if isinstance(llm, LlmNone): self.write('COM: ' + prompt.userPrompt)
+            if isinstance(llm, LlmNone): self.write('COM: ' + str)
             else: llm(ChatIntentDetect(text))
 
         # do random activity
         import random
         import string
-        if assist_last_diff>5 and random.random() <= 0.91 and isinstance(llm, LlmHttpOpenAi):
+        if assist_last_diff>5*60 and random.random() <= 0.1 and isinstance(llm, LlmHttpOpenAi):
             llm(ChatProceed(
                 "You are role playing character.",
                 f"Respond with one of the following:\n" +

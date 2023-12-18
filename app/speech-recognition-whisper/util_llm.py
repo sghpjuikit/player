@@ -24,7 +24,7 @@ class ChatProceed:
 
 class ChatIntentDetect(ChatProceed):
     def __init__(self, userPrompt: str):
-        super.__init__(
+        super().__init__(
             "From now on, identify user intent by returning one of following functions. " +
             "Only respond in format function: `COM-function-COM`. " +
             "Funs: " +

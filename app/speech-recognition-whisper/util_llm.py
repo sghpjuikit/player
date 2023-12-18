@@ -8,6 +8,41 @@ from util_tty_engines import Tty
 from util_write_engine import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
 
+
+class ChatProceed:
+    def __init__(self, sysPrompt: str, userPrompt: str | None):
+        self.sysPrompt = sysPrompt
+        self.userPrompt = userPrompt
+        self.messages = [ ]
+        self.messages.append({ "role": "system", "content": self.sysPrompt })
+        if (userPrompt is not None): self.messages.append({ "role": "user", "content": self.userPrompt })
+
+    @classmethod
+    def start(cls, sysPrompt: str):
+        return cls(sysPrompt, None)
+
+
+class ChatIntentDetect(ChatProceed):
+    def __init__(self, userPrompt: str):
+        super.__init__(
+            "From now on, identify user intent by returning one of following functions. " +
+            "Only respond in format function: `COM-function-COM`. " +
+            "Funs: " +
+            "- open-weather-info " +
+            "- play-music " +
+            "- stop-music " +
+            "- play-previous-song " +
+            "- play-next-song " +
+            "- unidentified // no other intent seems probable",
+            userPrompt
+        )
+
+
+class Chat:
+    def __init__(self, userPrompt: str):
+        self.userPrompt = userPrompt
+
+
 class ChatStart:
     def __init__(self):
         pass
@@ -22,8 +57,6 @@ class LlmBase:
     def __init__(self):
         self._stop = False
         self.queue = Queue()
-        self.listening_for_chat_prompt = False
-        self.listening_for_chat_generation = False
         self.generating = False
 
     def start(self):
@@ -35,23 +68,18 @@ class LlmBase:
         """
         self._stop = True
 
-    def __call__(self, prompt: str):
+    def __call__(self, prompt: ChatStart | Chat | ChatProceed | ChatStop):
         self.queue.put(prompt)
 
     def _loop(self):
         pass
 
-    def chatStart(self):
-        self.queue.put(ChatStart())
-
-    def chatStop(self):
-        self.queue.put(ChatStop())
-
 
 class LlmNone(LlmBase):
-    def __init__(self, ):
+    def __init__(self, speak: Tty, write: Writer):
         super().__init__()
-        pass
+        self.write = write
+        self.speak = speak
 
 
 # home: https://github.com/nomic-ai/gpt4all
@@ -85,34 +113,26 @@ class LlmGpt4All(LlmBase):
                     while not self._stop:
                         t = self.queue.get()
 
-                        if isinstance(t, ChatStop):
-                            break
-
                         if isinstance(t, ChatStart):
                             pass
 
-                        if isinstance(t, str):
+                        if isinstance(t, ChatStop):
+                            break
+
+                        if isinstance(t, Chat):
 
                             def stop_on_token_callback(token_id, token_string):
-                                return not self._stop and self.listening_for_chat_generation
+                                return not self._stop and self.generating
 
                             # generate & stream response
-                            self.listening_for_chat_generation = True
                             self.generating = True
-                            tokens = llm.generate(t, streaming=True, max_tokens=self.maxTokens, top_p=self.topp, top_k=self.topk, temp=self.temp, callback=stop_on_token_callback)
+                            tokens = llm.generate(t.userPrompt, streaming=True, max_tokens=self.maxTokens, top_p=self.topp, top_k=self.topk, temp=self.temp, callback=stop_on_token_callback)
                             consumer, tokensWrite, tokensSpeech, tokensText = teeThreadSafeEager(tokens, 3)
                             self.write(chain(['CHAT: '], tokensWrite))
                             self.speak(tokensSpeech)
                             consumer()
                             text_all = ''.join(tokensText)
                             self.generating = False
-
-                            # end LLM conversation (if cancelled by user)
-                            self.listening_for_chat_generation = False
-                            if self.listening_for_chat_prompt is False:
-                                self.speak.skip()
-                                self.speak("Ok")
-                                break
 
 
 # home https://github.com/openai/openai-python
@@ -143,62 +163,63 @@ class LlmHttpOpenAi(LlmBase):
             self.write("OpenAi python module failed to load")
             return
 
-        messages = [ ]
+        chat: ChatProceed | None = None
         client = OpenAI(api_key=self.bearer, base_url=self.url)
 
         while not self._stop:
             e = self.queue.get()
+
             if isinstance(e, ChatStart):
-                while not self._stop:
-                    t = self.queue.get()
+                chat = ChatProceed.start(self.sysPrompt)
 
-                    if isinstance(t, ChatStop):
-                        messages = [ ]
-                        break
+            if isinstance(e, ChatStop):
+                chat = None
 
-                    if isinstance(t, ChatStart):
-                        message1 = { "role": "system", "content": self.sysPrompt }
-                        messages = [ message1 ]
-                        pass
+            if isinstance(e, Chat | ChatProceed):
+                try:
+                    self.generating = True
+                    isCommand = isinstance(e, ChatIntentDetect)
 
-                    if isinstance(t, str):
+                    if isinstance(e, Chat):
+                        if (chat is None): chat = ChatProceed.start(self.sysPrompt)
+                        chat.messages.append({ "role": "user", "content": e.userPrompt })
+
+                    def process():
+                        messages = []
+                        if isinstance(e, Chat): messages = chat.messages
+                        if isinstance(e, ChatProceed): messages = e.messages
+
+                        stream = client.chat.completions.create(model=self.modelName, messages=messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp, stream=True)
                         try:
-                            self.listening_for_chat_generation = True
-                            self.generating = True
-                            messages.append({ "role": "user", "content": t })
+                            for chunk in stream:
+                                if not self._stop and self.generating:
+                                    if chunk.choices[0].delta.content is not None:
+                                        yield chunk.choices[0].delta.content
+                                else:
+                                    break
+                        finally:
+                            stream.response.close()
 
-                            def process():
-                                stream = client.chat.completions.create(model=self.modelName, messages=messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp, stream=True)
-                                try:
-                                    for chunk in stream:
-                                        if not self._stop and self.listening_for_chat_generation:
-                                            if chunk.choices[0].delta.content is not None:
-                                                yield chunk.choices[0].delta.content
-                                        else:
-                                            break
-                                finally:
-                                    stream.response.close()
+                    consumer, tokensWrite, tokensSpeech, tokensText = teeThreadSafeEager(process(), 3)
+                    if not isCommand: self.write(chain(['CHAT: '], tokensWrite))
+                    if not isCommand: self.speak(tokensSpeech)
+                    consumer()
+                    text_all = ''.join(tokensText)
 
-                            consumer, tokensWrite, tokensSpeech, tokensText = teeThreadSafeEager(process(), 3)
-                            self.write(chain(['CHAT: '], tokensWrite))
-                            self.speak(tokensSpeech)
-                            consumer()
-                            text_all = ''.join(tokensText)
-                            messages.append({ "role": "assistant", "content": text_all })
-                            self.generating = False
+                    if isinstance(e, Chat):
+                        chat.messages.append({ "role": "assistant", "content": text_all })
 
-                            # end LLM conversation (if cancelled by user)
-                            self.listening_for_chat_generation = False
-                            if self.listening_for_chat_prompt is False:
-                                self.speak.skip()
-                                self.speak("Ok")
-                                break
+                    if isCommand:
+                        command = text_all.strip().lstrip("COM-").rstrip("-COM").strip()
+                        self.write('COM: ' + command.replace('-', ' '))
 
-                        except openai.APIConnectionError as e:
-                            self.write("OpenAI server could not be reached")
-                            self.write(e.__cause__)
-                        except openai.RateLimitError as e:
-                            self.write("OpenAI returned 429 status code - rate limit error")
-                        except openai.APIStatusError as e:
-                            self.write(f"OpenAI returned non {e.status_code} status code")
-                            self.write(e.response)
+                    self.generating = False
+
+                except openai.APIConnectionError as e:
+                    self.write("OpenAI server could not be reached")
+                    self.write(e.__cause__)
+                except openai.RateLimitError as e:
+                    self.write("OpenAI returned 429 status code - rate limit error")
+                except openai.APIStatusError as e:
+                    self.write(f"OpenAI returned non {e.status_code} status code")
+                    self.write(e.response)

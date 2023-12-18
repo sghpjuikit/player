@@ -13,6 +13,7 @@ from typing import cast
 from util_play_engine import SdActor
 from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
+from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatStop
 from util_mic import Mic, Whisper
 from util_write_engine import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
@@ -196,7 +197,7 @@ llmGpt4AllModelName = arg('llm-gpt4all-model', 'none')
 llmOpenAiUrl = arg('llm-openai-url', 'none')
 llmOpenAiBearer = arg('llm-openai-bearer', 'none')
 llmOpenAiModelName = arg('llm-openai-model', 'none')
-llmSysPrompt = arg('llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')
+llmSysPrompt = arg('llm-chat-sys-prompt', 'You are helpful chat bot. You are voiced by text-to-speech, so you are extremly concise.')
 llmChatMaxTokens = int(arg('llm-chat-max-tokens', '400'))
 llmChatTemp = float(arg('llm-chat-temp', '0.5'))
 llmChatTopp = float(arg('llm-chat-topp', '0.95'))
@@ -222,7 +223,7 @@ else:
 speak = Tty(speakOn, speakEngine, write)
 
 # llm actor, non-blocking
-llm = LlmNone()
+llm = LlmNone(speak, write)
 if llmEngine == 'none':
     pass
 elif llmEngine == "gpt4all":
@@ -234,92 +235,142 @@ elif llmEngine == "openai":
 else:
     pass
 
-# speak(name + " INTENT DETECTOR initializing.")
-# intention_prompt = base64.b64decode(arg('intent-prompt', '')).decode('utf-8')
-# https://huggingface.co/glaiveai/glaive-function-calling-v1
-# commandTokenizer = None  # AutoTokenizer.from_pretrained("glaiveai/glaive-function-calling-v1", revision="6ade959", trust_remote_code=True)
-# commandModel = None  # AutoModelForCausalLM.from_pretrained("glaiveai/glaive-function-calling-v1", revision="6ade959", trust_remote_code=True).half().cuda()
 
-def callback(text):
+class Assist:
+    def __call__(self, text: str, textSanitized: str):
+        pass
 
-    if terminating:
-        return
+assist_last_at = time.time()
+assist_last_diff = 0
+assist = Assist()
 
-    try:
-        llmPrompt = text.rstrip(".").strip()
-        text = text.lower().rstrip(".").strip()
 
-        if len(text) > 0 and printRaw:
-            write('RAW: ' + text)
-
-        # ignore speech recognition noise
-        if not text.startswith(wake_word):
-            return
-
-        # cancel any ongoing chat activity
-        if llm.listening_for_chat_generation and not text.startswith("system end conversation") and not text.startswith("system stop conversation"):
-            llm.listening_for_chat_generation = False
+class AssistChat:
+    def __init__(self):
+        # start
+        llm(ChatStart())
+        speak('Conversing')
+    def __call__(self, text: str, textSanitized: str):
+        # announcement
+        if len(text) == 0: speak('Yes, conversation is ongoing')
+        # do help
+        elif text == "help":
+            speak("Yes, we are in the middle of a conversation. Simply speak to me. To end the conversation, say stop, or end.")
+        # end
+        elif text.startswith("stop") or text.startswith("end"):
+            llm.generating = False
+            llm(ChatStop())
             speak.skip()
-            return
+            speak("Ok")
+            global assist
+            assist = assistStand
+        # normal
+        else: llm(Chat(textSanitized))
 
-        # sanitize
-        llmPrompt = llmPrompt.lstrip(wake_word).lstrip(",").rstrip(".").strip()
-        text = text.lstrip(wake_word).lstrip(",").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
-        write('USER: ' + text)
 
+class AssistEnVocab:
+    def __init__(self):
+        # start
+        speak("Certainly. Say a word and explain what it means. I'll check if you understand it correctly. To end the excersize, say stop, or end.")
+    def __call__(self, text: str, textSanitized: str):
         # announcement
         if len(text) == 0:
-            if llm.listening_for_chat_prompt:
-                speak('Yes, conversation is ongoing')
-            else:
-                speak('Yes')
+            speak("Yes, I'm testing your English vocabulary.")
+        # end
+        elif text.startswith("stop") or text.startswith("end"):
+            speak("Ok")
+            global assist
+            assist = assistStand
+        # do help
+        elif text == "help":
+            speak("Yes, say a word and explain what it means. I'll check if you understand it correctly. To end the excersize, say stop, or end.")
+        # normal
+        else:
+            llm(ChatProceed("You are English Teacher evaluating user's understanding of a word. Be short. Criticize, but improve.", text))
 
-        # start LLM conversation (fail)
-        elif llm.listening_for_chat_prompt is False and "start conversation" in text and isinstance(llm, LlmNone):
-            speak('No conversation model is loaded')
 
-        # start LLM conversation
-        elif llm.listening_for_chat_prompt is False and "start conversation" in text:
-            llm.chatStart()
-            llm.listening_for_chat_prompt = True
-            speak('Conversing')
+class AssistStandard:
+    def __call__(self, text: str, textSanitized: str):
+        global assist
+        # announcement
+        if len(text) == 0:
+            speak('Yes')
 
-        # end LLM conversation
-        elif llm.listening_for_chat_prompt is True and (text.startswith("end conversation") or text.startswith("stop conversation")):
-            llm.listening_for_chat_prompt = False
-            if not llm.generating:
-                llm.chatStop()
-                speak.skip()
-                speak("Ok")
-
-        # do LLM conversation
-        elif llm.listening_for_chat_prompt is True:
-            llm(llmPrompt)
+        # do greeting
+        elif text == "hi" or text == "hello" or text == "greetings":
+            speak(text.capitalize())
 
         # do help
         elif text == "help":
-            speak('I am an AI assistant. Talk to me by calling ' + wake_word + '.')
-            speak('Start conversation by saying, start conversation.')
-            speak('Stop active conversation by saying, stop or end conversation.')
-            speak('Ask for help by saying, help.')
-            speak('Run command by saying the command.')
+            speak.skippable(
+                f'I am an AI assistant. Talk to me by calling {wake_word}. ' +
+                f'Start conversation by saying, start conversation. ' +
+                f'Stop active conversation by saying, stop or end conversation. ' +
+                f'Ask for help by saying, help. ' +
+                f'Run command by saying the command.'
+            )
             write('COM: help')  # allows application to customize the help output
+
+        # start LLM conversation
+        elif "start conversation" in text:
+            if isinstance(llm, LlmNone): speak('No conversation model is loaded')
+            else: assist = AssistChat()
+
+        # start en vocab excersize
+        elif text == "start english vocabulary excersize":
+            if isinstance(llm, LlmHttpOpenAi): assist = AssistEnVocab()
+            else: speak('No supporting conversation model is loaded. Use OpenAI chat engine.')
 
         # do command
         else:
-            # command_prompt = intention_prompt + text
-            # command_input = commandTokenizer(command_prompt, return_tensors="pt").to(commandModel.device)
-            # command_output = commandModel.generate(**command_input, do_sample=True, temperature=0.1, top_p=0.1, max_new_tokens=1000)
-            # text = commandTokenizer.decode(command_output[0], skip_special_tokens=True)
-            #
-            write('COM: ' + text.strip())
-            #
-            # if "ASSISTANT: <functioncall>" in text:
-            #     text = text.split("ASSISTANT: <functioncall>")[1]
-            #     write('USER: ' + text)
-            # else:
-            #     write('SYS: No command detected')
+            if isinstance(llm, LlmNone): self.write('COM: ' + prompt.userPrompt)
+            else: llm(ChatIntentDetect(text))
 
+        # do random activity
+        import random
+        import string
+        if assist_last_diff>5 and random.random() <= 0.91 and isinstance(llm, LlmHttpOpenAi):
+            llm(ChatProceed(
+                "You are role playing character.",
+                f"Respond with one of the following:\n" +
+                f"- Complain angrily that user haven't needed anything (if too long, last response was {callback_last_diff} seconds ago)" +
+                f"- Mention passionately trivia or interesting fact about random topic containing letter {random.choice(string.ascii_uppercase)}"
+            ))
+
+
+assistStand = AssistStandard()
+assist = assistStand
+
+
+def callback(text):
+    if terminating: return
+
+    textSanitized = text.rstrip(".").strip()
+    text = text.lower().rstrip(".").strip()
+
+    if len(text) > 0 and printRaw:
+        write('RAW: ' + text)
+
+    # ignore speech recognition noise
+    if not text.startswith(wake_word): return
+
+    # monitor activity time
+    global assist_last_at
+    assist_last_diff = time.time() - assist_last_at
+    assist_last_at = time.time()
+
+    # sanitize
+    textSanitized = textSanitized.lstrip(wake_word).lstrip(",").rstrip(".").strip()
+    text = text.lstrip(wake_word).lstrip(",").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
+
+    # cancel any ongoing activity
+    if llm.generating: llm.generating = False
+    speak.skip()
+
+    # handle by active assistant state
+    try:
+        write(f'USER: {name}, ' + text)
+        assist(text, textSanitized)
     except Exception as e:
         traceback.print_exc()
         write_ex("ERR: ", e)
@@ -377,19 +428,22 @@ while True:
         # talk command
         if m.startswith("SAY-LINE: "):
             text = m[11:]
-            speak(iter(map(lambda x: x + ' ', text.split(' '))))
+            speak.skippable(text)
 
         # talk command
         if m.startswith("SAY: "):
             text = base64.b64decode(m[5:]).decode('utf-8')
-            speak(iter(map(lambda x: x + ' ', text.split(' '))))
+            speak.skippable(text)
 
         # chat command
         if m.startswith("CHAT: "):
             if not llm.listening_for_chat_prompt:
                 llm.listening_for_chat_prompt = True
-                llm.chatStart()
+                llm(ChatStart)
             text = base64.b64decode(m[6:]).decode('utf-8')
+
+        if m.startswith("CALL: "):
+            text = m[6:]
             callback(text)
 
         # changing settings commands

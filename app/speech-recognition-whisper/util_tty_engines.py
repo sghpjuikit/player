@@ -20,7 +20,7 @@ class Tty:
         self.write = write
         self._stop = False
         self._skip = False
-        self.ignored_chars = set(".,?!-: #\n\r\t")
+        self.ignored_chars = set(".,?!-: #\n\r\t\\`'\"")
         self.queue = Queue()
 
     def start(self):

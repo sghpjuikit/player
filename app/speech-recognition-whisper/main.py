@@ -440,15 +440,14 @@ while True:
 
         # chat command
         if m.startswith("CHAT: "):
-            if not llm.listening_for_chat_prompt:
-                llm.listening_for_chat_prompt = True
-                llm(ChatStart)
             text = base64.b64decode(m[6:]).decode('utf-8')
+            llm(ChatStart)
+            llm(Chat(text))
 
         if m.startswith("COM-DET: "):
             text = base64.b64decode(m[9:]).decode('utf-8')
             if isinstance(llm, LlmHttpOpenAi): llm(ChatIntentDetect(text))
-            else: write('COM: ' + str)
+            else: write('COM-DET: ' + text)
 
         if m.startswith("CALL: "):
             text = m[6:]

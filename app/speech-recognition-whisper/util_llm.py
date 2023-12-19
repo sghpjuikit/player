@@ -28,11 +28,13 @@ class ChatIntentDetect(ChatProceed):
             "From now on, identify user intent by returning one of following functions. " +
             "Only respond in format function: `COM-function-COM`. " +
             "Funs: " +
-            "- open-weather-info " +
-            "- play-music " +
-            "- stop-music " +
-            "- play-previous-song " +
-            "- play-next-song " +
+            "- open-weather-info" +
+            "- play-music" +
+            "- stop-music" +
+            "- play-previous-song" +
+            "- play-next-song" +
+            "- what-time-is-it" +
+            "- what-date-is-it" +
             "- unidentified // no other intent seems probable",
             userPrompt
         )
@@ -171,7 +173,8 @@ class LlmHttpOpenAi(LlmBase):
             e = self.queue.get()
 
             if isinstance(e, ChatStart):
-                chat = ChatProceed.start(self.sysPrompt)
+                if chat is not None:
+                    chat = ChatProceed.start(self.sysPrompt)
 
             if isinstance(e, ChatStop):
                 chat = None
@@ -192,7 +195,8 @@ class LlmHttpOpenAi(LlmBase):
 
                         stream = client.chat.completions.create(
                             model=self.modelName, messages=messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
-                            stream=True, timeout=Timeout(None, connect=5.0)
+                            stream=True, timeout=Timeout(None, connect=5.0),
+                            stop = "-COM" if isCommand else [],
                         )
                         try:
                             for chunk in stream:
@@ -218,7 +222,7 @@ class LlmHttpOpenAi(LlmBase):
 
                         if isCommand:
                             command = text.strip().lstrip("COM-").rstrip("-COM").strip()
-                            self.write('COM_DET: ' + command.replace('-', ' '))
+                            self.write('COM-DET: ' + command.replace('-', ' '))
 
                     self.generating = False
 

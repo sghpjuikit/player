@@ -453,6 +453,7 @@ class VoiceAssistant: PluginBase() {
       if (text.startsWith("SYS: ")) handleSpeechRaw(text)
       if (text.startsWith("CHAT: ")) handleSpeechRaw(text)
       if (text.startsWith("COM: ")) handleSpeechRaw(text)
+      if (text.startsWith("COM-DET: ")) handleSpeechRaw(text)
    }
 
    private fun handleInputHttp(text: String) {
@@ -461,6 +462,7 @@ class VoiceAssistant: PluginBase() {
       if (text.startsWith("SYS: ")) speak(text.substringAfter(": "))
       if (text.startsWith("CHAT: ")) speak(text.substringAfter(": "))
       if (text.startsWith("COM: ")) speak(text.substringAfter(": "))
+      if (text.startsWith("COM-DET: ")) speak(text.substringAfter(": "))
    }
 
    private fun handleSpeechRaw(text: String) {
@@ -479,7 +481,7 @@ class VoiceAssistant: PluginBase() {
       var textSanitized = text.orEmpty().sanitize(speechBlacklistWords_)
       var result = handlers.firstNotNullOfOrNull { h -> with(h) { action(textSanitized) } }
       if (result==null) {
-         if (orDetectIntent) write("COM_DET: ${text.encodeBase64()}")
+         if (orDetectIntent) write("COM-DET: ${text.encodeBase64()}")
          else speak("Unrecognized command: $text")
       } else
          result.getAny().ifNotNull(::speak)

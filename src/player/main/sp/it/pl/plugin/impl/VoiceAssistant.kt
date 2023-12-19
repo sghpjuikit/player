@@ -468,15 +468,21 @@ class VoiceAssistant: PluginBase() {
          runSuspending(VTc) { APP.http.client.put("http://${handleBy.value}:${APP.http.url.port}/speech") { bodyJs(text) } }
 
       if (handleBy.value==null && text.startsWith("COM: "))
-         runFX { handleSpeech(text.substringAfter(": ")) }
+         runFX { handleSpeech(text.substringAfter(": "), true) }
+      if (handleBy.value==null && text.startsWith("COM-DET: "))
+         runFX { handleSpeech(text.substringAfter(": "), false) }
    }
 
-   private fun handleSpeech(text: String?) {
+   private fun handleSpeech(text: String, orDetectIntent: Boolean) {
       if (!isRunning) return
       speakingTextW.value = text
       var textSanitized = text.orEmpty().sanitize(speechBlacklistWords_)
-      var result = handlers.firstNotNullOfOrNull { h -> with(h) { action(textSanitized) } } ?: Error<String?>("Unrecognized command: $text")
-      result.getAny().ifNotNull(::speak)
+      var result = handlers.firstNotNullOfOrNull { h -> with(h) { action(textSanitized) } }
+      if (result==null) {
+         if (orDetectIntent) write("COM_DET: ${text.encodeBase64()}")
+         else speak("Unrecognized command: $text")
+      } else
+         result.getAny().ifNotNull(::speak)
    }
 
    private val writing = ActorVt<Pair<Fut<Process>?, String>>("SpeechRecognition-writer") { (setup, it) ->

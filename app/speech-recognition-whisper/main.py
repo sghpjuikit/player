@@ -8,7 +8,7 @@ import psutil
 import base64
 import traceback
 from itertools import chain
-from threading import Thread
+from threading import Thread, Timer
 from typing import cast
 from util_play_engine import SdActor
 from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui
@@ -323,19 +323,22 @@ class AssistStandard:
 
         # do command
         else:
-            if isinstance(llm, LlmNone): self.write('COM: ' + str)
-            else: llm(ChatIntentDetect(text))
+            write('COM: ' + text)
 
+        # experimental:
         # do random activity
-        import random
-        import string
-        if assist_last_diff>5*60 and random.random() <= 0.1 and isinstance(llm, LlmHttpOpenAi):
-            llm(ChatProceed(
-                "You are role playing character.",
-                f"Respond with one of the following:\n" +
-                f"- Complain angrily that user haven't needed anything (if too long, last response was {callback_last_diff} seconds ago)" +
-                f"- Mention passionately trivia or interesting fact about random topic containing letter {random.choice(string.ascii_uppercase)}"
-            ))
+        # import random
+        # import string
+        # if assist_last_diff>5*60 and random.random() <= 0.1 and isinstance(llm, LlmHttpOpenAi):
+        # if isinstance(llm, LlmHttpOpenAi):
+        #     Timer(
+        #         1, lambda: llm(ChatProceed(
+        #             "You are pretending to be a character.",
+        #             f"Say single short sentence, choose between:\n" +
+        #             f"- Complain angrily that user haven't needed anything (if too long, last response was {assist_last_diff} seconds ago)" +
+        #             f"- Mention passionately short trivia or interesting fact about random topic containing letter {random.choice(string.ascii_uppercase)}"
+        #         ))
+        #    ).start()
 
 
 assistStand = AssistStandard()
@@ -441,6 +444,11 @@ while True:
                 llm.listening_for_chat_prompt = True
                 llm(ChatStart)
             text = base64.b64decode(m[6:]).decode('utf-8')
+
+        if m.startswith("COM-DET: "):
+            text = base64.b64decode(m[9:]).decode('utf-8')
+            if isinstance(llm, LlmHttpOpenAi): llm(ChatIntentDetect(text))
+            else: write('COM: ' + str)
 
         if m.startswith("CALL: "):
             text = m[6:]

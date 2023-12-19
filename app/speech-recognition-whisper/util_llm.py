@@ -158,6 +158,7 @@ class LlmHttpOpenAi(LlmBase):
     def _loop(self):
         try:
             from openai import OpenAI
+            from httpx import Timeout
             import openai
         except ImportError as e:
             self.write("OpenAi python module failed to load")
@@ -189,7 +190,10 @@ class LlmHttpOpenAi(LlmBase):
                         if isinstance(e, Chat): messages = chat.messages
                         if isinstance(e, ChatProceed): messages = e.messages
 
-                        stream = client.chat.completions.create(model=self.modelName, messages=messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp, stream=True)
+                        stream = client.chat.completions.create(
+                            model=self.modelName, messages=messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
+                            stream=True, timeout=Timeout(None, connect=5.0)
+                        )
                         try:
                             for chunk in stream:
                                 if not self._stop and self.generating:
@@ -204,14 +208,17 @@ class LlmHttpOpenAi(LlmBase):
                     if not isCommand: self.write(chain(['CHAT: '], tokensWrite))
                     if not isCommand: self.speak(tokensSpeech)
                     consumer()
-                    text_all = ''.join(tokensText)
+                    text = ''.join(tokensText)
 
-                    if isinstance(e, Chat):
-                        chat.messages.append({ "role": "assistant", "content": text_all })
+                    if len(text)==0:
+                        self.write("ERR: chat responded with empty message")
+                    else:
+                        if isinstance(e, Chat):
+                            chat.messages.append({ "role": "assistant", "content": text })
 
-                    if isCommand:
-                        command = text_all.strip().lstrip("COM-").rstrip("-COM").strip()
-                        self.write('COM: ' + command.replace('-', ' '))
+                        if isCommand:
+                            command = text.strip().lstrip("COM-").rstrip("-COM").strip()
+                            self.write('COM_DET: ' + command.replace('-', ' '))
 
                     self.generating = False
 

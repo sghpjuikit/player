@@ -96,7 +96,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    private val filterTextField = searchTextField()
    private val filter = filterTextField.textProperty() map {
       it.nullIfBlank()?.net {
-         text -> { it: Config<*> -> it.group.contains(text, true) || it.nameUi.contains(text, true) }
+         text -> { it: Config<*> -> it.nameUi.contains(text, true) }
       }
    }
    private val filterActions = vn(false)

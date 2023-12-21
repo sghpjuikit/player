@@ -108,7 +108,9 @@ class Hue: PluginBase() {
       val speechHandlers = listOf(
          SpeakHandler("Turn hue lights on/off", "[turn]? lights on|off") { text ->
             if ("lights on"==text || "lights off"==text || "turn lights on"==text || "turn lights off"==text) {
-               hueBridge.toggleBulbGroup("0").ui { refreshes(Unit) }
+               scope.launch(FX) {
+                  hueBridge.init().toggleBulbGroup("0").ui { refreshes(Unit) }
+               }
                Ok("Ok")
             } else
                null

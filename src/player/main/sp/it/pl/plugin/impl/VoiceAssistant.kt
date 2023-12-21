@@ -510,7 +510,7 @@ class VoiceAssistant: PluginBase() {
       constraintsN += listOf(Multiline, MultilineRows(10), RepeatableAction)
    }.invokeWithForm()
 
-   fun chat(text: String) = write("CHAT: ${(wakeUpWord.value + " " + text).encodeBase64()}")
+   fun chat(text: String) = write("CHAT: ${text.encodeBase64()}")
 
    fun raw(text: String) = write(text)
 

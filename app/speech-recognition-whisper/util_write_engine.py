@@ -9,7 +9,7 @@ class Writer:
         self._stop = False
         Thread(name='Writer', target=self._loop, daemon=True).start()
 
-    def __call__(self, event: str):
+    def __call__(self, event: str | Iterator | object):
         self.queue.put(event)
 
     def _loop(self):

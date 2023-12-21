@@ -3,10 +3,9 @@ from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
 from gpt4all.gpt4all import empty_chat_session
 from threading import Thread
 from queue import Queue
-from itertools import chain
 from util_tty_engines import Tty
 from util_write_engine import Writer
-from util_itr import teeThreadSafe, teeThreadSafeEager
+from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain
 
 
 class ChatProceed:
@@ -130,7 +129,7 @@ class LlmGpt4All(LlmBase):
                             self.generating = True
                             tokens = llm.generate(t.userPrompt, streaming=True, max_tokens=self.maxTokens, top_p=self.topp, top_k=self.topk, temp=self.temp, callback=stop_on_token_callback)
                             consumer, tokensWrite, tokensSpeech, tokensText = teeThreadSafeEager(tokens, 3)
-                            self.write(chain(['CHAT: '], tokensWrite))
+                            self.write(chain(['CHAT: '], progress(consumer, tokensWrite)))
                             self.speak(tokensSpeech)
                             consumer()
                             text_all = ''.join(tokensText)
@@ -209,7 +208,7 @@ class LlmHttpOpenAi(LlmBase):
                             stream.response.close()
 
                     consumer, tokensWrite, tokensSpeech, tokensText = teeThreadSafeEager(process(), 3)
-                    if not isCommand: self.write(chain(['CHAT: '], tokensWrite))
+                    if not isCommand: self.write(chain(['CHAT: '], progress(consumer, tokensWrite)))
                     if not isCommand: self.speak(tokensSpeech)
                     consumer()
                     text = ''.join(tokensText)

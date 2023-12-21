@@ -118,6 +118,7 @@ import sp.it.util.reactive.zip
 import sp.it.util.reactive.zip2
 import sp.it.util.system.EnvironmentContext
 import sp.it.util.text.camelToSpaceCase
+import sp.it.util.text.concatenateWithBackspace
 import sp.it.util.text.encodeBase64
 import sp.it.util.text.equalsNc
 import sp.it.util.text.lengthInLines
@@ -187,7 +188,7 @@ class VoiceAssistant: PluginBase() {
                .map { it.ansi() }
                .filter { it.isNotEmpty() }
                .onEach { runFX {
-                  speakingStdout.value = (speakingStdout.value ?: "") + it.un()
+                  speakingStdout.value = (speakingStdout.value ?: "").concatenateWithBackspace(it.un())
                   onLocalInput(it.un())
                } }
                .lines()

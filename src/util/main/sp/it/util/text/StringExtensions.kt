@@ -367,3 +367,14 @@ fun String.capital() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() e
 fun String.decapital() = replaceFirstChar { it.lowercase() }
 
 fun String.decapitalUpper() = uppercase().replaceFirstChar { it.lowercase(Locale.getDefault()) }
+
+/** @return concatenation of the two stirngs with `\b` (backspace) characters in the 2nd applied */
+fun String.concatenateWithBackspace(str: String): String {
+   val result = StringBuilder(this)
+   val b = "\b".codePointAt(0)
+   str.chars().forEach {
+      if (it == b && result.isNotEmpty()) result.deleteCharAt(result.length - 1)
+      if (it != b) result.appendCodePoint(it)
+   }
+   return result.toString()
+}

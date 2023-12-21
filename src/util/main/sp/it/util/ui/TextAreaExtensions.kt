@@ -1,15 +1,12 @@
 package sp.it.util.ui
 
-import javafx.scene.control.IndexRange
 import javafx.scene.control.ScrollBar
 import javafx.scene.control.TextArea
-import javafx.scene.input.MouseEvent
-import sp.it.util.dev.printIt
-import sp.it.util.dev.printStacktrace
 import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.onEventDown
+import sp.it.util.text.concatenateWithBackspace
 
 /** [TextArea.appendText] that 1 preserves scroll if user is not at the bottom or selection not empty; 2 preserves selection */
 fun TextArea.appendTextSmart(t: String) {
@@ -27,10 +24,14 @@ fun TextArea.appendTextSmart(t: String) {
    val sb = properties[scKey]?.asIs<ScrollBar>()
    var isBottom = sb?.net { it.value == it.max } ?: true
    if (isBottom) {
-      appendText(t)
+      val ot = text.orEmpty()
+      val nt = text.orEmpty().concatenateWithBackspace(t)
+      val l = nt.length-ot.length-t.length
+      replaceText(ot.length+l, ot.length, nt.substring(ot.length+l))
+      sb.ifNotNull { it.value = it.max }
    } else {
       val sbValue = sb?.value
-      setText(text.orEmpty() + t)
+      text = text.orEmpty().concatenateWithBackspace(t)
       sb?.value = sbValue!!
    }
 

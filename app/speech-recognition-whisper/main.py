@@ -370,10 +370,12 @@ def callback(text):
     if llm.generating: llm.generating = False
     speak.skip()
 
+
     # handle by active assistant state
     try:
         write(f'USER: {name}, ' + text)
-        assist(text, textSanitized)
+        if text == "repeat": speak.repeatLast()
+        else: assist(text, textSanitized)
     except Exception as e:
         traceback.print_exc()
         write_ex("ERR: ", e)
@@ -441,6 +443,7 @@ while True:
         # chat command
         if m.startswith("CHAT: "):
             text = base64.b64decode(m[6:]).decode('utf-8')
+            write(f'USER: {name}, ' + text)
             llm(ChatStart)
             llm(Chat(text))
 

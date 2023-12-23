@@ -22,6 +22,7 @@ class Tty:
         self._skip = False
         self.ignored_chars = set(".,?!-: #\n\r\t\\`'\"")
         self.queue = Queue()
+        self.history = []
 
     def start(self):
         Thread(name='Tty', target=self._loop, daemon=True).start()
@@ -38,30 +39,36 @@ class Tty:
     def skippable(self, event: str):
         self(iter(map(lambda x: x + ' ', event.split(' '))))
 
+    def repeatLast(self):
+        if self.history:
+            text, skippable = self.history[-1]
+            self.queue.put((text, skippable, True))
+
     def __call__(self, event: str | Iterator):
         if not self.speakOn:
             return
 
         if isinstance(event, str):
             self.write('SYS: ' + event)
-            self.queue.put((iter(map(lambda x: x + ' ', event.split(' '))), False))
+            self.queue.put((iter(map(lambda x: x + ' ', event.split(' '))), False, False))
 
         elif isinstance(event, Iterator):
-            self.queue.put((event, True))
+            self.queue.put((event, True, False))
 
     def _loop(self):
         while not self._stop and self.speakOn:
-            event, skippable = self.queue.get()
+            event, skippable, repeated = self.queue.get()
             self._skip = False
             sentence = ''
+            text = ''
 
             self.tty.speak(None, skippable=False)
             for e in event:
 
                 # skip skippable
-                if self._skip and skippable:
-                    break
+                if self._skip and skippable: break
 
+                text = text + e
                 sentence = sentence + e
                 while len(sentence) >= self.sentence_min_length:
                     index = -1
@@ -79,6 +86,7 @@ class Tty:
                         self.process(s+c, skippable, end=False)
                         sentence = sentence[index+1:]
 
+            self.history.append((text, skippable))
             if not self._skip or not skippable:
                 self.process(sentence, skippable, end=True)
                 sentence = ''

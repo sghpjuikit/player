@@ -5,14 +5,14 @@ import io.kotest.matchers.shouldBe
 
 class StringExtensionsKtTest: FreeSpec({
 
-   String::concatenateWithBackspace.name {
-      "a".concatenateWithBackspace("b") shouldBe "ab"
+   String::concatApplyBackspace.name {
+      "a".concatApplyBackspace("b") shouldBe "ab"
 
-      "abc".concatenateWithBackspace("de\b\b\b\b") shouldBe "a"
-      "abc".concatenateWithBackspace("") shouldBe "abc"
-      "abc".concatenateWithBackspace("\b\ba\ba\b\b\b\b") shouldBe ""
+      "abc".concatApplyBackspace("de\b\b\b\b") shouldBe "a"
+      "abc".concatApplyBackspace("") shouldBe "abc"
+      "abc".concatApplyBackspace("\b\ba\ba\b\b\b\b") shouldBe ""
 
-      "".concatenateWithBackspace("") shouldBe ""
-      "".concatenateWithBackspace("\b") shouldBe ""
+      "".concatApplyBackspace("") shouldBe ""
+      "".concatApplyBackspace("\b") shouldBe ""
    }
 })

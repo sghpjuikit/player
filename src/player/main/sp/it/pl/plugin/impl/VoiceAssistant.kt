@@ -8,16 +8,12 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.util.regex.Pattern
 import javafx.geometry.Pos.CENTER
-import javafx.scene.control.IndexRange
-import javafx.scene.control.ScrollBar
 import javafx.scene.control.ScrollPane
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
-import javafx.scene.text.Text
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Line
 import javax.sound.sampled.TargetDataLine
@@ -88,7 +84,6 @@ import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.functional.Try
@@ -99,7 +94,6 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.supplyIf
 import sp.it.util.functional.toUnit
-import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.Subscribed
@@ -118,8 +112,9 @@ import sp.it.util.reactive.throttleToLast
 import sp.it.util.reactive.zip
 import sp.it.util.reactive.zip2
 import sp.it.util.system.EnvironmentContext
+import sp.it.util.text.applyBackspace
 import sp.it.util.text.camelToSpaceCase
-import sp.it.util.text.concatenateWithBackspace
+import sp.it.util.text.concatApplyBackspace
 import sp.it.util.text.encodeBase64
 import sp.it.util.text.equalsNc
 import sp.it.util.text.lengthInLines
@@ -194,10 +189,11 @@ class VoiceAssistant: PluginBase() {
                .map { it.ansi() }
                .filter { it.isNotEmpty() }
                .onEach { runFX {
-                  speakingStdout.value = (speakingStdout.value ?: "").concatenateWithBackspace(it.un())
+                  speakingStdout.value = (speakingStdout.value ?: "").concatApplyBackspace(it.un())
                   onLocalInput(it.un())
                } }
                .lines()
+               .map { it.applyBackspace() }
                .onEach { handleInputLocal(it.un()) }
                .joinToString("")
          }
@@ -205,6 +201,7 @@ class VoiceAssistant: PluginBase() {
             stderr = it
                .filter { it.isNotEmpty() }
                .map { it.ansi() }
+               .map { it.applyBackspace() }
                .onEach { runFX {
                   speakingStdout.value = (speakingStdout.value ?: "") + it
                   onLocalInput(it)

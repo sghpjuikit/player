@@ -368,8 +368,11 @@ fun String.decapital() = replaceFirstChar { it.lowercase() }
 
 fun String.decapitalUpper() = uppercase().replaceFirstChar { it.lowercase(Locale.getDefault()) }
 
+/** @return this string with eny backspace characters applied (see [String.concatApplyBackspace]) */
+fun String.applyBackspace(): String = "".concatApplyBackspace(this)
+
 /** @return concatenation of the two stirngs with `\b` (backspace) characters in the 2nd applied */
-fun String.concatenateWithBackspace(str: String): String {
+fun String.concatApplyBackspace(str: String): String {
    val result = StringBuilder(this)
    val b = "\b".codePointAt(0)
    str.chars().forEach {

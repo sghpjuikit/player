@@ -8,7 +8,7 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
-import sp.it.util.text.concatenateWithBackspace
+import sp.it.util.text.concatApplyBackspace
 
 /** [TextArea.appendText] that 1 preserves scroll if user is not at the bottom or selection not empty; 2 preserves selection */
 fun TextArea.appendTextSmart(t: String) {
@@ -27,13 +27,13 @@ fun TextArea.appendTextSmart(t: String) {
    var isBottom = sb?.net { it.value == it.max } ?: true
    if (isBottom) {
       val ot = text.orEmpty()
-      val nt = text.orEmpty().concatenateWithBackspace(t)
+      val nt = text.orEmpty().concatApplyBackspace(t)
       val l = nt.length-ot.length-t.length
       replaceText(ot.length+l, ot.length, nt.substring(ot.length+l))
       sb.ifNotNull { it.value = it.max }
    } else {
       val sbValue = sb?.value
-      text = text.orEmpty().concatenateWithBackspace(t)
+      text = text.orEmpty().concatApplyBackspace(t)
       sb?.value = sbValue!!
    }
 

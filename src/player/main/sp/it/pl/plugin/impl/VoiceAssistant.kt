@@ -132,7 +132,9 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.scrollPane
+import sp.it.util.ui.singLineProperty
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.styleclassToggle
 import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
 import sp.it.util.ui.width
@@ -659,7 +661,11 @@ class VoiceAssistant: PluginBase() {
                            isNewlineOnShiftEnter = true
                            prefColumnCount = 100
                            promptText = "${ENTER.nameUi} to send, ${SHIFT.nameUi} + ${ENTER.nameUi} for new line"
-                           textProperty() sync { prefRowCount = (it.orEmpty().lengthInLines.min(2)-1)*9+1 }
+                           singLineProperty() sync {
+                              styleclassToggle("text-area-singlelined", !it)
+                              prefRowCount = if (it) 10 else 1
+                           }
+
                            run = {
                               when (mode.value) {
                                  "Raw" -> { plugin.value?.raw(text) }

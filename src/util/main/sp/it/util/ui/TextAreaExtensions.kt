@@ -2,13 +2,19 @@ package sp.it.util.ui
 
 import javafx.scene.control.ScrollBar
 import javafx.scene.control.TextArea
+import sp.it.util.dev.Experimental
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.map
+import sp.it.util.reactive.zip
+import sp.it.util.reactive.zip2
 import sp.it.util.text.concatApplyBackspace
+import sp.it.util.text.lengthInLines
+import sp.it.util.ui.Util.computeTextWidth
 
 /** [TextArea.appendText] that 1 preserves scroll if user is not at the bottom or selection not empty; 2 preserves selection */
 fun TextArea.appendTextSmart(t: String) {
@@ -51,3 +57,11 @@ fun TextArea.insertNewline() {
 var TextArea.isNewlineOnShiftEnter: Boolean
    get() = properties["newlineOnEnter"].asIf<Boolean>() ?: false
    set(value) = properties.put("newlineOnEnter", value).toUnit()
+
+
+/** @return new observable property representing whether this text area contains single unwrapped line */
+@Experimental("may not work correctly")
+fun TextArea.singLineProperty() = wrapTextProperty() zip textProperty() zip2 widthProperty() map { (wrap, t, width) ->
+   println(font)
+   (t ?: "").lengthInLines>1 || (wrap && computeTextWidth(font, t ?: "") > width.toDouble()-padding.width)
+}

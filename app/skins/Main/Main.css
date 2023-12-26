@@ -824,6 +824,17 @@ TextFlow > * {
 .text-area .content,
 .text-area:hover .content,
 .text-area:focused .content {
+    -fx-padding: 0.5em 0em -0.5em 0em;
+}
+
+/********************************* TextArea ***********************************
+ * TextArea that is sized as TextField when it only contains single line.
+ * Note: this must be custom component, as it is impossible to do with styling alone.
+ * inherits: text-area
+ */
+.text-area-singlelined .content,
+.text-area-singlelined:hover .content,
+.text-area-singlelined:focused .content {
     -fx-padding: 0.5em 0 -1.5em 0;
 }
 

@@ -2,9 +2,11 @@ package sp.it.util.ui
 
 import javafx.scene.control.ScrollBar
 import javafx.scene.control.TextArea
+import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
 import sp.it.util.text.concatenateWithBackspace
 
@@ -38,3 +40,14 @@ fun TextArea.appendTextSmart(t: String) {
    // restore selection
    if (s.length>0) selectRange(s.start, s.end)
 }
+
+/** Inserts newline character into the text at the caret position. Clears selection. Moves caret by 1. */
+fun TextArea.insertNewline() {
+   if (selection.length>0) replaceText(selection, "\n")
+   else insertText(caretPosition, "\n")
+}
+
+/** Hint for skin whether user adds newline with ENTER or SHIFT+ENTER. Does not add behavior itself. */
+var TextArea.isNewlineOnShiftEnter: Boolean
+   get() = properties["newlineOnEnter"].asIf<Boolean>() ?: false
+   set(value) = properties.put("newlineOnEnter", value).toUnit()

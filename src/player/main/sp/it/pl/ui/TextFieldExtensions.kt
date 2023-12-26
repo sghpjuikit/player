@@ -21,6 +21,8 @@ import sp.it.util.type.estimateRuntimeType
 import sp.it.util.ui.copySelectedOrAll
 import sp.it.util.ui.cutSelectedOrAll
 import sp.it.util.ui.dsl
+import sp.it.util.ui.insertNewline
+import sp.it.util.ui.isNewlineOnShiftEnter
 import sp.it.util.ui.show
 import sp.it.util.ui.textAlignment
 
@@ -36,11 +38,7 @@ fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> 
          item("Paste", keys = keys(SHORTCUT, Key.V)) { tf.paste() }.disIf(!tf.isEditable || !Clipboard.getSystemClipboard().hasString())
 
          if (tf is TextArea && tf.isEditable)
-            menu("Paste newline") {
-               item("\\r (CR)") { tf.insertText(tf.caretPosition, "\r") }
-               item("\\n (LF)") { tf.insertText(tf.caretPosition, "\n") }
-               item("\\r\\n(CRLF/EOF)", keys = keys(ENTER)) { tf.insertText(tf.caretPosition, "\r\n") }
-            }
+            item("Paste newline", keys = if (tf.isNewlineOnShiftEnter) keys(SHIFT, ENTER) else keys(ENTER)) { tf.insertNewline() }
 
          item("Delete", keys = keys(DELETE)) { tf.deleteText(tf.selection) }.disIf(!tf.isEditable || tf.selectedText.isNullOrEmpty())
 

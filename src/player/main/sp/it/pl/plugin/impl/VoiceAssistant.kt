@@ -17,6 +17,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
+import javafx.scene.text.Text
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Line
 import javax.sound.sampled.TargetDataLine
@@ -126,15 +127,20 @@ import sp.it.util.text.lines
 import sp.it.util.text.nameUi
 import sp.it.util.text.useStrings
 import sp.it.util.text.words
+import sp.it.util.ui.Util
 import sp.it.util.ui.appendTextSmart
 import sp.it.util.ui.hBox
+import sp.it.util.ui.insertNewline
+import sp.it.util.ui.isNewlineOnShiftEnter
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
+import sp.it.util.ui.width
 import sp.it.util.ui.x
 import sp.it.util.units.seconds
 import sp.it.util.units.version
@@ -653,6 +659,7 @@ class VoiceAssistant: PluginBase() {
                         lay(ALWAYS) += textArea("") {
                            id = "input"
                            isWrapText = true
+                           isNewlineOnShiftEnter = true
                            prefColumnCount = 100
                            promptText = "${ENTER.nameUi} to send, ${SHIFT.nameUi} + ${ENTER.nameUi} for new line"
                            textProperty() sync { prefRowCount = (it.orEmpty().lengthInLines.min(2)-1)*9+1 }
@@ -663,7 +670,7 @@ class VoiceAssistant: PluginBase() {
                                  "Chat" -> { plugin.value?.chat(text); clear() }
                               }
                            }
-                           onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) appendText("\n") else run() }
+                           onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) insertNewline() else run() }
                         }
                         lay(NEVER) += CheckIcon(chatSettings).icons(IconFA.COG, IconFA.COG)
                         lay(NEVER) += Icon(IconFA.SEND).onClickDo { run() }

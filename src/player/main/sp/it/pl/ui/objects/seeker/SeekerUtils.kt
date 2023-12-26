@@ -46,8 +46,10 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
 import sp.it.util.ui.Util.layHeaderRight
+import sp.it.util.ui.insertNewline
 import sp.it.util.ui.lay
 import sp.it.util.ui.minSize
+import sp.it.util.ui.isNewlineOnShiftEnter
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.textArea
@@ -232,9 +234,10 @@ class SongChapterEdit(song: SongMetadata, chapter: Chapter, pos01: Double, i: In
          }
          isWrapText = true
          text = message.text
+         isNewlineOnShiftEnter = true
          onEventDown(KEY_PRESSED, ENTER, false) {
             if (isEdited.value) {
-               if (it.isShiftDown) insertText(caretPosition, "\n")
+               if (it.isShiftDown) insertNewline()
                else editCommit()
                it.consume()
             }

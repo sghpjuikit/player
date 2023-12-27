@@ -5,7 +5,7 @@ from threading import Thread
 from queue import Queue
 from util_tty_engines import Tty
 from util_write_engine import Writer
-from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain
+from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain, SingleLazyIterator
 
 
 class ChatProceed:
@@ -208,7 +208,9 @@ class LlmHttpOpenAi(LlmBase):
                             stream.response.close()
 
                     consumer, tokensWrite, tokensSpeech, tokensText = teeThreadSafeEager(process(), 3)
+                    commandIterator = SingleLazyIterator()
                     if not isCommand: self.write(chain(['CHAT: '], progress(consumer, tokensWrite)))
+                    if     isCommand: self.write(chain(['COM-DET: '], progress(commandIterator, commandIterator)))
                     if not isCommand: self.speak(tokensSpeech)
                     consumer()
                     text = ''.join(tokensText)
@@ -221,7 +223,8 @@ class LlmHttpOpenAi(LlmBase):
 
                         if isCommand:
                             command = text.strip().lstrip("COM-").rstrip("-COM").strip()
-                            self.write('COM-DET: ' + command.replace('-', ' '))
+                            command = command.replace('-', ' ')
+                            commandIterator.put(command)
 
                     self.generating = False
 

@@ -18,10 +18,8 @@ def teeThreadSafeEager(iterable, n=2):
     def generator(q):
         while True:
             item = q.get()
-            if item is sentinel:
-                break
-            else:
-                yield item
+            if item is sentinel: break
+            else: yield item
 
     # Create an additional iterator to consume elements on the current thread
     class ConsumeIterator:
@@ -63,25 +61,52 @@ def teeThreadSafe(iterable, n=2):
     lock = Lock()
     return tuple(safeteeobject(teeobj, lock) for teeobj in tee(iterable, n))
 
+
 def chain(iterator1, iterator2):
     """Returns iterator that iterates all elements of the 1st iterator and then all elements of the 2nd iterator"""
     yield from iterator1
     yield from iterator2
 
 
+class SingleLazyIterator:
+    """Iterator that blocks iteration until single element is put into it and then iterates that single element"""
+
+    def __init__(self):
+        self.queue = Queue()
+        self.started = False
+        self.consumed = False
+
+    def hasStarted(self):
+        return self.started
+
+    def put(self, element: str):
+        self.started = True
+        self.queue.put(element)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.consumed: raise StopIteration
+        element = self.queue.get()
+        self.consumed = True
+        return element
+
+
 def progress(consumer, iterator):
     """Returns the specified iterator with prepended elements for progress until first element is evaluated"""
-    yield '   '
     bs = 0
     while not consumer.hasStarted():
-        time.sleep(0.125)
+        for _ in range(10):
+            if not consumer.hasStarted(): time.sleep(0.0125)
+            else: break
+        if bs>0: yield '\b\b\b'
         bs = bs + 1
-        yield '\b\b\b'
         if bs % 5 == 1: yield '.  '
         if bs % 5 == 2: yield '.. '
         if bs % 5 == 3: yield '...'
         if bs % 5 == 4: yield ' ..'
         if bs % 5 == 0: yield '  .'
 
-    yield '\b\b\b'
+    if bs>0: yield '\b\b\b'
     yield from iterator

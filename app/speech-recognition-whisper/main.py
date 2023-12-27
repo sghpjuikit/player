@@ -1,4 +1,3 @@
-
 import sys
 import atexit
 import signal
@@ -11,7 +10,7 @@ from itertools import chain
 from threading import Thread, Timer
 from typing import cast
 from util_play_engine import SdActor
-from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui
+from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui, TtyHttp
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatStop
 from util_mic import Mic, Whisper
@@ -112,6 +111,9 @@ Args:
       requires specifying character-ai-token, optionally character-ai-voice
     - Use 'coqui' to use xttsv2 model (offline, low performance, realistic quality)
       optionally specify coqui-voice
+    - Use 'http' to use another instance of this program to generate audio over http.
+      requires the other instance to use coqui
+      requires specifying the speech-server as the url of the other instance
     Default: os
 
   character-ai-token=$token
@@ -125,6 +127,15 @@ Args:
   coqui-voice=$voice
     If speaking-engine=coqui is used, required name of voice file must be specified and exist in ./coqui-voices dir
     Default: Ann_Daniels.flac
+
+  coqui-server=$host:$port
+    If specified, enables speech generation http API on the specified address.
+    Use localhost:port or 127.0.0.1:port or 0.0.0.0:port (if accessible from outside).
+    Default: ''
+    
+  speech-server=$host:$port
+    If speaking-engine=http is used, host:port of the speech generation API of the other instance of this application
+    Default: 'localhost:1235'
 
   llm-engine=$engine
     Llm engine for chat. Use 'none', 'gpt4all', 'openai'
@@ -190,6 +201,8 @@ speakEngineType = arg('speech-engine', 'os')
 speakUseCharAiToken = arg('character-ai-token', '')
 speakUseCharAiVoice = int(arg('character-ai-voice', '22'))
 speakUseCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
+speakUseCoquiServer = arg('coqui-server', '')
+speakUseHttpUrl = arg('speech-server', 'localhost:1235')
 speechRecognitionModelName = arg('speech-recognition-model', 'base.en')
 
 llmEngine = arg('llm-engine', 'none')
@@ -217,11 +230,30 @@ elif speakEngineType == 'os':
 elif speakEngineType == 'character-ai':
     speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, SdActor(), write)
 elif speakEngineType == 'coqui':
-    speakEngine = TtyCoqui(speakUseCoquiVoice, SdActor(), write)
+    host, _, port = (None, None, None) if len(speakUseCoquiServer)==0 else speakUseCoquiServer.partition(":")
+    (host, port) = (None, None) if len(speakUseCoquiServer)==0 else (host, int(port))
+    speakEngine = TtyCoqui(speakUseCoquiVoice, host, port, SdActor(), write)
+elif speakEngineType == 'http':
+    if len(speakUseHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')
+    if ':' not in speakUseHttpUrl: raise AssertionError('speech-server must be in format host:port')
+    host, _, port = speakUseHttpUrl.partition(":")
+    speakEngine = TtyHttp(host, int(port), SdActor(), write)
 else:
     speakEngine = TtyNone()
 speak = Tty(speakOn, speakEngine, write)
 
+# speak server
+speakServer: TtyCoqui | None = None
+if len(speakUseCoquiServer)==0:
+    speakServer = None
+elif speakEngineType == 'coqui':
+    speakServer = speak.tty
+else:
+    if ':' not in speakUseCoquiServer: raise AssertionError('coqui-server must be in format host:port')
+    host, _, port = speakUseCoquiServer.partition(":")
+    (host, port) = (host, int(port))
+    speakServer = TtyCoqui(speakUseCoquiVoice, host, port, SdActor(), write)
+    speakServer.start()
 
 # llm actor, non-blocking
 llm = LlmNone(speak, write)

@@ -59,6 +59,7 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runNew
 import sp.it.util.async.runOn
 import sp.it.util.collections.setTo
+import sp.it.util.collections.toStringPretty
 import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
 import sp.it.util.conf.Constraint.RepeatableAction
@@ -84,6 +85,7 @@ import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.functional.Try
@@ -166,6 +168,8 @@ class VoiceAssistant: PluginBase() {
             "character-ai-token=${speechEngineCharAiToken.value}",
             "character-ai-voice=22",
             "coqui-voice=${speechEngineCoquiVoice.value}",
+            "coqui-server=${if (speechServer.value) speechServerUrl.value else ""}",
+            "speech-server=${speechEngineHttpUrl.value}",
             "llm-engine=${llmEngine.value.code}",
             "llm-gpt4all-model=${llmGpt4AllModel.value}",
             "llm-openai-url=${llmOpenAiUrl.value}",
@@ -249,11 +253,16 @@ class VoiceAssistant: PluginBase() {
          },
       )
       .noPersist().readOnly().butElement { uiConverter { "${it.name} -> ${it.commandUi}" } }
-      .def(name = "Commands", info = "Shows active voice speech recognition commands. Matched in order.")
+      .def(
+         name = "Commands",
+         info = "Shows active voice speech recognition commands.\n Matched in order.\n '?' means optional word. '|' means alternative word."
+      )
 
    /** [handlers] help text */
    private fun handlersHelpText(): String =
-         handlers.mapIndexed { i, h -> "\n$i. ${h.name}, activate by saying ${h.commandUi}" }.joinToString("", prefix = "Here is list of currently active commands:")
+      handlers
+         .mapIndexed { i, h -> "\n$i. ${h.name}, activate by saying ${h.commandUi}" }
+         .joinToString("", prefix = "Here is list of currently active commands:")
 
    /** Last spoken text - writable */
    private val speakingTextW = vn<String>(null)
@@ -293,7 +302,7 @@ class VoiceAssistant: PluginBase() {
    val onLocalInput = Handler1<String>()
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
-   val wakeUpWord by cv("spit")
+   val wakeUpWord by cv("system")
       .def(name = "Wake up word", info = "Words or phrase that activates voice recognition. Case-insensitive.")
 
    /** Engine used to generate voice. May require additional configuration */
@@ -312,12 +321,37 @@ class VoiceAssistant: PluginBase() {
 
    /** Access token for character.ai account used when speech engine is Character.ai */
    val speechEngineCharAiToken by cvn<String>(null).password()
-      .def(name = "Speech engine > character.ai > token", info = "Access token for character.ai account used when speech engine is Character.ai")
+      .def(
+         name = "Speech engine > character.ai > token",
+         info = "Access token for character.ai account used when using ${SpeechEngine.CHARACTER_AI.nameUi} speech engine"
+      )
 
    /** Access token for character.ai account used when speech engine is Character.ai */
    val speechEngineCoquiVoice by cv("Ann_Daniels.flac")
       .valuesUnsealed { (dir / "voices-coqui").children().filter { it.isAudio() }.map { it.name }.toList() }
-      .def(name = "Speech engine > coqui > voice", info = "Sample file of the voice to be used. User can add more audio samples to ${(dir / "voices-coqui").absolutePath}. Should be 3-10s long.")
+      .def(
+         name = "Speech engine > coqui > voice",
+         info = "" +
+            "Voice when using ${SpeechEngine.COQUI.nameUi} speech engine. " +
+            "Sample file of the voice to be used. User can add more audio samples to ${(dir / "voices-coqui").absolutePath}. " +
+            "Should be 3-10s long."
+      )
+
+   /** Speech server address and port to connect to. */
+   val speechEngineHttpUrl by cv("localhost:1235")
+      .def(
+         name = "Speech engine > http > url",
+         info = "Speech server address and port to connect to when using ${SpeechEngine.HTTP.nameUi} speech engine."
+      )
+
+   /** Whether http server providing speech generation should be started. The server will use coqui speech engine. */
+   val speechServer by cv(false)
+      .def(name = "Speech server",
+         info = "Whether http server providing speech generation should be started. The server will use coqui speech engine")
+
+   /** Speech server address and port. */
+   val speechServerUrl by cv("0.0.0.0:1235")
+      .def(name = "Speech server > url", info = "Speech server address and port.")
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
    val speechBlacklistWords by cList("a", "the", "please")
@@ -419,7 +453,9 @@ class VoiceAssistant: PluginBase() {
       startSpeechRecognition()
 
       val processChangeVals = listOf<V<*>>(
-         wakeUpWord, micName, whisperModel, speechEngine, speechEngineCharAiToken, llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel
+         wakeUpWord, micName, whisperModel,
+         speechEngine, speechEngineCharAiToken, speechEngineHttpUrl, speechServer, speechServerUrl,
+         llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
       )
       val processChange = processChangeVals.map { it.chan() }.reduce { a, b -> a + b }
       processChange.throttleToLast(2.seconds).subscribe { restart() } on onClose
@@ -525,6 +561,7 @@ class VoiceAssistant: PluginBase() {
       SYSTEM("os", "System", "System voice. Fully offline"),
       CHARACTER_AI("character-ai", "Character.ai", "Voice using www.character.ai. Requires free account and access token"),
       COQUI("coqui", "Coqui", "Voice using huggingface.co/coqui/XTTS-v2. Fully offline"),
+      HTTP("http", "Http server", "Voice using different instance of this application with speech server enabled"),
    }
 
    enum class LlmEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {

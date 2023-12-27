@@ -1,6 +1,8 @@
 import os
-from threading import Thread
+import time
 import asyncio
+import traceback
+from threading import Thread
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_dir_cache import cache_file
 from util_write_engine import Writer
@@ -37,6 +39,7 @@ class Tty:
         self.tty.skip()
 
     def skippable(self, event: str):
+        self.write('SYS: ' + event)
         self(iter(map(lambda x: x + ' ', event.split(' '))))
 
     def repeatLast(self):
@@ -297,18 +300,74 @@ class TtyCharAi(TtyBase):
 
 # https://pypi.org/project/TTS/
 class TtyCoqui(TtyBase):
-    def __init__(self, voice: str, play: SdActor, write: Writer):
+    def __init__(self, voice: str, serverHost: str | None, serverPort: int | None, play: SdActor, write: Writer):
         super().__init__()
         self.speed = 1.0
         self.voice = voice
         self._voice = voice
+        self.serverHost = serverHost
+        self.serverPort = serverPort
         self.play = play
         self.write = write
         self.model: Xtts | None = None
+        self.loaded = False
+        self.server: HTTPServer = None
 
     def start(self):
         Thread(name='TtyCoqui', target=self._loop, daemon=True).start()
+        Thread(name='TtyCoqui-http', target=self._http, daemon=True).start()
         self.play.start()
+
+    def _http(self):
+        if self.serverHost is None: return
+        tty = self
+        try:
+            import torch
+            import numpy
+            from http.server import BaseHTTPRequestHandler, HTTPServer
+
+            def waitTillLoaded():
+                while self.loaded is False:
+                    if self._stop: return
+                    time.sleep(0.1)
+
+            def gen(text):
+                return self.model.inference_stream(text, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
+
+            class MyRequestHandler(BaseHTTPRequestHandler):
+                def do_POST(self):
+                    if tty._stop: return
+                    try:
+                        content_length = int(self.headers['Content-Length'])
+                        body = self.rfile.read(content_length)
+                        text = body.decode('utf-8')
+
+                        waitTillLoaded()
+                        if tty._stop: self.wfile.close()
+
+                        self.send_response(200)
+                        self.send_header('Content-type', 'application/octet-stream')
+                        self.end_headers()
+
+                        # for audio_chunk in gen(text):
+                        for audio_chunk in gen(text):
+                            if tty._stop: self.wfile.close()
+                            if not self.wfile.closed:
+                                self.wfile.write(audio_chunk.cpu().numpy().tobytes())
+                                self.wfile.flush()
+                    except Exception as e:
+                        self.write("ERR: error generating voice for http " + str(e))
+                        traceback.print_exc()
+
+            self.write("RAW: Speech server starting...")
+            self.server = HTTPServer((self.serverHost, self.serverPort), MyRequestHandler)
+            self.server.serve_forever()
+            self.write("RAW: Speech server started")
+
+        except Exception as e:
+            self.write("ERR: error " + str(e))
+            traceback.print_exc()
+
 
     def _loop(self):
         # initialize torch
@@ -356,6 +415,7 @@ class TtyCoqui(TtyBase):
                 self.model.load_checkpoint(config, checkpoint_dir=dir, use_deepspeed=False)
                 self.model.cuda()
                 loadVoice()
+                self.loaded = True
             except Exception:
                 self.write("ERR: Failed to load TTS model")
 
@@ -386,21 +446,95 @@ class TtyCoqui(TtyBase):
                 consumer, audio_chunks_play, audio_chunks_cache = teeThreadSafeEager(audio_chunks, 2)
 
                 # play
-                self.play.playWavChunk(map(lambda x: x.squeeze().cpu().numpy(), audio_chunks_play), skippable)
+                self.play.playWavChunk(map(lambda x: x.cpu().numpy(), audio_chunks_play), skippable)
                 consumer()
 
                 # update cache
-                if cache_used:
+                if cache_used and text:
                     audio_chunks_all = []
                     for audio_chunk in audio_chunks_cache:
                         audio_chunks_all.append(audio_chunk)
 
                     wav = torch.cat(audio_chunks_all, dim=0)
-                    torchaudio.save(audio_file, wav.squeeze().unsqueeze(0).cpu(), 24000)
-
+                    try: torchaudio.save(audio_file, wav.squeeze().unsqueeze(0).cpu(), 24000)
+                    except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
             else:
                 self.play.playFile(audio_file, skippable)
 
+
+    def _boundary(self):
+        self.play.boundary()
+
+    def skip(self):
+        super().skip()
+        self.play.skip()
+
+    def stop(self):
+        super().stop()
+        if self.server is not None: self.server.shutdown()
+        self.play.stop()
+
+
+class TtyHttp(TtyBase):
+    def __init__(self, url: str, port: int, play: SdActor, write: Writer):
+        super().__init__()
+        self.url = url
+        self.port = port
+        self.play = play
+        self.write = write
+
+    def start(self):
+        Thread(name='TtyHttp', target=self._loop, daemon=True).start()
+        self.play.start()
+
+    def _loop(self):
+        # initialize http
+        try:
+            import http.client
+            import io
+            import numpy
+        except ImportError:
+            self.write("ERR: http python module failed to load")
+            return
+
+        # loop
+        while not self._stop:
+            text, skippable = self.get_next_element()
+
+            try:
+                text = text.encode('utf-8')
+                conn = http.client.HTTPConnection(self.url, self.port)
+                conn.request('POST', '/', text, {})
+                response = conn.getresponse()
+
+                def read_wav_chunks_from_response(response):
+                    chunk_size = 1024*(numpy.zeros(1, dtype=numpy.float32).nbytes)  # Adjust the chunk size as needed
+                    buffer = io.BytesIO()
+                    for chunk in response:
+                        if self._skip: conn.close()
+                        buffer.write(chunk)
+                        while buffer.tell() >= chunk_size:
+                            if self._skip: conn.close()
+                            buffer.seek(0)
+                            wav_data = buffer.read(chunk_size)
+                            remaining_data = buffer.read()
+                            buffer.seek(0)
+                            buffer.write(remaining_data)
+                            yield numpy.frombuffer(wav_data, dtype=numpy.float32)
+                        buffer.truncate(buffer.tell())
+                    if buffer.tell() > 0:
+                        buffer.seek(0)
+                        wav_data = buffer.read()
+                        yield numpy.frombuffer(wav_data, dtype=numpy.float32)
+
+                audio_chunks = read_wav_chunks_from_response(response)
+                consumer, audio_chunks = teeThreadSafeEager(audio_chunks, 1)
+                self.play.playWavChunk(audio_chunks, skippable)
+                consumer()
+                conn.close()
+            except Exception as e:
+                self.write("ERR: Failed to generate audio " + str(e))
+                traceback.print_exc()
 
     def _boundary(self):
         self.play.boundary()

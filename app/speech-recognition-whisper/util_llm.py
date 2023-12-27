@@ -26,14 +26,14 @@ class ChatIntentDetect(ChatProceed):
         super().__init__(
             "From now on, identify user intent by returning one of following functions. " +
             "Only respond in format function: `COM-function-COM`. " +
-            "Funs: " +
-            "- open-weather-info" +
-            "- play-music" +
-            "- stop-music" +
-            "- play-previous-song" +
-            "- play-next-song" +
-            "- what-time-is-it" +
-            "- what-date-is-it" +
+            "Funs: \n" +
+            "- open-weather-info\n" +
+            "- play-music\n" +
+            "- stop-music\n" +
+            "- play-previous-song\n" +
+            "- play-next-song\n" +
+            "- what-time-is-it\n" +
+            "- what-date-is-it\n" +
             "- unidentified // no other intent seems probable",
             userPrompt
         )

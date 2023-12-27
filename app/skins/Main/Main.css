@@ -1336,7 +1336,7 @@ TextFlow > * {
 .tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected,
 .table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
 .tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
-    -fx-background-color: rgba(0, 0, 0, 0.2);
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(22, 44, 88, 0.5) 50%, transparent 100%);
     -fx-text-fill: -skin-sel-font-color;
 }
 /* Selected when control is not focused */

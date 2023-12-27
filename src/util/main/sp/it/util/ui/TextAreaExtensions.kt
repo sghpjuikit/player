@@ -58,10 +58,8 @@ var TextArea.isNewlineOnShiftEnter: Boolean
    get() = properties["newlineOnEnter"].asIf<Boolean>() ?: false
    set(value) = properties.put("newlineOnEnter", value).toUnit()
 
-
 /** @return new observable property representing whether this text area contains single unwrapped line */
 @Experimental("may not work correctly")
 fun TextArea.singLineProperty() = wrapTextProperty() zip textProperty() zip2 widthProperty() map { (wrap, t, width) ->
-   println(font)
    (t ?: "").lengthInLines>1 || (wrap && computeTextWidth(font, t ?: "") > width.toDouble()-padding.width)
 }

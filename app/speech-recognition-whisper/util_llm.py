@@ -224,6 +224,7 @@ class LlmHttpOpenAi(LlmBase):
                         if isCommand:
                             command = text.strip().lstrip("COM-").rstrip("-COM").strip()
                             command = command.replace('-', ' ')
+                            command = command.replace('unidentified', e.userPrompt)
                             commandIterator.put(command)
 
                     self.generating = False

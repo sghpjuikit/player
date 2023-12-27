@@ -824,7 +824,7 @@ TextFlow > * {
 .text-area .content,
 .text-area:hover .content,
 .text-area:focused .content {
-    -fx-padding: 0.5em 0em -0.5em 0em;
+    -fx-padding: 0.5em 0em 0em 0em;
 }
 
 /********************************* TextArea ***********************************
@@ -1346,7 +1346,8 @@ TextFlow > * {
 .tree-table-row-cell:filled:selected,
 .table-row-cell:filled > .table-cell:selected,
 .tree-table-row-cell:filled > .tree-table-cell:selected {
-    -fx-background-color: rgba(0, 0, 0, 0.2);
+    -fx-background-color: rgba(111, 111, 111, 0.1);
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(22, 33, 54, 1) 50%, transparent 100%);
     -fx-text-fill: -skin-sel-font-color;
 }
 /* focused cell (keyboard navigation) */
@@ -2177,12 +2178,8 @@ TextFlow > * {
  */
 .window {
     -fx-background-color: -skin-window-bgr-color;
-    -fx-border-width: 1;
+    -fx-border-width: 0;
     -fx-border-radius: 0em;
-    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, derive(-skin-def-font-color, -50%) 50%, transparent 100%);
-}
-.window:focus-within {
-    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
 }
 .window:hover {}
 .window:resized {}

@@ -30,7 +30,7 @@ class AppInstanceCom() {
    fun fireNewInstanceEvent(args: List<String>): Unit =
       runBlocking(NEW) {
          logger.info { "Sending NewAppInstance($args)" }
-         APP.http.client.post("127.0.0.1:${APP.http.url.port}$api") { bodyJs(args) }
+         APP.http.client.post("http://127.0.0.1:${APP.http.url.port}$api") { bodyJs(args) }
       }
 
    /** Handles received new app instance event */

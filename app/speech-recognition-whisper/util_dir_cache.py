@@ -3,12 +3,8 @@ import os
 
 
 def sanitize_filename(text):
-    # Remove any characters that are not alphanumeric, underscore, or whitespace
-    sanitized_text = re.sub(r'[^\w\s]', '', text)
-    # Split the text into words
-    words = sanitized_text.split()
-    # Join the words with hyphens
-    sanitized_text = '-'.join(words)
+    # Remove any characters that are not alphanumeric
+    sanitized_text = re.sub(r'[^a-zA-Z0-9]', '-', text).strip('-')
     # Convert to lowercase
     sanitized_text = sanitized_text.lower()
 

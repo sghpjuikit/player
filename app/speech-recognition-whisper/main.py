@@ -222,6 +222,7 @@ else:
     speakEngine = TtyNone()
 speak = Tty(speakOn, speakEngine, write)
 
+
 # llm actor, non-blocking
 llm = LlmNone(speak, write)
 if llmEngine == 'none':
@@ -253,15 +254,31 @@ class AssistChat:
         mic.set_pause_threshold_talk()
     def __call__(self, text: str, textSanitized: str):
         # announcement
-        if len(text) == 0: speak('Yes, conversation is ongoing')
+        if len(text) == 0: speak('Yes, we are talking')
         # do help
         elif text == "help":
-            speak("Yes, we are in the middle of a conversation. Simply speak to me. To end the conversation, say stop, or end.")
-        # end
-        elif text.startswith("stop") or text.startswith("end"):
+            speak(
+                "Yes, we are in the middle of a conversation. Simply speak to me. "
+                "To end the conversation, say stop, or end conversation."
+                "To restart the conversation, say restart or reset conversation."
+                "To cancel ongoing reply, say okey, whatever or stop."
+            )
+        # cancel
+        elif text == "ok" or text == "okey" or text == "whatever" or text == "stop":
+            speak.skip()
+            llm.generating = False
+        # restart
+        elif text == "restart" or text == "reset" or text == "restart conversation" or text == "reset conversation":
+            speak.skip()
             llm.generating = False
             llm(ChatStop())
+            llm(ChatStart())
+            speak("Ok")
+        # end
+        elif text.startswith("stop") or text.startswith("end"):
             speak.skip()
+            llm.generating = False
+            llm(ChatStop())
             speak("Ok")
             mic.set_pause_threshold_normal()
             global assist
@@ -319,7 +336,7 @@ class AssistStandard:
             else: assist = AssistChat()
 
         # start en vocab excersize
-        elif text == "start english vocabulary excersize":
+        elif text == "start english vocabulary exercise":
             if isinstance(llm, LlmHttpOpenAi): assist = AssistEnVocab()
             else: speak('No supporting conversation model is loaded. Use OpenAI chat engine.')
 
@@ -365,8 +382,8 @@ def callback(text):
     assist_last_at = time.time()
 
     # sanitize
-    textSanitized = textSanitized.lstrip(wake_word).lstrip(",").rstrip(".").strip()
-    text = text.lstrip(wake_word).lstrip(",").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
+    textSanitized = textSanitized.lstrip(wake_word).strip().lstrip(",").lstrip(".").rstrip(".").strip()
+    text = text.lstrip(wake_word).strip().lstrip(",").lstrip(".").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
 
     # cancel any ongoing activity
     if llm.generating: llm.generating = False
@@ -375,7 +392,7 @@ def callback(text):
 
     # handle by active assistant state
     try:
-        write(f'USER: {name}, ' + text)
+        write(f'USER: {name}' + (', ' + text if len(text)>0 else ''))
         if text == "repeat": speak.repeatLast()
         else: assist(text, textSanitized)
     except Exception as e:

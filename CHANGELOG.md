@@ -14,7 +14,11 @@ All notable changes to this project will be documented in this file. Format base
 - Implement app http server settings
 - Implement app http `/audio` API
 - Implement app http `/speech` API
-- Implement find largest files action
+- Implement find largest/latest files action
+- Implement more java.time ui converters
+- Implement better text area scroll to bottom behavior
+- Implement better newline handling for text areas
+- Implement tree row copy for strings
 - Improve thread use (`Default` dispatcher avoids allocating threads)
 - Improve thread use (use virtual threads in more situations)
 - Improve app start performance (make `CoreFunctors` lazy)
@@ -29,8 +33,9 @@ All notable changes to this project will be documented in this file. Format base
 - Fix errors reading audio metadata for non audio files
 - Fix `ScrollPaneSkin` orientation handling
 - Fix missing table skin in `Main.css`
-- Fix styling issues (ScrollBar)
+- Fix styling issues (ScrollBar, TextArea)
 - Fix issues with generic table with some classes
+- Fix settings search results when group contains keyword
 
 ## Voice Assistant
 This update is all about adopting AI functionalities.
@@ -42,6 +47,7 @@ Primarily, the goal is to allow voice control, but the plugin already supports m
   - More commands, easier commands, better help command
   - Chat session (remembers previous messages)
   - Voice recognition on different PC (experimental UX).
+  - progress indicator
 - Easier installation
   - Lazy usage of python modules
 - Easier integration

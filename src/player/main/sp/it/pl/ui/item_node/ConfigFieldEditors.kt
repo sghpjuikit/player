@@ -207,7 +207,9 @@ import sp.it.util.ui.listView
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.pseudoClassChanged
+import sp.it.util.ui.singLineProperty
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.styleclassToggle
 import sp.it.util.ui.text
 import sp.it.util.ui.textFlow
 import sp.it.util.ui.vBox
@@ -1259,10 +1261,18 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.promptText = c.nameUi
 
+      // multiline
+      editor.asIf<TextArea>().ifNotNull { area ->
+         area.isWrapText = true
+         area.prefRowCount = isMultilineRows ?: editor.text.lengthInLines.clip(1, 10)
+         area.singLineProperty() sync {
+            area.styleclassToggle("text-area-singlelined", !it)
+            area.prefRowCount = if (it) isMultilineRows ?: editor.text.lengthInLines.clip(1, 10) else 1
+         }
+      }
+
       // value
       editor.text = converterRaw(config.value)
-      editor.asIf<TextArea>()?.isWrapText = true
-      editor.asIf<TextArea>()?.prefRowCount = isMultilineRows ?: editor.text.lengthInLines.clip(1, 10)
       obv?.attach { refreshValue() } on disposer
       obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() } } on disposer
       editor.focusedProperty() attachFalse  { refreshValue() } on disposer

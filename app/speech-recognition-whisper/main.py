@@ -250,6 +250,7 @@ class AssistChat:
         # start
         llm(ChatStart())
         speak('Conversing')
+        mic.set_pause_threshold_talk()
     def __call__(self, text: str, textSanitized: str):
         # announcement
         if len(text) == 0: speak('Yes, conversation is ongoing')
@@ -262,6 +263,7 @@ class AssistChat:
             llm(ChatStop())
             speak.skip()
             speak("Ok")
+            mic.set_pause_threshold_normal()
             global assist
             assist = assistStand
         # normal

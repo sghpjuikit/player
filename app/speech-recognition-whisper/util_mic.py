@@ -39,15 +39,22 @@ class Mic:
         self.micName = micName
         self.micEnergy = 120
         self.micEnergyDebug = micEnergyDebug
+        self.pause_threshold = 0.5
         self.micOn = micOn
         self._stop = False
+
+    def set_pause_threshold_normal(self):
+        self.pause_threshold = 0.5
+
+    def set_pause_threshold_talk(self):
+        self.pause_threshold = 2.0
 
     def start(self):
         Thread(name='Mic', target=self._loop, daemon=True).start()
 
     def _loop(self):
         r = Recognizer()
-        r.pause_threshold = 0.8
+        r.pause_threshold = self.pause_threshold
         r.phrase_threshold = 0.3
         r.energy_threshold = self.micEnergy
         r.dynamic_energy_threshold = False # does not work that well, instead we provide self.micEnergyDebug
@@ -114,6 +121,7 @@ class Mic:
 
                         # listen to mic
                         try:
+                            r.pause_threshold = self.pause_threshold
                             audio_data = r.listen(source, timeout=1)
 
                             # speech recognition

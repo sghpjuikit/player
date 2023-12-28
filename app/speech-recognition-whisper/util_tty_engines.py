@@ -356,7 +356,7 @@ class TtyCoqui(TtyBase):
                                 self.wfile.write(audio_chunk.cpu().numpy().tobytes())
                                 self.wfile.flush()
                     except Exception as e:
-                        self.write("ERR: error generating voice for http " + str(e))
+                        tty.write("ERR: error generating voice for http " + str(e))
                         traceback.print_exc()
 
             self.write("RAW: Speech server starting...")

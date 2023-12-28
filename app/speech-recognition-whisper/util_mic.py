@@ -173,8 +173,7 @@ class Whisper:
             continue
 
         modelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-whisper")
-        if not os.path.exists(modelDir):
-            os.makedirs(modelDir)
+        if not os.path.exists(modelDir): os.makedirs(modelDir)
         model = whisper.load_model(self.model, download_root=modelDir, in_memory=True)
         warnings.filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
 

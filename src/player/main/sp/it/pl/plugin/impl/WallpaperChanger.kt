@@ -14,10 +14,12 @@ import sp.it.util.async.runVT
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.only
+import sp.it.util.dev.printStacktrace
 import sp.it.util.file.FileType.FILE
 import sp.it.util.reactive.Subscribed
 import sp.it.util.system.Os
 import sp.it.util.system.Windows
+import sp.it.util.type.volatile
 import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.units.uuid
@@ -25,9 +27,10 @@ import sp.it.util.units.uuid
 class WallpaperChanger: PluginBase() {
 
    private val wallpaperImageW = vn<Image>(null)
+   private var isRunning by volatile(false)
+   private val cacheId = uuid("e37ac005-4be3-4241-b81d-ba19dc376857")
    val wallpaperImage = wallpaperImageW.readOnly()
    val wallpaperFile by cvn<File>(null).only(FILE).def(name = "Wallpaper file") sync ::load
-   val cacheId = uuid("e37ac005-4be3-4241-b81d-ba19dc376857")
    val menuItemInjector = Subscribed {
       APP.contextMenus.menuItemBuilders.add<File> {
          if (value.isImage()) {
@@ -39,9 +42,10 @@ class WallpaperChanger: PluginBase() {
    }
 
    private fun load(f: File?) {
+      printStacktrace()
       val size = largestScreenSize()
       runVT {
-         if (f!=null) Windows.changeWallpaper(f)
+         if (f!=null && isRunning) Windows.changeWallpaper(f)
          ImageStandardLoader.memoized(cacheId)(f, size, OUTSIDE, true)
       } ui {
          wallpaperImageW.value = it
@@ -50,9 +54,11 @@ class WallpaperChanger: PluginBase() {
 
    override fun start() {
       menuItemInjector.subscribe()
+      isRunning = true
    }
 
    override fun stop() {
+      isRunning = false
       menuItemInjector.unsubscribe()
       wallpaperImageW.value = null
    }

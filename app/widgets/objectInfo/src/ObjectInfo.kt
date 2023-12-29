@@ -30,11 +30,14 @@ import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.ObjectDetail
 import sp.it.pl.layout.feature.Opener
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
+import sp.it.pl.main.Widgets
+import sp.it.pl.main.Widgets.OBJECT_INFO
 import sp.it.pl.main.computeDataInfoUi
 import sp.it.pl.main.detectContent
 import sp.it.pl.main.emScaled
@@ -79,7 +82,7 @@ import sp.it.util.ui.x
 import sp.it.util.units.version
 import sp.it.util.units.year
 
-class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
+class ObjectInfo(widget: Widget): SimpleController(widget), Opener, ObjectDetail {
    private val inputItems = io.i.create("To display", null, ::open)
    private val infoPane = ScrollPane()
    private val info = VBox()
@@ -158,6 +161,8 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
    fun openAndDetect(data: Any?, detectContent: Boolean) =
       open(if (detectContent) data.detectContent() else data)
 
+   override fun showDetail(data: Any?) = open(data)
+
    override fun open(data: Any?) {
       val d = collectionUnwrap(data)
       val id = openId.incrementAndGet()
@@ -233,7 +238,7 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
    override fun focus() = Unit
 
    companion object: WidgetCompanion, KLogging() {
-      override val name = "Object Info"
+      override val name = "ObjectInfo"
       override val description = "Displays information about or preview of an object"
       override val descriptionLong = "$description."
       override val icon = IconUN(0x2e2a)

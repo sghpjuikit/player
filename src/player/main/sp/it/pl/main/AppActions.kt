@@ -1,6 +1,5 @@
 package sp.it.pl.main
 
-import com.drew.imaging.ImageMetadataReader
 import com.twelvemonkeys.image.ResampleOp
 import java.io.File
 import java.net.URISyntaxException
@@ -16,15 +15,13 @@ import javafx.scene.paint.Color.BLACK
 import javafx.stage.Screen
 import javax.imageio.ImageIO
 import mu.KLogging
-import org.jaudiotagger.tag.wav.WavTag
 import sp.it.pl.audio.Song
-import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.layout.ComponentLoader.WINDOW_FULLSCREEN
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.controller.Controller
 import sp.it.pl.layout.feature.ImageDisplayFeature
-import sp.it.pl.layout.feature.TextDisplayFeature
+import sp.it.pl.layout.feature.ObjectDetail
 import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.objects.MdNode
@@ -71,7 +68,6 @@ import sp.it.util.conf.readOnly
 import sp.it.util.conf.values
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.fail
-import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.creationTime
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
@@ -85,12 +81,10 @@ import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
-import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
-import sp.it.util.functional.runTry
 import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -380,45 +374,12 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   val printAllImageFileMetadata = action<File>("Show image metadata", "Show image metadata", IconFA.INFO, BLOCK, { it.isImage() }) {
-      val title = "File:" + it.path
-      val text = runTry {
-         title + ImageMetadataReader.readMetadata(it).directories.joinToString { "\nName: ${it.name}" + it.tags.joinToString { "\n\t$it" } }
-      }.getOrSupply {
-         "$title\n${it.stacktraceAsString}"
-      }
-      runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
+   val printAllAudioMetadata = action<Song>("Show metadata", "Show metadata", IconFA.INFO) {
+      APP.widgetManager.widgets.use<ObjectDetail>(NEW) { w -> w.showDetail(it) }
    }
 
-
-   val printAllAudioMetadata = action<Song>("Show metadata", "Show metadata", IconFA.INFO, BLOCK) {
-      if (it.isFileBased()) {
-         printAllAudioFileMetadata(this, it.getFile()!!)
-      } else {
-         val text = "Metadata of ${it.uri}\n<only supported for files>"
-         runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
-      }
-   }
-
-   val printAllAudioFileMetadata = action<File>("Show audio metadata", "Show audio metadata", IconFA.INFO, BLOCK, { it.isAudio() }) {
-      val title = "File:${it.path}"
-      val content = it.readAudioFile().map {
-            if (it==null) return@map ""
-            val (header, tag) = it.audioHeader to it.tag
-            "\nHeader %s:\n%s\nTag%s:%s".format(
-               "(" + header::class.toUi() + ")",
-               header.toString().lineSequence().map { it.trimStart() }.joinToString("\n\t"),
-               when (tag) {
-                  null -> ""
-                  is WavTag -> " (" + tag.activeTag::class.toUi() + ")"
-                  else -> " (" + tag::class.toUi() + ")"
-               },
-               tag?.net { it.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" } } ?: " <none>"
-            )
-         }
-         .getOrSupply { "\n${it.stacktraceAsString}" }
-      val text = title + content
-      runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
+   val printMetadata = action<File>("Show metadata", "Show metadata", IconFA.INFO) {
+      APP.widgetManager.widgets.use<ObjectDetail>(NEW) { w -> w.showDetail(it) }
    }
 
    val openMarkdownFile = action<File>("Open markdown", "Opens markdown file.", IconOC.MARKDOWN, constriction = { it hasExtension MimeExt.md }) { mdFile ->

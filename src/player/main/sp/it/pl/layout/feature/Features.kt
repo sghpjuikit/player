@@ -66,6 +66,12 @@ interface PlaylistFeature {
    val playlist: Playlist
 }
 
+@Feature(name = "Detail", description = "Shows details about the object ", type = Opener::class)
+interface ObjectDetail {
+   /** Shows details about the object */
+   fun showDetail(data: Any?)
+}
+
 @Feature(name = "Opener", description = "Capable of opening any data ", type = Opener::class)
 interface Opener {
    /**

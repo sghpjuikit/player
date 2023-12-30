@@ -341,24 +341,38 @@ class TtyCoqui(TtyBase):
                         content_length = int(self.headers['Content-Length'])
                         body = self.rfile.read(content_length)
                         text = body.decode('utf-8')
+                        audio_file, audio_file_exists, cache_used = tty._cache_file_try(text)
 
-                        waitTillLoaded()
-                        if tty._stop: self.wfile.close()
-
-                        self.send_response(200)
-                        self.send_header('Content-type', 'application/octet-stream')
-                        self.end_headers()
-
-                        # for audio_chunk in gen(text):
-                        for audio_chunk in gen(text):
+                        # generate
+                        if not cache_used or not audio_file_exists:
+                            waitTillLoaded()
                             if tty._stop: self.wfile.close()
-                            if not self.wfile.closed:
-                                self.wfile.write(audio_chunk.cpu().numpy().tobytes())
-                                self.wfile.flush()
+
+                            self.send_response(200)
+                            self.send_header('Content-type', 'application/octet-stream')
+                            self.end_headers()
+
+                            # generate
+                            audio_chunks = []
+                            for audio_chunk in gen(text):
+                                audio_chunks.append(audio_chunk)
+                                if tty._stop: self.wfile.close()
+                                if not self.wfile.closed:
+                                    self.wfile.write(audio_chunk.cpu().numpy().tobytes())
+                                    self.wfile.flush()
+
+                            # update cache
+                            if cache_used and text:
+                                wav = torch.cat(audio_chunks, dim=0)
+                                try: torchaudio.save(audio_file, wav.squeeze().unsqueeze(0).cpu(), 24000)
+                                except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
+
+                        else:
+                            self.wfile.write()
+                            self.play.playFile(audio_file, skippable)
                     except Exception as e:
                         tty.write("ERR: error generating voice for http " + str(e))
                         traceback.print_exc()
-
             self.write("RAW: Speech server starting...")
             self.server = HTTPServer((self.serverHost, self.serverPort), MyRequestHandler)
             self.server.serve_forever()
@@ -413,7 +427,7 @@ class TtyCoqui(TtyBase):
                 config.load_json(os.path.join(dir, 'config.json'))
                 self.model = Xtts.init_from_config(config)
                 self.model.load_checkpoint(config, checkpoint_dir=dir, use_deepspeed=False)
-                self.model.cuda()
+                self.model.cuda(1)
                 loadVoice()
                 self.loaded = True
             except Exception:
@@ -426,13 +440,7 @@ class TtyCoqui(TtyBase):
         # loop
         while not self._stop:
             text, skippable = self.get_next_element()
-
-            self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "coqui", self.voice.replace('.','-'))
-            if not os.path.exists(self.cache_dir):
-                os.makedirs(self.cache_dir)
-
-            audio_file, audio_file_exists = cache_file(text, self.cache_dir)
-            cache_used = len(text) < 100
+            audio_file, audio_file_exists, cache_used = self._cache_file_try(text)
 
             # generate
             if not cache_used or not audio_file_exists:
@@ -451,16 +459,25 @@ class TtyCoqui(TtyBase):
 
                 # update cache
                 if cache_used and text:
-                    audio_chunks_all = []
+                    audio_chunks = []
                     for audio_chunk in audio_chunks_cache:
-                        audio_chunks_all.append(audio_chunk)
+                        audio_chunks.append(audio_chunk)
 
-                    wav = torch.cat(audio_chunks_all, dim=0)
+                    wav = torch.cat(audio_chunks, dim=0)
                     try: torchaudio.save(audio_file, wav.squeeze().unsqueeze(0).cpu(), 24000)
                     except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
             else:
                 self.play.playFile(audio_file, skippable)
 
+    def _cache_file_try(self, text: str) -> (str, bool, bool):
+        # compute cache dir
+        self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "coqui", self.voice.replace('.','-'))
+        # prepare cache dir
+        if not os.path.exists(self.cache_dir): os.makedirs(self.cache_dir)
+        # compute cache file
+        audio_file, audio_file_exists = cache_file(text, self.cache_dir)
+        cache_used = len(text) < 100
+        return (audio_file, audio_file_exists, cache_used)
 
     def _boundary(self):
         self.play.boundary()

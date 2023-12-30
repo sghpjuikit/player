@@ -108,7 +108,7 @@
 - [ ] [KT-54348](https://youtrack.jetbrains.com/issue/KT-54348) False positive: "Inappropriate blocking method call" with coroutines and Dispatchers.IO.invoke
   reported, open
 - [ ] [OSHII-2016](https://github.com/oshi/oshi/pull/2016/files) Disabled performance counters check failing
-  reported, worked around by enabling the counters on app startup using `OshiCore::class`
+  reported, worked around by enabling the counters on app startup using `CoreOshi::class`
 - [x] [694](https://github.com/haraldk/TwelveMonkeys/issues/694) Incorrect subSampling out put for bmp image  
   fixed
 - [x] [695](https://github.com/haraldk/TwelveMonkeys/issues/695) No image reader for some webp images  

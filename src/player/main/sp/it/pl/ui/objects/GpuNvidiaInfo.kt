@@ -11,6 +11,7 @@ import javafx.scene.layout.VBox
 import javafx.scene.text.Text
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.invoke
 import oshi.SystemInfo
 import oshi.hardware.CentralProcessor
 import sp.it.pl.main.APP
@@ -22,6 +23,7 @@ import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.vn
 import sp.it.util.async.coroutine.VT
+import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.await
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.coroutine.toSubscription
@@ -74,7 +76,7 @@ class GpuNvidiaInfo: StackPane() {
    private var gpusInitialized by volatile(false)
    private var gpuCount by volatile(0)
    private var gpu = AtomicInteger(0)
-   private val gpuChangeLabel = Icon(IconFA.CARET_LEFT).onClickDo {
+   private val gpuChangeLabel = Icon(IconFA.EXCHANGE).onClickDo {
       gpu.updateAndGet { (it+1) toMod gpuCount }
       updateGpuOnce().toSubscription() on this@GpuNvidiaInfo.onNodeDispose
    }
@@ -166,7 +168,7 @@ class GpuNvidiaInfo: StackPane() {
 
             oldTicks = sysInfoCpu.systemCpuLoadTicks
 
-            runFX {
+            FX {
                cpuLabel.text = "CPU: $cpuNameVal"
                cpuLoad update cpuLoadVal
                cpuClock update cpuClockVal
@@ -219,7 +221,7 @@ class GpuNvidiaInfo: StackPane() {
             .thenRecoverNull().await()
       }
 
-      runFX {
+      FX {
          val valuesRaw = v?.net { it.trim().splitTrimmed(",") } ?: tabulate0(12) { "n/a" }.toList()
          fun valueOnly(i: Int) = valuesRaw[i].trim().takeWhile { it.isDigit() }
          fun valueOutOf(i: Int) = v?.net { valueOnly(i) + "/" + valuesRaw[i + 1].trim() } ?: "n/a"

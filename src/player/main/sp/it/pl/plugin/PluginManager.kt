@@ -20,6 +20,7 @@ import sp.it.util.Locatable
 import sp.it.util.access.vn
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.materialize
+import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource.Companion.SimpleConfigValueStore
 import sp.it.util.conf.Configurable
@@ -209,7 +210,7 @@ open class PluginBase: SimpleConfigValueStore<Any?>(), Configurable<Any?>, Confi
    val description = info.description
    override val configurableGroupPrefix: String? = "${AppSettings.plugins.name}.${info.name}"
    override val configurableValueSource = this
-
+   override fun initialize(config: Config<*>) = APP.configurableValueSource.initialize(config)
    /** Invoked on JavaFX application thread. */
    open fun start() = Unit
    /** Invoked on JavaFX application thread. */

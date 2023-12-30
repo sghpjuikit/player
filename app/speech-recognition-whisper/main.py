@@ -13,7 +13,8 @@ from util_play_engine import SdActor
 from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui, TtyHttp
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatStop
-from util_mic import Mic, Whisper
+from util_mic import Mic
+from util_s2t import Whisper
 from util_write_engine import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
 
@@ -395,6 +396,9 @@ class AssistStandard:
 assistStand = AssistStandard()
 assist = assistStand
 
+def skip():
+    if llm.generating: llm.generating = False
+    speak.skip()
 
 def callback(text):
     if terminating: return
@@ -418,9 +422,7 @@ def callback(text):
     text = text.lstrip(wake_word).strip().lstrip(",").lstrip(".").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
 
     # cancel any ongoing activity
-    if llm.generating: llm.generating = False
-    speak.skip()
-
+    skip()
 
     # handle by active assistant state
     try:
@@ -467,8 +469,8 @@ def install_exit_handler():
     signal.signal(signal.SIGABRT, stop)
 
 
-whisper = Whisper(callback, micOn, speechRecognitionModelName)
-mic = Mic(None if len(micName)==0 else micName, micOn, whisper.queue, speak, write, micEnergy, micEnergyDebug)
+whisper = Whisper(callback, micOn, speechRecognitionModelName, write)
+mic = Mic(None if len(micName)==0 else micName, micOn, whisper.sample_rate, skip, whisper.queue.put, speak, write, micEnergy, micEnergyDebug)
 speak.start()
 whisper.start()
 mic.start()

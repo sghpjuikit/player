@@ -26,7 +26,19 @@ infix fun <T: Comparable<T>> T.max(that: T) = coerceAtLeast(that)
  */
 infix fun <T: Comparable<T>> T.min(that: T) = coerceAtMost(that)
 
-/**
- * Equivalent to [coerceIn] or `minimum max this min maximum`
- */
+/** Equivalent to [coerceIn] or `minimum max this min maximum` */
 fun <T: Comparable<T>> T.clip(minimum: T, maximum: T) = coerceIn(minimum, maximum)
+
+/** @return this number in modular math (e.g. 3 in mod 2 is 1) */
+infix fun Int.toMod(mod: Int): Int {
+   var number = this
+   while (number < 0) number += mod
+   return this % mod
+}
+
+/** @return this number in modular math (e.g. 3 in mod 2 is 1) */
+infix fun Long.toMod(mod: Long): Long {
+   var number = this
+   while (number < 0) number += mod
+   return this % mod
+}

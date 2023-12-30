@@ -40,7 +40,6 @@ object MainConfiguration: Configuration()
 
 fun IsConfig?.computeConfigGroup(declaringRef: Any): String = this?.toDef().computeConfigGroup(declaringRef)
 
-@Suppress("IfThenToElvis")
 fun ConfigDefinition?.computeConfigGroup(declaringRef: Any): String {
    if (this!=null && group.isNotBlank()) return group
 
@@ -49,15 +48,7 @@ fun ConfigDefinition?.computeConfigGroup(declaringRef: Any): String {
       ?.configurableGroupPrefix
       ?.apply { failIf(isBlank()) { "Configurable discriminant is empty" } }
 
-   return if (groupPrefix!=null && groupSuffix!=null) {
-      "$groupPrefix.$groupSuffix"
-   } else if (groupSuffix!=null) {
-      groupSuffix
-   } else if (groupPrefix!=null) {
-      groupPrefix
-   } else {
-      ""
-   }
+   return listOfNotNull(groupPrefix, groupSuffix).joinToString(".")
 }
 
 fun obtainConfigId(configName: String, configGroup: String) = "$configName.$configGroup".replace(' ', '_').lowercase()

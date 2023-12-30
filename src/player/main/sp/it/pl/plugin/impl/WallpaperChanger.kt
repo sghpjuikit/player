@@ -14,7 +14,6 @@ import sp.it.util.async.runVT
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.only
-import sp.it.util.dev.printStacktrace
 import sp.it.util.file.FileType.FILE
 import sp.it.util.reactive.Subscribed
 import sp.it.util.system.Os
@@ -42,7 +41,6 @@ class WallpaperChanger: PluginBase() {
    }
 
    private fun load(f: File?) {
-      printStacktrace()
       val size = largestScreenSize()
       runVT {
          if (f!=null && isRunning) Windows.changeWallpaper(f)

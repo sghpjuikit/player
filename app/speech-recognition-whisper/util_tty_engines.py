@@ -322,8 +322,9 @@ class TtyCoqui(TtyBase):
         if self.serverHost is None: return
         tty = self
         try:
-            import torch
+            import torch, torchaudio
             import numpy
+            import soundfile as sf
             from http.server import BaseHTTPRequestHandler, HTTPServer
 
             def waitTillLoaded():
@@ -335,6 +336,7 @@ class TtyCoqui(TtyBase):
                 return self.model.inference_stream(text, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
 
             class MyRequestHandler(BaseHTTPRequestHandler):
+                def log_message(self, format, *args): pass
                 def do_POST(self):
                     if tty._stop: return
                     try:
@@ -346,7 +348,6 @@ class TtyCoqui(TtyBase):
                         # generate
                         if not cache_used or not audio_file_exists:
                             waitTillLoaded()
-                            if tty._stop: self.wfile.close()
 
                             self.send_response(200)
                             self.send_header('Content-type', 'application/octet-stream')
@@ -356,10 +357,13 @@ class TtyCoqui(TtyBase):
                             audio_chunks = []
                             for audio_chunk in gen(text):
                                 audio_chunks.append(audio_chunk)
+
+                                if self.wfile.closed: return
                                 if tty._stop: self.wfile.close()
-                                if not self.wfile.closed:
-                                    self.wfile.write(audio_chunk.cpu().numpy().tobytes())
-                                    self.wfile.flush()
+                                if tty._stop: return
+
+                                self.wfile.write(audio_chunk.cpu().numpy().tobytes())
+                                self.wfile.flush()
 
                             # update cache
                             if cache_used and text:
@@ -367,9 +371,30 @@ class TtyCoqui(TtyBase):
                                 try: torchaudio.save(audio_file, wav.squeeze().unsqueeze(0).cpu(), 24000)
                                 except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
 
+                        # play file
                         else:
-                            self.wfile.write()
-                            self.play.playFile(audio_file, skippable)
+
+                            self.send_response(200)
+                            self.send_header('Content-type', 'application/octet-stream')
+                            self.end_headers()
+
+                            audio_data, fs = sf.read(audio_file, dtype='float32')
+                            if fs!=24000: return
+                            chunk_size = 1024
+                            audio_length = len(audio_data)
+                            start_pos = 0
+                            while start_pos < audio_length:
+
+                                if self.wfile.closed: return
+                                if tty._stop: self.wfile.close()
+                                if tty._stop: return
+
+                                end_pos = min(start_pos + chunk_size, audio_length)
+                                chunk = audio_data[start_pos:end_pos]
+                                start_pos = end_pos
+                                self.wfile.write(chunk)
+                                self.wfile.flush()
+
                     except Exception as e:
                         tty.write("ERR: error generating voice for http " + str(e))
                         traceback.print_exc()
@@ -507,12 +532,13 @@ class TtyHttp(TtyBase):
     def _loop(self):
         # initialize http
         try:
-            import http.client
             import io
             import numpy
+            import http.client
         except ImportError:
             self.write("ERR: http python module failed to load")
             return
+
 
         # loop
         while not self._stop:
@@ -521,6 +547,7 @@ class TtyHttp(TtyBase):
             try:
                 text = text.encode('utf-8')
                 conn = http.client.HTTPConnection(self.url, self.port)
+                conn.set_debuglevel(0)
                 conn.request('POST', '/', text, {})
                 response = conn.getresponse()
 

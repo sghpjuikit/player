@@ -37,7 +37,6 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.Widgets
-import sp.it.pl.main.Widgets.OBJECT_INFO
 import sp.it.pl.main.computeDataInfoUi
 import sp.it.pl.main.detectContent
 import sp.it.pl.main.emScaled

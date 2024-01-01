@@ -7,6 +7,7 @@ import javafx.geometry.Orientation
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.Node
 import javafx.scene.control.Label
+import javafx.scene.control.TextArea
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
@@ -15,6 +16,7 @@ import sp.it.pl.main.Css
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.item_node.ConfigurableCE
+import sp.it.pl.ui.item_node.GeneralCE
 import sp.it.pl.ui.item_node.ObservableListCE
 import sp.it.pl.ui.item_node.PaginatedObservableListCE
 import sp.it.pl.ui.labelForWithClick
@@ -110,7 +112,8 @@ class ConfigPane<T: Any?>: VBox {
          }
          .associateBy { it.configEditor ?: it.parent?.configEditor!! }
 
-      fun ConfigEditor<*>.isNested() = this is ObservableListCE<*> || this is PaginatedObservableListCE || this is ConfigurableCE
+      fun ConfigEditor<*>.isNested() =
+         this is ObservableListCE<*> || this is PaginatedObservableListCE || this is ConfigurableCE || editor is TextArea
       fun ConfigEditor<*>.buildNameLabel() = label(config.nameUi) {
          styleClass += "form-config-pane-config-name"
          isPickOnBounds = false

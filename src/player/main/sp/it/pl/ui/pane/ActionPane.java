@@ -65,8 +65,9 @@ import static sp.it.pl.main.AppBuildersKt.tableViewForClassJava;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.autoResizeColumns;
-import static sp.it.pl.ui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
-import static sp.it.pl.ui.pane.ActionPaneHelperKt.getUnwrappedType;
+import static sp.it.pl.ui.pane.ActionPaneWrappingKt.futureUnwrapOrThrow;
+import static sp.it.pl.ui.pane.ActionPaneWrappingKt.getUnwrappedType;
+import static sp.it.pl.ui.pane.ActionPaneWrappingKt.nounwrapUnWrap;
 import static sp.it.util.animation.Anim.anim;
 import static sp.it.util.async.AsyncKt.CURR;
 import static sp.it.util.async.AsyncKt.FX;
@@ -345,7 +346,7 @@ public class ActionPane extends OverlayPane<Object> {
 		data = collectionUnwrap(d);
 		boolean isDataReady = !(data instanceof Fut<?> dataFut && !dataFut.isDone());
 		if (isDataReady) {
-			data = collectionUnwrap(futureUnwrapOrThrow(data));
+			data = nounwrapUnWrap(collectionUnwrap(futureUnwrapOrThrow(data)));
 			setDataInfo(data, true);
 			showIcons(data);
 		} else {

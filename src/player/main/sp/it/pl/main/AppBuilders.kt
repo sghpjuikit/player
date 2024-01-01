@@ -480,7 +480,7 @@ fun <T: Any> tableViewForClassJava(type: KClass<T>, block: FilteredTable<T>.() -
 
 inline fun <reified T: Any> tableViewForClass(type: KClass<T> = T::class, block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> = object: FilteredTable<T>(type.java, null) {
    override fun computeMainField(field: ObjectField<T, *>?) =
-      field ?: fields.first { it.type.isSubtypeOf<String>() } ?: fields.firstOrNull()
+      field ?: fields.firstOrNull { it.type.isSubtypeOf<String>() } ?: fields.firstOrNull()
 
    override fun computeFieldsAll() =
       (computeFieldsAllRecursively(type) ?: APP.classFields[type].toList()).plus(INDEX)

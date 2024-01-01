@@ -54,39 +54,8 @@ import sp.it.util.units.millis
 
 inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class, *actions)
 
-fun getUnwrappedType(d: Any?): KClass<*> = when (d) {
-   null -> Nothing::class
-   is Collection<*> -> d.getElementClass().kotlin
-   else -> d::class
-}
-
-fun futureUnwrap(o: Any?): Any? = when (o) {
-   is Fut<*> -> when {
-      o.isDone() -> {
-         when (val result = o.getDone()) {
-            is Fut.Result.ResultOk<*> -> result.value
-            else -> null
-         }
-      }
-      else -> o
-   }
-   else -> o
-}
-
-fun futureUnwrapOrThrow(o: Any?): Any? = when (o) {
-   is Fut<*> -> when {
-      o.isDone() -> {
-         when (val result = o.getDone()) {
-            is Fut.Result.ResultOk<*> -> result.value
-            else -> null
-         }
-      }
-      else -> fail { "Future not done yet" }
-   }
-   else -> o
-}
-
 private typealias Test<T> = (T) -> Boolean
+
 private typealias Act<T> = ActContext.(T) -> Any?
 
 data class ActContext(val window: Window?, val a: ActionPane?,  val node: Node?, val event: Event?, val progress: WritableValue<Number>?) {

@@ -46,6 +46,7 @@ import sp.it.pl.ui.pane.ComplexActionData
 import sp.it.pl.ui.pane.ConfigPane
 import sp.it.pl.ui.pane.action
 import sp.it.pl.ui.pane.actionAll
+import sp.it.pl.ui.pane.nounwrapWrap
 import sp.it.pl.ui.pane.register
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
@@ -56,6 +57,7 @@ import sp.it.util.async.VT
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.runAndGet
 import sp.it.util.async.runVT
+import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.map.KClassListMap
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
@@ -178,7 +180,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Add to library",
          "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
          IconMD.DATABASE_PLUS
-      ) { it.map { SongToAdd(it.uri, APP.db.exists(it)) } },
+      ) { nounwrapWrap(it.map { SongToAdd(it.uri, APP.db.exists(it)) }) },
       actionAll(
          "Remove from library",
          "Removes all specified songs from library. After this library will contain none of these songs.",
@@ -249,7 +251,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
          IconMD.DATABASE_PLUS
       ) {
-         findAudio(it).asSequence().map { it.toURI() }.map { SongToAdd(it, APP.db.exists(it)) }
+         nounwrapWrap(findAudio(it).asSequence().map { it.toURI() }.map { SongToAdd(it, APP.db.exists(it)) }.toList())
       },
       actionAll(
          "Add to existing playlist",
@@ -324,7 +326,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
 }
 
 private fun addToLibraryConsumer(actionPane: ActionPane) =
-   actionPane.data.asIs<List<SongToAdd>>().let { songsToAdd ->
+   collectionWrap(actionPane.data).asIs<List<SongToAdd>>().let { songsToAdd ->
          val songs = songsToAdd.map { SimpleSong(it.uri) }
          val executed = v(false)
          val conf = object: ConfigurableBase<Boolean>() {

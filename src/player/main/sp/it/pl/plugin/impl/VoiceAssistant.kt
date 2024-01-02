@@ -152,7 +152,7 @@ class VoiceAssistant: PluginBase() {
    private var setup: Fut<Process>? = null
    private fun setup(): Fut<Process> {
       fun doOnError(e: Throwable?, text: String?) = logger.error(e) { "Starting whisper failed.\n${text.wrap()}" }.toUnit()
-      return runOn(NEW("SpeechRecognition")) {
+      return runOn(NEW("SpeechRecognition-starter")) {
          val whisper = dir / "main.py"
          val commandRaw = listOf(
             "python", whisper.absolutePath,
@@ -214,7 +214,9 @@ class VoiceAssistant: PluginBase() {
                } }
                .joinToString("")
          }
-         runNew {
+
+         // run
+         runOn(NEW("SpeechRecognition")) {
             val success = process.waitFor()
             stdoutListener.block()
             stderrListener.block()

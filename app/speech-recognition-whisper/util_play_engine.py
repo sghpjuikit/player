@@ -1,4 +1,5 @@
 import os
+import time
 import numpy as np
 import sounddevice as sd
 import soundfile as sf
@@ -31,12 +32,13 @@ class SdActorPlayback:
 
     def _loop(self):
         self.stream = sd.OutputStream(channels=1, samplerate=24000)
-        Thread(name='SdActorPlayback-stream', target=self.stream.start, daemon=True).start()
+        self.stream.start()
 
         # loop
         while not self._stop:
             try:
                 type, audio, skippable = self.queue.get()
+                if self._stop: break
 
                 # skip
                 if self._skip and skippable:

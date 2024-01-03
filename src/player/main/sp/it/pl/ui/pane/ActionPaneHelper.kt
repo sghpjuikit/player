@@ -44,6 +44,7 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.runTry
 import sp.it.util.type.VType
 import sp.it.util.type.isObject
+import sp.it.util.type.objectInstanceSafe
 import sp.it.util.type.raw
 import sp.it.util.type.type
 import sp.it.util.type.typeNothingNullable
@@ -162,7 +163,7 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
    fun invokeWithForm() {
       val context = ActContext(null, null, null, null, null)
       when {
-         type.raw.isObject && !type.isNullable -> invokeFutAndProcess(context, type.raw.objectInstance.asIs())
+         type.raw.isObject && !type.isNullable -> invokeFutAndProcess(context, type.raw.objectInstanceSafe.asIs())
          type.raw==App::class && !type.isNullable -> invokeFutAndProcess(context, APP.asIs())
          type.raw == Unit::class -> invokeFutAndProcess(context, Unit.asIs())
          type == typeNothingNullable() -> invokeFutAndProcess(context, null.asIs())

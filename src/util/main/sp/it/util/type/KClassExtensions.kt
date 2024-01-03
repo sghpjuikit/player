@@ -7,7 +7,9 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.primaryConstructor
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.getOr
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 
@@ -39,22 +41,45 @@ val <T> Class<T>.enumValues: Array<T>
 val <T: Any> KClass<T>.enumValues: Array<T>
    get() = java.enumValues
 
+
+@Suppress("UNCHECKED_CAST")
+val <T: Any> KClass<T>.objectInstanceSafe: T?
+   get() =
+      runTry {
+         objectInstance
+      }.getOrSupply {
+         // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+         try {
+            val field = java.getDeclaredField("INSTANCE")
+            if (field.trySetAccessible()) {
+               val o = field.get(null)
+               return o?.takeIf { isInstance(it) } as T?
+            } else {
+               // package is not opened to the caller to access private member of T
+               return null // null is the best we can do
+            }
+         } catch (e: NoSuchFieldException) {
+            return null
+         }
+      }
+
 /** True iff this class is a singleton, i.e., [KClass.objectInstance] is not null. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
 val KClass<*>.isObject: Boolean
-   get() = runTry { objectInstance!=null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+   get() = this.asIs<KClass<Any>>().objectInstanceSafe!=null
+
 
 /** True iff this class is [KClass.isData] and is [KClass.isObject]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
 val KClass<*>.isDataObject: Boolean
-   get() = runTry { isData && objectInstance!=null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+   get() = isData && isObject
 
 /** True iff this class is [KClass.isValue] and is not [KClass.isObject]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
 val KClass<*>.isValueClass: Boolean
-   get() = runTry { isValue && objectInstance==null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+   get() = isValue && !isObject
 
 
 /** True iff this class is [KClass.isData] and is not [KClass.isObject]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
 val KClass<*>.isDataClass: Boolean
-   get() = runTry { isData && objectInstance==null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+   get() = isData && !isObject
 
 /** True iff this class is [Class.isRecord] */
 val KClass<*>.isRecordClass: Boolean

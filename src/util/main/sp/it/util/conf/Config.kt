@@ -37,6 +37,7 @@ import sp.it.util.type.enumValues
 import sp.it.util.type.isEnum
 import sp.it.util.type.isObject
 import sp.it.util.type.isSubclassOf
+import sp.it.util.type.objectInstanceSafe
 import sp.it.util.type.raw
 import sp.it.util.type.sealedSubObjects
 import sp.it.util.type.type
@@ -159,7 +160,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
             if (type.isNullable) Enumerator { e.enumerateSealed() + valueEnumerator2nd.orEmpty() + (null as T) }
             else Enumerator { e.enumerateSealed() + valueEnumerator2nd.orEmpty() }
          }
-         ?: type.raw.objectInstance?.net { instance ->
+         ?: type.raw.objectInstanceSafe?.net { instance ->
             val values = if (type.isNullable) listOf(instance, null as T) else listOf(instance)
             Enumerator { values }.asIs()
          }

@@ -66,6 +66,7 @@ import sp.it.util.type.isSubclassOf
 import sp.it.util.type.isValueClass
 import sp.it.util.type.kType
 import sp.it.util.type.kTypeAnyNullable
+import sp.it.util.type.objectInstanceSafe
 import sp.it.util.type.raw
 import sp.it.util.type.sealedSubObjects
 import sp.it.util.type.type
@@ -486,7 +487,7 @@ class Json: JsonAst() {
                      instanceType==BigInteger::class ||
                      instanceType==BigDecimal::class ||
                      instanceType==Number::class -> value.value["value"]?.let { fromJsonValueImpl(instanceType.createType(nullable = true), it) }
-                     instanceType.isObject -> instanceType.objectInstance
+                     instanceType.isObject -> instanceType.objectInstanceSafe
                      instanceType.isEnum -> value.value["value"]?.asJsStringValue()?.let { getEnumValue(instanceType.javaObjectType, it) }
                      instanceType==Any::class -> {
                         val mapKeyType = type<String>()

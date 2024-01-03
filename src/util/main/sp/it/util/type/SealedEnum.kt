@@ -10,6 +10,6 @@ open class SealedEnum<T: Any>(type: KClass<T>) {
       failIf(!type.isSealed) { "Only companion object of sealed type can implement sealed enum" }
    }
 
-   val values: List<T> = type.sealedSubclasses.mapNotNull { it.objectInstance }
+   val values: List<T> = type.sealedSubclasses.mapNotNull { it.objectInstanceSafe }
 
 }

@@ -10,6 +10,7 @@ import sp.it.util.parsing.ConverterString
 import sp.it.util.type.ObjectFieldMap
 import sp.it.util.type.VType
 import sp.it.util.type.createTypeStar
+import sp.it.util.type.objectInstanceSafe
 
 /**
  * [ObjectField] per type manager.
@@ -64,7 +65,7 @@ abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val typ
    /** Registers fields declared in this or enclosing class as Kotlin objects. */
    @Suppress("UNCHECKED_CAST")
    fun registerDeclared() = (this::class.nestedClasses + this::class.java.enclosingClass?.kotlin?.nestedClasses.orEmpty())
-      .mapNotNull { it.objectInstance }.filterIsInstance<ObjectField<V,*>>()
+      .mapNotNull { it.objectInstanceSafe }.filterIsInstance<ObjectField<V,*>>()
       .forEach { register(it as F) }
 
    /** Registers the specified field and returns it. */

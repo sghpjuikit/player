@@ -138,6 +138,7 @@ import sp.it.util.type.isDataClass
 import sp.it.util.type.isEnum
 import sp.it.util.type.isObject
 import sp.it.util.type.isPlatformType
+import sp.it.util.type.objectInstanceSafe
 import sp.it.util.type.raw
 import sp.it.util.type.sealedSubObjects
 import sp.it.util.type.type
@@ -287,7 +288,7 @@ object CoreConverter: Core {
                      value?.net { Try.ok(it) } ?: Try.error("Not a valid value: \"$s\"")
                   }
                type.isObject ->
-                  { _ -> Try.ok(type.objectInstance) }
+                  { _ -> Try.ok(type.objectInstanceSafe) }
                type.isSealed -> {
                   val sso = type.sealedSubObjects
                   { s -> sso.find { it::class.simpleName==s }?.let { Try.ok(it) } ?: Try.error("Not a valid value: \"$s\"") }

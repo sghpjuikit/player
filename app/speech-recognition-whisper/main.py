@@ -12,11 +12,12 @@ from typing import cast
 from util_play_engine import SdActor
 from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui, TtyHttp
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
-from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatStop
+from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatPaste, ChatStop
 from util_mic import Mic
 from util_s2t import Whisper
 from util_write_engine import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
+from util_com import CommandExecutor, CommandExecutorDoNothing, CommandExecutorAsIs, CommandExecutorDelegate
 
 # util: print engine actor, non-blocking
 write = Writer()
@@ -256,6 +257,9 @@ else:
     speakServer = TtyCoqui(speakUseCoquiVoice, host, port, SdActor(), write)
     speakServer.start()
 
+# commands
+commandExecutor = CommandExecutorDelegate(CommandExecutorDoNothing)
+
 # llm actor, non-blocking
 llm = LlmNone(speak, write)
 if llmEngine == 'none':
@@ -263,13 +267,32 @@ if llmEngine == 'none':
 elif llmEngine == "gpt4all":
     llmModelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-llm")
     llmModel = os.path.join(llmModelDir, llmModelName)
-    llm = LlmGpt4All(llmGpt4AllModelName, speak, write, llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk)
+    llm = LlmGpt4All(
+        llmGpt4AllModelName, speak, write, llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk)
 elif llmEngine == "openai":
-    llm = LlmHttpOpenAi(llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModelName, speak, write, llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk)
+    llm = LlmHttpOpenAi(
+        llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModelName,
+        speak, write, commandExecutor.execute,
+        llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
+    )
 else:
     pass
 
 
+# commands
+class CommandExecutorMain(CommandExecutor):
+    def execute(self, text: str) -> str:
+        handled = "ignore"
+        if text == "repeat":
+            speak.repeatLast()
+            return handled
+        else:
+            return text
+
+commandExecutor.commandExecutor = CommandExecutorMain()
+
+
+# assist
 class Assist:
     def __call__(self, text: str, textSanitized: str):
         pass
@@ -508,6 +531,10 @@ while True:
         if m.startswith("CALL: "):
             text = m[6:]
             callback(text)
+
+        if m.startswith("PASTE: "):
+            text = m[7:]
+            llm(ChatPaste(text))
 
         # changing settings commands
         elif m.startswith("mic-on="):

@@ -29,6 +29,9 @@ This is a speech recognition python script using OpenAI Whisper. Features:
     pip install PyAudio
     pip install pyttsx3
     pip install psutil
+    pip install pyperclip
+    pip install pyautogui
+    pip install pygetwindow
     pip install gpt4all
     ```
 3. Install ffmpeg

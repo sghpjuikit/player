@@ -3,13 +3,15 @@ from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
 from gpt4all.gpt4all import empty_chat_session
 from threading import Thread
 from queue import Queue
+from typing import Callable
 from util_tty_engines import Tty
 from util_write_engine import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain, SingleLazyIterator
-
+from util_paste import pasteTokens
 
 class ChatProceed:
     def __init__(self, sysPrompt: str, userPrompt: str | None):
+        self.outStart = 'CHAT '
         self.sysPrompt = sysPrompt
         self.userPrompt = userPrompt
         self.messages = [ ]
@@ -24,9 +26,10 @@ class ChatProceed:
 class ChatIntentDetect(ChatProceed):
     def __init__(self, userPrompt: str):
         super().__init__(
-            "From now on, identify user intent by returning one of following functions. " +
-            "Only respond in format function: `COM-function-COM`. " +
-            "Funs: \n" +
+            "From now on, identify user intent by returning one of following commands. " +
+            "Only respond with command in format : `COM-command-COM`. $ is command parameter." +
+            "Commands: \n" +
+            "- repeat // last speech\n" +
             "- open-weather-info\n" +
             "- play-music\n" +
             "- stop-music\n" +
@@ -34,13 +37,25 @@ class ChatIntentDetect(ChatProceed):
             "- play-next-song\n" +
             "- what-time-is-it\n" +
             "- what-date-is-it\n" +
-            "- unidentified // no other intent seems probable",
+            "- list-light-scenes\n" +
+            "- lights-on?/off?\n" +
+            "- lights-scene-$scene-name\n" +
+            "- unidentified // no other command probable",
             userPrompt
         )
+        self.outStart = 'COM-DET: '
 
+class ChatPaste(ChatProceed):
+    def __init__(self, userPrompt: str):
+        super().__init__(
+            "From now on, seamlessly complete user messages. Only complete the message so it connects with user's.",
+            userPrompt
+        )
+        self.outStart = 'PASTE: '
 
 class Chat:
     def __init__(self, userPrompt: str):
+        self.outStart = 'CHAT '
         self.userPrompt = userPrompt
 
 
@@ -140,10 +155,11 @@ class LlmGpt4All(LlmBase):
 # howto https://cookbook.openai.com/examples/how_to_stream_completions
 class LlmHttpOpenAi(LlmBase):
 
-    def __init__(self, url: str, bearer: str, modelName: str, speak: Tty, write: Writer, sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
+    def __init__(self, url: str, bearer: str, modelName: str, speak: Tty, write: Writer, commandExecutor: Callable[[str], str], sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
         super().__init__()
         self.write = write
         self.speak = speak
+        self.commandExecutor = commandExecutor
         self.url = url
         self.bearer = bearer
         self.modelName = modelName
@@ -194,7 +210,7 @@ class LlmHttpOpenAi(LlmBase):
 
                         stream = client.chat.completions.create(
                             model=self.modelName, messages=messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
-                            stream=True, timeout=Timeout(None, connect=5.0),
+                            stream=True, timeout=Timeout(None, pool=5.0, connect=5.0),
                             stop = "-COM" if isCommand else [],
                         )
                         try:
@@ -204,11 +220,13 @@ class LlmHttpOpenAi(LlmBase):
                         finally:
                             stream.response.close()
 
-                    consumer, tokensWrite, tokensSpeech, tokensText = teeThreadSafeEager(process(), 3)
+                    import pyautogui
+                    consumer, tokensWrite, tokensSpeech, tokensPaste, tokensText = teeThreadSafeEager(process(), 4)
                     commandIterator = SingleLazyIterator()
-                    if not isCommand: self.write(chain(['CHAT: '], progress(consumer, tokensWrite)))
-                    if     isCommand: self.write(chain(['COM-DET: '], progress(commandIterator, commandIterator)))
-                    if not isCommand: self.speak(tokensSpeech)
+                    if not isCommand: self.write(chain([e.outStart], progress(consumer, tokensWrite)))
+                    if     isCommand: self.write(chain([e.outStart], progress(commandIterator, commandIterator)))
+                    if isinstance(e, Chat): self.speak(tokensSpeech)
+                    if isinstance(e, ChatPaste): pasteTokens(tokensPaste)
                     consumer()
                     text = ''.join(tokensText)
 
@@ -222,6 +240,7 @@ class LlmHttpOpenAi(LlmBase):
                             command = text.strip().lstrip("COM-").rstrip("-COM").strip()
                             command = command.replace('-', ' ')
                             command = command.replace('unidentified', e.userPrompt)
+                            command = self.commandExecutor(command)
                             commandIterator.put(command)
 
                     self.generating = False

@@ -149,7 +149,7 @@ class Mic:
         self._stop = False
 
     def set_pause_threshold_normal(self):
-        self.pause_threshold = 0.5
+        self.pause_threshold = 0.7
 
     def set_pause_threshold_talk(self):
         self.pause_threshold = 2.0

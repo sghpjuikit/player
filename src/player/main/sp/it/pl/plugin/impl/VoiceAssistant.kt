@@ -580,10 +580,12 @@ class VoiceAssistant: PluginBase() {
       val regex by lazy {
          Regex(
             commandUi.net {
-               fun String.ss(i: Int) = if (i==0) this else " $this"
+               val parts = it.split(" ")
+               fun String.ss(i: Int) = if (parts.size<=1 || i==0) "$this" else " $this"
                fun String.rr() = replace("(", "").replace(")", "").replace("?", "")
-               it.split(" ").mapIndexed { i, p ->
+               parts.mapIndexed { i, p ->
                   when {
+                     p.contains("|") && p.endsWith("?") -> p.rr().net { "(${it.split("|").joinToString("|") { it.ss(i) }})?" }
                      p.endsWith("?") -> p.rr().net { "(${it.ss(i)})?" }
                      p.contains("|") -> p.rr().net { "($it)".ss(i) }
                      else -> p.rr().ss(i)

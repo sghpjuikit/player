@@ -9,11 +9,13 @@ import java.time.LocalTime
 import java.util.regex.Pattern
 import javafx.geometry.Pos.CENTER
 import javafx.scene.control.ScrollPane
+import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
+import javafx.scene.robot.Robot
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Line
 import javax.sound.sampled.TargetDataLine
@@ -235,15 +237,20 @@ class VoiceAssistant: PluginBase() {
 
    /** Speech handlers called when user has spoken. Matched in order. */
    val handlers by cList(
-         SpeakHandler("Help",                "help")                                      { if (matches(it)) Ok("List commands by saying, list commands") else null },
-         SpeakHandler("Help Commands",       "list commands")                             { if (matches(it)) Ok(handlersHelpText()) else null },
-         SpeakHandler("Current time",        "what time is it")                           { if (matches(it)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
-         SpeakHandler("Current date",        "what date is it")                           { if (matches(it)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
-         SpeakHandler("Resume playback",     "play|start|resume|continue music|playback") { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
-         SpeakHandler("Pause playback",      "stop|end|pause music|playback")             { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
-         SpeakHandler("Play previous song",  "play previous song")                        { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
-         SpeakHandler("Play next song",      "play next song")                            { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
-         SpeakHandler("Open widget by name", "open|show widget? \$widget-name widget?")   { text ->
+         SpeakHandler("Help",                    "help")                                      { if (matches(it)) Ok("List commands by saying, list commands") else null },
+         SpeakHandler("Do nothing",              "ignore")                                    { if (matches(it)) Ok(null) else null },
+         SpeakHandler("Help Commands",           "list commands")                             { if (matches(it)) Ok(handlersHelpText()) else null },
+         SpeakHandler("Current time",            "what time is it")                           { if (matches(it)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
+         SpeakHandler("Current date",            "what date is it")                           { if (matches(it)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
+         SpeakHandler("Resume playback",         "play|start|resume|continue music|playback") { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
+         SpeakHandler("Pause playback",          "stop|end|pause music|playback")             { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
+         SpeakHandler("Play previous song",      "play previous song")                        { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
+         SpeakHandler("Play next song",          "play next song")                            { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
+         SpeakHandler("Generate from clipboard", "generate from? clipboard")                  { if (it == "generate clipboard") { write("PASTE: " + (Clipboard.getSystemClipboard().string ?: "")); Ok(null) } else null },
+         SpeakHandler("Speak from clipboard",    "speak|say from? clipboard")                 { if (it == "speak clipboard") Ok(Clipboard.getSystemClipboard().string ?: "") else null },
+         SpeakHandler("Speak",                   "speak|say \$text")                          { if (it.startsWith("speak ")) Ok(it.substring(6).trim()) else null },
+         SpeakHandler("Close window",            "close|hide window")                         { if (matches(it)) { invokeAltF4(); Ok(null) } else null },
+         SpeakHandler("Open widget by name",     "open|show widget? \$widget-name widget?")   { text ->
             if (text.startsWith("open")) {
                val fName = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
                val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase() equalsNc fName }

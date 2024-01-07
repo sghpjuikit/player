@@ -22,7 +22,8 @@ class Tty:
         self.write = write
         self._stop = False
         self._skip = False
-        self.ignored_chars = set(".,?!-: #\n\r\t\\`'\"")
+        self.ignored_chars = set(".,?!_-:#\n\r\t\\`'\"")
+        self.space_chars = set("_-\n\r ")
         self.queue = Queue()
         self.history = []
 
@@ -95,7 +96,10 @@ class Tty:
                 sentence = ''
 
     def process(self, s: str, skippable: bool, end: bool):
-        ss = ''.join(c for c in s if c not in self.ignored_chars)
+        ss = ''.join(c if c not in self.space_chars else ' ' for c in s)
+        ss = ''.join(c for c in ss if c not in self.ignored_chars)
+        ss = ss.strip()
+
         if (len(ss)>0): self.tty.speak(s, skippable=skippable)
         if end: self.tty.speak(None, skippable=False)
 

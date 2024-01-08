@@ -1,7 +1,8 @@
 from threading import Lock
 from queue import Queue
 from itertools import tee
-import time
+from typing import Callable
+from time import sleep
 
 def teeThreadSafeEager(iterable, n=2):
     """
@@ -71,13 +72,14 @@ def chain(iterator1, iterator2):
 class SingleLazyIterator:
     """Iterator that blocks iteration until single element is put into it and then iterates that single element"""
 
-    def __init__(self):
+    def __init__(self, stop_condition: Callable[[], bool] | None = None):
         self.queue = Queue()
         self.started = False
         self.consumed = False
+        self.stop_condition = stop_condition
 
     def hasStarted(self):
-        return self.started
+        return self.started or self.stop_condition()
 
     def put(self, element: str):
         self.started = True
@@ -87,18 +89,21 @@ class SingleLazyIterator:
         return self
 
     def __next__(self):
-        if self.consumed: raise StopIteration
+        while self.queue.empty():
+            if self.consumed: raise StopIteration
+            if self.stop_condition is not None and self.stop_condition(): break
+            sleep(0.001)
         element = self.queue.get()
         self.consumed = True
         return element
 
 
-def progress(consumer, iterator):
+def progress(iterator_has_started: Callable[[], bool], iterator):
     """Returns the specified iterator with prepended elements for progress until first element is evaluated"""
     bs = 0
-    while not consumer.hasStarted():
+    while not iterator_has_started():
         for _ in range(10):
-            if not consumer.hasStarted(): time.sleep(0.0125)
+            if not iterator_has_started(): sleep(0.0125)
             else: break
         if bs>0: yield '\b\b\b'
         bs = bs + 1

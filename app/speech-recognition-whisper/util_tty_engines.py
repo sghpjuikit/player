@@ -404,8 +404,9 @@ class TtyCoqui(TtyBase):
                         traceback.print_exc()
             self.write("RAW: Speech server starting...")
             self.server = HTTPServer((self.serverHost, self.serverPort), MyRequestHandler)
-            self.server.serve_forever()
             self.write("RAW: Speech server started")
+            self.server.serve_forever()
+            self.write("RAW: Speech server stopped")
 
         except Exception as e:
             self.write("ERR: error " + str(e))

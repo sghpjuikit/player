@@ -286,6 +286,30 @@ class CommandExecutorMain(CommandExecutor):
         if text == "repeat":
             speak.repeatLast()
             return handled
+        elif text == 'what can you do':
+            llm(ChatProceed(
+                "You are voice assistant capable of these functions. "
+                "If user askes you about what you can do, you give him overview of your functions. "
+                "Funs: \n" +
+                "- repeat // last speech\n" +
+                "- what-can-you-do\n" +
+                "- open-weather-info\n" +
+                "- play-music\n" +
+                "- stop-music\n" +
+                "- play-previous-song\n" +
+                "- play-next-song\n" +
+                "- what-time-is-it\n" +
+                "- what-date-is-it\n" +
+                "- list-light-scenes\n" +
+                "- generate from? clipboard\n" +
+                "- speak|say from? clipboard\n" +
+                "- speak|say $text\n" +
+                "- lights-on?/off?\n" +
+                "- lights-scene-$scene-name\n" +
+                "- unidentified // no other command probable",
+                "Give me summary of your capabilities"
+            ))
+            return handled
         else:
             return text
 
@@ -541,11 +565,11 @@ while True:
             mic.micOn = prop(m, "mic-on", "true").lower() == "true"
             whisper.whisperOn = mic.micOn
 
-        elif m.startswith("mic-energy"):
-            mic.micEnergy = int(prop(m, "mic-energy", "120"))
+        elif m.startswith("mic-energy-debug="):
+            mic.energy_debug = prop(m, "mic-energy-debug", "false").lower() == "true"
 
-        elif m.startswith("mic-energy-debug"):
-            mic.micEnergyDebug = prop(m, "mic-energy-debug", "false").lower() == "true"
+        elif m.startswith("mic-energy="):
+            mic.energy_threshold = int(prop(m, "mic-energy", "120"))
 
         elif m.startswith("speech-on="):
             speak.speakOn = prop(m, "speech-on", "true").lower() == "true"

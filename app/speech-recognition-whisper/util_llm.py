@@ -16,6 +16,7 @@ class ChatProceed:
         self.userPrompt = userPrompt
         self.messages = [ ]
         self.messages.append({ "role": "system", "content": self.sysPrompt })
+        self.narrate = True
         if (userPrompt is not None): self.messages.append({ "role": "user", "content": self.userPrompt })
 
     @classmethod
@@ -29,6 +30,7 @@ class ChatIntentDetect(ChatProceed):
             "Only respond with command in format : `COM-command-COM`. $ is command parameter." +
             "Commands: \n" +
             "- repeat // last speech\n" +
+            "- what-can-you-do\n" +
             "- open-weather-info\n" +
             "- play-music\n" +
             "- stop-music\n" +
@@ -46,6 +48,7 @@ class ChatIntentDetect(ChatProceed):
             userPrompt
         )
         self.outStart = 'COM-DET: '
+        self.narrate = False
 
 class ChatPaste(ChatProceed):
     def __init__(self, userPrompt: str):
@@ -54,11 +57,13 @@ class ChatPaste(ChatProceed):
             userPrompt
         )
         self.outStart = 'PASTE: '
+        self.narrate = False
 
 class Chat:
     def __init__(self, userPrompt: str):
         self.outStart = 'CHAT: '
         self.userPrompt = userPrompt
+        self.narrate = True
 
 
 class ChatStart:
@@ -229,7 +234,7 @@ class LlmHttpOpenAi(LlmBase):
                     try:
                         if not isCommand: self.write(chain([e.outStart], progress(consumer.hasStarted, tokensWrite)))
                         if     isCommand: self.write(chain([e.outStart], progress(commandIterator.hasStarted, commandIterator)))
-                        if isinstance(e, Chat): self.speak(tokensSpeech)
+                        if e.narrate: self.speak(tokensSpeech)
                         if isinstance(e, ChatPaste): pasteTokens(tokensPaste)
                         consumer()
                         canceled = self.generating is False

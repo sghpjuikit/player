@@ -37,116 +37,25 @@ def get_microphone_index_by_name(name):
     return device_index
 
 
-# This class is derived work of Recognizer class from speech_recognition,
-# which is under BSD 3-Clause "New" or "Revised" License (https://github.com/Uberi/speech_recognition/blob/master/LICENSE.txt)
-# Copyright (c) 2014-2017, Anthony Zhang <azhang9@gmail.com>
-# All rights reserved.
-# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-class Rec(Recognizer):
-
-    def listenCustom(self, source: Microphone, timeout=None, phrase_time_limit=None, onSpeechStarted: Callable[[], None] = lambda: None):
-        """
-        Records a single phrase from ``source`` (an ``AudioSource`` instance) into an ``AudioData`` instance, which it returns.
-
-        This is done by waiting until the audio has an energy above ``recognizer_instance.energy_threshold`` (the user has started speaking), and then recording until it encounters ``recognizer_instance.pause_threshold`` seconds of non-speaking or there is no more audio input. The ending silence is not included.
-
-        The ``timeout`` parameter is the maximum number of seconds that this will wait for a phrase to start before giving up and throwing an ``speech_recognition.WaitTimeoutError`` exception. If ``timeout`` is ``None``, there will be no wait timeout.
-
-        The ``phrase_time_limit`` parameter is the maximum number of seconds that this will allow a phrase to continue before stopping and returning the part of the phrase processed before the time limit was reached. The resulting audio will be the phrase cut off at the time limit. If ``phrase_timeout`` is ``None``, there will be no phrase time limit.
-
-        This operation will always complete within ``timeout + phrase_timeout`` seconds if both are numbers, either by returning the audio data, or by raising a ``speech_recognition.WaitTimeoutError`` exception.
-        """
-        assert isinstance(source, AudioSource), "Source must be an audio source"
-        assert source.stream is not None, "Audio source must be entered before listening, see documentation for ``AudioSource``; are you using ``source`` outside of a ``with`` statement?"
-        assert self.pause_threshold >= self.non_speaking_duration >= 0
-
-        seconds_per_buffer = float(source.CHUNK) / source.SAMPLE_RATE
-        pause_buffer_count = int(math.ceil(self.pause_threshold / seconds_per_buffer))  # number of buffers of non-speaking audio during a phrase, before the phrase should be considered complete
-        phrase_buffer_count = int(math.ceil(self.phrase_threshold / seconds_per_buffer))  # minimum number of buffers of speaking audio before we consider the speaking audio a phrase
-        non_speaking_buffer_count = int(math.ceil(self.non_speaking_duration / seconds_per_buffer))  # maximum number of buffers of non-speaking audio to retain before and after a phrase
-
-        # read audio input for phrases until there is a phrase that is long enough
-        elapsed_time = 0  # number of seconds of audio read
-        buffer = b""  # an empty buffer means that the stream has ended and there is no data left to read
-        while True:
-            frames = deque()
-
-            # store audio input until the phrase starts
-            while True:
-                # handle waiting too long for phrase by raising an exception
-                elapsed_time += seconds_per_buffer
-                if timeout and elapsed_time > timeout: raise WaitTimeoutError("listening timed out while waiting for phrase to start")
-
-                buffer = source.stream.read(source.CHUNK)
-                if len(buffer) == 0: break  # reached end of the stream
-                frames.append(buffer)
-                if len(frames) > non_speaking_buffer_count: frames.popleft()  # ensure we only keep the needed amount of non-speaking buffers
-
-                # detect whether speaking has started on audio input
-                energy = audioop.rms(buffer, source.SAMPLE_WIDTH)  # energy of the audio signal
-                if energy > self.energy_threshold: break
-
-                # dynamically adjust the energy threshold using asymmetric weighted average
-                if self.dynamic_energy_threshold:
-                    damping = self.dynamic_energy_adjustment_damping ** seconds_per_buffer  # account for different chunk sizes and rates
-                    target_energy = energy * self.dynamic_energy_ratio
-                    self.energy_threshold = self.energy_threshold * damping + target_energy * (1 - damping)
-
-            # invoke speech start handler
-            onSpeechStarted()
-
-            # read audio input until the phrase ends
-            pause_count, phrase_count = 0, 0
-            phrase_start_time = elapsed_time
-            while True:
-                # handle phrase being too long by cutting off the audio
-                elapsed_time += seconds_per_buffer
-                if phrase_time_limit and elapsed_time - phrase_start_time > phrase_time_limit:
-                    break
-
-                buffer = source.stream.read(source.CHUNK)
-                if len(buffer) == 0: break  # reached end of the stream
-                frames.append(buffer)
-                phrase_count += 1
-
-                # check if speaking has stopped for longer than the pause threshold on the audio input
-                energy = audioop.rms(buffer, source.SAMPLE_WIDTH)  # unit energy of the audio signal within the buffer
-                if energy > self.energy_threshold:
-                    pause_count = 0
-                else:
-                    pause_count += 1
-                if pause_count > pause_buffer_count:  # end of the phrase
-                    break
-
-            # check how long the detected phrase is, and retry listening if the phrase is too short
-            phrase_count -= pause_count  # exclude the buffers for the pause before the phrase
-            if phrase_count >= phrase_buffer_count or len(buffer) == 0: break  # phrase is long enough or we've reached the end of the stream, so stop listening
-
-        # obtain frame data
-        for i in range(pause_count - non_speaking_buffer_count): frames.pop()  # remove extra non-speaking frames at the end
-        frame_data = b"".join(frames)
-
-        return AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH)
-
-
 class Mic:
-    def __init__(self, micName: str | None, micOn: bool, sample_rate: int, onSpeechStart: Callable[[], None], onSpeechEnd: Callable[[str], None], speak: Tty, write: Writer, micEnergy: int, micEnergyDebug: bool):
+    def __init__(self, micName: str | None, micOn: bool, sample_rate: int, onSpeechStart: Callable[[], None], onSpeechEnd: Callable[[AudioData], None], speak: Tty, write: Writer, micEnergy: int, micEnergyDebug: bool):
         self.listening = None
         self.sample_rate = sample_rate
-        self.onSpeechStart = onSpeechStart
-        self.onSpeechEnd = onSpeechEnd
+        self.onSpeechStart: Callable[[], None] = onSpeechStart
+        self.onSpeechEnd: Callable[[AudioData], None] = onSpeechEnd
         self.speak = speak
         self.write = write
         self.micName = micName
-        self.micEnergy = 120
-        self.micEnergyDebug = micEnergyDebug
-        self.pause_threshold = 0.5
         self.micOn = micOn
         self._stop = False
+
+        # recognizer fields
+        self.energy_debug = micEnergyDebug
+        self.energy_threshold = micEnergy  # minimum audio energy to consider for recording
+        self.pause_threshold = 0.7  # seconds of non-speaking audio before a phrase is considered complete
+        self.phrase_threshold = 0.3  # minimum seconds of speaking audio before we consider the speaking audio a phrase - values below this are ignored (for filtering out clicks and pops)
+        self.non_speaking_duration = 0.5  # seconds of non-speaking audio to keep on both sides of the recording
+
 
     def set_pause_threshold_normal(self):
         self.pause_threshold = 0.7
@@ -158,12 +67,6 @@ class Mic:
         Thread(name='Mic', target=self._loop, daemon=True).start()
 
     def _loop(self):
-        r = Rec()
-        r.pause_threshold = self.pause_threshold
-        r.phrase_threshold = 0.3
-        r.energy_threshold = self.micEnergy
-        r.dynamic_energy_threshold = False # does not work that well, instead we provide self.micEnergyDebug
-
         while not self._stop:
 
             # reconnect microphone
@@ -208,6 +111,7 @@ class Mic:
                     sleep(1)
                     continue
 
+            # listen to microphone
             try:
                 with source:
                     while not self._stop:
@@ -217,17 +121,9 @@ class Mic:
                             sleep(0.1)
                             continue
 
-                        # sensitivity debug
-                        while not self._stop and self.micEnergyDebug:
-                            buffer = source.stream.read(source.CHUNK)
-                            if len(buffer) == 0: break
-                            energy = audioop.rms(buffer, source.SAMPLE_WIDTH)
-                            self.write(f"Mic energy_treshold={r.energy_threshold} energy_current={energy}")
-
                         # listen to mic
                         try:
-                            r.pause_threshold = self.pause_threshold
-                            audio_data = r.listenCustom(source, timeout=1, onSpeechStarted=self.onSpeechStart)
+                            audio_data = self.listen(source, timeout=1)
 
                             # speech recognition
                             if not self._stop and self.micOn: self.onSpeechEnd(audio_data)
@@ -253,5 +149,93 @@ class Mic:
                 pass
 
     def stop(self):
-        self.micEnergyDebug = False
         self._stop = True
+
+    # This class is derived work of Recognizer class from speech_recognition,
+    # which is under BSD 3-Clause "New" or "Revised" License (https://github.com/Uberi/speech_recognition/blob/master/LICENSE.txt)
+    # Copyright (c) 2014-2017, Anthony Zhang <azhang9@gmail.com>
+    # All rights reserved.
+    # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+    # 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+    # 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+    # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    def listen(self, source: Microphone, timeout=None, phrase_time_limit=None) -> AudioData:
+        """
+        Records a single phrase from ``source`` (an ``AudioSource`` instance) into an ``AudioData`` instance, which it returns.
+
+        This is done by waiting until the audio has an energy above ``recognizer_instance.energy_threshold`` (the user has started speaking), and then recording until it encounters ``recognizer_instance.pause_threshold`` seconds of non-speaking or there is no more audio input. The ending silence is not included.
+
+        The ``timeout`` parameter is the maximum number of seconds that this will wait for a phrase to start before giving up and throwing an ``speech_recognition.WaitTimeoutError`` exception. If ``timeout`` is ``None``, there will be no wait timeout.
+
+        The ``phrase_time_limit`` parameter is the maximum number of seconds that this will allow a phrase to continue before stopping and returning the part of the phrase processed before the time limit was reached. The resulting audio will be the phrase cut off at the time limit. If ``phrase_timeout`` is ``None``, there will be no phrase time limit.
+
+        This operation will always complete within ``timeout + phrase_timeout`` seconds if both are numbers, either by returning the audio data, or by raising a ``speech_recognition.WaitTimeoutError`` exception.
+        """
+        assert isinstance(source, AudioSource), "Source must be an audio source"
+        assert source.stream is not None, "Audio source must be entered before listening, see documentation for ``AudioSource``; are you using ``source`` outside of a ``with`` statement?"
+        assert self.pause_threshold >= self.non_speaking_duration >= 0
+
+        seconds_per_buffer = float(source.CHUNK) / source.SAMPLE_RATE
+        pause_buffer_count = int(math.ceil(self.pause_threshold / seconds_per_buffer))  # number of buffers of non-speaking audio during a phrase, before the phrase should be considered complete
+        phrase_buffer_count = int(math.ceil(self.phrase_threshold / seconds_per_buffer))  # minimum number of buffers of speaking audio before we consider the speaking audio a phrase
+        non_speaking_buffer_count = int(math.ceil(self.non_speaking_duration / seconds_per_buffer))  # maximum number of buffers of non-speaking audio to retain before and after a phrase
+
+        # read audio input for phrases until there is a phrase that is long enough
+        elapsed_time = 0  # number of seconds of audio read
+        buffer = b""  # an empty buffer means that the stream has ended and there is no data left to read
+        while True:
+            frames = deque()
+
+            # store audio input until the phrase starts
+            energy_debug = 0
+            while True:
+                # handle waiting too long for phrase by raising an exception
+                elapsed_time += seconds_per_buffer
+                if timeout and elapsed_time > timeout: raise WaitTimeoutError("listening timed out while waiting for phrase to start")
+
+                buffer = source.stream.read(source.CHUNK)
+                if len(buffer) == 0: break  # reached end of the stream
+                frames.append(buffer)
+                if len(frames) > non_speaking_buffer_count: frames.popleft()  # ensure we only keep the needed amount of non-speaking buffers
+
+                # detect whether speaking has started on audio input
+                energy = audioop.rms(buffer, source.SAMPLE_WIDTH)  # energy of the audio signal
+                energy_debug += 1
+                if self.energy_debug and energy_debug%10==0: self.write(f"RAW: Mic energy_treshold={self.energy_threshold} energy_current={energy}")
+                if energy > self.energy_threshold: break
+
+            # invoke speech start handler
+            self.onSpeechStart()
+
+            # read audio input until the phrase ends
+            pause_count, phrase_count = 0, 0
+            phrase_start_time = elapsed_time
+            energy_debug += 1
+            while True:
+                # handle phrase being too long by cutting off the audio
+                elapsed_time += seconds_per_buffer
+                if phrase_time_limit and elapsed_time - phrase_start_time > phrase_time_limit: break
+
+                buffer = source.stream.read(source.CHUNK)
+                if len(buffer) == 0: break  # reached end of the stream
+                frames.append(buffer)
+                phrase_count += 1
+
+                # check if speaking has stopped for longer than the pause threshold on the audio input
+                energy = audioop.rms(buffer, source.SAMPLE_WIDTH)  # unit energy of the audio signal within the buffer
+                energy_debug = energy_debug + 1
+                if self.energy_debug and energy_debug%10==0: self.write(f"RAW: Mic energy_treshold={self.energy_threshold} energy_current={energy}")
+                if energy > self.energy_threshold: pause_count = 0
+                else: pause_count += 1
+                if pause_count > pause_buffer_count: break  # end of the phrase
+
+            # check how long the detected phrase is, and retry listening if the phrase is too short
+            phrase_count -= pause_count  # exclude the buffers for the pause before the phrase
+            if phrase_count >= phrase_buffer_count or len(buffer) == 0: break  # phrase is long enough or we've reached the end of the stream, so stop listening
+
+        # obtain frame data
+        for i in range(pause_count - non_speaking_buffer_count): frames.pop()  # remove extra non-speaking frames at the end
+        frame_data = b"".join(frames)
+
+        return AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH)

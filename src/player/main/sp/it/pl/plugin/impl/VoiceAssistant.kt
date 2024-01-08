@@ -15,7 +15,6 @@ import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
-import javafx.scene.robot.Robot
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Line
 import javax.sound.sampled.TargetDataLine
@@ -58,10 +57,8 @@ import sp.it.util.async.actor.ActorVt
 import sp.it.util.async.coroutine.runSuspending
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
-import sp.it.util.async.runNew
 import sp.it.util.async.runOn
 import sp.it.util.collections.setTo
-import sp.it.util.collections.toStringPretty
 import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
 import sp.it.util.conf.Constraint.RepeatableAction
@@ -96,6 +93,8 @@ import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.getAny
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.functional.supplyIf
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
@@ -104,7 +103,6 @@ import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.chan
 import sp.it.util.reactive.consumeScrolling
-import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
@@ -121,12 +119,13 @@ import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.concatApplyBackspace
 import sp.it.util.text.encodeBase64
 import sp.it.util.text.equalsNc
-import sp.it.util.text.lengthInLines
+import sp.it.util.text.keys
 import sp.it.util.text.lines
 import sp.it.util.text.nameUi
+import sp.it.util.text.split2
+import sp.it.util.text.splitTrimmed
 import sp.it.util.text.useStrings
 import sp.it.util.text.words
-import sp.it.util.ui.Util
 import sp.it.util.ui.appendTextSmart
 import sp.it.util.ui.hBox
 import sp.it.util.ui.insertNewline
@@ -134,14 +133,12 @@ import sp.it.util.ui.isNewlineOnShiftEnter
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
-import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.singLineProperty
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.styleclassToggle
 import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
-import sp.it.util.ui.width
 import sp.it.util.ui.x
 import sp.it.util.units.seconds
 import sp.it.util.units.version
@@ -235,27 +232,45 @@ class VoiceAssistant: PluginBase() {
       }
    }
 
+   private var commandWidgetNames = mapOf<String, String>()
+
+   private val commandWidgetNamesRaw by cv("")
+      .def(
+         name = "Commands > widget names",
+         info = "Alternative names for widgets for voice control, either for customization or easier recognition. " +
+            "V" +
+            "Comma separated names, widget per line, i.e.: `My widget = name1, name2, ..., nameN`"
+      ).multiline(10) sync {
+         commandWidgetNames = it.lines()
+            .filter { it.isNotBlank() }
+            .map { runTry { it.split2("=").net { (w, names) -> names.splitTrimmed(",").map { it.trim().lowercase() to w.trim().camelToSpaceCase() } } }.orNull() }
+            .filterNotNull()
+            .flatMap { it }
+            .associate { it }
+      }
+
    /** Speech handlers called when user has spoken. Matched in order. */
    val handlers by cList(
-         SpeakHandler("Help",                    "help")                                      { if (matches(it)) Ok("List commands by saying, list commands") else null },
-         SpeakHandler("Do nothing",              "ignore")                                    { if (matches(it)) Ok(null) else null },
-         SpeakHandler("Help Commands",           "list commands")                             { if (matches(it)) Ok(handlersHelpText()) else null },
-         SpeakHandler("Current time",            "what time is it")                           { if (matches(it)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
-         SpeakHandler("Current date",            "what date is it")                           { if (matches(it)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
-         SpeakHandler("Resume playback",         "play|start|resume|continue music|playback") { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
-         SpeakHandler("Pause playback",          "stop|end|pause music|playback")             { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
-         SpeakHandler("Play previous song",      "play previous song")                        { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
-         SpeakHandler("Play next song",          "play next song")                            { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
-         SpeakHandler("Generate from clipboard", "generate from? clipboard")                  { if (it == "generate clipboard") { write("PASTE: " + (Clipboard.getSystemClipboard().string ?: "")); Ok(null) } else null },
-         SpeakHandler("Speak from clipboard",    "speak|say from? clipboard")                 { if (it == "speak clipboard") Ok(Clipboard.getSystemClipboard().string ?: "") else null },
-         SpeakHandler("Speak",                   "speak|say \$text")                          { if (it.startsWith("speak ")) Ok(it.substring(6).trim()) else null },
-         SpeakHandler("Close window",            "close|hide window")                         { if (matches(it)) { invokeAltF4(); Ok(null) } else null },
-         SpeakHandler("Open widget by name",     "open|show widget? \$widget-name widget?")   { text ->
+         SpeakHandler("Help",                             "help")                                      { if (matches(it)) Ok("List commands by saying, list commands") else null },
+         SpeakHandler("Do nothing",                       "ignore")                                    { if (matches(it)) Ok(null) else null },
+         SpeakHandler("Help Commands",                    "list commands")                             { if (matches(it)) Ok(handlersHelpText()) else null },
+         SpeakHandler("Current time",                     "what time is it")                           { if (matches(it)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
+         SpeakHandler("Current date",                     "what date is it")                           { if (matches(it)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
+         SpeakHandler("Resume playback",                  "play|start|resume|continue music|playback") { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
+         SpeakHandler("Pause playback",                   "stop|end|pause music|playback")             { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
+         SpeakHandler("Play previous song",               "play previous song")                        { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
+         SpeakHandler("Play next song",                   "play next song")                            { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
+         SpeakHandler("Generate from clipboard",          "generate from? clipboard")                  { if (matches(it)) { write("PASTE: " + (Clipboard.getSystemClipboard().string ?: "")); Ok(null) } else null },
+         SpeakHandler("Speak from clipboard",             "speak|say from? clipboard")                 { if (matches(it)) Ok(Clipboard.getSystemClipboard().string ?: "") else null },
+         SpeakHandler("Speak",                            "speak|say \$text")                          { if (matches(it)) Ok(it.substring(6).trim()) else null },
+         SpeakHandler("Close window (${keys("ALT+F4")})", "close|hide window")                         { if (matches(it)) { invokeAltF4(); Ok(null) } else null },
+         SpeakHandler("Open widget by name",              "open|show widget? \$widget-name widget?")   { text ->
             if (text.startsWith("open")) {
-               val fName = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
-               val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase() equalsNc fName }
+               val fNameRaw = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
+               val fName = commandWidgetNames.get(fNameRaw) ?: fNameRaw
+               val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase().printIt() equalsNc fName }
                if (f!=null) ComponentLoaderStrategy.DOCK.loader(f)
-               if (f!=null) Ok("Ok") else Error("No widget $fName available")
+               if (f!=null) Ok("Ok") else Error("No widget $fNameRaw available.")
             } else {
                null
             }
@@ -581,26 +596,13 @@ class VoiceAssistant: PluginBase() {
 
    /** Speech event handler. In ui shown as `"$name -> $commandUi"`. Action returns Try (with text to speak or null if none) or null if no match. */
    data class SpeakHandler(val name: String, val commandUi: String, val action: SpeakHandler.(String) -> Try<String?, String?>?) {
-      fun matches(text: String): Boolean = regex.matches(text)
 
       /** [commandUi] turned into regex */
-      val regex by lazy {
-         Regex(
-            commandUi.net {
-               val parts = it.split(" ")
-               fun String.ss(i: Int) = if (parts.size<=1 || i==0) "$this" else " $this"
-               fun String.rr() = replace("(", "").replace(")", "").replace("?", "")
-               parts.mapIndexed { i, p ->
-                  when {
-                     p.contains("|") && p.endsWith("?") -> p.rr().net { "(${it.split("|").joinToString("|") { it.ss(i) }})?" }
-                     p.endsWith("?") -> p.rr().net { "(${it.ss(i)})?" }
-                     p.contains("|") -> p.rr().net { "($it)".ss(i) }
-                     else -> p.rr().ss(i)
-                  }
-               }.joinToString("")
-            }
-         )
-      }
+      val regex by lazy { voiceCommandRegex(commandUi) }
+
+      /** [regex].matches(text) */
+      fun matches(text: String): Boolean = regex.matches(text)
+
    }
 
    companion object: PluginInfo, KLogging() {

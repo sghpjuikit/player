@@ -14,12 +14,18 @@ class VoiceAssistantTest: FreeSpec({
    }
 
    "regex" {
-      VoiceAssistant.SpeakHandler("", "lights", { null }).regex.toPattern().pattern() shouldBe "lights"
-      VoiceAssistant.SpeakHandler("", "lights?", { null }).regex.toPattern().pattern() shouldBe "(lights)?"
-      VoiceAssistant.SpeakHandler("", "lights off", { null }).regex.toPattern().pattern() shouldBe "lights off"
-      VoiceAssistant.SpeakHandler("", "lights off?", { null }).regex.toPattern().pattern() shouldBe "lights( off)?"
-      VoiceAssistant.SpeakHandler("", "lights off|on?", { null }).regex.toPattern().pattern() shouldBe "lights( off| on)?"
-      VoiceAssistant.SpeakHandler("", "close|hide window", { null }).regex.toPattern().pattern() shouldBe "(close|hide) window"
+      voiceCommandRegex("lights").toPattern().pattern() shouldBe "lights"
+      voiceCommandRegex("lights off").toPattern().pattern() shouldBe "lights off"
+
+      voiceCommandRegex("close|hide window").toPattern().pattern() shouldBe "(close|hide) window"
+
+      voiceCommandRegex("lights?").toPattern().pattern() shouldBe "(lights)?"
+      voiceCommandRegex("lights off?").toPattern().pattern() shouldBe "lights( off)?"
+      voiceCommandRegex("one two? three").toPattern().pattern() shouldBe "one( two)? three"
+
+      voiceCommandRegex("lights off|on?").toPattern().pattern() shouldBe "lights( off| on)?"
+
+      voiceCommandRegex("speak \$text").toPattern().pattern() shouldBe "speak .*"
    }
 
 })

@@ -4,6 +4,7 @@ package hue
 
 import java.awt.Color.HSBtoRGB
 import javafx.event.EventHandler
+import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.TOP_CENTER
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Side.RIGHT
@@ -180,7 +181,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       root.consumeScrolling()
       root.onEventDown(KEY_PRESSED, F5) { refresh() }
       root.lay += vBox(10.emScaled, TOP_LEFT) {
-         lay += hBox {
+         lay += hBox(5.emScaled, CENTER_LEFT) {
             lay += Icon(IconMA.ROUTER).run {
                tooltip("Link bridge")
                onClickDo { linkBridge() }

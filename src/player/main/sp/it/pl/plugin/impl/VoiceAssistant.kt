@@ -232,7 +232,8 @@ class VoiceAssistant: PluginBase() {
       }
    }
 
-   private var commandWidgetNames = mapOf<String, String>()
+   var commandWidgetNames = mapOf<String, String>()
+      private set
 
    private val commandWidgetNamesRaw by cv("")
       .def(
@@ -251,30 +252,20 @@ class VoiceAssistant: PluginBase() {
 
    /** Speech handlers called when user has spoken. Matched in order. */
    val handlers by cList(
-         SpeakHandler("Help",                             "help")                                      { if (matches(it)) Ok("List commands by saying, list commands") else null },
-         SpeakHandler("Do nothing",                       "ignore")                                    { if (matches(it)) Ok(null) else null },
-         SpeakHandler("Help Commands",                    "list commands")                             { if (matches(it)) Ok(handlersHelpText()) else null },
-         SpeakHandler("Current time",                     "what time is it")                           { if (matches(it)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
-         SpeakHandler("Current date",                     "what date is it")                           { if (matches(it)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
-         SpeakHandler("Resume playback",                  "play|start|resume|continue music|playback") { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
-         SpeakHandler("Pause playback",                   "stop|end|pause music|playback")             { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
-         SpeakHandler("Play previous song",               "play previous song")                        { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
-         SpeakHandler("Play next song",                   "play next song")                            { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
-         SpeakHandler("Generate from clipboard",          "generate from? clipboard")                  { if (matches(it)) { write("PASTE: " + (Clipboard.getSystemClipboard().string ?: "")); Ok(null) } else null },
-         SpeakHandler("Speak from clipboard",             "speak|say from? clipboard")                 { if (matches(it)) Ok(Clipboard.getSystemClipboard().string ?: "") else null },
-         SpeakHandler("Speak",                            "speak|say \$text")                          { if (matches(it)) Ok(it.substring(6).trim()) else null },
-         SpeakHandler("Close window (${keys("ALT+F4")})", "close|hide window")                         { if (matches(it)) { invokeAltF4(); Ok(null) } else null },
-         SpeakHandler("Open widget by name",              "open|show widget? \$widget-name widget?")   { text ->
-            if (text.startsWith("open")) {
-               val fNameRaw = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
-               val fName = commandWidgetNames.get(fNameRaw) ?: fNameRaw
-               val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase().printIt() equalsNc fName }
-               if (f!=null) ComponentLoaderStrategy.DOCK.loader(f)
-               if (f!=null) Ok("Ok") else Error("No widget $fNameRaw available.")
-            } else {
-               null
-            }
-         },
+         SpeakHandler(                             "Help", "help")                                      { if (matches(it)) Ok("List commands by saying, list commands") else null },
+         SpeakHandler(                       "Do nothing", "ignore")                                    { if (matches(it)) Ok(null) else null },
+         SpeakHandler(                    "Help Commands", "list commands")                             { if (matches(it)) Ok(handlersHelpText()) else null },
+         SpeakHandler(                     "Current time", "what time is it")                           { if (matches(it)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
+         SpeakHandler(                     "Current date", "what date is it")                           { if (matches(it)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
+         SpeakHandler(                  "Resume playback", "play|start|resume|continue music|playback") { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
+         SpeakHandler(                   "Pause playback", "stop|end|pause music|playback")             { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
+         SpeakHandler(               "Play previous song", "play previous song")                        { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
+         SpeakHandler(                   "Play next song", "play next song")                            { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
+         SpeakHandler(          "Generate from clipboard", "generate from? clipboard")                  { voiceCommandGenerateClipboard(it) },
+         SpeakHandler(             "Speak from clipboard", "speak|say from? clipboard")                 { voiceCommandSpeakClipboard(it) },
+         SpeakHandler(                            "Speak", "speak|say \$text")                          { voiceCommandSpeakText(it) },
+         SpeakHandler( "Close window (${keys("ALT+F4")})", "close|hide window")                         { voiceCommandAltF4(it) },
+         SpeakHandler(              "Open widget by name", "open|show widget? \$widget-name widget?")   { voiceCommandOpenWidget(it) },
       )
       .noPersist().readOnly().butElement { uiConverter { "${it.name} -> ${it.commandUi}" } }
       .def(
@@ -545,7 +536,7 @@ class VoiceAssistant: PluginBase() {
       if (!isRunning) return
       speakingTextW.value = text
       var textSanitized = text.orEmpty().sanitize(speechBlacklistWords_)
-      var result = handlers.firstNotNullOfOrNull { h -> with(h) { action(textSanitized) } }
+      var result = handlers.firstNotNullOfOrNull { with(it) { SpeakContext(this, this@VoiceAssistant).action(textSanitized) } }
       if (result==null) {
          if (orDetectIntent) write("COM-DET: ${text.encodeBase64()}")
          else speak("Unrecognized command: $text")
@@ -557,7 +548,7 @@ class VoiceAssistant: PluginBase() {
       setup?.blockAndGetOrThrow()?.outputStream?.apply { write("$it\n".toByteArray()); flush() }
    }
 
-   private fun write(text: String): Unit = writing(setup to text)
+   fun write(text: String): Unit = writing(setup to text)
 
    @IsAction(name = "Speak text", info = "Identical to \"Narrate text\"")
    fun synthesize() = speak()
@@ -594,15 +585,16 @@ class VoiceAssistant: PluginBase() {
       OPENAI("openai", "OpenAi", "OpenAI http client (requires access, but custom local server is also possible, e.g. LmStudio )"),
    }
 
-   /** Speech event handler. In ui shown as `"$name -> $commandUi"`. Action returns Try (with text to speak or null if none) or null if no match. */
-   data class SpeakHandler(val name: String, val commandUi: String, val action: SpeakHandler.(String) -> Try<String?, String?>?) {
+   /** [SpeakHandler] action context. */
+   data class SpeakContext(val handler: SpeakHandler, val plugin: VoiceAssistant) {
+      /** [regex].matches(text) */
+      fun matches(text: String): Boolean = handler.regex.matches(text)
+   }
 
+   /** Speech event handler. In ui shown as `"$name -> $commandUi"`. Action returns Try (with text to speak or null if none) or null if no match. */
+   data class SpeakHandler(val name: String, val commandUi: String, val action: SpeakContext.(String) -> Try<String?, String?>?) {
       /** [commandUi] turned into regex */
       val regex by lazy { voiceCommandRegex(commandUi) }
-
-      /** [regex].matches(text) */
-      fun matches(text: String): Boolean = regex.matches(text)
-
    }
 
    companion object: PluginInfo, KLogging() {

@@ -1,7 +1,7 @@
 from threading import Thread
 from queue import Queue
 from collections.abc import Iterator
-from time import sleep
+from time import sleep, time
 from speech_recognition import Recognizer, Microphone, WaitTimeoutError # https://github.com/Uberi/speech_recognition
 from util_tty_engines import Tty
 from util_write_engine import Writer
@@ -187,11 +187,11 @@ class Mic:
         # read audio input for phrases until there is a phrase that is long enough
         elapsed_time = 0  # number of seconds of audio read
         buffer = b""  # an empty buffer means that the stream has ended and there is no data left to read
+        energy_debug_last = time()
         while True:
             frames = deque()
 
             # store audio input until the phrase starts
-            energy_debug = 0
             while True:
                 # handle waiting too long for phrase by raising an exception
                 elapsed_time += seconds_per_buffer
@@ -204,8 +204,9 @@ class Mic:
 
                 # detect whether speaking has started on audio input
                 energy = audioop.rms(buffer, source.SAMPLE_WIDTH)  # energy of the audio signal
-                energy_debug += 1
-                if self.energy_debug and energy_debug%10==0: self.write(f"RAW: Mic energy_treshold={self.energy_threshold} energy_current={energy}")
+                if self.energy_debug and time()-energy_debug_last>0.5:
+                    energy_debug_last = time()
+                    self.write(f"RAW: Mic energy={energy}/{self.energy_threshold}")
                 if energy > self.energy_threshold: break
 
             # invoke speech start handler
@@ -214,7 +215,6 @@ class Mic:
             # read audio input until the phrase ends
             pause_count, phrase_count = 0, 0
             phrase_start_time = elapsed_time
-            energy_debug += 1
             while True:
                 # handle phrase being too long by cutting off the audio
                 elapsed_time += seconds_per_buffer
@@ -227,8 +227,9 @@ class Mic:
 
                 # check if speaking has stopped for longer than the pause threshold on the audio input
                 energy = audioop.rms(buffer, source.SAMPLE_WIDTH)  # unit energy of the audio signal within the buffer
-                energy_debug = energy_debug + 1
-                if self.energy_debug and energy_debug%10==0: self.write(f"RAW: Mic energy_treshold={self.energy_threshold} energy_current={energy}")
+                if self.energy_debug and time()-energy_debug_last>0.5:
+                    energy_debug_last = time()
+                    self.write(f"RAW: Mic energy={energy}/{self.energy_threshold}")
                 if energy > self.energy_threshold: pause_count = 0
                 else: pause_count += 1
                 if pause_count > pause_buffer_count: break  # end of the phrase

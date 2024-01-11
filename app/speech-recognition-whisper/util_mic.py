@@ -111,10 +111,13 @@ class Mic:
                     sleep(1)
                     continue
 
+            if self._stop: break
+
             # listen to microphone
             try:
                 with source:
-                    while not self._stop:
+                    while True:
+                        if self._stop: break
 
                         # wait till mic is on
                         while not self._stop and not self.micOn:

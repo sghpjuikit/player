@@ -55,12 +55,14 @@ fun SpeakContext.voiceCommandOpenWidget(text: String) =
 fun voiceCommandRegex(commandUi: String) = Regex(
    commandUi.net { it ->
       val parts = it.split(" ")
-      fun String.ss(i: Int) = if (parts.size<=1 || i==0) "$this" else " $this"
+      val opts = (parts.mapIndexed { i, p -> i to p.endsWith("?") } + (-1 to true) + (parts.size to true)).toMap()
+      fun opt(i: Int) = opts[i]!!
+      fun String.ss(i: Int) = this
       fun String.rr() = replace("(", "").replace(")", "").replace("?", "")
       parts
          // resolve params
          .map {
-            if (it.startsWith("$")) " .*"
+            if (it.startsWith("$")) ".*"
             else it
          }
          .mapIndexed { i, p ->
@@ -71,6 +73,6 @@ fun voiceCommandRegex(commandUi: String) = Regex(
                else -> p.rr().ss(i)
             }
          }
-         .joinToString("").replace("  ", " ")
+         .joinToString(" *").replace(" * *", " *").trim()
    }
 )

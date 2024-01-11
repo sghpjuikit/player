@@ -15,17 +15,20 @@ class VoiceAssistantTest: FreeSpec({
 
    "regex" {
       voiceCommandRegex("lights").toPattern().pattern() shouldBe "lights"
-      voiceCommandRegex("lights off").toPattern().pattern() shouldBe "lights off"
+      voiceCommandRegex("lights off").toPattern().pattern() shouldBe "lights *off"
 
-      voiceCommandRegex("close|hide window").toPattern().pattern() shouldBe "(close|hide) window"
+      voiceCommandRegex("close|hide window").toPattern().pattern() shouldBe "(close|hide) *window"
 
       voiceCommandRegex("lights?").toPattern().pattern() shouldBe "(lights)?"
-      voiceCommandRegex("lights off?").toPattern().pattern() shouldBe "lights( off)?"
-      voiceCommandRegex("one two? three").toPattern().pattern() shouldBe "one( two)? three"
+      voiceCommandRegex("lights off?").toPattern().pattern() shouldBe "lights *(off)?"
+      voiceCommandRegex("one two? three").toPattern().pattern() shouldBe "one *(two)? *three"
 
-      voiceCommandRegex("lights off|on?").toPattern().pattern() shouldBe "lights( off| on)?"
+      voiceCommandRegex("turn? lights").toPattern().pattern() shouldBe "(turn)? *lights"
+      voiceCommandRegex("turn? lights on|off?").toPattern().pattern() shouldBe "(turn)? *lights *(on|off)?"
 
-      voiceCommandRegex("speak \$text").toPattern().pattern() shouldBe "speak .*"
+      voiceCommandRegex("lights off|on?").toPattern().pattern() shouldBe "lights *(off|on)?"
+
+      voiceCommandRegex("speak \$text").toPattern().pattern() shouldBe "speak *.*"
    }
 
 })

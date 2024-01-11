@@ -126,7 +126,7 @@ class Hue: PluginBase() {
             } else
                null
          },
-         SpeakHandler("Turn hue lights scene on", "lights scene \$scene-name") { text ->
+         SpeakHandler("Set hue lights scene on", "lights scene \$scene-name") { text ->
             if (text.startsWith("lights scene ")) {
                val sName = text.substringAfter("lights scene ").removeSuffix(" on").removeSuffix(" off").replace("_", " ")
                scope.launch(FX) {
@@ -150,8 +150,8 @@ class Hue: PluginBase() {
             } else
                null
          },
-         SpeakHandler("Turn hue lights group on/off", "turn? lights \$group-name on|off?") { text ->
-            if (text.startsWith("lights ") || text.startsWith("turn lights ")) {
+         SpeakHandler("Turn hue light group on/off", "turn? light \$group-name on|off?") { text ->
+            if (text.startsWith("light ") || text.startsWith("turn light ")) {
                val gName = text.substringAfter("lights ").removeSuffix(" on").removeSuffix(" off").replace("_", " ")
                scope.launch(FX) {
                   val voice = APP.plugins.get<VoiceAssistant>()

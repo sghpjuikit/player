@@ -27,7 +27,7 @@ class ChatIntentDetect(ChatProceed):
     def __init__(self, userPrompt: str):
         super().__init__(
             "From now on, identify user intent by returning one of following commands. " +
-            "Only respond with command in format : `COM-command-COM`. $ is command parameter." +
+            "Only respond with command in format : `COM-command-COM`. ? is optional, $ is command parameter." +
             "Commands: \n" +
             "- repeat // last speech\n" +
             "- what-can-you-do\n" +
@@ -38,12 +38,14 @@ class ChatIntentDetect(ChatProceed):
             "- play-next-song\n" +
             "- what-time-is-it\n" +
             "- what-date-is-it\n" +
-            "- list-light-scenes\n" +
             "- generate from? clipboard\n" +
             "- speak|say from? clipboard\n" +
             "- speak|say $text\n" +
-            "- lights-on?/off?\n" +
-            "- lights-scene-$scene-name\n" +
+            "- lights-on|off\n" +
+            "- list-light-scenes\n" +
+            "- lights-scene-$scene\n" +
+            "- list-light-groups\n" +
+            "- turn?-light-$groupname-on|off?\n" +
             "- unidentified // no other command probable",
             userPrompt
         )

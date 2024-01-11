@@ -258,10 +258,10 @@ class LlmHttpOpenAi(LlmBase):
                         raise x
 
                 except openai.APIConnectionError as e:
-                    self.write(f"OpenAI server could not be reached: {e.__cause__}")
+                    self.write(f"ERR: OpenAI server could not be reached: {e.__cause__}")
                 except openai.RateLimitError as e:
-                    self.write("OpenAI returned 429 status code - rate limit error")
+                    self.write(f"ERR: OpenAI returned 429 status code - rate limit error")
                 except openai.APIStatusError as e:
-                    self.write(f"OpenAI returned {e.status_code} status code with response {e.response}")
+                    self.write(f"ERR: OpenAI returned {e.status_code} status code with response {e.response}")
                 finally:
                     self.generating = False

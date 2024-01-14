@@ -281,6 +281,12 @@ class Hue: PluginBase() {
          }
       }
 
+      fun flashBulb(bulb: HueBulbId) = runSuspendingFx {
+         client.put("$url/lights/$bulb/state") {
+            setBody("""{ "alert": "select" }""")
+         }
+      }
+
       fun toggleBulb(bulb: HueBulbId, onlyTo: Boolean? = null) = runSuspendingFx {
          val on = client.get("$url/lights/$bulb").bodyAsJs().to<HueBulb>().state.on
          if (onlyTo==on) return@runSuspendingFx

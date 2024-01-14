@@ -341,7 +341,10 @@ class Hue(widget: Widget): SimpleController(widget) {
                         hueBridge?.changePowerOn(bulb.id, it.powerOn.value).thenRefresh()
                      }
                   }
-                  fun toggleBulb() = hueBridge?.toggleBulb(bulb.id).thenRefresh()
+                  fun flashBulb() =
+                     hueBridge?.flashBulb(bulb.id)
+                  fun toggleBulb() =
+                     hueBridge?.toggleBulb(bulb.id).thenRefresh()
                   fun focusBulb() {
                      unfocusSensorOrBridge()
                      unfocusBulbGroup()
@@ -365,6 +368,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                      node.onContextMenuRequested = EventHandler {
                         ContextMenu().dsl {
                            item("Rename") { rename() }
+                           item("Flash") { flashBulb() }
                            item("Toggle on/off", keys = keys(Key.SPACE)) { toggleBulb() }
                            if (hue.confPowerOn!=null) item("Power on behavior") { changePowerOn() }
                         }.show(node, RIGHT, 0.0, 0.0)

@@ -129,7 +129,11 @@ Args:
   coqui-voice=$voice
     If speaking-engine=coqui is used, required name of voice file must be specified and exist in ./coqui-voices dir
     Default: Ann_Daniels.flac
-
+  
+  coqui-cuda-device=$device
+    If speaking-engine=coqui is used, optionally cuda device index or empty string for auto.
+    Default: ''
+  
   coqui-server=$host:$port
     If specified, enables speech generation http API on the specified address.
     Use localhost:port or 127.0.0.1:port or 0.0.0.0:port (if accessible from outside).
@@ -203,6 +207,7 @@ speakEngineType = arg('speech-engine', 'os')
 speakUseCharAiToken = arg('character-ai-token', '')
 speakUseCharAiVoice = int(arg('character-ai-voice', '22'))
 speakUseCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
+speakUseCoquiCudaDevice = arg('coqui-cuda-device', '')
 speakUseCoquiServer = arg('coqui-server', '')
 speakUseHttpUrl = arg('speech-server', 'localhost:1235')
 speechRecognitionModelName = arg('speech-recognition-model', 'base.en')
@@ -234,7 +239,8 @@ elif speakEngineType == 'character-ai':
 elif speakEngineType == 'coqui':
     host, _, port = (None, None, None) if len(speakUseCoquiServer)==0 else speakUseCoquiServer.partition(":")
     (host, port) = (None, None) if len(speakUseCoquiServer)==0 else (host, int(port))
-    speakEngine = TtyCoqui(speakUseCoquiVoice, host, port, SdActor(), write)
+    device = None if len(speakUseCoquiCudaDevice)==0 else int(speakUseCoquiCudaDevice)
+    speakEngine = TtyCoqui(speakUseCoquiVoice, device, host, port, SdActor(), write)
 elif speakEngineType == 'http':
     if len(speakUseHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')
     if ':' not in speakUseHttpUrl: raise AssertionError('speech-server must be in format host:port')
@@ -254,7 +260,8 @@ else:
     if ':' not in speakUseCoquiServer: raise AssertionError('coqui-server must be in format host:port')
     host, _, port = speakUseCoquiServer.partition(":")
     (host, port) = (host, int(port))
-    speakServer = TtyCoqui(speakUseCoquiVoice, host, port, SdActor(), write)
+    device = None if len(speakUseCoquiCudaDevice)==0 else int(speakUseCoquiCudaDevice)
+    speakServer = TtyCoqui(speakUseCoquiVoice, device, host, port, SdActor(), write)
     speakServer.start()
 
 # commands

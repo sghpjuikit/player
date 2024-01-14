@@ -304,10 +304,11 @@ class TtyCharAi(TtyBase):
 
 # https://pypi.org/project/TTS/
 class TtyCoqui(TtyBase):
-    def __init__(self, voice: str, serverHost: str | None, serverPort: int | None, play: SdActor, write: Writer):
+    def __init__(self, voice: str, cudeDevice: int | None, serverHost: str | None, serverPort: int | None, play: SdActor, write: Writer):
         super().__init__()
         self.speed = 1.0
         self.voice = voice
+        self.cudeDevice: int | None = cudeDevice
         self._voice = voice
         self.serverHost = serverHost
         self.serverPort = serverPort
@@ -457,11 +458,11 @@ class TtyCoqui(TtyBase):
                 config.load_json(os.path.join(dir, 'config.json'))
                 self.model = Xtts.init_from_config(config)
                 self.model.load_checkpoint(config, checkpoint_dir=dir, use_deepspeed=False)
-                self.model.cuda(1)
+                self.model.cuda(self.cudeDevice)
                 loadVoice()
                 self.loaded = True
-            except Exception:
-                self.write("ERR: Failed to load TTS model")
+            except Exception as x:
+                self.write(f"ERR: Failed to load TTS model {x}")
 
         # load model asynchronously (so we do not block speaking from cache)
         loadModelThread = Thread(name='TtyCoqui-load-model', target=loadModel, daemon=True)

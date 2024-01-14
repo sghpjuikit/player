@@ -162,6 +162,7 @@ class VoiceAssistant: PluginBase() {
             "character-ai-token=${speechEngineCharAiToken.value}",
             "character-ai-voice=22",
             "coqui-voice=${speechEngineCoquiVoice.value}",
+            "coqui-cuda-device=${speechEngineCoquiCudaDevice.value ?: ""}",
             "coqui-server=${if (speechServer.value) speechServerUrl.value else ""}",
             "speech-server=${speechEngineHttpUrl.value}",
             "llm-engine=${llmEngine.value.code}",
@@ -348,6 +349,14 @@ class VoiceAssistant: PluginBase() {
             "Should be 3-10s long."
       )
 
+   /** Access token for character.ai account used when speech engine is Character.ai */
+   val speechEngineCoquiCudaDevice by cvn<Int>(null)
+      .min(0)
+      .def(
+         name = "Speech engine > coqui > cuda device",
+         info = "Cuda device for speech generation when using ${SpeechEngine.COQUI.nameUi} speech engine."
+      )
+
    /** Speech server address and port to connect to. */
    val speechEngineHttpUrl by cv("localhost:1235")
       .def(
@@ -420,6 +429,7 @@ class VoiceAssistant: PluginBase() {
    private var isRunning = false
 
    override fun start() {
+      // runtime-changeable properties
       // @formatter:off
       speechEngineCoquiVoice.chan().throttleToLast(2.seconds) subscribe { write("coqui-voice=$it") }
                     printRaw.chan().throttleToLast(2.seconds) subscribe { write("print-raw=$it") }
@@ -435,9 +445,10 @@ class VoiceAssistant: PluginBase() {
 
       startSpeechRecognition()
 
+      // restart-requiring properties
       val processChangeVals = listOf<V<*>>(
          wakeUpWord, micName, whisperModel,
-         speechEngine, speechEngineCharAiToken, speechEngineHttpUrl, speechServer, speechServerUrl,
+         speechEngine, speechEngineCharAiToken, speechEngineCoquiCudaDevice, speechEngineHttpUrl, speechServer, speechServerUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
       )
       val processChange = processChangeVals.map { it.chan() }.reduce { a, b -> a + b }

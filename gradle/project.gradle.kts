@@ -172,6 +172,7 @@ allprojects {
       }
 
       "Http" group {
+         implementation("javax.jmdns","jmdns","3.4.1")
          implementation("io.ktor", "ktor-server-core", "2.3.6")
          implementation("io.ktor", "ktor-client-java", "2.3.6")
       }

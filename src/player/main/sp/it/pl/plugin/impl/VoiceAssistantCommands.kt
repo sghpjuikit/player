@@ -45,7 +45,7 @@ fun SpeakContext.voiceCommandOpenWidget(text: String) =
    if (text.startsWith("open")) {
       val fNameRaw = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
       val fName = plugin.commandWidgetNames.get(fNameRaw) ?: fNameRaw
-      val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase().printIt() equalsNc fName }
+      val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase() equalsNc fName }
       if (f!=null) ComponentLoaderStrategy.DOCK.loader(f)
       if (f!=null) Ok("Ok") else Try.Error("No widget $fNameRaw available.")
    } else {

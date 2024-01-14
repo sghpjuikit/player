@@ -16,11 +16,13 @@ import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.layout.VBox
 import javafx.scene.text.TextAlignment
+import javax.jmdns.JmDNS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
 import mu.KLogging
 import sp.it.pl.core.InfoUi
@@ -42,6 +44,7 @@ import sp.it.pl.plugin.impl.VoiceAssistant
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.IO
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
@@ -192,8 +195,15 @@ class Hue: PluginBase() {
          return this@validIpOrNull.takeIf { isValid }
       }
 
-      private suspend fun ip(): String? =
-         (client.get("https://discovery.meethue.com/").bodyAsJs().asJsArray()/0/"internalipaddress")?.asJsStringValue()
+      private suspend fun ip(): String? {
+         return null
+            // use mDNS
+            ?: IO {
+               JmDNS.create().use { it.list("_hue._tcp.local.").firstOrNull()?.hostAddresses?.firstOrNull() }
+            }
+            // use meethue cloud
+            ?: (client.get("https://discovery.meethue.com/").bodyAsJs().asJsArray()/0/"internalipaddress")?.asJsStringValue()
+      }
 
       private suspend fun isAuthorizedApiKey(ip: String, apiKey: String): Boolean {
          val response = client.get("http://$ip/api/$apiKey/lights")
@@ -238,6 +248,9 @@ class Hue: PluginBase() {
 
       private suspend fun apiVersion(url: String): String =
          client.get("$url/config").bodyAsJs().asJsObject().value["apiversion"]?.asJsString()?.value ?: fail { "Could not obtain api version" }
+
+      suspend fun api(): HueApi =
+         client.get("$url/config").bodyAsJs().to<HueApi>()
 
       suspend fun bulbs(): List<HueBulb> =
          client.get("$url/lights").bodyAsJs().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueBulb>().copy(id = id) }
@@ -403,6 +416,18 @@ data class HueSceneCreate(val name: String, val type: HueSceneType, val group: H
    constructor(name: String, lights: List<HueBulb>): this(name, LightScene, null, lights.map { it.id })
    constructor(name: String, group: HueGroupId): this(name, GroupScene, group, null)
 }
+data class HueApi(
+   val name: String,
+   val datastoreversion: String,
+   val swversion: String,
+   val apiversion: String,
+   val mac: String,
+   val bridgeid: String,
+   val factorynew: Boolean,
+   val replacesbridgeid: String?,
+   val modelid: String?,
+   val starterkitid: String?,
+)
 
 data class HueSensor(val id: HueSensorId = "", val name: String, val type: String, val state: HueMap, val config: HueMap) {
    val stateTemperature get() = state["temperature"]?.asIf<Number>()?.net { it.toDouble()/100 }

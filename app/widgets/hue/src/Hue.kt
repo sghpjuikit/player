@@ -4,6 +4,7 @@ package hue
 
 import java.awt.Color.HSBtoRGB
 import javafx.event.EventHandler
+import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.TOP_CENTER
 import javafx.geometry.Pos.TOP_LEFT
@@ -79,6 +80,7 @@ import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.asFut
 import sp.it.util.async.future.Fut
 import sp.it.util.collections.setTo
+import sp.it.util.collections.setToOne
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.between
@@ -142,10 +144,11 @@ class Hue(widget: Widget): SimpleController(widget) {
    var selectedGroupIcon: HueIcon<HueGroup>? = null
    var selectedBulbId: HueBulbId? = null
    var selectedBulbIcon: HueIcon<HueBulb>? = null
-   val bulbsPane = flowPane(10.emScaled, 10.emScaled)
-   val groupsPane = flowPane(10.emScaled, 10.emScaled)
-   val scenesPane = flowPane(10.emScaled, 10.emScaled)
-   val sensorsPane = flowPane(10.emScaled, 10.emScaled)
+   val bridgePane = flowPane(10.emScaled, 10.emScaled).apply { padding = Insets(0.0, 0.0, 5.emScaled, 0.0) }
+   val bulbsPane = flowPane(10.emScaled, 10.emScaled).apply { padding = Insets(0.0, 0.0, 5.emScaled, 0.0) }
+   val groupsPane = flowPane(10.emScaled, 10.emScaled).apply { padding = Insets(0.0, 0.0, 5.emScaled, 0.0) }
+   val scenesPane = flowPane(10.emScaled, 10.emScaled).apply { padding = Insets(0.0, 0.0, 5.emScaled, 0.0) }
+   val sensorsPane = flowPane(10.emScaled, 10.emScaled).apply { padding = Insets(0.0, 0.0, 5.emScaled, 0.0) }
    val huePlugin = APP.plugins.plugin<Hue>().asValue(onClose)
    val hueBridge: Hue.HueBridge?
       get() {
@@ -194,7 +197,7 @@ class Hue(widget: Widget): SimpleController(widget) {
             }
             lay += Icon(IconFA.PLAY).run {
                disableProperty() syncFrom huePlugin.map { it==null } on onClose
-               tooltip("Run commandsto bridge manually")
+               tooltip("Run commands to bridge manually")
                onClickDo { huePlugin.value?.ifNotNull { uri("https://${it.hueBridge.ip}/debug/clip.html").browse() } }
                withText(RIGHT, "Commands")
             }
@@ -209,6 +212,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                   lay += TitledPane("Groups", groupsPane)
                   lay += TitledPane("Scenes", scenesPane)
                   lay += TitledPane("Sensors", sensorsPane)
+                  lay += TitledPane("Bridge", bridgePane)
                }
             }
             lay += infoPane.apply {
@@ -241,7 +245,7 @@ class Hue(widget: Widget): SimpleController(widget) {
          color.readOnly.value = true
          infoPane.lay -= color.node
       }
-      fun unfocusSensor() {
+      fun unfocusSensorOrBridge() {
          infoPane.lay -= devicePane
       }
 
@@ -255,7 +259,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                   fun toggleBulbGrouo() = hueBridge?.toggleBulbGroup(group.id).thenRefresh()
                   fun deleteBulbGrouo() = hueBridge?.deleteGroup(group.id).thenRefresh()
                   fun focusBulbGroup() {
-                     unfocusSensor()
+                     unfocusSensorOrBridge()
                      unfocusBulb()
                      hueBulbCells.values.map { it.icon.hue.id }.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", false) }
                      selectedGroupIcon?.pseudoClassChanged("edited", false)
@@ -339,7 +343,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                   }
                   fun toggleBulb() = hueBridge?.toggleBulb(bulb.id).thenRefresh()
                   fun focusBulb() {
-                     unfocusSensor()
+                     unfocusSensorOrBridge()
                      unfocusBulbGroup()
                      selectedBulbIcon?.pseudoClassChanged("edited", false)
                      selectedBulbIcon = this
@@ -381,7 +385,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       hueBridge?.scenes().orEmpty().net { scenes ->
          scenesPane.children setTo scenes.map { scene ->
             fun focusScene() {
-               unfocusSensor()
+               unfocusSensorOrBridge()
                unfocusBulbGroup()
                unfocusBulb()
             }
@@ -428,22 +432,23 @@ class Hue(widget: Widget): SimpleController(widget) {
       hueBridge?.sensors().orEmpty().net { scenes ->
          sensorsPane.children setTo scenes.map { sensor ->
             fun focusSensor() {
-               unfocusSensor()
+               unfocusSensorOrBridge()
                unfocusBulbGroup()
                unfocusBulb()
-               infoPane.lay += devicePane
-
-               devicePane.lay.clear()
-               devicePane.lay += textColon("Type", sensor.type)
-               when (sensor.type) {
-                  "ZLLTemperature" -> sensor.stateTemperature.ifNotNull { devicePane.lay += textColon("Temperature", "$it°C") }
-                  "ZLLPresence" -> sensor.statePresence.ifNotNull { devicePane.lay += textColon("Presence", it) }
-                  "Daylight" -> sensor.stateDaylight.ifNotNull { devicePane.lay += textColon("Is daylight", it) }
-                  else -> IconMA.SETTINGS_INPUT_ANTENNA
-               }
-               if (devicePane.lay.children.isNotEmpty()) devicePane.lay += label()
-               sensor.config.entries.sortedBy { it.key }.forEach { (name, value) ->
-                  devicePane.lay += textColon(name.capitalLower(), value)
+               infoPane.lay += devicePane.apply {
+                  lay.clear()
+                  lay += textColon("Name", sensor.name)
+                  lay += textColon("Type", sensor.type)
+                  when (sensor.type) {
+                     "ZLLTemperature" -> sensor.stateTemperature.ifNotNull { lay += textColon("Temperature", "$it°C") }
+                     "ZLLPresence" -> sensor.statePresence.ifNotNull { lay += textColon("Presence", it) }
+                     "Daylight" -> sensor.stateDaylight.ifNotNull { lay += textColon("Is daylight", it) }
+                     else -> IconMA.SETTINGS_INPUT_ANTENNA
+                  }
+                  if (lay.children.isNotEmpty()) lay += label()
+                  sensor.config.entries.sortedBy { it.key }.forEach { (name, value) ->
+                     lay += textColon(name.capitalLower(), value)
+                  }
                }
             }
             val icon = Icon(sensor.icon, 40.0).apply {
@@ -454,6 +459,39 @@ class Hue(widget: Widget): SimpleController(widget) {
                icon.focusedProperty() attachTrue { focusSensor() }
                onEventDown(MOUSE_CLICKED, PRIMARY) {
                   if (it.clickCount==1) focusSensor()
+               }
+            }
+         }
+      }
+      hueBridge?.api().net { listOfNotNull(it) }.net { apis ->
+         bridgePane.children setTo apis.map { api ->
+            fun focusBridge() {
+               unfocusSensorOrBridge()
+               unfocusBulbGroup()
+               unfocusBulb()
+               infoPane.lay += devicePane.apply {
+                  lay.clear()
+                  lay += textColon("Name", api.name)
+                  lay += label()
+                  lay += textColon("Datastore version", api.datastoreversion)
+                  lay += textColon("Sw version", api.swversion)
+                  lay += textColon("Api version", api.apiversion)
+                  lay += textColon("Mac", api.mac)
+                  lay += textColon("Bridge id", api.bridgeid)
+                  lay += textColon("Factory new", api.factorynew)
+                  lay += textColon("Replaces bridge", api.replacesbridgeid)
+                  lay += textColon("Model id", api.modelid)
+                  lay += textColon("Starter kit id", api.starterkitid)
+               }
+            }
+            val icon = HueIcon(IconFA.SQUARE, 40.0, null).apply {
+               styleclass("hue-bridge-icon")
+            }
+
+            HueCellNode(icon, "Bridge").apply {
+               icon.focusedProperty() attachTrue { focusBridge() }
+               onEventDown(MOUSE_CLICKED, PRIMARY) {
+                  if (it.clickCount==1) focusBridge()
                }
             }
          }

@@ -9,7 +9,6 @@ import java.time.LocalTime
 import java.util.regex.Pattern
 import javafx.geometry.Pos.CENTER
 import javafx.scene.control.ScrollPane
-import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -23,7 +22,6 @@ import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.core.bodyJs
 import sp.it.pl.core.requestBodyAsJs
-import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.WidgetFactory
@@ -87,7 +85,6 @@ import sp.it.util.dev.fail
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.functional.Try
-import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.getAny
 import sp.it.util.functional.ifNotNull
@@ -117,7 +114,6 @@ import sp.it.util.text.applyBackspace
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.concatApplyBackspace
 import sp.it.util.text.encodeBase64
-import sp.it.util.text.equalsNc
 import sp.it.util.text.keys
 import sp.it.util.text.lines
 import sp.it.util.text.nameUi
@@ -198,7 +194,7 @@ class VoiceAssistant: PluginBase() {
                } }
                .lines()
                .map { it.applyBackspace() }
-               .onEach { handleInputLocal(it.un()) }
+               .onEach { handleInput(it.un()) }
                .joinToString("")
          }
          val stderrListener = process.errorStream.consume("SpeechRecognition-stderr") {
@@ -302,11 +298,12 @@ class VoiceAssistant: PluginBase() {
       .uiNoCustomUnsealedValue()
       .def(name = "Microphone name", info = "Microphone to be used. Null causes automatic microphone selection.")
 
+   /** Microphone energy voice treshold. Volume above this number is considered speech. */
    val micEnergy by cv(120).min(0)
-      .def(name = "Microphone energy", info = "Whether microphone listening is allowed.")
+      .def(name = "Microphone energy", info = "Microphone energt. Volume above this number is considered speech.")
 
    val micEnergyDebug by cv(false)
-      .def(name = "Microphone energy > debug", info = "Whether microphone listening is allowed.")
+      .def(name = "Microphone energy > debug", info = "Whether current microphone energy lvl is active. Use to setup microphone energy voice treshold.")
 
    /** Whether `RAW: $text` values will be shown. */
    val printRaw by cv(true)
@@ -420,34 +417,6 @@ class VoiceAssistant: PluginBase() {
    val llmChatTopK by cvn(40).min(1)
       .def(name = "Llm chat > top K", info = "")
 
-   /** Optional IP address of another system where this another instance of this application is running and which will handle the speech detected by this instance */
-   val handleBy by cvn<String>(null).uiConverter { if (it==null) "This application" else it }
-      .def(
-         name = "Handle speech events by",
-         info = "Optional IP address of another system where this another instance of this application is running and which will handle the speech detected by this instance"
-      )
-
-   /** Enable /speech in [AppHttp]. This API exposes speech & voice assistent functionality. Default false. */
-   val httpEnabled by cv(false)
-      .def(name = "Http API", info = "This API exposes speech & voice assistent functionality")
-
-   /** Invoked for every voice assistant http input token */
-   val onHttpInput = Handler1<String>()
-
-   /** Http input */
-   private val httpInput by cvnro(vn<String>(null)).multilineToBottom(20).noPersist()
-      .def(name = "Http input", info = "Shows input received over http.", editable = EditMode.APP)
-
-   private val httpApi = Subscribed {
-      APP.http.serverRoutes route AppHttp.Handler("/speech") {
-         it.requestBodyAsJs().asJsStringValue().ifNotNull { text ->
-            runFX { httpInput.value = (httpInput.value ?: "") + "\n" + text }
-            handleInputHttp(text)
-            onHttpInput(text + "\n")
-         }
-      }
-   }
-
    private var isRunning = false
 
    override fun start() {
@@ -475,13 +444,11 @@ class VoiceAssistant: PluginBase() {
       processChange.throttleToLast(2.seconds).subscribe { restart() } on onClose
 
       isRunning = true
-      httpEnabled.sync(httpApi::subscribe)
       // @formatter:on
    }
 
    override fun stop() {
       isRunning = false
-      httpApi.unsubscribe()
       stopSpeechRecognition()
       writing.closeAndWait()
       onClose()
@@ -503,7 +470,7 @@ class VoiceAssistant: PluginBase() {
       startSpeechRecognition()
    }
 
-   private fun handleInputLocal(text: String) {
+   private fun handleInput(text: String) {
       if (text.startsWith("RAW: ")) Unit
       if (text.startsWith("USER: ")) handleSpeechRaw(text)
       if (text.startsWith("SYS: ")) handleSpeechRaw(text)
@@ -512,22 +479,10 @@ class VoiceAssistant: PluginBase() {
       if (text.startsWith("COM-DET: ")) handleSpeechRaw(text)
    }
 
-   private fun handleInputHttp(text: String) {
-      if (text.startsWith("RAW: ")) Unit
-      if (text.startsWith("USER: ")) Unit
-      if (text.startsWith("SYS: ")) speak(text.substringAfter(": "))
-      if (text.startsWith("CHAT: ")) speak(text.substringAfter(": "))
-      if (text.startsWith("COM: ")) speak(text.substringAfter(": "))
-      if (text.startsWith("COM-DET: ")) speak(text.substringAfter(": "))
-   }
-
    private fun handleSpeechRaw(text: String) {
-      if (handleBy.value!=null)
-         runSuspending(VTc) { APP.http.client.put("http://${handleBy.value}:${APP.http.url.port}/speech") { bodyJs(text) } }
-
-      if (handleBy.value==null && text.startsWith("COM: "))
+      if (text.startsWith("COM: "))
          runFX { handleSpeech(text.substringAfter(": "), true) }
-      if (handleBy.value==null && text.startsWith("COM-DET: "))
+      if (text.startsWith("COM-DET: "))
          runFX { handleSpeech(text.substringAfter(": "), false) }
    }
 
@@ -557,9 +512,7 @@ class VoiceAssistant: PluginBase() {
       constraintsN += listOf(Multiline, MultilineRows(10), RepeatableAction)
    }.invokeWithForm()
 
-   fun speak(text: String) =
-      if (handleBy.value!=null) handleSpeechRaw("SYS: $text")
-      else write("SAY: ${text.encodeBase64()}")
+   fun speak(text: String) = write("SAY: ${text.encodeBase64()}")
 
    @IsAction(name = "Write chat", info = "Writes to voice assistant chat")
    fun chat() = action<String>("Write chat", "Writes to voice assistant chat", IconMA.CHAT, BLOCK) { chat(it) }.apply {
@@ -692,7 +645,6 @@ class VoiceAssistant: PluginBase() {
 
                      onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
                      plugin.syncNonNullWhile { it.onLocalInput attach ::appendTextSmart }
-                     plugin.syncNonNullWhile { it.onHttpInput attach ::appendTextSmart }
                   }
                   lay += stackPane {
                      lay(CENTER) += hBox(null, CENTER) {

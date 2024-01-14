@@ -15,15 +15,22 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.net
 import sp.it.util.text.camelToSpaceCase
+import sp.it.util.text.encodeBase64
 import sp.it.util.text.equalsNc
 
 fun SpeakContext.voiceCommandGenerate(text: String) =
-   if (matches(text)) { plugin.write("PASTE: " + text); Ok(null) }
-   else null
+   if (matches(text)) {
+      plugin.write("PASTE: " + ("Generate " + text).encodeBase64())
+      Ok(null)
+   } else
+      null
 
 fun SpeakContext.voiceCommandGenerateClipboard(text: String) =
-   if (matches(text)) { plugin.write("PASTE: " + (Clipboard.getSystemClipboard().string ?: "")); Ok(null) }
-   else null
+   if (matches(text)) {
+      plugin.write("PASTE: " + ("Generate " + text + "\nClipboard:\n```" + (Clipboard.getSystemClipboard().string ?: "" + "```")).encodeBase64())
+      Ok(null)
+   } else
+      null
 
 fun SpeakContext.voiceCommandSpeakClipboard(text: String) =
    if (matches(text)) Ok(Clipboard.getSystemClipboard().string ?: "")

@@ -45,7 +45,7 @@ class ChatIntentDetect(ChatProceed):
             "- list-light-scenes\n" +
             "- lights-scene-$scene\n" +
             "- list-light-groups\n" +
-            "- turn?-light-$groupname-on|off?\n" +
+            "- lights-$groupname-on|off?\n" +
             "- unidentified // no other command probable",
             userPrompt
         )

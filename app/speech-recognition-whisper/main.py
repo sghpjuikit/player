@@ -293,6 +293,7 @@ class CommandExecutorMain(CommandExecutor):
             speak.repeatLast()
             return handled
         if text.startswith("generate "):
+            speak("Ok")
             llm(ChatPaste(text))
             return handled
         elif text == 'what can you do':
@@ -484,7 +485,7 @@ def callback(text):
     try:
         write(f'USER: {name}' + (', ' + text if len(text)>0 else ''))
         if text == "repeat": commandExecutor.execute(text)
-        if text.startswith("generate"): commandExecutor.execute(text)
+        if text.startswith("generate"): write(f"COM: {text}")
         else: assist(text, textSanitized)
     except Exception as e:
         traceback.print_exc()
@@ -567,8 +568,8 @@ while True:
             callback(text)
 
         if m.startswith("PASTE: "):
-            text = m[7:]
-            llm(ChatPaste(text))
+            text = base64.b64decode(m[7:]).decode('utf-8')
+            commandExecutor.execute("generate " + text)
 
         # changing settings commands
         elif m.startswith("mic-on="):

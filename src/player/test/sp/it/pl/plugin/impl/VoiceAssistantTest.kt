@@ -3,7 +3,6 @@ package sp.it.pl.plugin.impl
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import sp.it.pl.plugin.impl.VoiceAssistant.Companion.sanitize
-import sp.it.util.text.words
 
 class VoiceAssistantTest: FreeSpec({
 
@@ -30,5 +29,6 @@ class VoiceAssistantTest: FreeSpec({
 
       voiceCommandRegex("speak \$text").toPattern().pattern() shouldBe "speak *.*"
    }
+
 
 })

@@ -144,7 +144,7 @@ class Hue: PluginBase() {
                null
          },
          SpeakHandler("List hue light groups", "list light groups") { text ->
-            if (text == "list light groups") {
+            if (matches(text)) {
                scope.launch(FX) {
                   val t = hueBridge.init().bulbsAndGroups().second.joinToString(prefix = "The available light groups are: ", separator = ", ") { it.name }
                   APP.plugins.get<VoiceAssistant>()?.speak(t)
@@ -153,9 +153,13 @@ class Hue: PluginBase() {
             } else
                null
          },
-         SpeakHandler("Turn hue light group on/off", "turn? light \$group-name on|off?") { text ->
-            if (text.startsWith("light ") || text.startsWith("turn light ")) {
-               val gName = text.substringAfter("lights ").removeSuffix(" on").removeSuffix(" off").replace("_", " ")
+         SpeakHandler("Turn hue light group on/off", "turn? lights group? \$group-name on|off?") { text ->
+            if (matches(text)) {
+               val gName = text.substringAfter("lights ")
+                  .replace("group ", "").replace("in ", "")
+                  .replace("on ", "").replace(" on", "")
+                  .replace("off ", "").replace(" off", "")
+                  .replace("_", " ")
                scope.launch(FX) {
                   val voice = APP.plugins.get<VoiceAssistant>()
                   val s = when { text.endsWith("on") -> true; text.endsWith("off") -> false; else -> null }

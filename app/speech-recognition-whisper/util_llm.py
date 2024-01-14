@@ -55,7 +55,9 @@ class ChatIntentDetect(ChatProceed):
 class ChatPaste(ChatProceed):
     def __init__(self, userPrompt: str):
         super().__init__(
-            "From now on, seamlessly complete user messages. Only complete the message so it connects with user's.",
+            "From now on, seamlessly complete user messages. " +
+            "Only complete the message so it connects with user's. " +
+            "If user asks to write code, only provide the code",
             userPrompt
         )
         self.outStart = 'PASTE: '

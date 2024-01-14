@@ -248,20 +248,21 @@ class VoiceAssistant: PluginBase() {
 
    /** Speech handlers called when user has spoken. Matched in order. */
    val handlers by cList(
-         SpeakHandler(                             "Help", "help")                                      { if (matches(it)) Ok("List commands by saying, list commands") else null },
-         SpeakHandler(                       "Do nothing", "ignore")                                    { if (matches(it)) Ok(null) else null },
-         SpeakHandler(                    "Help Commands", "list commands")                             { if (matches(it)) Ok(handlersHelpText()) else null },
-         SpeakHandler(                     "Current time", "what time is it")                           { if (matches(it)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
-         SpeakHandler(                     "Current date", "what date is it")                           { if (matches(it)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
-         SpeakHandler(                  "Resume playback", "play|start|resume|continue music|playback") { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
-         SpeakHandler(                   "Pause playback", "stop|end|pause music|playback")             { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
-         SpeakHandler(               "Play previous song", "play previous song")                        { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
-         SpeakHandler(                   "Play next song", "play next song")                            { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
-         SpeakHandler(          "Generate from clipboard", "generate from? clipboard")                  { voiceCommandGenerateClipboard(it) },
-         SpeakHandler(             "Speak from clipboard", "speak|say from? clipboard")                 { voiceCommandSpeakClipboard(it) },
-         SpeakHandler(                            "Speak", "speak|say \$text")                          { voiceCommandSpeakText(it) },
-         SpeakHandler( "Close window (${keys("ALT+F4")})", "close|hide window")                         { voiceCommandAltF4(it) },
-         SpeakHandler(              "Open widget by name", "open|show widget? \$widget-name widget?")   { voiceCommandOpenWidget(it) },
+         SpeakHandler(                               "Help", "help")                                      { if (matches(it)) Ok("List commands by saying, list commands") else null },
+         SpeakHandler(                         "Do nothing", "ignore")                                    { if (matches(it)) Ok(null) else null },
+         SpeakHandler(                      "Help Commands", "list commands")                             { if (matches(it)) Ok(handlersHelpText()) else null },
+         SpeakHandler(                       "Current time", "what time is it")                           { if (matches(it)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
+         SpeakHandler(                       "Current date", "what date is it")                           { if (matches(it)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
+         SpeakHandler(                    "Resume playback", "play|start|resume|continue music|playback") { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
+         SpeakHandler(                     "Pause playback", "stop|end|pause music|playback")             { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
+         SpeakHandler(                 "Play previous song", "play previous song")                        { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
+         SpeakHandler(                     "Play next song", "play next song")                            { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
+         SpeakHandler(                "Generate llm answer", "generate|answer|write")                     { voiceCommandGenerate(it) },
+         SpeakHandler( "Generate llm answer from clipboard", "generate|answer|write from? clipboard")     { voiceCommandGenerateClipboard(it) },
+         SpeakHandler(               "Speak from clipboard", "speak|say from? clipboard")                 { voiceCommandSpeakClipboard(it) },
+         SpeakHandler(                              "Speak", "speak|say \$text")                          { voiceCommandSpeakText(it) },
+         SpeakHandler(   "Close window (${keys("ALT+F4")})", "close|hide window")                         { voiceCommandAltF4(it) },
+         SpeakHandler(                "Open widget by name", "open|show widget? \$widget-name widget?")   { voiceCommandOpenWidget(it) },
       )
       .noPersist().readOnly().butElement { uiConverter { "${it.name} -> ${it.commandUi}" } }
       .def(

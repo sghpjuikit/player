@@ -285,13 +285,15 @@ elif llmEngine == "openai":
 else:
     pass
 
-
 # commands
 class CommandExecutorMain(CommandExecutor):
     def execute(self, text: str) -> str:
         handled = "ignore"
         if text == "repeat":
             speak.repeatLast()
+            return handled
+        if text.startswith("generate "):
+            llm(ChatPaste(text))
             return handled
         elif text == 'what can you do':
             llm(ChatProceed(
@@ -481,7 +483,8 @@ def callback(text):
     # handle by active assistant state
     try:
         write(f'USER: {name}' + (', ' + text if len(text)>0 else ''))
-        if text == "repeat": speak.repeatLast()
+        if text == "repeat": commandExecutor.execute(text)
+        if text.startswith("generate"): commandExecutor.execute(text)
         else: assist(text, textSanitized)
     except Exception as e:
         traceback.print_exc()

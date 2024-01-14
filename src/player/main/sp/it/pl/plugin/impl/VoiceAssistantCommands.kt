@@ -17,6 +17,10 @@ import sp.it.util.functional.net
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.equalsNc
 
+fun SpeakContext.voiceCommandGenerate(text: String) =
+   if (matches(text)) { plugin.write("PASTE: " + text); Ok(null) }
+   else null
+
 fun SpeakContext.voiceCommandGenerateClipboard(text: String) =
    if (matches(text)) { plugin.write("PASTE: " + (Clipboard.getSystemClipboard().string ?: "")); Ok(null) }
    else null

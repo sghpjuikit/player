@@ -28,6 +28,8 @@ import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppHttp
+import sp.it.pl.main.Events
+import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
@@ -110,6 +112,7 @@ import sp.it.util.reactive.throttleToLast
 import sp.it.util.reactive.zip
 import sp.it.util.reactive.zip2
 import sp.it.util.system.EnvironmentContext
+import sp.it.util.system.Os
 import sp.it.util.text.applyBackspace
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.concatApplyBackspace
@@ -263,6 +266,12 @@ class VoiceAssistant: PluginBase() {
          SpeakHandler(                              "Speak", "speak|say \$text")                             { voiceCommandSpeakText(it) },
          SpeakHandler(   "Close window (${keys("ALT+F4")})", "close|hide window")                            { voiceCommandAltF4(it) },
          SpeakHandler(                "Open widget by name", "open|show widget? \$widget-name widget?")      { voiceCommandOpenWidget(it) },
+         SpeakHandler(                        "Shutdown OS", "shut down system|pc|computer|os")              { voiceCommandOsShutdown(it) },
+         SpeakHandler(                         "Restart OS", "restart system|pc|computer|os")                { voiceCommandOsRestart(it) },
+         SpeakHandler(                       "Hibernate OS", "hibernate system|pc|computer|os")              { voiceCommandOsHibernate(it) },
+         SpeakHandler(                           "Sleep OS", "sleep system|pc|computer|os")                  { voiceCommandOsSleep(it) },
+         SpeakHandler(                            "Lock OS", "lock system|pc|computer|os")                   { voiceCommandOsLock(it) },
+         SpeakHandler(                         "Log off OS", "log off system|pc|computer|os")                { voiceCommandOsLogOff(it) },
       )
       .noPersist().readOnly().butElement { uiConverter { "${it.name} -> ${it.commandUi}" } }
       .def(
@@ -454,6 +463,10 @@ class VoiceAssistant: PluginBase() {
       )
       val processChange = processChangeVals.map { it.chan() }.reduce { a, b -> a + b }
       processChange.throttleToLast(2.seconds).subscribe { restart() } on onClose
+
+      // the python process !recover from hibernating properly
+      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Stop) { stopSpeechRecognition() }
+      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Start) { startSpeechRecognition() }
 
       isRunning = true
       // @formatter:on

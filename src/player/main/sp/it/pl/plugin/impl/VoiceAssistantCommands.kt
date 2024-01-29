@@ -14,33 +14,37 @@ import sp.it.util.dev.printIt
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.net
+import sp.it.util.system.Os
+import sp.it.util.system.Windows
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.encodeBase64
 import sp.it.util.text.equalsNc
 
-fun SpeakContext.voiceCommandGenerate(text: String) =
+typealias ComMatch = Try<String?, String?>?
+
+fun SpeakContext.voiceCommandGenerate(text: String): ComMatch =
    if (matches(text)) {
       plugin.write("PASTE: " + ("Generate " + text).encodeBase64())
       Ok(null)
    } else
       null
 
-fun SpeakContext.voiceCommandGenerateClipboard(text: String) =
+fun SpeakContext.voiceCommandGenerateClipboard(text: String): ComMatch =
    if (matches(text)) {
       plugin.write("PASTE: " + ("Generate " + text + "\nClipboard:\n```" + (Clipboard.getSystemClipboard().string ?: "" + "```")).encodeBase64())
       Ok(null)
    } else
       null
 
-fun SpeakContext.voiceCommandSpeakClipboard(text: String) =
+fun SpeakContext.voiceCommandSpeakClipboard(text: String): ComMatch =
    if (matches(text)) Ok(Clipboard.getSystemClipboard().string ?: "")
    else null
 
-fun SpeakContext.voiceCommandSpeakText(text: String) =
+fun SpeakContext.voiceCommandSpeakText(text: String): ComMatch =
    if (matches(text)) Ok(text.removePrefix("speak").removePrefix("say").trim())
    else null
 
-fun SpeakContext.voiceCommandAltF4(text: String) =
+fun SpeakContext.voiceCommandAltF4(text: String): ComMatch =
    if (matches(text)) {
       Robot().apply {
          keyPress(KeyCode.ALT)
@@ -52,7 +56,7 @@ fun SpeakContext.voiceCommandAltF4(text: String) =
    } else
       null
 
-fun SpeakContext.voiceCommandOpenWidget(text: String) =
+fun SpeakContext.voiceCommandOpenWidget(text: String): ComMatch =
    if (text.startsWith("open")) {
       val fNameRaw = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
       val fName = plugin.commandWidgetNames.get(fNameRaw) ?: fNameRaw
@@ -62,6 +66,24 @@ fun SpeakContext.voiceCommandOpenWidget(text: String) =
    } else {
       null
    }
+
+fun SpeakContext.voiceCommandOsShutdown(text: String): ComMatch =
+   if (matches(text) && Os.WINDOWS.isCurrent) Windows.shutdown().map { null }.mapError { it.localizedMessage } else null
+
+fun SpeakContext.voiceCommandOsRestart(text: String): ComMatch =
+   if (matches(text) && Os.WINDOWS.isCurrent) Windows.restart().map { null }.mapError { it.localizedMessage } else null
+
+fun SpeakContext.voiceCommandOsSleep(text: String): ComMatch =
+   if (matches(text) && Os.WINDOWS.isCurrent) Windows.sleep().map { null }.mapError { it.localizedMessage } else null
+
+fun SpeakContext.voiceCommandOsHibernate(text: String): ComMatch =
+   if (matches(text) && Os.WINDOWS.isCurrent) Windows.hibernate().map { null }.mapError { it.localizedMessage } else null
+
+fun SpeakContext.voiceCommandOsLock(text: String): ComMatch =
+   if (matches(text) && Os.WINDOWS.isCurrent) Windows.lock().map { null }.mapError { it.localizedMessage } else null
+
+fun SpeakContext.voiceCommandOsLogOff(text: String): ComMatch =
+   if (matches(text) && Os.WINDOWS.isCurrent) Windows.logOff().map { null }.mapError { it.localizedMessage } else null
 
 fun voiceCommandRegex(commandUi: String) = Regex(
    commandUi.net { it ->

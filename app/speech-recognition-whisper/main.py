@@ -285,6 +285,16 @@ elif llmEngine == "openai":
 else:
     pass
 
+
+# assist
+class Assist:
+    def __call__(self, text: str, textSanitized: str):
+        pass
+
+assist_last_at = time.time()
+assist_last_diff = 0
+assist = Assist()
+
 # commands
 class CommandExecutorMain(CommandExecutor):
     def execute(self, text: str) -> str:
@@ -320,20 +330,16 @@ class CommandExecutorMain(CommandExecutor):
                 "Give me summary of your capabilities"
             ))
             return handled
+        elif text == 'start conversation':
+            if isinstance(llm, LlmNone): speak('No conversation model is loaded')
+            else: assist = AssistChat()
+            return handled
         else:
             return text
 
 commandExecutor.commandExecutor = CommandExecutorMain()
 
 
-# assist
-class Assist:
-    def __call__(self, text: str, textSanitized: str):
-        pass
-
-assist_last_at = time.time()
-assist_last_diff = 0
-assist = Assist()
 
 
 class AssistChat:
@@ -422,8 +428,7 @@ class AssistStandard:
 
         # start LLM conversation
         elif "start conversation" in text:
-            if isinstance(llm, LlmNone): speak('No conversation model is loaded')
-            else: assist = AssistChat()
+            commandExecutor.execute("start conversation")
 
         # start en vocab excersize
         elif text == "start english vocabulary exercise":

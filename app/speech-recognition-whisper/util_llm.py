@@ -30,6 +30,7 @@ class ChatIntentDetect(ChatProceed):
             "Only respond with command in format : `COM-command-COM`. ? is optional, $ is command parameter." +
             "Commands: \n" +
             "- repeat // last speech\n" +
+            "- start-conversation\n" +
             "- what-can-you-do\n" +
             "- open-weather-info\n" +
             "- play-music\n" +

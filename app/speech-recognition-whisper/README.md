@@ -44,6 +44,7 @@ This is a speech recognition python script using OpenAI Whisper. Features:
     
     // MaxOS
     brew install ffmpeg
+   
     // Windows
     choco install ffmpeg
     scoop install ffmpeg

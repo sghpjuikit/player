@@ -103,7 +103,9 @@ import sp.it.util.math.clip
 import sp.it.util.math.min
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attachTrue
+import sp.it.util.reactive.attachWhile
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.map
 import sp.it.util.reactive.notNull
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -111,6 +113,8 @@ import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.syncNonNullWhile
+import sp.it.util.reactive.syncWhile
 import sp.it.util.system.browse
 import sp.it.util.text.capitalLower
 import sp.it.util.text.keys
@@ -221,6 +225,7 @@ class Hue(widget: Widget): SimpleController(widget) {
          }
       }
 
+      huePlugin syncNonNullWhile { it.refreshes attach { refresh() } } on onClose
       root.sync1IfInScene { refresh() } on onClose
    }
 

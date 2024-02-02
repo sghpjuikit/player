@@ -2,6 +2,7 @@ package sp.it.util.ui
 
 import javafx.scene.control.ScrollBar
 import javafx.scene.control.TextArea
+import sp.it.util.async.runFX
 import sp.it.util.dev.Experimental
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -16,7 +17,11 @@ import sp.it.util.text.concatApplyBackspace
 import sp.it.util.text.lengthInLines
 import sp.it.util.ui.Util.computeTextWidth
 
-/** [TextArea.appendText] that 1 preserves scroll if user is not at the bottom or selection not empty; 2 preserves selection */
+/**
+ * [TextArea.appendText] that
+ * * preserves scroll position if user is not at the bottom or selection not empty
+ * * preserves caret psition and selection
+ */
 fun TextArea.appendTextSmart(t: String) {
    if (t.isEmpty()) return
 
@@ -28,6 +33,9 @@ fun TextArea.appendTextSmart(t: String) {
 
    // preserve selection
    val s = selection
+   var c = caretPosition
+   var wasSelection = s.length>0;
+   var wasCaretBottom = c==(text?.length ?: 0);
 
    val sb = properties[scKey]?.asIs<ScrollBar>()
    var isBottom = sb?.net { it.value == it.max } ?: true
@@ -44,7 +52,9 @@ fun TextArea.appendTextSmart(t: String) {
    }
 
    // restore selection
-   if (s.length>0) selectRange(s.start, s.end)
+   if (wasSelection) selectRange(s.start, s.end)
+   else if (!isBottom && wasCaretBottom) selectRange(text?.length ?: 0, text?.length ?: 0)
+   else if (!isBottom) selectRange(c, c)
 }
 
 /** Inserts newline character into the text at the caret position. Clears selection. Moves caret by 1. */

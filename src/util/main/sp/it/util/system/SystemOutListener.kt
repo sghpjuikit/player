@@ -22,6 +22,9 @@ class SystemOutListener private constructor(private val stream: SystemOutDuplica
       System.setOut(this)
    }
 
+   /** @return text passed through this stream from the origin of its lifetime */
+   fun text(): String = stream.text.toString()
+
    /** Add listener that will receive the stream data (always on fx thread). */
    fun addListener(listener: (String) -> Unit): Subscription =
       stream.listeners addRem listener
@@ -32,6 +35,7 @@ class SystemOutListener private constructor(private val stream: SystemOutDuplica
 
    /** Helper class for [SystemOutListener]. */
    private class SystemOutDuplicateStream: OutputStream() {
+      val text = StringBuffer();
       val sout = System.out!!
       val listeners = CopyOnWriteArrayList<(String) -> Unit>()
 
@@ -53,8 +57,11 @@ class SystemOutListener private constructor(private val stream: SystemOutDuplica
 
          // for (int i=0 ; i<len ; i++) write(b[off + i]);
          sout.write(b, off, len)
+
+         val s = String(b, off, len, UTF_8)
+         text.append(s)
+
          if (listeners.isNotEmpty()) {
-            val s = String(b, off, len, UTF_8)
             runFX { listeners.forEach { it(s) } }
          }
       }

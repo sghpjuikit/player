@@ -56,6 +56,12 @@ fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> 
                   MenuItemBoolean.buildSingleSelectionMenu(TextAlignment.entries, tf.textAlignment, { it.toUi() }) { tf.textAlignment = it }.asSequence()
                }
             }
+            menu("Scroll") {
+               item("Top", keys = keys(SHORTCUT, Key.HOME)) { tf.scrollTop = Double.MIN_VALUE }
+               item("Bottom", keys = keys(SHORTCUT, Key.END)) { tf.scrollTop = Double.MAX_VALUE }
+               item("Left", keys = keys(Key.HOME)) { tf.scrollLeft = Double.MIN_VALUE }
+               item("Right", keys = keys(Key.END)) { tf.scrollLeft = Double.MIN_VALUE }
+            }
          }
 
          if (textGetter!=null || valueGetter!=null)

@@ -6,10 +6,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "2.0.0-Beta2"
+   kotlin("jvm") version "2.0.0-Beta3"
    application
-   id("com.github.ben-manes.versions") version "0.50.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
-   id("com.jaredsburrows.license") version "0.9.3"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
+   id("com.github.ben-manes.versions") version "0.51.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
+   id("com.jaredsburrows.license") version "0.9.7"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
 }
 
 // ----- util block; defined first to help IDE with syntax checking for erroneous code
@@ -99,7 +99,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "22-ea+16"
+         val version = "23-ea+3"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -134,15 +134,15 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "5.3.5")
+         implementation("com.github.f4b6a3", "uuid-creator", "5.3.7")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
-         implementation("com.github.oshi", "oshi-core", "6.4.9")  // https://github.com/oshi/oshi/releases
+         implementation("com.github.oshi", "oshi-core", "6.4.11")  // https://github.com/oshi/oshi/releases
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
          implementation("org.apache.pdfbox", "pdfbox", "3.0.1") // https://pdfbox.apache.org
-         implementation("com.ezylang", "EvalEx", "3.1.0")
+         implementation("com.ezylang", "EvalEx", "3.1.1")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
          implementation("ch.obermuhlner", "big-math", "2.3.2")
       }

@@ -6,6 +6,7 @@ from speech_recognition import Recognizer, Microphone, WaitTimeoutError # https:
 from util_tty_engines import Tty
 from util_write_engine import Writer
 from itertools import chain
+from pysilero_vad import SileroVoiceActivityDetector
 
 from typing import Callable
 from collections import deque
@@ -40,7 +41,7 @@ def get_microphone_index_by_name(name):
 class Mic:
     def __init__(self, micName: str | None, micOn: bool, sample_rate: int, onSpeechStart: Callable[[], None], onSpeechEnd: Callable[[AudioData], None], speak: Tty, write: Writer, micEnergy: int, micEnergyDebug: bool):
         self.listening = None
-        self.sample_rate = sample_rate
+        self.sample_rate: int = sample_rate
         self.onSpeechStart: Callable[[], None] = onSpeechStart
         self.onSpeechEnd: Callable[[AudioData], None] = onSpeechEnd
         self.speak = speak
@@ -56,6 +57,10 @@ class Mic:
         self.phrase_threshold = 0.3  # minimum seconds of speaking audio before we consider the speaking audio a phrase - values below this are ignored (for filtering out clicks and pops)
         self.non_speaking_duration = 0.5  # seconds of non-speaking audio to keep on both sides of the recording
 
+        # voice activity detection
+        self.vad_treshold = 0.5
+        self.vad = SileroVoiceActivityDetector()
+        if self.sample_rate != 16000: raise Exception("Sample rate for voice activity detection must be 16000")
 
     def set_pause_threshold_normal(self):
         self.pause_threshold = 0.7
@@ -129,7 +134,7 @@ class Mic:
                             audio_data = self.listen(source, timeout=1)
 
                             # speech recognition
-                            if not self._stop and self.micOn: self.onSpeechEnd(audio_data)
+                            if not self._stop and self.micOn and audio_data is not None: self.onSpeechEnd(audio_data)
 
                         # ignore silence
                         except WaitTimeoutError:
@@ -163,7 +168,7 @@ class Mic:
     # 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
     # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
     # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-    def listen(self, source: Microphone, timeout=None, phrase_time_limit=None) -> AudioData:
+    def listen(self, source: Microphone, timeout=None, phrase_time_limit=None) -> AudioData | None:
         """
         Records a single phrase from ``source`` (an ``AudioSource`` instance) into an ``AudioData`` instance, which it returns.
 
@@ -209,12 +214,10 @@ class Mic:
                     self.write(f"RAW: Mic energy={energy}/{self.energy_threshold}")
                 if energy > self.energy_threshold: break
 
-            # invoke speech start handler
-            self.onSpeechStart()
-
             # read audio input until the phrase ends
             pause_count, phrase_count = 0, 0
             phrase_start_time = elapsed_time
+            has_speech = False
             while True:
                 # handle phrase being too long by cutting off the audio
                 elapsed_time += seconds_per_buffer
@@ -224,6 +227,13 @@ class Mic:
                 if len(buffer) == 0: break  # reached end of the stream
                 frames.append(buffer)
                 phrase_count += 1
+
+                # vad
+                is_speech = self.vad(buffer) >= self.vad_treshold
+                if not has_speech and is_speech:
+                    has_speech = True
+                    # invoke speech start handler
+                    self.onSpeechStart()
 
                 # check if speaking has stopped for longer than the pause threshold on the audio input
                 energy = audioop.rms(buffer, source.SAMPLE_WIDTH)  # unit energy of the audio signal within the buffer
@@ -242,4 +252,7 @@ class Mic:
         for i in range(pause_count - non_speaking_buffer_count): frames.pop()  # remove extra non-speaking frames at the end
         frame_data = b"".join(frames)
 
-        return AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH)
+        if has_speech:
+            return AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH)
+        else:
+            return None

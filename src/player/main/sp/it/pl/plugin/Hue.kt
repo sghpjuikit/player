@@ -119,6 +119,34 @@ class Hue: PluginBase() {
             } else
                null
          },
+         SpeakHandler("List hue light bulbs", "list light bulbs") { text ->
+            if (matches(text)) {
+               scope.launch(FX) {
+                  val t = hueBridge.init().bulbs().joinToString(prefix = "The available light bulbs are: ", separator = ", ") { it.name }
+                  APP.plugins.get<VoiceAssistant>()?.speak(t)
+               }
+               Ok(null) // handle async result manually
+            } else
+               null
+         },
+         SpeakHandler("Turn hue light bulb on/off", "turn? light bulb \$bulb-name on|off?") { text ->
+            if (matches(text)) {
+               val bName = text.substringAfter("light bulb ")
+                  .replace("on ", "").replace(" on", "")
+                  .replace("off ", "").replace(" off", "")
+                  .replace("_", " ")
+               val s = when { text.endsWith("on") -> true; text.endsWith("off") -> false; else -> null }
+               scope.launch(FX) {
+                  val voice = APP.plugins.get<VoiceAssistant>()
+                  val bulbs = hueBridge.init().bulbs()
+                  val b = bulbs.find { it.name.lowercase() equalsNcs bName }
+                  if (b!=null) hueBridge.toggleBulb(b.id, s).ui { refreshes(Unit) }
+                  if (b!=null) voice?.speak("Ok") else voice?.speak("No Light Bulb $bName available")
+               }
+               Ok(null) // handle async result manually
+            } else
+               null
+         },
          SpeakHandler("List hue light scenes", "list light scenes") { text ->
             if (text == "list light scenes") {
                scope.launch(FX) {
@@ -129,7 +157,7 @@ class Hue: PluginBase() {
             } else
                null
          },
-         SpeakHandler("Set hue lights scene on", "lights scene \$scene-name") { text ->
+         SpeakHandler("Set hue lights scene", "lights scene \$scene-name") { text ->
             if (text.startsWith("lights scene ")) {
                val sName = text.substringAfter("lights scene ").removeSuffix(" on").removeSuffix(" off").replace("_", " ")
                scope.launch(FX) {

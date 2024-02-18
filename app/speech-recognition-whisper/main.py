@@ -12,7 +12,7 @@ from typing import cast
 from util_play_engine import SdActor
 from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui, TtyHttp
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
-from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatPaste, ChatStop
+from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
 from util_s2t import Whisper
 from util_write_engine import Writer
@@ -294,6 +294,31 @@ class Assist:
 assist_last_at = time.time()
 assist_last_diff = 0
 assist = Assist()
+assist_function_prompt = """
+- repeat // last speech
+- start-conversation
+- what-can-you-do
+- open-weather-info
+- play-music
+- stop-music
+- play-previous-song
+- play-next-song
+- what-time-is-it
+- what-date-is-it
+- generate from? clipboard
+- speak|say from? clipboard
+- speak|say $text
+- lights-on|off
+- list-light-bulbs
+- light-bulb-$bulb_name-on|off?
+- list-light-scenes
+- lights-scene-$scene
+- list-light-groups
+- lights-$groupname-on|off?
+- set-reminder-on-$iso_datetime-$text
+- set-reminder-in-$time_period-$text
+- unidentified // no other command probable
+"""
 
 # commands
 class CommandExecutorMain(CommandExecutor):
@@ -309,28 +334,7 @@ class CommandExecutorMain(CommandExecutor):
             llm(ChatPaste(text))
             return handled
         elif text == 'what can you do':
-            llm(ChatProceed(
-                "You are voice assistant capable of these functions. "
-                "If user askes you about what you can do, you give him overview of your functions. "
-                "Funs: \n" +
-                "- repeat // last speech\n" +
-                "- what-can-you-do\n" +
-                "- open-weather-info\n" +
-                "- play-music\n" +
-                "- stop-music\n" +
-                "- play-previous-song\n" +
-                "- play-next-song\n" +
-                "- what-time-is-it\n" +
-                "- what-date-is-it\n" +
-                "- list-light-scenes\n" +
-                "- generate from? clipboard\n" +
-                "- speak|say from? clipboard\n" +
-                "- speak|say $text\n" +
-                "- lights-on?/off?\n" +
-                "- lights-scene-$scene-name\n" +
-                "- unidentified // no other command probable",
-                "Give me summary of your capabilities"
-            ))
+            llm(ChatWhatCanYouDo(assist_function_prompt))
             return handled
         elif text == 'start conversation':
             if isinstance(llm, LlmNone): speak('No conversation model is loaded')
@@ -492,7 +496,7 @@ def callback(text):
     try:
         write(f'USER: {name}' + (', ' + text if len(text)>0 else ''))
         if text == "repeat": commandExecutor.execute(text)
-        if text.startswith("generate"): write(f"COM: {text}")
+        elif text.startswith("generate"): write(f"COM: {text}")
         else: assist(text, textSanitized)
     except Exception as e:
         traceback.print_exc()
@@ -567,7 +571,7 @@ while True:
 
         if m.startswith("COM-DET: "):
             text = base64.b64decode(m[9:]).decode('utf-8')
-            if isinstance(llm, LlmHttpOpenAi): llm(ChatIntentDetect(text))
+            if isinstance(llm, LlmHttpOpenAi): llm(ChatIntentDetect(assist_function_prompt, text))
             else: write('COM-DET: ' + text)
 
         if m.startswith("CALL: "):

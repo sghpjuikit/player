@@ -23,31 +23,21 @@ class ChatProceed:
     def start(cls, sysPrompt: str):
         return cls(sysPrompt, None)
 
+class ChatWhatCanYouDo(ChatProceed):
+    def __init__(self, assist_function_prompt, userPrompt: str):
+        super().__init__(
+            "You are voice assistant capable of these functions. "
+            "If user askes you about what you can do, you give him overview of your functions. "
+            "Funs: \n" + assist_function_prompt,
+            "Give me summary of your capabilities"
+        )
+
 class ChatIntentDetect(ChatProceed):
-    def __init__(self, userPrompt: str):
+    def __init__(self, assist_function_prompt, userPrompt: str):
         super().__init__(
             "From now on, identify user intent by returning one of following commands. " +
             "Only respond with command in format : `COM-command-COM`. ? is optional, $ is command parameter." +
-            "Commands: \n" +
-            "- repeat // last speech\n" +
-            "- start-conversation\n" +
-            "- what-can-you-do\n" +
-            "- open-weather-info\n" +
-            "- play-music\n" +
-            "- stop-music\n" +
-            "- play-previous-song\n" +
-            "- play-next-song\n" +
-            "- what-time-is-it\n" +
-            "- what-date-is-it\n" +
-            "- generate from? clipboard\n" +
-            "- speak|say from? clipboard\n" +
-            "- speak|say $text\n" +
-            "- lights-on|off\n" +
-            "- list-light-scenes\n" +
-            "- lights-scene-$scene\n" +
-            "- list-light-groups\n" +
-            "- lights-$groupname-on|off?\n" +
-            "- unidentified // no other command probable",
+            "Commands: \n" + assist_function_prompt,
             userPrompt
         )
         self.outStart = 'COM-DET: '

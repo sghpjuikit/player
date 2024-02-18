@@ -298,7 +298,9 @@ assist = Assist()
 # commands
 class CommandExecutorMain(CommandExecutor):
     def execute(self, text: str) -> str:
+        global assist
         handled = "ignore"
+
         if text == "repeat":
             speak.repeatLast()
             return handled

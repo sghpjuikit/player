@@ -16,13 +16,14 @@ import torch
 
 # home https://github.com/openai/whisper
 class Whisper:
-    def __init__(self, target: Callable[str, None] | None, whisperOn: bool, model: str, write: Writer):
+    def __init__(self, target: Callable[str, None] | None, whisperOn: bool, device: str | None, model: str, write: Writer):
         self.queue = Queue()
         self.write: Writer = write
         self._target = target
         self._stop = False
         self.model = model
         self.whisperOn: bool = whisperOn
+        self.device = device
         self.sample_rate: int = whisper_sample_rate
 
     def start(self):
@@ -38,7 +39,8 @@ class Whisper:
         modelDir = join(dirname(abspath(__file__)), "models-whisper")
         if not exists(modelDir): makedirs(modelDir)
 
-        model = whisper_load(self.model, download_root=modelDir, in_memory=True)
+        device = None if self.device is None or len(self.device)==0 else torch.device(self.device)
+        model = whisper_load(self.model, download_root=modelDir, device=device, in_memory=True)
         filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
 
         while not self._stop:

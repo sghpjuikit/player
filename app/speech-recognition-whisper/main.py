@@ -99,7 +99,9 @@ Args:
     Whisper model for speech recognition
     Values: tiny.en, tiny, base.en, base, small.en, small, medium.en, medium, large, large-v1, large-v2, large-v3
     Default: base.en
-
+  speech-recognition-device
+    Whisper torch device, e.g., cpu, cuda:0, cuda:1.
+    Default: ''
   speech-on=$bool
     Optional bool whether speech synthesis should be allowed.
     When false, speech synthesis will receive no input and will not do anything.
@@ -210,6 +212,7 @@ speakUseCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
 speakUseCoquiCudaDevice = arg('coqui-cuda-device', '')
 speakUseCoquiServer = arg('coqui-server', '')
 speakUseHttpUrl = arg('speech-server', 'localhost:1235')
+speechRecognitionDevice = arg('speech-recognition-device', '')
 speechRecognitionModelName = arg('speech-recognition-model', 'base.en')
 
 llmEngine = arg('llm-engine', 'none')
@@ -538,7 +541,7 @@ def install_exit_handler():
     signal.signal(signal.SIGABRT, stop)
 
 
-whisper = Whisper(callback, micOn, speechRecognitionModelName, write)
+whisper = Whisper(callback, micOn, speechRecognitionDevice, speechRecognitionModelName, write)
 mic = Mic(None if len(micName)==0 else micName, micOn, whisper.sample_rate, skip, whisper.queue.put, speak, write, micEnergy, micEnergyDebug)
 speak.start()
 whisper.start()

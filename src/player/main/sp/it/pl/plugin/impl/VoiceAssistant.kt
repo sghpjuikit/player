@@ -179,6 +179,7 @@ class VoiceAssistant: PluginBase() {
             "llm-chat-topp=${llmChatTopP.value}",
             "llm-chat-topk=${llmChatTopK.value}",
             "speech-recognition-model=${whisperModel.value}",
+            "speech-recognition-device=${whisperDevice.value}",
          )
          val command = EnvironmentContext.runAsProgramArgsTransformer(commandRaw)
          val process = ProcessBuilder(command)
@@ -327,11 +328,15 @@ class VoiceAssistant: PluginBase() {
    val wakeUpWord by cv("system")
       .def(name = "Wake up word", info = "Words or phrase that activates voice recognition. Case-insensitive.")
 
-   /** Engine used to generate voice. May require additional configuration */
+   /** AI model used to transcribe voice to text */
    val whisperModel by cv("base.en")
       .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large", "large-v1", "large-v2", "large-v3") }
       .uiNoOrder()
       .def(name = "Speech recognition model", info = "Whisper model for speech recognition.")
+
+   /** Torch device used to transcribe voice to text */
+   val whisperDevice by cv("")
+      .def(name = "Speech recognition device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
 
    /** Whether speech is allowed. */
    val speechOn by cv(true)
@@ -457,7 +462,7 @@ class VoiceAssistant: PluginBase() {
 
       // restart-requiring properties
       val processChangeVals = listOf<V<*>>(
-         wakeUpWord, micName, whisperModel,
+         wakeUpWord, micName, whisperModel, whisperDevice,
          speechEngine, speechEngineCharAiToken, speechEngineCoquiCudaDevice, speechEngineHttpUrl, speechServer, speechServerUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
       )

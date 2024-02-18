@@ -27,6 +27,7 @@ This is a speech recognition python script using OpenAI Whisper. Features:
     pip install sounddevice
     pip install soundfile
     pip install PyAudio
+    pip install pysilero-vad
     pip install pyttsx3
     pip install psutil
     pip install pyperclip

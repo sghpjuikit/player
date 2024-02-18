@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+
+## [8.0.0] 2023 10 27
 - Implement Windows taskbar icons
 - Implement media key support (also possible to control playback through bluetooth heaphones)
 - Implement **Voice Assistant** widget (Implement Voice Assistant plugin UI)
@@ -18,7 +20,18 @@ All notable changes to this project will be documented in this file. Format base
 - Implement more java.time ui converters
 - Implement better text area scroll to bottom behavior
 - Implement better newline handling for text areas
+- Implement better metadata inspection for files
 - Implement tree row copy for strings
+- Implement **GpuNvidiaInfo** support for multiple gpus
+- Implement **Hue Scenes** widget hue bridge information
+- Implement **Hue Scenes** widget bulb flashing option
+- Implement **Hue Scenes** widget cloud-less bridge discovery using `jmdns`
+- Implement **Hue Scenes** widget refresh on change
+- Implement **Logger** widget to show history before it was shown
+- Implement voice commands for clipboard, phillips hue, pc, reminders, and so on
+- Implement text area scroll menu
+- Implement task scheduler and reminder functionality
+- Improve **Voice Assistant** plugin
 - Improve thread use (`Default` dispatcher avoids allocating threads)
 - Improve thread use (use virtual threads in more situations)
 - Improve app start performance (make `CoreFunctors` lazy)
@@ -30,12 +43,17 @@ All notable changes to this project will be documented in this file. Format base
 - Improve code (use descriptive thread names)
 - Improve code (inaccessible widget metadata handling)
 - Improve code (use http instead of RMI for cross-app comunication - reduces threads)
+- Improve text area config editor better layout
+- Improve icon with text layout
+- Improve text area smart append text
 - Fix errors reading audio metadata for non audio files
 - Fix `ScrollPaneSkin` orientation handling
 - Fix missing table skin in `Main.css`
 - Fix styling issues (ScrollBar, TextArea)
 - Fix issues with generic table with some classes
 - Fix settings search results when group contains keyword
+- Fix **WallpaperChanger** changing wallpaper on start
+- Fix importing single songs to db
 
 ## Voice Assistant
 This update is all about adopting AI functionalities.
@@ -43,8 +61,10 @@ Primarily, the goal is to allow voice control, but the plugin already supports m
 **Speech Recognition** plugin is thus now **Voice Assistant** plugin. The improvements are:
 - Better UX
   - UI widget
-  - Command output invokes speach (better interaction)
-  - More commands, easier commands, better help command
+  - Easier Microphone and voice activity detection
+  - Commands can output speach (better interaction)
+  - Command intent detection
+  - More commands, easier commands, more robust matching, help command
   - Chat session (remembers previous messages)
   - Voice recognition on different PC (experimental UX).
   - progress indicator
@@ -86,8 +106,14 @@ Instead, http client and server is used.
 ## Hue
 **Hue Scenes** widget is now split into widget (ui) and plugin (functionality).
 This allows programmatic control of the **Phillips Hue** system without requiring the widget to be open.
-The plugin now supports voice control using `SpeechRecognition` plugin - turning lights and light groups on/off,
+The plugin now supports voice control using `SpeechRecognition` plugin - turning lights/bulbs/groups on/off,
 applying scenes, listing groups/scenes.
+There are multiple minor improvements the the UI and behavior.
+
+## Reminders
+The application now enables to set persistent reminders.
+This works with voice commands as well.
+In the future a widget with calendar may be introduced.
 
 ## [7.9.0] 2023 10 27
 - Update Java to 21

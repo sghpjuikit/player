@@ -468,11 +468,11 @@ def callback(text):
     textSanitized = text.rstrip(".").strip()
     text = text.lower().rstrip(".").strip()
 
-    if len(text) > 0 and printRaw:
-        write('RAW: ' + text)
+    # log
+    if len(text) > 0 and printRaw: write('RAW: ' + text)
 
     # ignore speech recognition noise
-    if not text.startswith(wake_word): return
+    if not text.startswith(wake_word) and isinstance(assist, AssistChat) is False: return
 
     # monitor activity time
     global assist_last_at

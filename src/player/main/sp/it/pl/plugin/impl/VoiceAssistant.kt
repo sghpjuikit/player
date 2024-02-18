@@ -273,6 +273,7 @@ class VoiceAssistant: PluginBase() {
          SpeakHandler(                           "Sleep OS", "sleep system|pc|computer|os")                  { voiceCommandOsSleep(it) },
          SpeakHandler(                            "Lock OS", "lock system|pc|computer|os")                   { voiceCommandOsLock(it) },
          SpeakHandler(                         "Log off OS", "log off system|pc|computer|os")                { voiceCommandOsLogOff(it) },
+         SpeakHandler(                       "Set reminder", "set reminder in|on \$time \$text")             { voiceCommandSetReminder(it) },
       )
       .noPersist().readOnly().butElement { uiConverter { "${it.name} -> ${it.commandUi}" } }
       .def(

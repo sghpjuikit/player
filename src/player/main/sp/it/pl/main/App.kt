@@ -251,6 +251,8 @@ class App: Application(), GlobalConfigDelegator {
 
    /** Listener for system events, such as USB add/remove. */
    val sysEvents = AppSystemEvents()
+   /** Asynchronous task scheduler */
+   val scheduler = AppScheduler.apply { onStarted += this::start; onStopping += this::stop }
 
    /** Application locale. See [conf.locale] */
    val locale by cv(Locale.ENGLISH).valuesUnsealed { Locale.getAvailableLocales().toList() } def conf.locale attach { actions.showSuggestRestartNotification() }

@@ -68,6 +68,7 @@ import sp.it.util.reactive.addRem
 import sp.it.util.reactive.on
 import sp.it.util.text.equalsNcs
 import sp.it.util.text.split3
+import sp.it.util.text.words
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -323,15 +324,16 @@ class Hue: PluginBase() {
          val on = client.get("$url/lights/$bulb").bodyAsJs().to<HueBulb>().state.on
          if (onlyTo==on) return@runSuspendingFx
          client.put("$url/lights/$bulb/state") {
-            bodyJs(HueBulbStateEditOn(!on).toJson())
+            bodyJs(HueBulbStateEditOn(onlyTo ?: !on).toJson())
          }
       }
 
       fun toggleBulbGroup(group: HueGroupId, onlyTo: Boolean? = null) = runSuspendingFx {
-         val allOn = client.get("$url/groups/$group").bodyAsJs().to<HueGroup>().copy(id = group).state.all_on
-         if (onlyTo==allOn) return@runSuspendingFx
+         val (allOn, anyOn) = client.get("$url/groups/$group").bodyAsJs().to<HueGroup>().copy(id = group).state.net { it.all_on to it.any_on }
+         if (onlyTo==true && allOn) return@runSuspendingFx
+         if (onlyTo==false && !anyOn) return@runSuspendingFx
          client.put("$url/groups/$group/action") {
-            bodyJs(HueBulbStateEditOn(!allOn).toJson())
+            bodyJs(HueBulbStateEditOn(onlyTo ?: !allOn).toJson())
          }
       }
 

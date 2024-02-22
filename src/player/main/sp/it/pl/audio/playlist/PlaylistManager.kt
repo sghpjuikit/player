@@ -4,7 +4,7 @@ import java.io.File
 import java.util.UUID
 import sp.it.pl.audio.playlist.sequence.PlayingSequence
 import sp.it.pl.main.APP
-import sp.it.pl.main.audioExtensionFilter
+import sp.it.pl.main.audioOrVideoExtensionFilter
 import sp.it.pl.main.configure
 import sp.it.pl.main.isAudio
 import sp.it.util.access.V
@@ -100,7 +100,7 @@ fun Playlist.addOrEnqueueFiles(add: Boolean) {
       "Choose Audio Files",
       APP.audio.browse,
       APP.windowManager.getFocused()?.stage,
-      audioExtensionFilter()
+      audioOrVideoExtensionFilter()
    ).ifOk { files ->
       files.firstOrNull()?.parentFile.ifNotNull { APP.audio.browse = it }
       if (add) {

@@ -30,7 +30,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.Widgets.SONG_TABLE_NAME
-import sp.it.pl.main.audioExtensionFilter
+import sp.it.pl.main.audioOrVideoExtensionFilter
 import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.installDrag
@@ -210,7 +210,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       lastAddDirLocation = it.parentFile
    }
 
-   private fun addFiles() = chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, audioExtensionFilter()).ifOk {
+   private fun addFiles() = chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, audioOrVideoExtensionFilter()).ifOk {
       APP.ui.actionPane.orBuild.show(it)
       lastAddFilesLocation = getCommonRoot(it)
    }

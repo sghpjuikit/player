@@ -11,8 +11,12 @@ import java.nio.file.attribute.FileTime
 import java.time.Instant
 import java.util.TreeMap
 import kotlin.io.path.pathString
+import sp.it.pl.ui.pane.ActionData
+import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.ActionData.UiResult
 import sp.it.pl.ui.pane.action
+import sp.it.pl.ui.pane.actionAll
+import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
@@ -24,6 +28,10 @@ import sp.it.util.units.FileSize
 
 /** Denotes actions for [File] */
 object AppActionsFile {
+
+   val findFiles = actionAll<File>("Find files", "Looks for files recursively in the the data.", IconMD.FILE_FIND, BLOCK) { fs ->
+      FileFlatter.FILES.flatten(fs).map { CachingFile(it) }.toList()
+   }
 
    data class LargestFile(val name: String, val size: FileSize)
 

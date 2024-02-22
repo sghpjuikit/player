@@ -56,6 +56,9 @@ private val logger = KotlinLogging.logger { }
 
 val videoExtensions: Set<String> = MimeExt.enumerateUnsealed { it.group==video }.map { it.name }.toSet()
 
+/** [FileChooser.ExtensionFilter] for [videoExtensions]. */
+fun videoExtensionFilter() = FileChooser.ExtensionFilter("Video files", videoExtensions.map { "*.$it" })
+
 fun File.isVideo() = extension.lowercase() in videoExtensions
 
 fun Path.isVideo() = extension.lowercase() in videoExtensions
@@ -98,6 +101,9 @@ fun String.isAudio() = substringAfterLast(".").lowercase() in audioExtensions
 
 /** [FileChooser.ExtensionFilter] for [audioExtensions]. */
 fun audioExtensionFilter() = FileChooser.ExtensionFilter("Audio files", audioExtensions.map { "*.$it" })
+
+/** [FileChooser.ExtensionFilter] for [audioExtensions] and [videoExtensions]. */
+fun audioOrVideoExtensionFilter() = FileChooser.ExtensionFilter("Audio or Video files", (audioExtensions + videoExtensions).map { "*.$it" })
 
 /** Lowercase audio file extensions supported by jaudiotagger library for reading/writing song tags. */
 val audioExtensionsJaudiotagger = setOf(

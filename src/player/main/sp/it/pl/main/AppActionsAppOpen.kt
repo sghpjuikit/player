@@ -39,8 +39,16 @@ object AppActionsAppOpen {
       Unit
    }
 
-   val audio = action<AppOpen>("Open audio files", "Open file chooser to find a audio files", IconMD.MUSIC_NOTE) {
+   val audio = action<AppOpen>("Open audio files", "Open file chooser to find a audio files", IconFA.FILE_AUDIO_ALT) {
       chooseFiles("Open audio...", APP.locationHome, window, audioExtensionFilter())
+   }
+
+   val video = action<AppOpen>("Open video files", "Open file chooser to find a video files", IconFA.FILE_VIDEO_ALT) {
+      chooseFiles("Open video...", APP.locationHome, window, audioExtensionFilter())
+   }
+
+   val audioOrVideo = action<AppOpen>("Open audio or video files", "Open file chooser to find a audio files", IconFA.FILE_SOUND_ALT) {
+      chooseFiles("Open audio or video...", APP.locationHome, window, audioOrVideoExtensionFilter())
    }
 
 }

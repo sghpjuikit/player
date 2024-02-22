@@ -239,14 +239,6 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          constriction = { it.isM3uPlaylist() },
       ) { f -> PlaylistManager.use { it.setAndPlay(readM3uPlaylist(f)) } },
       actionAll<File>(
-         "Find files",
-         "Looks for files recursively in the the data.",
-         IconMD.FILE_FIND,
-         BLOCK
-      ) { fs ->
-         FileFlatter.FILES.flatten(fs).map(::CachingFile).toList()
-      },
-      actionAll<File>(
          "Add to library",
          "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
          IconMD.DATABASE_PLUS

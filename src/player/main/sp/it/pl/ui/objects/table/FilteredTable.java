@@ -48,6 +48,7 @@ import sp.it.pl.ui.objects.search.SearchAutoCancelable;
 import sp.it.util.access.V;
 import sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import sp.it.util.access.fieldvalue.ObjectField;
+import sp.it.util.functional.TryKt;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.stream.Collectors.toMap;
@@ -74,6 +75,7 @@ import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.async.AsyncKt.runVT;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.dev.FailKt.noNull;
+import static sp.it.util.functional.TryKt.runTry;
 import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
@@ -132,11 +134,14 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			@Override
 			public void onChanged(Change<? extends T> c) {
 				c.next();
-				if (c.wasUpdated())
-					getSelectionModel().clearSelection();
+				if (c.wasUpdated()) getSelectionModel().clearSelection();
+				// without this, table would be empty
+				// the sort can also throw IndexOutOfBounds exception for selection update when setAll
+				// is called for non empty selection. It causes selection to be cleared, which is fine.
+				// Catch is better than nothing
+				runTry(() -> { sort(); return null; });
 			}
 		});
-		onChange(filteredItems, runnable(() -> { sort(); }));
 
 		var sortLock = new AtomicLong(0);
 		var isInitialSort = new AtomicBoolean(true);

@@ -1,6 +1,7 @@
 package sp.it.pl.plugin.impl
 
 import sp.it.util.async.coroutine.VT as VTc
+import com.sun.jna.platform.win32.Kernel32
 import io.ktor.client.request.put
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
@@ -216,13 +217,16 @@ class VoiceAssistant: PluginBase() {
 
          // run
          runOn(NEW("SpeechRecognition")) {
+            installHibernationPreventionOn()
             val success = process.waitFor()
             stdoutListener.block()
             stderrListener.block()
             if (success!=0) doOnError(null, stdout + stderr)
             if (success!=0) fail { "Whisper process failed and returned $success" }
+            installHibernationPreventionOff()
             process
          }.onError {
+            installHibernationPreventionOff()
             doOnError(it, "")
          }
 
@@ -470,9 +474,8 @@ class VoiceAssistant: PluginBase() {
       val processChange = processChangeVals.map { it.chan() }.reduce { a, b -> a + b }
       processChange.throttleToLast(2.seconds).subscribe { restart() } on onClose
 
-      // the python process !recover from hibernating properly
-      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Stop) { stopSpeechRecognition() }
-      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Start) { startSpeechRecognition() }
+      // turn off during hibernate
+      installHibernationTermination()
 
       isRunning = true
       // @formatter:on
@@ -499,6 +502,22 @@ class VoiceAssistant: PluginBase() {
    fun restart() {
       stopSpeechRecognition()
       startSpeechRecognition()
+   }
+
+   private fun installHibernationTermination() {
+      // the python process !recover from hibernating properly and the AI is very heavy to be used in hibernate anyway
+      // the closing must prevent hibernate until ai termination is complete, see
+      // the startup is delayed so system is ready, which avoids starup issues
+      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Stop) { stopSpeechRecognition() }
+      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Start) { runFX(5.seconds) { startSpeechRecognition()} }
+   }
+
+   private fun installHibernationPreventionOn() {
+      if (Os.WINDOWS.isCurrent) Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS or Kernel32.ES_SYSTEM_REQUIRED)
+   }
+
+   private fun installHibernationPreventionOff() {
+      if (Os.WINDOWS.isCurrent) Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS)
    }
 
    private fun handleInput(text: String) {

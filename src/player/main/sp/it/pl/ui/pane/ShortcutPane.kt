@@ -113,7 +113,7 @@ class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
       grid.rowConstraints.clear()
       grid.columnConstraints.clear()
 
-      grid.columnConstraints += ColumnConstraints(180.emScaled, 180.emScaled, 180.emScaled, Priority.NEVER, HPos.RIGHT, false)
+      grid.columnConstraints += ColumnConstraints(200.emScaled, 200.emScaled, 200.emScaled, Priority.NEVER, HPos.RIGHT, false)
       grid.columnConstraints += ColumnConstraints(10.emScaled)
       grid.columnConstraints += ColumnConstraints(-1.0, -1.0, -1.0, ALWAYS, HPos.LEFT, false)
 

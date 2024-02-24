@@ -767,7 +767,10 @@ class VoiceAssistant: PluginBase() {
          override val author = "spit"
          override val contributor = ""
          override val tags = setOf(UTILITY)
-         override val summaryActions = listOf<ShortcutPane.Entry>()
+         override val summaryActions
+            get() = APP.plugins.get<VoiceAssistant>()?.handlers.orEmpty().map {
+               ShortcutPane.Entry("Voice", it.commandUi, it.name)
+            }
       }
    }
 

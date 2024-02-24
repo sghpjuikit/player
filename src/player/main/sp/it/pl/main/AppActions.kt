@@ -17,11 +17,14 @@ import javax.imageio.ImageIO
 import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.layout.ComponentLoader.WINDOW_FULLSCREEN
+import sp.it.pl.layout.NodeFactory
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.controller.Controller
+import sp.it.pl.layout.controller.ControllerNode
 import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.layout.feature.ObjectDetail
+import sp.it.pl.layout.nodeWidgetFactory
 import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.objects.MdNode
@@ -50,6 +53,7 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.async.runIoParallel
 import sp.it.util.async.runVT
+import sp.it.util.collections.toStringPretty
 import sp.it.util.conf.CheckList
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.FileActor
@@ -232,8 +236,8 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    }
 
    fun showShortcutsFor(widget: Widget) {
-      val t = widget.factory.summaryUi
-
+      val f = widget.controller.asIf<ControllerNode>()?.nodeFactory ?: widget.factory
+      val s = widget.controller.asIf<ControllerNode>()?.nodeFactory?.info ?: widget.factory
       val actionsHardcoded = listOfNotNull(
          Entry("Layout", "Go to child", keys("${PRIMARY.nameUi} (layout mode)")),
          Entry("Layout", "Go to parent", keys("${SECONDARY.nameUi} (layout mode)")),
@@ -244,7 +248,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          Entry("Ui", "Show widget actions", F3.nameUi),
          Entry("Ui", "Show widget actions", ActionManager.keyActionsComponent.nameUi),
       )
-      APP.ui.shortcutPane.orBuild.show(ShortcutPane.Info(t, actionsHardcoded + widget.factory.summaryActions))
+      APP.ui.shortcutPane.orBuild.show(ShortcutPane.Info(f.summaryUi, actionsHardcoded + s.summaryActions))
    }
 
    @IsAction(name = "Show overlay", info = "Display screen overlay.")

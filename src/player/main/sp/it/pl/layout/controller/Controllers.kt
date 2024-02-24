@@ -15,6 +15,7 @@ import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.jvm.jvmName
 import mu.KLogging
 import sp.it.pl.core.CoreMenus
+import sp.it.pl.layout.NodeFactory
 import sp.it.pl.layout.NodeInput
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
@@ -203,6 +204,9 @@ class ControllerNode(widget: Widget): SimpleController(widget) {
          appendSent("Fully qualified name of the kotlin.reflect.KClass of the javafx.scene.Node ui element or null if none")
          appendSent("The class needs public no argument constructor unless appropriate NodeFactory has been provided to an application.")
       })
+
+   val nodeFactory: NodeFactory<*>?
+      get() = node.value?.let { c -> APP.instances.recommendedNodeClassesAsWidgets.find { it.type.jvmName==c } }
 
    val nodeInstance by cv(WidgetNodeInstance(null))
       .def(name = "Node", info = "The javafx.scene.Node ui element or null if none")

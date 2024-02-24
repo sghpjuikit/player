@@ -13,6 +13,7 @@ import javafx.scene.input.KeyCode.F
 import javafx.scene.input.KeyCode.F11
 import javafx.scene.input.KeyCode.F12
 import javafx.scene.input.KeyCode.F2
+import javafx.scene.input.KeyCode.F3
 import javafx.scene.input.KeyCode.G
 import javafx.scene.input.KeyCode.Q
 import javafx.scene.input.KeyCode.SHORTCUT
@@ -65,6 +66,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconUN
+import sp.it.pl.main.Key
 import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.pl.main.Ui.ICON_CONF
 import sp.it.pl.main.WidgetDefaultMenu
@@ -527,7 +529,7 @@ object CoreMenus: Core {
          add<Widget> {
             item("Show info") { w -> showFloating(w.factory.name + " info") { WidgetInfoPane(w.factory) } }
             item("Show help", keys = "${F2.nameUi}|${ActionManager.keyShortcutsComponent.nameUi}") { APP.actions.showShortcutsFor(it) }
-            item("Show actions", IconFA.GAVEL.toCmUi(), ActionManager.keyActionsComponent.nameUi) { APP.actions.showShortcutsFor(it) }
+            item("Show actions", IconFA.GAVEL.toCmUi(), keys = "${F3.nameUi}|${ActionManager.keyActionsComponent.nameUi}") { APP.actions.showShortcutsFor(it) }
             value.ui.asIf<WidgetUi>().ifNotNull { w -> item("Settings", Icon(IconFA.COGS)) { w.controls.showSettings() } }
             menuFor("Settings defaults", WidgetDefaultMenu(value))
          }

@@ -47,7 +47,8 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
    final override val year: Year
    final override val tags: Set<WidgetTag>
    final override val type: KClass<*>
-   final override val summaryActions: List<ShortcutPane.Entry>
+   final private  val summaryActionsGetter: () -> List<ShortcutPane.Entry>
+         override val summaryActions get() = summaryActionsGetter()
    final override val location: File
    final override val userLocation: File
    /** Companion object of the controller */
@@ -90,7 +91,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
       this.isSupported = info?.isSupported ?: true
       this.tags = info?.tags ?: i.tags.toSet()
       this.type = this.controllerType
-      this.summaryActions = info?.summaryActions.orEmpty()
+      this.summaryActionsGetter = { info?.summaryActions.orEmpty() }
    }
 
    /**

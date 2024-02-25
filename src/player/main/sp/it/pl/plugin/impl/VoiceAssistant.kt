@@ -1,61 +1,33 @@
 package sp.it.pl.plugin.impl
 
-import sp.it.util.async.coroutine.VT as VTc
 import com.sun.jna.platform.win32.Kernel32
-import io.ktor.client.request.put
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.regex.Pattern
-import javafx.geometry.Pos.CENTER
-import javafx.scene.control.ScrollPane
-import javafx.scene.input.KeyCode.ENTER
-import javafx.scene.input.KeyCode.SHIFT
-import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.layout.Priority.ALWAYS
-import javafx.scene.layout.Priority.NEVER
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Line
 import javax.sound.sampled.TargetDataLine
 import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
-import sp.it.pl.core.bodyJs
-import sp.it.pl.core.requestBodyAsJs
-import sp.it.pl.layout.Widget
-import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.WidgetFactory
-import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
-import sp.it.pl.main.AppHttp
-import sp.it.pl.main.Events
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
-import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
-import sp.it.pl.main.IconMD
-import sp.it.pl.main.WidgetTags.UTILITY
-import sp.it.pl.main.appTooltip
-import sp.it.pl.main.emScaled
 import sp.it.pl.main.isAudio
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
-import sp.it.pl.ui.ValueToggleButtonGroup
-import sp.it.pl.ui.objects.icon.CheckIcon
-import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
-import sp.it.pl.ui.pane.ConfigPane
-import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.pl.ui.pane.action
 import sp.it.pl.voice.toVoiceS
 import sp.it.util.access.V
 import sp.it.util.access.readOnly
-import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.action.IsAction
 import sp.it.util.async.NEW
 import sp.it.util.async.actor.ActorVt
-import sp.it.util.async.coroutine.runSuspending
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runOn
@@ -64,7 +36,6 @@ import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
 import sp.it.util.conf.Constraint.RepeatableAction
 import sp.it.util.conf.EditMode
-import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.between
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
@@ -72,7 +43,6 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.cvnro
 import sp.it.util.conf.def
-import sp.it.util.conf.getDelegateConfig
 import sp.it.util.conf.min
 import sp.it.util.conf.multiline
 import sp.it.util.conf.multilineToBottom
@@ -94,24 +64,14 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
-import sp.it.util.functional.supplyIf
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
-import sp.it.util.reactive.Subscribed
-import sp.it.util.reactive.attach
 import sp.it.util.reactive.chan
-import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChangeAndNow
-import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.plus
-import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncFrom
-import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.throttleToLast
-import sp.it.util.reactive.zip
-import sp.it.util.reactive.zip2
 import sp.it.util.system.EnvironmentContext
 import sp.it.util.system.Os
 import sp.it.util.text.applyBackspace
@@ -120,28 +80,11 @@ import sp.it.util.text.concatApplyBackspace
 import sp.it.util.text.encodeBase64
 import sp.it.util.text.keys
 import sp.it.util.text.lines
-import sp.it.util.text.nameUi
 import sp.it.util.text.split2
 import sp.it.util.text.splitTrimmed
 import sp.it.util.text.useStrings
 import sp.it.util.text.words
-import sp.it.util.ui.appendTextSmart
-import sp.it.util.ui.hBox
-import sp.it.util.ui.insertNewline
-import sp.it.util.ui.isNewlineOnShiftEnter
-import sp.it.util.ui.label
-import sp.it.util.ui.lay
-import sp.it.util.ui.prefSize
-import sp.it.util.ui.scrollPane
-import sp.it.util.ui.singLineProperty
-import sp.it.util.ui.stackPane
-import sp.it.util.ui.styleclassToggle
-import sp.it.util.ui.textArea
-import sp.it.util.ui.vBox
-import sp.it.util.ui.x
 import sp.it.util.units.seconds
-import sp.it.util.units.version
-import sp.it.util.units.year
 
 /** Provides speech recognition and voice control capabilities. Uses whisper AI launched as python program. */
 class VoiceAssistant: PluginBase() {
@@ -628,150 +571,6 @@ class VoiceAssistant: PluginBase() {
       internal fun String.sanitize(blacklistWordsSet: Set<String>): String =
          trim().removeSuffix(".").lowercase().words().filterNot(blacklistWordsSet::contains).joinToString(" ")
 
-   }
-
-   class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
-
-      init {
-         val plugin = APP.plugins.plugin<VoiceAssistant>().asValue(onClose)
-         var run = {}
-         val mode = v("Chat")
-         val chatSettings = v(false)
-
-         root.prefSize = 500.emScaled x 500.emScaled
-         root.consumeScrolling()
-         root.lay += vBox(null, CENTER) {
-            lay += hBox(null, CENTER) {
-               lay += Icon(IconFA.COG).tooltip("Settings").apply {
-                  disableProperty() syncFrom plugin.map { it==null }
-                  onClickDo { APP.actions.app.openSettings(plugin.value?.configurableGroupPrefix) }
-               }
-               lay += CheckIcon().icons(IconMD.FILTER, IconMD.FILTER_REMOVE_OUTLINE).apply {
-                  disableProperty() syncFrom plugin.map { it==null }
-                  selected syncFrom plugin.flatMap { it!!.printRaw }.orElse(true)
-                  selected attach { plugin.value?.printRaw?.value = it }
-                  tooltip("Hide debug and raw output")
-               }
-               lay += Icon(IconFA.REFRESH).tooltip("Restart voice assistent")
-                  .onClickDo { plugin.value?.restart() }
-               lay += label("   ")
-               lay += CheckIcon().icons(IconMD.TEXT_TO_SPEECH, IconMD.TEXT_TO_SPEECH_OFF).apply {
-                  disableProperty() syncFrom plugin.map { it==null }
-                  selected syncFrom plugin.flatMap { it!!.speechOn }.orElse(false)
-                  selected attach { plugin.value?.speechOn?.value = it }
-                  tooltip("Enable/disable voice")
-               }
-               lay += CheckIcon().icons(IconMA.MIC, IconMA.MIC_OFF).apply {
-                  disableProperty() syncFrom plugin.map { it==null }
-                  selected syncFrom plugin.flatMap { it!!.micOn }.orElse(false)
-                  selected attach { plugin.value?.micOn?.value = it }
-                  tooltip("Enable/disable microphone")
-               }
-               lay += label {
-                  plugin.sync { text = if (it!=null) "Active" else "Inactive" }
-               }
-               lay += label("   ")
-               lay += ValueToggleButtonGroup.ofObservableValue(mode, listOf("Raw", "Speak", "Chat")) {
-                  tooltip = appTooltip(
-                     when (it) {
-                        "Raw" -> "Send the text to the Voice Assestant as if user wrote it in console"
-                        "Speak" -> "Narrates the specified text using synthesized voice"
-                        "Chat" -> "Send the text to the Voice Assestant as if user spoke it"
-                        else -> fail { "Illegal value" }
-                     }
-                  )
-               }.apply {
-                  alignment = CENTER
-               }
-            }
-            lay(ALWAYS) += hBox(5.emScaled, CENTER) {
-               lay(ALWAYS) += vBox(5.emScaled, CENTER) {
-                  lay(ALWAYS) += textArea {
-                     id = "output"
-                     isEditable = false
-                     isFocusTraversable = false
-                     isWrapText = true
-                     prefColumnCount = 100
-
-                     onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
-                     plugin.syncNonNullWhile { it.onLocalInput attach ::appendTextSmart }
-                  }
-                  lay += stackPane {
-                     lay(CENTER) += hBox(null, CENTER) {
-                        lay(ALWAYS) += textArea("") {
-                           id = "input"
-                           isWrapText = true
-                           isNewlineOnShiftEnter = true
-                           prefColumnCount = 100
-                           promptText = "${ENTER.nameUi} to send, ${SHIFT.nameUi} + ${ENTER.nameUi} for new line"
-                           singLineProperty() sync {
-                              styleclassToggle("text-area-singlelined", !it)
-                              prefRowCount = if (it) 10 else 1
-                           }
-
-                           run = {
-                              when (mode.value) {
-                                 "Raw" -> { plugin.value?.raw(text) }
-                                 "Speak" -> { plugin.value?.speak(text); clear() }
-                                 "Chat" -> { plugin.value?.chat(text); clear() }
-                              }
-                           }
-                           onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) insertNewline() else run() }
-                        }
-                        lay(NEVER) += CheckIcon(chatSettings).icons(IconFA.COG, IconFA.COG)
-                        lay(NEVER) += Icon(IconFA.SEND).onClickDo { run() }
-                     }
-                  }
-               }
-               lay += stackPane {
-                  chatSettings zip plugin zip2 mode sync { (showSettings, active, mode) ->
-                     lay.clear()
-                     lay += supplyIf(showSettings && active!=null && mode=="Chat") {
-                        scrollPane {
-                           isFitToWidth = true
-                           isFitToHeight = false
-                           prefSize = -1 x -1
-                           vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
-                           hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-                           minWidth = 250.emScaled
-                           content = ConfigPane(
-                              ListConfigurable.heterogeneous(
-                                 plugin.value?.net {
-                                    listOf(
-                                       it::llmChatSysPrompt.getDelegateConfig(),
-                                       it::llmChatMaxTokens.getDelegateConfig(),
-                                       it::llmChatTemp.getDelegateConfig(),
-                                       it::llmChatTopP.getDelegateConfig(),
-                                       it::llmChatTopK.getDelegateConfig(),
-                                    )
-                                 }.orEmpty()
-                              )
-                           )
-                        }
-                     }
-                  }
-               }
-            }
-         }
-      }
-
-      companion object: WidgetCompanion {
-         override val id = "VoiceAssistant"
-         override val name = "Voice Assistant"
-         override val description = "Voice Assistant plugin UI"
-         override val descriptionLong = "$description."
-         override val icon = IconMA.MIC
-         override val version = version(1, 0, 0)
-         override val isSupported = true
-         override val year = year(2023)
-         override val author = "spit"
-         override val contributor = ""
-         override val tags = setOf(UTILITY)
-         override val summaryActions
-            get() = APP.plugins.get<VoiceAssistant>()?.handlers.orEmpty().map {
-               ShortcutPane.Entry("Voice", it.commandUi, it.name)
-            }
-      }
    }
 
 }

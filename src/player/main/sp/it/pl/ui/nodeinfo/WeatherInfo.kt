@@ -48,6 +48,7 @@ import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
@@ -61,6 +62,7 @@ import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.stackPane
 import sp.it.util.ui.times
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
@@ -133,6 +135,13 @@ class WeatherInfo: HBox(15.0) {
             lay += Icon(IconFA.EYE).apply { isMouseTransparent = true; isFocusTraversable = false }
             lay += visL
          }
+
+         lay += stackPane {
+            this@vBox.heightProperty() map { it.toDouble() > forecastMinRequiredHeight } attach {
+               if (it && lay.isEmpty()) lay += forecastContent.get()
+               else if (!it && !lay.isEmpty()) lay.clear()
+            }
+         }
       }
 
       displayed sync { monitor.subscribe(it) } on onNodeDispose
@@ -203,6 +212,7 @@ class WeatherInfo: HBox(15.0) {
    }
 
 
+   private val forecastMinRequiredHeight = 800
    private var forecastHourlyPopupContent: WeatherInfoForecastHourly? = null
    private var forecastDailyPopupContent: WeatherInfoForecastDaily? = null
    private var forecastContent = LazyR {
@@ -239,7 +249,12 @@ class WeatherInfo: HBox(15.0) {
    private fun openForecast() {
       val wasShowing = forecastHourlyPopupContent?.scene?.window?.isShowing==true
       if (wasShowing) forecastHourlyPopupContent?.scene?.window?.requestFocus()
-      else computeForecastPopup().show(DOWN_CENTER(caretIcon))
+      else showForecast()
+   }
+
+   private fun showForecast() {
+      val r = children.getOrNull(0)?.asIf<VBox>()
+      if (r?.height ?: 0.0 < forecastMinRequiredHeight) computeForecastPopup().show(DOWN_CENTER(caretIcon))
    }
 
    private fun openWindy() {

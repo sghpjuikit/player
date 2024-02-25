@@ -39,6 +39,9 @@ interface Lay {
 interface ChildrenLay: Lay {
    val children: ObservableList<Node>
 
+   /** @return whether [Pane.children] is empty */
+   fun isEmpty() = children.isEmpty()
+
    /** Clears [Pane.children] */
    fun clear() = children.clear()
 

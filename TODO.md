@@ -1,6 +1,5 @@
 ## Potential future work
 
-- Implement Weather widget to have reactive layout
 - Load widget factories in bgr
 - implement plus icon for custom widget custom inputs in layout mode
 - implement custom outputs for custom widgets

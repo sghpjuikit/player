@@ -248,10 +248,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
             }
          }
          root.focusWithinProperty() attach { if (it) configHoverTrue() else configHoverFalse() }
-         root.onOver { if(it) configHoverTrue() else configHoverFalse()
-
-            if (it) println(config.value)
-         }
+         root.onOver { if(it) configHoverTrue() else configHoverFalse() }
       }
 
       val isHardToAutoResize = editor is TextField

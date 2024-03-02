@@ -748,8 +748,8 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
                   }
                }
                .firstOrNull {
-                  println(it)
-                  println(VType<T>(it) isSupertypeOf b)
+                  // println(it)
+                  // println(VType<T>(it) isSupertypeOf b)
 
                   VType<T>(it) isSupertypeOf b }?.net { VType(it) }
                ?: run {

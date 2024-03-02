@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+- Implement **Weather** widget forecast reactive layout
+- Implement **Voice assistant** widget info to display voice commands
+- Implement **Node/Custom** widget to show Node specific info
+- Implement String to Number functor radix parameter
+- Improve shortcut pane layout
+- Fix **Voice assistant** plugin not waking up from hibernate properly
+- Fix menu not showing F3 shortcut key
+- Fix playlist throwing selection index exception
+- Fix **Hue** plugin `lights on` command not working as expected
+- Fix not able to add video files to playlist sometimes
+- Fix incorrect mouse hover behavior/highlighting of some ui elements when some effects are used
 
 ## [8.0.0] 2023 10 27
 - Implement Windows taskbar icons

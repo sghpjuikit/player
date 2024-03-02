@@ -5,6 +5,7 @@ import javafx.geometry.Point2D
 import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.Parent
+import javafx.scene.Scene
 import javafx.scene.control.Control
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.SplitPane
@@ -13,13 +14,23 @@ import javafx.scene.layout.Pane
 import javafx.scene.robot.Robot
 import javafx.stage.Window
 import mu.KotlinLogging
+import sp.it.util.access.V
+import sp.it.util.access.v
+import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
+import sp.it.util.math.P
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Handler1
+import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.syncNonNullWhile
 
 private val robot by lazy { Robot() }
 
@@ -200,4 +211,42 @@ fun Node.onNodeDispose() {
    }
    if (this is Control) skin?.dispose()
    if (this is Parent) childrenUnmodifiable.forEach { it.onNodeDispose() }
+}
+
+/** Same as [Node.hoverProperty], but observes the scene of the node to not miss mouse events */
+@Experimental("being evaluated as alternative to Node.hoverProperty")
+fun Node.onOver(isHover: (Boolean) -> Unit): Subscription {
+   return sceneProperty().syncNonNullWhile { s ->
+      val h = overProperty
+      val m = s.nodeOverMonitor
+      Subscription(
+         h.attach { isHover(it) },
+         m.onMouseEntered.attach { h.value = sceneToLocal(it.x, it.y)?.net { it in this } ?: false },
+         m.onMouseMoved.attach { h.value = sceneToLocal(it.x, it.y)?.net { it in this } ?: false },
+         m.onMouseExited.attach { h.value = false }
+      )
+   }
+}
+
+/** Same as [Node.hover], but observes the scene of the node to not miss mouse events */
+@Experimental("being evaluated as alternative to Node.hoverProperty")
+val Node.isOver: Boolean
+   get() = overProperty.value
+
+private val Node.overProperty: V<Boolean>
+   get() = properties.getOrPut("attachHoverProperty", { v(false) }).asIs()
+
+private val Scene.nodeOverMonitor: SceneNodeOverMonitor
+   get() = properties.getOrPut("attachHoverMonitor", { SceneNodeOverMonitor(this) }).asIs()
+
+private class SceneNodeOverMonitor(val scene: Scene) {
+   val d = Disposer()
+   val onMouseEntered = Handler1<P>()
+   val onMouseMoved = Handler1<P>()
+   val onMouseExited = Handler1<P>()
+   init {
+      scene.onEventUp(MouseEvent.MOUSE_ENTERED) { onMouseEntered(it.sceneXy) } on d
+      scene.onEventUp(MouseEvent.MOUSE_MOVED) { onMouseMoved(it.sceneXy) } on d
+      scene.onEventUp(MouseEvent.MOUSE_EXITED) { onMouseExited(it.sceneXy) } on d
+   }
 }

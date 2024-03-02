@@ -54,9 +54,6 @@ import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.SPACE;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
-import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.util.animation.Anim.mapTo01;
@@ -68,12 +65,12 @@ import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.text.StringExtensionsKt.keysUi;
 import static sp.it.util.type.Util.getFieldValue;
+import static sp.it.util.ui.NodeExtensionsKt.onOver;
 import static sp.it.util.ui.Util.layHeaderBottom;
 import static sp.it.util.ui.Util.layHeaderLeft;
 import static sp.it.util.ui.Util.layHeaderRight;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.UtilKt.createIcon;
-import static sp.it.util.ui.UtilKt.onHoverOrDrag;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 import static sp.it.util.ui.UtilKt.setMinPrefMaxSize;
 import static sp.it.util.ui.UtilKt.setScaleXY;
@@ -154,29 +151,22 @@ public class Icon extends StackPane {
 		setFocusTraversable(true);
 		sync(focusOwner, consumer(fo -> {
 			if (focusOwnerS!=null) focusOwnerS.unsubscribe();
-
-			var s1 = attach(fo.focusedProperty(), consumer(f -> {
+			focusOwnerS = Subscription.Companion.invoke(
+				attach(fo.focusedProperty(), consumer(f -> {
 					pseudoClassStateChanged(pseudoclass("focused"), f);
 					if (isAnimated.get() && !(!f && isHover()))
 						ra.get(this, A_HOVER).playFromDir(f);
-				}));
-
-			Subscription s2;
-			if (fo==this) {
-				// unfortunately, when effects such as drop shadow are enabled, we need to check bounds
-				s2 = Subscription.Companion.invoke(
-					onEventUp(fo, MOUSE_EXITED, consumer(e -> { if (!fo.isFocused()) select(false); })),
-					onEventUp(fo, MOUSE_ENTERED_TARGET, consumer(e -> { if (!fo.isFocused() && iconBounds().contains(e.getX(), e.getY())) select(true); })),
-					onEventUp(fo, MOUSE_MOVED, consumer(e -> { if (!fo.isFocused() && iconBounds().contains(e.getX(), e.getY())) select(true); }))
-				);
-			} else {
-				s2 = onHoverOrDrag(fo, consumer(h -> {
+				})),
+				// has slightly different effect and behavior than
+				// attach(fo.hoverProperty(), consumer(h -> {
+				// 	if (!fo.isFocused())
+				// 		select(h);
+				// })),
+				onOver(fo, consumer(h -> {
 					if (!fo.isFocused())
 						select(h);
-				}));
-			}
-
-			focusOwnerS = Subscription.Companion.invoke(s1, s2);
+				}))
+			);
 		}));
 	}
 

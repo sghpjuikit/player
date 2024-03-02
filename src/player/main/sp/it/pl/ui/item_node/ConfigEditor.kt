@@ -18,8 +18,6 @@ import javafx.scene.control.Label
 import javafx.scene.control.TextField
 import javafx.scene.effect.Effect
 import javafx.scene.input.KeyCode
-import javafx.scene.input.MouseEvent.MOUSE_ENTERED
-import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
@@ -79,7 +77,9 @@ import sp.it.util.type.isObject
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
 import sp.it.util.type.rawJ
+import sp.it.util.ui.onOver
 import sp.it.util.ui.dsl
+import sp.it.util.ui.isOver
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.textIcon
 import sp.it.util.units.millis
@@ -189,10 +189,10 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
             }
          }
 
-         fun configHoverFalse() { configHover.value = root.isHover || root.isFocusWithin }
+         fun configHoverFalse() { configHover.value = root.isOver || root.isFocusWithin }
          fun configHoverTrue() {
             runFX(270.millis) {
-               if (root.isHover || root.isFocusWithin) {
+               if (root.isOver || root.isFocusWithin) {
                   configHover.value = true
                   if (caretB==null) {
                      caretB = Icon(null, -1.0).onClickDo { i ->
@@ -221,7 +221,6 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
                            onEventDown(WINDOW_HIDDEN) { configMenuVisible.value = false }
                            show(i, Side.BOTTOM, 0.0, 0.0)
                         }
-                        Unit // TODO: remove workaround; Kotlin K2 compiler bug
                      }
                      caretB!!.styleclass("config-editor-caret")
                      caretB!!.isManaged = false
@@ -249,8 +248,10 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
             }
          }
          root.focusWithinProperty() attach { if (it) configHoverTrue() else configHoverFalse() }
-         root.addEventFilter(MOUSE_ENTERED) { configHoverTrue() }
-         root.addEventFilter(MOUSE_EXITED) { configHoverFalse() }
+         root.onOver { if(it) configHoverTrue() else configHoverFalse()
+
+            if (it) println(config.value)
+         }
       }
 
       val isHardToAutoResize = editor is TextField

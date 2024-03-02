@@ -460,7 +460,7 @@ public class WindowBase {
 
 			// snap to other window edges
 			for (javafx.stage.Window W : Stage.getWindows()) {
-				if (!W.getProperties().containsKey(Window.keyWindowAppWindow)) continue;
+				if (WindowHelperKt.asAppWindow(W)==null) continue;
 
 				var WXS = W.getX() + W.getWidth();
 				var WXE = W.getX();

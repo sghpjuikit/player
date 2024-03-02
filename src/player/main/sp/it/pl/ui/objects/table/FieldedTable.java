@@ -277,7 +277,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	}
 
 	public void refreshColumns() {
-		if (!getColumns().isEmpty()) refreshColumn(getColumns().get(0));
+		if (!getColumns().isEmpty()) refreshColumn(getColumns().getFirst());
 	}
 
 /* --------------------- SORT --------------------------------------------------------------------------------------- */

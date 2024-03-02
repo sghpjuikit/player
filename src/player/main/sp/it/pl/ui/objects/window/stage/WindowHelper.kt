@@ -45,6 +45,7 @@ import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.on
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.system.Os
+import sp.it.util.ui.uiDelegate
 
 /** Determines whether global window stage style setting is overridden for this window */
 var Window.stageStyleOverride: Boolean
@@ -55,7 +56,7 @@ var Window.stageStyleOverride: Boolean
 fun WindowFX.asStage() = asIf<Stage>()
 
 /** @return application [Window] associated with this javafx window */
-fun WindowFX.asAppWindow() = properties[Window.keyWindowAppWindow] as? Window
+fun WindowFX.asAppWindow(): Window? = uiDelegate.asIf()
 
 /** @return whether this [Window] */
 fun WindowFX.isAppWindow() = asAppWindow()!=null

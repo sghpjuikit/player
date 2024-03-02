@@ -53,6 +53,7 @@ import sp.it.util.reactive.Disposer;
 import sp.it.util.reactive.Subscribed;
 import sp.it.util.reactive.Subscription;
 import sp.it.util.system.Os;
+import sp.it.util.ui.UiDelegateKt;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_LEFT;
@@ -144,6 +145,7 @@ import static sp.it.util.reactive.UtilKt.syncTo;
 import static sp.it.util.reactive.UtilKt.zip;
 import static sp.it.util.text.StringExtensionsKt.keys;
 import static sp.it.util.ui.NodeExtensionsKt.pseudoClassToggle;
+import static sp.it.util.ui.UiDelegateKt.setUiDelegate;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.getScreen;
 import static sp.it.util.ui.UtilKt.getScreenXy;
@@ -159,7 +161,6 @@ public class Window extends WindowBase {
 	private static final Logger logger = LoggerFactory.getLogger(Window.class);
 	/** Styleclass for window. Applied on {@link #root}. */
 	public static final String scWindow = "window";
-	public static final String keyWindowAppWindow = "window";
 	public static final String keyWindowLayout = "layout";
 	/** Pseudoclass active when this window is focused. Applied on {@link #scWindow}. */
 	public static final PseudoClass pcFocused = pseudoclass("focused");
@@ -207,7 +208,7 @@ public class Window extends WindowBase {
 
 	Window(Stage owner, StageStyle style) {
 		super(owner, style);
-		properties.put(keyWindowAppWindow, this);
+		setUiDelegate(s, this);
 	}
 
 	void initialize() {
@@ -711,7 +712,7 @@ public class Window extends WindowBase {
 			leftHeaderBox.getChildren().remove(titleL);
 		} else {
 			leftHeaderBox.getChildren().remove(titleL);
-			leftHeaderBox.getChildren().add(0, titleL);
+			leftHeaderBox.getChildren().addFirst(titleL);
 			titleL.setPadding(new Insets(5, 0, 0, 5));
 		}
 		titleL.setText(text);

@@ -82,6 +82,7 @@ import sp.it.util.ui.scene
 import sp.it.util.ui.screenXy
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.size
+import sp.it.util.ui.uiDelegate
 import sp.it.util.ui.x
 import sp.it.util.ui.xy
 import sp.it.util.units.millis
@@ -106,8 +107,8 @@ open class PopWindow {
       }.apply {
          initStyle(TRANSPARENT)
 
+         uiDelegate = this@PopWindow
          initOwner(owner)
-         initPopWindow(this@PopWindow)
          titleProperty() syncFrom this@PopWindow.title
          resizableProperty() syncFrom userResizable
 
@@ -124,10 +125,10 @@ open class PopWindow {
    }
    private val popup by lazy {
       Popup().apply {
+         uiDelegate = this@PopWindow
          isAutoFix = true
          autoHideProperty() syncFrom isAutohide
          hideOnEscapeProperty() syncFrom isEscapeHide
-         initPopWindow(this@PopWindow)
          scene.installWindowInteraction()
 
          onEventUp(WINDOW_SHOWING) { onShowing() }
@@ -454,9 +455,7 @@ open class PopWindow {
 
       fun popWindow(block: PopWindow.() -> Unit): PopWindow = PopWindow().apply(block)
 
-      fun WindowFx.initPopWindow(popup: PopWindow): Unit = properties.put("popWindow", popup).toUnit()
-
-      fun WindowFx.asPopWindow(): PopWindow? = properties["popWindow"].asIf()
+      fun WindowFx.asPopWindow(): PopWindow? = uiDelegate.asIf()
 
       fun WindowFx.isPopWindow(): Boolean = asPopWindow()!=null
 

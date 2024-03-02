@@ -113,6 +113,7 @@ import sp.it.util.type.JavafxPropertyType.JavafxFloatPropertyType
 import sp.it.util.type.JavafxPropertyType.JavafxIntegerPropertyType
 import sp.it.util.type.JavafxPropertyType.JavafxLongPropertyType
 import sp.it.util.type.PaneProperties.paneProperty
+import sp.it.util.ui.UiDelegate
 
 private val logger = KotlinLogging.logger {}
 
@@ -374,11 +375,13 @@ private val extractors = setOf(
    .mapValues { (_, v) -> v.associateBy { it.method.name } }
 
 /**
- * Execute action for each observable value representing a javafx property of an object o.
- * Additional provided arguments are name of the property and its non-erased generic type.
- * Javafx properties are obtained from public nameProperty() methods using reflection.
+ * @return all observable javafx properties of the specified object in no particular order
+ * Includes name of the property and its non-erased generic type as well as properties of object's [UiDelegate]
  */
-fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
+fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> =
+   forEachJavaFXPropertyImpl(o) + UiDelegate.of(o)?.net(::forEachJavaFXPropertyImpl).orEmpty()
+
+private fun forEachJavaFXPropertyImpl(o: Any): Sequence<InspectedFxProperty> = sequence {
 
    fun isBlacklisted(instanceClass: KClass<*>, methodName: String) = Pane::class.isSuperclassOf(instanceClass) && methodName=="getChildrenUnmodifiable"
 

@@ -49,6 +49,7 @@ import sp.it.util.access.V;
 import sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.functional.TryKt;
+import sp.it.util.ui.UiDelegateKt;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.stream.Collectors.toMap;
@@ -91,6 +92,7 @@ import static sp.it.util.text.StringExtensionsKt.keys;
 import static sp.it.util.ui.TableViewSelectionModelExtensionsKt.clearAndSelect;
 import static sp.it.util.ui.TableViewSelectionModelExtensionsKt.selectInverse;
 import static sp.it.util.ui.TableViewSelectionModelExtensionsKt.selectNone;
+import static sp.it.util.ui.UiDelegateKt.setUiDelegate;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.UtilKt.menuItem;
 
@@ -124,6 +126,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 */
 	public FilteredTable(Class<T> type, @Nullable ObjectField<T,?> mainField, ObservableList<T> backing_list) {
 		super(type);
+
+		setUiDelegate(root, this);
 
 		var mf = computeMainField(mainField);
 		allItems = noNull(backing_list);
@@ -336,7 +340,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			Node sn = filterPane.getNode();
 			if (v) {
 				if (!root.getChildren().contains(sn))
-					root.getChildren().add(0, sn);
+					root.getChildren().addFirst(sn);
 			} else {
 				root.getChildren().remove(sn);
 			}

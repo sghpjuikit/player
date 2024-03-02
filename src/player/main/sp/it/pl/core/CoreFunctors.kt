@@ -42,6 +42,7 @@ import sp.it.util.Util.split
 import sp.it.util.Util.splitJoin
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.IconConstraint
+import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.dev.failIf
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.json.JsValue
@@ -147,6 +148,7 @@ object CoreFunctors: Core {
       // parameters
       val pNoCase = p("Ignore case", "Ignore case", true, IconConstraint(IconMA.FORMAT_SIZE))
       val pRegex = p("Regex", "Regular expression", Pattern.compile(""))
+      var pRadix = p<Int>("Radix", "Numeral system", 10, NumberMinMax(Character.MIN_RADIX.toDouble(), Character.MAX_RADIX.toDouble()))
 
       add("Is null", type<Any?>(), B, IS0)
       add("Is type (Kotlin Class)", type<KClass<*>>(), B, p<KClass<*>>(Unit::class)) { it, c -> it===c }
@@ -161,17 +163,17 @@ object CoreFunctors: Core {
       add("Detect content", type<Any?>(), type<Any?>()) { it.detectContent() }
 
       add("To Boolean", S, type<Boolean?>()) { when (it) { "true" -> true "false" -> false else -> null } }
-      add("To Byte", S, type<Byte?>()) { it.toByteOrNull() }
-      add("To UByte", S, type<UByte?>()) { it.toUByteOrNull() }
-      add("To Short", S, type<Short?>()) { it.toShortOrNull() }
-      add("To UShort", S, type<UShort?>()) { it.toUShortOrNull() }
-      add("To Int", S, type<Int?>()) { it.toIntOrNull() }
-      add("To UInt", S, type<UInt?>()) { it.toUIntOrNull() }
-      add("To Long", S, type<Long?>()) { it.toLongOrNull() }
-      add("To ULong", S, type<ULong?>()) { it.toULongOrNull() }
+      add("To Byte", S, type<Byte?>(), pRadix) { it, r -> it.toByteOrNull(r) }
+      add("To UByte", S, type<UByte?>(), pRadix) { it, r -> it.toUByteOrNull(r) }
+      add("To Short", S, type<Short?>(), pRadix) { it, r -> it.toShortOrNull(r) }
+      add("To UShort", S, type<UShort?>(), pRadix) { it, r -> it.toUShortOrNull(r) }
+      add("To Int", S, type<Int?>(), pRadix) { it, r -> it.toIntOrNull(r) }
+      add("To UInt", S, type<UInt?>(), pRadix) { it, r -> it.toUIntOrNull(r) }
+      add("To Long", S, type<Long?>(), pRadix) { it, r -> it.toLongOrNull(r) }
+      add("To ULong", S, type<ULong?>(), pRadix) { it, r -> it.toULongOrNull(r) }
       add("To Float", S, type<Float?>()) { it.toFloatOrNull() }
       add("To Double", S, type<Double?>()) { it.toDoubleOrNull() }
-      add("To BigInteger", S, type<BigInteger?>()) { it.toBigIntegerOrNull() }
+      add("To BigInteger", S, type<BigInteger?>(), pRadix) { it, r -> it.toBigIntegerOrNull(r) }
       add("To BigDecimal", S, type<BigDecimal?>()) { it.toBigDecimalOrNull() }
 
       add("Uuid 1", U, type<UUID>()) { UuidCreator.getTimeBased() }

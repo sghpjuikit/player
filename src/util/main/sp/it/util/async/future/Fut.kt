@@ -21,7 +21,6 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.getAny
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.invoke
-import sp.it.util.functional.kt
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 
@@ -37,9 +36,9 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
    fun asCompletableFuture(): CompletableFuture<@UnsafeVariance T> = f
 
    /** @return future that waits for this to complete normally, invokes the specified block and returns its result */
-   fun <R> then(executor: Executor = CURR, block: (T) -> R) = Fut<R>(f.thenApplyAsync(block.logging(), executor.kt))
+   fun <R> then(executor: Executor = CURR, block: (T) -> R) = Fut<R>(f.thenApplyAsync(block.logging(), executor))
 
-   fun <R> thenFlat(executor: Executor = CURR, block: (T) -> Fut<R>) = Fut<R>(f.thenComposeAsync(block.logging().net { b -> { b(it).asCompletableFuture() } }, executor.kt))
+   fun <R> thenFlat(executor: Executor = CURR, block: (T) -> Fut<R>) = Fut<R>(f.thenComposeAsync(block.logging().net { b -> { b(it).asCompletableFuture() } }, executor))
 
    fun thenFlatten(executor: Executor = CURR): Fut<Any?> = thenFlat(executor) { it.asIf<Fut<Any?>>()?.thenFlatten(executor) ?: fut(it) }
 
@@ -63,10 +62,10 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
 
    /** Sets [block] to be invoked when this future finishes regardless of success. Returns this. */
    fun onDone(executor: Executor = CURR, block: (Result<T>) -> Unit) = apply {
-      f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor.kt)
+      f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor)
    }
 
-   fun <R> thenRecover(executor: Executor = CURR, block: (Result<T>) -> R) = Fut<R>(f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor.kt))
+   fun <R> thenRecover(executor: Executor = CURR, block: (Result<T>) -> R) = Fut<R>(f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor))
 
    fun thenRecover(): Fut<Try<T, Throwable>> = thenRecover(CURR) { it.toTryRaw() }
 

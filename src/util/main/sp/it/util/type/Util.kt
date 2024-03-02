@@ -46,6 +46,7 @@ import javafx.scene.effect.Blend
 import javafx.scene.effect.BlendMode
 import javafx.scene.effect.Effect
 import javafx.scene.input.InputMethodRequests
+import javafx.scene.input.KeyCombination
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Background
 import javafx.scene.layout.Border
@@ -68,6 +69,7 @@ import javafx.scene.text.FontSmoothingType
 import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
 import javafx.scene.transform.Transform
+import javafx.stage.Window
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
@@ -365,6 +367,8 @@ private val extractors = setOf(
       Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::textProperty,                  type<Property<String>>()),
       Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::underlineProperty,             type<Property<Boolean>>()),
       Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::wrappingWidthProperty,         type<Property<Double>>()),
+      Extractor(javafx.stage.Stage::class,           javafx.stage.Stage::fullScreenExitHintProperty,        type<Property<String?>>()),
+      Extractor(javafx.stage.Stage::class,           javafx.stage.Stage::fullScreenExitKeyProperty,         type<Property<KeyCombination?>>()),
    )
    .groupBy { it.declaringClass }
    .mapValues { (_, v) -> v.associateBy { it.method.name } }

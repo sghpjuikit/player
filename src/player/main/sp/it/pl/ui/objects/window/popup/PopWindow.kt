@@ -78,6 +78,7 @@ import sp.it.util.ui.max
 import sp.it.util.ui.min
 import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.minPrefMaxWidth
+import sp.it.util.ui.prefSize
 import sp.it.util.ui.scene
 import sp.it.util.ui.screenXy
 import sp.it.util.ui.setScaleXYByTo
@@ -259,7 +260,12 @@ open class PopWindow {
          initMouseDrag(
             P(),
             { drag -> drag.data = window!!.size },
-            { drag -> if (userResizable.value) window!!.size = drag.data + drag.diff }
+            { drag ->
+               var newSize = drag.data + drag.diff
+                   newSize.modify(root.minWidth(root.height) x root.minHeight(root.width), Double::coerceAtLeast)
+               if (userResizable.value) window!!.size = newSize
+               if (userResizable.value) root.prefSize = newSize
+            }
          )
       }
 

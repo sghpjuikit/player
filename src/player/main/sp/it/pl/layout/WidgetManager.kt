@@ -864,7 +864,7 @@ enum class ComponentLoaderStrategy(val loader: ComponentLoader) {
 
 /** Strategy for opening a new component in ui. */
 @Suppress("ClassName")
-sealed interface ComponentLoader {
+interface ComponentLoader {
 
    operator fun invoke(ctx: Ctx): (Component) -> Any = { ctx(it) }
    operator fun invoke(c: Component): Any = Ctx(null)(c)
@@ -974,7 +974,10 @@ sealed interface ComponentLoader {
    }
 
    /** Loads the component as a standalone widget in a simplified layout of a new popup. */
-   data object POPUP: ComponentLoader {
+   data object POPUP: POPUP_CUSTOM()
+
+   open class POPUP_CUSTOM(val customizer: (PopWindow) -> Unit = {}): ComponentLoader {
+      fun customize(customizer: (PopWindow) -> Unit) = POPUP_CUSTOM(customizer)
       override operator fun Ctx.invoke(c: Component): PopWindow {
          val l = Layout.openStandalone(anchorPane())
          val p = popWindow {
@@ -983,6 +986,7 @@ sealed interface ComponentLoader {
             properties[Window.keyWindowLayout] = l
             onHiding += { properties -= Window.keyWindowLayout }
             onHiding += { l.close() }
+            customizer(this)
          }
 
          l.child = c

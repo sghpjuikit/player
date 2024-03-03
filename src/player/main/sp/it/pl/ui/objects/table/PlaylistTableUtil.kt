@@ -17,13 +17,16 @@ import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.PlaylistSong.Field.LENGTH
 import sp.it.pl.audio.playlist.PlaylistSong.Field.NAME
 import sp.it.pl.audio.tagging.MetadataGroup
+import sp.it.pl.layout.ComponentLoader
 import sp.it.pl.layout.ComponentLoader.POPUP
+import sp.it.pl.layout.ComponentLoader.POPUP_CUSTOM
 import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.isPlaying
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.fieldvalue.MetaField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.fieldvalue.ObjectFieldBase
@@ -110,9 +113,10 @@ fun TableView<*>.buildPlayingFieldCell(column: TableColumn<*, Any>): TableCell<*
             }
             if (e.button==SECONDARY) {
                // open playback controls on RMB
-               val widgetKey = "playlist-table-playback-control-widget}"
+               val widgetKey = "playlist-table-playback-control-widget"
+               fun customizePopup(it: PopWindow) { it.headerVisible.value = false }
                fun obtainWidget() = APP.widgetManager.widgets.findAll(OPEN).find { widgetKey in it.properties }?.apply { focusWithWindow() }
-               fun buildWidget() = APP.widgetManager.widgets.find("Playback seeker", NEW(POPUP(this)))?.apply { properties[widgetKey] = widgetKey }
+               fun buildWidget() = APP.widgetManager.widgets.find("Playback seeker", NEW(POPUP.customize(::customizePopup)(this)))?.apply { properties[widgetKey] = widgetKey }
                obtainWidget() ?: buildWidget()
             }
          }

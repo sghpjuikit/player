@@ -23,6 +23,7 @@ import javafx.scene.control.Label
 import javafx.scene.control.OverrunStyle.LEADING_ELLIPSIS
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS
+import javafx.scene.control.ScrollPane
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
 import javafx.scene.control.Tooltip
@@ -153,6 +154,7 @@ import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupSiblingUp
+import sp.it.util.ui.scrollText
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.show
@@ -183,16 +185,24 @@ import sp.it.util.units.uri
  * Tip: Associate help popups with buttons marked with question mark or similar icon.
  */
 @JvmOverloads
-fun helpPopup(textContent: String, textTitle: String = "Help"): PopWindow = popWindow {
+fun helpPopup(textContent: String, textTitle: String = "Help"): PopWindow = helpPopup(
+   scrollText {
+      SpitText(textContent).apply {
+         styleClass += "help-pop-window-text"
+         wrappingWithNatural.subscribe()
+      }
+   },
+   textTitle
+)
+
+@JvmOverloads
+fun helpPopup(contentNode: Node, textTitle: String = "Help"): PopWindow = popWindow {
    styleClass += "help-pop-window"
-   content.value = SpitText(textContent).apply {
-      styleClass += "help-pop-window-text"
-      wrappingWithNatural.subscribe()
-   }
+   content.value = contentNode
    title.value = textTitle
    isAutohide.value = true
    isClickHide.value = true
-   userResizable.value = false
+   userResizable.value = true // content may not always be static and right size, though ideally we would use false
    focusOnShow.value = false
 }
 
@@ -201,11 +211,22 @@ fun infoIcon(tooltipText: String) = infoIcon { tooltipText }
 
 /** @return standardized icon that opens a help popup with the specified text (lazy)  */
 fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
-   .tooltip("Help")
+   .tooltip("Help\n\nClick the button to see additional information")
    .action { i ->
       APP.actionStream("Info popup")
       helpPopup(tooltipText()).apply {
-         content.value.asIs<SpitText>().wrappingWidth = 400.emScaled
+         content.value.asIs<ScrollPane>().content.asIs<SpitText>().wrappingWidth = 400.emScaled
+         headerIconsVisible.value = false
+         show(RIGHT_CENTER(i))
+      }
+   }
+
+/** @return standardized icon that opens a help popup with the specified text (lazy)  */
+fun infoIconWith(content: () -> Node): Icon = Icon(IconOC.QUESTION)
+   .tooltip("Help\n\nClick the button to see additional information")
+   .action { i ->
+      APP.actionStream("Info popup")
+      helpPopup(content()).apply {
          headerIconsVisible.value = false
          show(RIGHT_CENTER(i))
       }

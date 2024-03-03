@@ -15,6 +15,7 @@ import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
+import javafx.scene.control.ScrollPane
 import javafx.scene.control.TextField
 import javafx.scene.effect.Effect
 import javafx.scene.input.KeyCode
@@ -33,12 +34,15 @@ import sp.it.pl.main.AppOsMenuIntegrator
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.appTooltip
+import sp.it.pl.main.emScaled
+import sp.it.pl.main.infoIconWith
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.textfield.EffectTextField.Companion.EFFECT_TYPES
+import sp.it.pl.ui.objects.textfield.SpitTextField
 import sp.it.util.access.OrV.OrValue
 import sp.it.util.access.readOnly
 import sp.it.util.access.v
@@ -66,6 +70,7 @@ import sp.it.util.functional.and
 import sp.it.util.functional.andAlso
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
+import sp.it.util.math.StrExF
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.map
@@ -77,11 +82,19 @@ import sp.it.util.type.isObject
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
 import sp.it.util.type.rawJ
+import sp.it.util.ui.borderPane
 import sp.it.util.ui.onOver
 import sp.it.util.ui.dsl
+import sp.it.util.ui.hBox
 import sp.it.util.ui.isOver
+import sp.it.util.ui.label
+import sp.it.util.ui.lay
+import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.onNodeDispose
+import sp.it.util.ui.scrollPane
+import sp.it.util.ui.text
 import sp.it.util.ui.textIcon
+import sp.it.util.units.em
 import sp.it.util.units.millis
 
 private const val caretLayoutSize = 15.0
@@ -400,6 +413,34 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
          put<AppOsMenuIntegrator> {
             if (it.type.isNullable) GeneralCE(it)
             else AppOsMenuIntegratorCE(it.asIs())
+         }
+         put<StrExF> {
+            GeneralCE(it).apply {
+               editor.asIs<SpitTextField>().right += infoIconWith {
+                  borderPane {
+                     top = hBox(10.emScaled) {
+                        lay += label("Postfix operators").apply { isWrapText = true; minPrefMaxWidth = 75.emScaled }
+                        lay += label("Prefix operators").apply { isWrapText = true; minPrefMaxWidth = 75.emScaled }
+                        lay += label("Infix operators").apply { isWrapText = true; minPrefMaxWidth = 75.emScaled }
+                        lay += label("Functions").apply { isWrapText = true; minPrefMaxWidth = 400.emScaled }
+                        padding = Insets(0.0, 0.0, 1.em.emScaled, 0.0)
+                     }
+                     center = scrollPane {
+                        vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
+                        hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+                        isFitToHeight = true
+                        content = hBox(10.emScaled) {
+                           lay += text(StrExF.operatorsPostfix().joinToString("\n") { it }).apply { styleClass += "help-pop-window-text" }.apply { wrappingWidth = 75.emScaled }
+                           lay += text(StrExF.operatorsPrefix().joinToString("\n") { it }).apply { styleClass += "help-pop-window-text" }.apply { wrappingWidth = 75.emScaled }
+                           lay += text(StrExF.operatorsInfix().joinToString("\n") { it }).apply { styleClass += "help-pop-window-text" }.apply { wrappingWidth = 75.emScaled }
+                           lay += text(StrExF.funs().joinToString("\n") { it }).apply { styleClass += "help-pop-window-text" }.apply { wrappingWidth = 400.emScaled }
+                        }
+                     }
+                  }
+               }.also { i ->
+                  i.isFocusTraversable = false
+               }
+            }
          }
 
          EFFECT_TYPES.map { it.type ?: Effect::class }.forEach {

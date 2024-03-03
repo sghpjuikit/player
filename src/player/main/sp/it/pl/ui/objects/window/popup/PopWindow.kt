@@ -369,8 +369,7 @@ open class PopWindow {
                sizeToScene()
                xy = shower(stage).net {
                   val s = Screen.getScreensForRectangle(it.areaBy(1 x 1)).firstOrNull()
-                  if (s==null) it
-                  else it max s.bounds.min min (s.bounds.max - size)
+                  if (s==null) it else it max s.bounds.min min (s.bounds.max - size)
                }
 
                onIsShowing1st { initAutohide() } on tillHidden
@@ -388,8 +387,8 @@ open class PopWindow {
                show(windowOwner ?: UNFOCUSED_OWNER.value)
                sizeToScene()
                xy = shower(this).net {
-                  val s = Screen.getScreensForRectangle(it.areaBy(1 x 1)).first()
-                  it max s.bounds.min min (s.bounds.max - size)
+                  val s = Screen.getScreensForRectangle(it.areaBy(1 x 1)).firstOrNull()
+                  if (s==null) it else it max s.bounds.min min (s.bounds.max - size)
                }
                onContentShown()
             }

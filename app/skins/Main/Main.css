@@ -2153,8 +2153,7 @@ TextFlow > * {
  */
 .resize-content-icon {
    -glyph-name: "MaterialDesignIcon.RESIZE_BOTTOM_RIGHT";
-   scaleX: 1.5;
-   scaleY: 1.5;
+   -glyph-gap: 0em;
 }
 
 .header-icon {

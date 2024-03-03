@@ -83,6 +83,11 @@
 .playlist-table-cell-playing-icon:selected Text {
     -fx-effect: dropshadow(gaussian, rgba(100,150,255, 1), 0.5em, 0.2 , 0, 0);
 }
+/** Add glow effect - avoid on elements that break down with it */
+.resize-content-icon Text,
+.resize-content-icon:hover Text {
+    -fx-effect: none;
+}
 
 /* Cooler scroll-bar */
 .scroll-bar > .thumb,

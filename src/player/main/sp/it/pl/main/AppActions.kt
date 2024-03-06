@@ -11,20 +11,23 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
+import javafx.scene.paint.Color
 import javafx.scene.paint.Color.BLACK
 import javafx.stage.Screen
+import javafx.stage.Stage
+import javafx.stage.StageStyle
+import javafx.stage.StageStyle.UNDECORATED
+import javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST
 import javax.imageio.ImageIO
 import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.layout.ComponentLoader.WINDOW_FULLSCREEN
-import sp.it.pl.layout.NodeFactory
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.controller.Controller
 import sp.it.pl.layout.controller.ControllerNode
 import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.layout.feature.ObjectDetail
-import sp.it.pl.layout.nodeWidgetFactory
 import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.objects.MdNode
@@ -53,7 +56,6 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.async.runIoParallel
 import sp.it.util.async.runVT
-import sp.it.util.collections.toStringPretty
 import sp.it.util.conf.CheckList
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.FileActor
@@ -104,8 +106,12 @@ import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.hyperlink
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.lay
+import sp.it.util.ui.min
+import sp.it.util.ui.scene
+import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
+import sp.it.util.ui.xy
 import sp.it.util.units.millis
 import sp.it.util.units.times
 import sp.it.util.units.uri
@@ -251,10 +257,40 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       APP.ui.shortcutPane.orBuild.show(ShortcutPane.Info(f.summaryUi, actionsHardcoded + s.summaryActions))
    }
 
+   @IsAction(name = "Show black screen", info = "Display black over entire screen.")
+   fun showBlackScreen() {
+      fun <T> List<T>.forEachDelayed(block: (T) -> Unit) = forEachIndexed { i, it -> runFX(200.millis*i) { block(it) } }
+      val windows = ArrayList<Stage>()
+      var canHide = false
+      val showAll = {
+         windows.forEachDelayed { it.show() }
+      }
+      val hideAll = {
+         canHide = true
+         windows.forEachDelayed { it.hide() }
+      }
+      windows += Screen.getScreens().asSequence().sortedBy { it.bounds.minX }.map {
+         Stage(UNDECORATED).apply {
+            scene = scene {
+               fill = BLACK
+               onEventDown(KEY_PRESSED, ESCAPE) { hideAll() }
+               onEventDown(WINDOW_CLOSE_REQUEST) {
+                  if (!canHide) it.consume()
+                  if (!canHide) hideAll()
+               }
+            }
+            isAlwaysOnTop = true
+            xy = it.bounds.min
+            size = it.bounds.size
+         }
+      }
+      showAll()
+   }
+
    @IsAction(name = "Show overlay", info = "Display screen overlay.")
    fun showOverlay() {
-      val overlays = ArrayList<OverlayPane<Unit>>()
       fun <T> List<T>.forEachDelayed(block: (T) -> Unit) = forEachIndexed { i, it -> runFX(200.millis*i) { block(it) } }
+      val overlays = ArrayList<OverlayPane<Unit>>()
       var canHide = false
       val showAll = {
          overlays.forEachDelayed { it.show(Unit) }
@@ -274,14 +310,12 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
                }
             }
 
-            override fun show(data: Unit) {
+            override fun show(data: Unit) =
                super.show()
-            }
 
-            override fun hide() {
+            override fun hide() =
                if (canHide) super.hide()
                else hideAll()
-            }
 
          }
       }

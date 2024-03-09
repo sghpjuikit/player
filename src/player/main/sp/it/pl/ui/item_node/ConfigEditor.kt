@@ -234,6 +234,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
                            onEventDown(WINDOW_HIDDEN) { configMenuVisible.value = false }
                            show(i, Side.BOTTOM, 0.0, 0.0)
                         }
+                        Unit // TODO: remove workaround; Kotlin K2 compiler bug
                      }
                      caretB!!.styleclass("config-editor-caret")
                      caretB!!.isManaged = false

@@ -325,6 +325,7 @@ class TtyCoqui(TtyBase):
 
     def _http(self):
         if self.serverHost is None: return
+        if self.serverPort is None: return
         tty = self
         try:
             import torch, torchaudio

@@ -1,8 +1,9 @@
 
 
 ## Introduction
-This is a speech recognition python script using OpenAI Whisper. Features:
+This is a voice assistant python program. Features:
 - speech recognition
+    - configurable tts engine (local offline)
     - configurable wake word
     - transcribes user speech
     - automatic microphone recovery
@@ -137,7 +138,7 @@ Currently, input is always consumed whole (no streaming).
 
 ### S2T (speech to text)
 
-Currently, OpenAI Whisper is used. Model can be specified.
+Currently, `OpenAI Whisper` or `Nvidia Nemo Parakeet` is supported. Model can be specified.
 
 ### T2S (text to speech)
 By default, system voice is used.

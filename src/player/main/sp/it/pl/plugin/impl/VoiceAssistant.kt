@@ -92,11 +92,11 @@ class VoiceAssistant: PluginBase() {
    private val dir = APP.location / "speech-recognition-whisper"
    private var setup: Fut<Process>? = null
    private fun setup(): Fut<Process> {
-      fun doOnError(e: Throwable?, text: String?) = logger.error(e) { "Starting whisper failed.\n${text.wrap()}" }.toUnit()
-      return runOn(NEW("SpeechRecognition-starter")) {
-         val whisper = dir / "main.py"
+      fun doOnError(e: Throwable?, text: String?) = logger.error(e) { "Starting python failed.\n${text.wrap()}" }.toUnit()
+      return runOn(NEW("SpeechRecognition-python-starter")) {
+         val python = dir / "main.py"
          val commandRaw = listOf(
-            "python", whisper.absolutePath,
+            "python", python.absolutePath,
             "wake-word=${wakeUpWord.value}",
             "printRaw=${printRaw.value}",
             "mic-on=${micOn.value}",
@@ -122,8 +122,11 @@ class VoiceAssistant: PluginBase() {
             "llm-chat-temp=${llmChatTemp.value}",
             "llm-chat-topp=${llmChatTopP.value}",
             "llm-chat-topk=${llmChatTopK.value}",
-            "speech-recognition-model=${whisperModel.value}",
-            "speech-recognition-device=${whisperDevice.value}",
+            "stt-engine=${sttEngine.value.code}",
+            "stt-whisper-model=${sttWhisperModel.value}",
+            "stt-whisper-device=${sttWhisperDevice.value}",
+            "stt-nemo-model=${sttNemoModel.value}",
+            "stt-nemo-device=${sttNemoDevice.value}",
          )
          val command = EnvironmentContext.runAsProgramArgsTransformer(commandRaw)
          val process = ProcessBuilder(command)
@@ -165,7 +168,7 @@ class VoiceAssistant: PluginBase() {
             stdoutListener.block()
             stderrListener.block()
             if (success!=0) doOnError(null, stdout + stderr)
-            if (success!=0) fail { "Whisper process failed and returned $success" }
+            if (success!=0) fail { "Python process failed and returned $success" }
             installHibernationPreventionOff()
             process
          }.onError {
@@ -242,11 +245,11 @@ class VoiceAssistant: PluginBase() {
 
    /** Console output */
    val speakingStdout by cvnro(vn<String>(null)).multilineToBottom(20).noPersist()
-      .def(name = "Speech recognition output", info = "Shows console output of the speech recognition Whisper AI process", editable = EditMode.APP)
+      .def(name = "Speech recognition output", info = "Shows console output of the python process", editable = EditMode.APP)
 
    /** Whether microphone listening is allowed. */
    val micOn by cv(true)
-      .def(name = "Microphone enabled", info = "Whether microphone listening is allowed. In general, this also prevents initial loading of Whisper speech-to-text AI model until enabled.")
+      .def(name = "Microphone enabled", info = "Whether microphone listening is allowed. In general, this also prevents initial loading of speech-to-text AI model until enabled.")
 
    /** Microphone to be used. Null if auto. */
    val micName by cvn<String>(null)
@@ -276,15 +279,29 @@ class VoiceAssistant: PluginBase() {
    val wakeUpWord by cv("system")
       .def(name = "Wake up word", info = "Words or phrase that activates voice recognition. Case-insensitive.")
 
-   /** AI model used to transcribe voice to text */
-   val whisperModel by cv("base.en")
+   /** Engine used to recognize speech. May require additional configuration */
+   val sttEngine by cv(TtsEngine.WHISPER)
+      .def(name = "Speech recognition", info = "Engine used to recognize speech. May require additional configuration")
+
+   /** [TtsEngine.WHISPER] AI model used to transcribe voice to text */
+   val sttWhisperModel by cv("base.en")
       .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large", "large-v1", "large-v2", "large-v3") }
       .uiNoOrder()
-      .def(name = "Speech recognition model", info = "Whisper model for speech recognition.")
+      .def(name = "Speech recognition > Whisper model", info = "Whisper model for speech recognition.")
 
-   /** Torch device used to transcribe voice to text */
-   val whisperDevice by cv("")
-      .def(name = "Speech recognition device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
+   /** [TtsEngine.WHISPER] Torch device used to transcribe voice to text */
+   val sttWhisperDevice by cv("")
+      .def(name = "Speech recognition > Whisper device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
+
+   /** [TtsEngine.NEMO] AI model used to transcribe voice to text */
+   val sttNemoModel by cv("nvidia/parakeet-tdt-1.1b")
+      .values { listOf("nvidia/parakeet-tdt-1.1b") }
+      .uiNoOrder()
+      .def(name = "Speech recognition > Nemo model", info = "Nemo model for speech recognition.")
+
+   /** [TtsEngine.NEMO] Torch device used to transcribe voice to text */
+   val sttNemoDevice by cv("")
+      .def(name = "Speech recognition > Nemo device", info = "Nemo torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
 
    /** Whether speech is allowed. */
    val speechOn by cv(true)
@@ -410,7 +427,8 @@ class VoiceAssistant: PluginBase() {
 
       // restart-requiring properties
       val processChangeVals = listOf<V<*>>(
-         wakeUpWord, micName, whisperModel, whisperDevice,
+         wakeUpWord, micName,
+         sttEngine, sttWhisperModel, sttWhisperDevice, sttNemoModel, sttNemoDevice,
          speechEngine, speechEngineCharAiToken, speechEngineCoquiCudaDevice, speechEngineHttpUrl, speechServer, speechServerUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
       )
@@ -516,6 +534,12 @@ class VoiceAssistant: PluginBase() {
 
    fun raw(text: String) = write(text)
 
+   enum class TtsEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
+      NONE("none", "None", "No speech recognition"),
+      WHISPER("whisper", "Whisper", "OpenAI Whisper speech recognition. Fully offline."),
+      NEMO("nemo", "Nemo", "Nvidia Nemo ASR. Fully offline."),
+   }
+
    enum class SpeechEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
       NONE("none", "None", "No voice"),
       SYSTEM("os", "System", "System voice. Fully offline"),
@@ -544,7 +568,7 @@ class VoiceAssistant: PluginBase() {
 
    companion object: PluginInfo, KLogging() {
       override val name = "Voice Assistant"
-      override val description = "Provides speech recognition, synthesis, LLM chat and voice control capabilities.\nSee https://github.com/openai/whisper"
+      override val description = "Provides speech recognition, synthesis, LLM chat and voice control capabilities using various AI models."
       override val isSupported = true
       override val isSingleton = true
       override val isEnabledByDefault = false

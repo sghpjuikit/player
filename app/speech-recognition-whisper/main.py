@@ -14,7 +14,7 @@ from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui,
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
-from util_s2t import Whisper
+from util_s2t import SttNone, SttWhisper, SttNemo
 from util_write_engine import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_com import CommandExecutor, CommandExecutorDoNothing, CommandExecutorAsIs, CommandExecutorDelegate
@@ -95,13 +95,33 @@ Args:
     Optional wake word to interact with this script
     Default: system
 
-  speech-recognition-model=$model
+  stt-engine=$engine
+    Speech-to-text engine for voice recognition
+    - Use 'none' to disable voice recognition
+    - Use 'whisper' to use OpenAI Whisper AI (https://github.com/openai/whisper), fully offline
+      optionally specify stt-whisper-model, stt-whisper-device
+    - Use 'nemo' to use Nvidia NEMO ASR AI (https://github.com/NVIDIA/NeMo), fully offline
+      optionally specify stt-nemo-model, stt-nemo-device
+    Default: whisper
+    
+  stt-whisper-model=$model
     Whisper model for speech recognition
     Values: tiny.en, tiny, base.en, base, small.en, small, medium.en, medium, large, large-v1, large-v2, large-v3
     Default: base.en
-  speech-recognition-device
+
+  stt-whisper-device
     Whisper torch device, e.g., cpu, cuda:0, cuda:1.
     Default: ''
+
+  stt-nemo-model=$model
+    Nemo model for speech recognition
+    Values: nvidia/parakeet-tdt-1.1b
+    Default: nvidia/parakeet-tdt-1.1b
+    
+  stt-nemo-device
+    Nemo torch device, e.g., cpu, cuda:0, cuda:1.
+    Default: ''
+
   speech-on=$bool
     Optional bool whether speech synthesis should be allowed.
     When false, speech synthesis will receive no input and will not do anything.
@@ -204,6 +224,12 @@ micName = arg('mic-name', '')
 micEnergy = int(arg('mic-energy', "120"))
 micEnergyDebug = arg('mic-energy-debug', "false")=="true"
 
+sttEngineType = arg('stt-engine', 'whisper')
+sttWhisperDevice = arg('stt-whisper-device', '')
+sttWhisperModel = arg('stt-whisper-model', 'base.en')
+sttNemoDevice = arg('stt-nemo-device', '')
+sttNemoModel = arg('stt-nemo-model', 'nvidia/parakeet-tdt-1.1b')
+
 speakOn = arg('speech-on', "true")=="true"
 speakEngineType = arg('speech-engine', 'os')
 speakUseCharAiToken = arg('character-ai-token', '')
@@ -212,8 +238,6 @@ speakUseCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
 speakUseCoquiCudaDevice = arg('coqui-cuda-device', '')
 speakUseCoquiServer = arg('coqui-server', '')
 speakUseHttpUrl = arg('speech-server', 'localhost:1235')
-speechRecognitionDevice = arg('speech-recognition-device', '')
-speechRecognitionModelName = arg('speech-recognition-model', 'base.en')
 
 llmEngine = arg('llm-engine', 'none')
 llmGpt4AllModelName = arg('llm-gpt4all-model', 'none')
@@ -528,7 +552,7 @@ def stop(*args):  # pylint: disable=unused-argument
 
         llm.stop()
         mic.stop()
-        whisper.stop()
+        stt.stop()
         speak.stop()
         write.stop()
 
@@ -541,10 +565,18 @@ def install_exit_handler():
     signal.signal(signal.SIGABRT, stop)
 
 
-whisper = Whisper(callback, micOn, speechRecognitionDevice, speechRecognitionModelName, write)
-mic = Mic(None if len(micName)==0 else micName, micOn, whisper.sample_rate, skip, whisper.queue.put, speak, write, micEnergy, micEnergyDebug)
+if sttEngineType == 'none':
+    stt = SttNone(micOn)
+elif sttEngineType == 'whisper':
+    stt = SttWhisper(callback, micOn, sttWhisperDevice, sttWhisperModel, write)
+elif sttEngineType == 'nemo':
+    stt = SttNemo(callback, micOn, sttNemoDevice, sttNemoModel, write)
+else:
+    stt = SttNone(micOn)
+
+mic = Mic(None if len(micName)==0 else micName, micOn, stt.sample_rate, skip, stt.queue.put, speak, write, micEnergy, micEnergyDebug)
 speak.start()
-whisper.start()
+stt.start()
 mic.start()
 llm.start()
 install_exit_handler()
@@ -588,7 +620,7 @@ while True:
         # changing settings commands
         elif m.startswith("mic-on="):
             mic.micOn = prop(m, "mic-on", "true").lower() == "true"
-            whisper.whisperOn = mic.micOn
+            stt.enabled = mic.micOn
 
         elif m.startswith("mic-energy-debug="):
             mic.energy_debug = prop(m, "mic-energy-debug", "false").lower() == "true"

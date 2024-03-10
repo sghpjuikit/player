@@ -318,14 +318,20 @@ class Assist:
     def __call__(self, text: str, textSanitized: str):
         pass
 
+
+voices_dir = 'voices-coqui'
+voices = [f for f in os.listdir(voices_dir) if os.path.isfile(os.path.join(voices_dir, f)) and not f.endswith('.txt')]
+
 # LLM considers the functions in order
 assist_last_at = time.time()
 assist_last_diff = 0
 assist = Assist()
-assist_function_prompt = """
+assist_function_prompt = f"""
 - repeat // last speech
-- start-conversation
 - what-can-you-do
+- start-conversation
+- list-available-voices
+- change-voice-$voice // resolve to one from {', '.join(voices)}
 - open-weather-info
 - play-music
 - stop-music
@@ -350,12 +356,26 @@ assist_function_prompt = """
 
 # commands
 class CommandExecutorMain(CommandExecutor):
+
     def execute(self, text: str) -> str:
         global assist
         handled = "ignore"
 
         if text == "repeat":
             speak.repeatLast()
+            return handled
+        if text == "list available voices":
+            speak("The available voices are: " + ', '.join(voices))
+            return handled
+        if text.startswith("change voice "):
+            voice = text.removeprefix("change voice ")
+            if isinstance(speak.tty, TtyCoqui):
+                if voice in voices:
+                    if speak.tty.voice != voice:
+                        speak.tty.voice = voice
+                        speak(name + " voice changed")
+                else:
+                    speak(f"No voice {voice} available")
             return handled
         if text.startswith("generate "):
             speak("Ok")
@@ -471,7 +491,8 @@ class AssistStandard:
 
         # do command
         else:
-            write('COM: ' + text)
+            command = commandExecutor.execute(text)
+            write('COM: ' + command)
 
         # experimental:
         # do random activity
@@ -636,8 +657,7 @@ while True:
             printRaw = prop(m, "print-raw", "true").lower() == "true"
 
         elif m.startswith("coqui-voice=") and isinstance(speak.tty, TtyCoqui):
-            speak.tty.voice = prop(m, "coqui-voice", speakUseCoquiVoice)
-            speak(name + " voice changed")
+            commandExecutor.execute("change voice " + prop(m, "coqui-voice", speakUseCoquiVoice))
 
         elif m.startswith("llm-chat-sys-prompt="):
             llm.sysPrompt = arg('llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')

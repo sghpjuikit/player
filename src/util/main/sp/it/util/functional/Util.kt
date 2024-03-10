@@ -61,6 +61,9 @@ fun <T> consumer(consumer: Consumer<T>): (T) -> Unit = { consumer(it) }
 /** @return kotlin runnable that invokes java runnable */
 fun <T> runnable(runnable: Runnable): () -> Unit = { runnable() }
 
+/** Initializes the lazy value if not yet initialized */
+fun <T> Lazy<T>.initialize() = value.toUnit()
+
 /** @return value if it has been initialized or null otherwise */
 fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null
 

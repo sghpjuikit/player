@@ -10,13 +10,13 @@ from itertools import chain
 from threading import Thread, Timer
 from typing import cast
 from util_play_engine import SdActor
-from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui, TtyHttp
+from util_tts import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui, TtyHttp
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
 from util_http import Http, HttpHandler, HttpHandlerState
-from util_s2t import SttNone, SttWhisper, SttNemo
-from util_write_engine import Writer
+from util_stt import SttNone, SttWhisper, SttNemo
+from util_wrt import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_com import CommandExecutor, CommandExecutorDoNothing, CommandExecutorAsIs, CommandExecutorDelegate
 

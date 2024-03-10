@@ -2,8 +2,8 @@ import gpt4all.gpt4all
 from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
 from gpt4all.gpt4all import empty_chat_session
 from typing import Callable
-from util_tty_engines import Tty
-from util_write_engine import Writer
+from util_tts import Tty
+from util_wrt import Writer
 from util_actor import Actor
 from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain, SingleLazyIterator
 from util_paste import pasteTokens

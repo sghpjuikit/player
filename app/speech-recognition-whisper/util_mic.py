@@ -1,8 +1,8 @@
 from collections.abc import Iterator
 from time import sleep, time
 from speech_recognition import Recognizer, Microphone, WaitTimeoutError # https://github.com/Uberi/speech_recognition
-from util_tty_engines import Tty
-from util_write_engine import Writer
+from util_tts import Tty
+from util_wrt import Writer
 from itertools import chain
 from pysilero_vad import SileroVoiceActivityDetector
 

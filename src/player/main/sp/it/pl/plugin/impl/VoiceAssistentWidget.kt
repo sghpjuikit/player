@@ -70,8 +70,8 @@ class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
             }
             lay += CheckIcon().icons(IconMD.FILTER, IconMD.FILTER_REMOVE_OUTLINE).apply {
                disableProperty() syncFrom plugin.map { it==null }
-               selected syncFrom plugin.flatMap { it!!.printRaw }.orElse(true)
-               selected attach { plugin.value?.printRaw?.value = it }
+               selected syncFrom plugin.flatMap { it!!.pythonStdOutDebug }.orElse(true)
+               selected attach { plugin.value?.pythonStdOutDebug?.value = it }
                tooltip("Hide debug and raw output")
             }
             lay += Icon(IconFA.REFRESH).tooltip("Restart voice assistent")
@@ -114,6 +114,7 @@ class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
                   isFocusTraversable = false
                   isWrapText = true
                   prefColumnCount = 100
+                  text = plugin.value?.pythonStdOut?.value ?: ""
 
                   onEventDown(KeyEvent.KEY_PRESSED, KeyCode.ENTER) { appendText("\n") }
                   plugin.syncNonNullWhile { it.onLocalInput attach ::appendTextSmart }

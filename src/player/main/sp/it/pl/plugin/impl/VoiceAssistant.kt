@@ -13,6 +13,7 @@ import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.layout.WidgetFactory
+import sp.it.pl.layout.WidgetUse
 import sp.it.pl.main.APP
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
 import sp.it.pl.main.IconMA
@@ -39,6 +40,7 @@ import sp.it.util.conf.EditMode
 import sp.it.util.conf.between
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
+import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.cvnro
@@ -47,6 +49,7 @@ import sp.it.util.conf.min
 import sp.it.util.conf.multiline
 import sp.it.util.conf.multilineToBottom
 import sp.it.util.conf.noPersist
+import sp.it.util.conf.noUi
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
@@ -98,7 +101,7 @@ class VoiceAssistant: PluginBase() {
          val commandRaw = listOf(
             "python", python.absolutePath,
             "wake-word=${wakeUpWord.value}",
-            "printRaw=${printRaw.value}",
+            "printRaw=${pythonStdOutDebug.value}",
             "mic-on=${micOn.value}",
             "mic-name=${micName.value ?: ""}",
             "mic-energy=${micEnergy.value}",
@@ -141,7 +144,7 @@ class VoiceAssistant: PluginBase() {
                .map { it.ansi() }
                .filter { it.isNotEmpty() }
                .onEach { runFX {
-                  speakingStdout.value = (speakingStdout.value ?: "").concatApplyBackspace(it.un())
+                  pythonStdOut.value = (pythonStdOut.value ?: "").concatApplyBackspace(it.un())
                   onLocalInput(it.un())
                } }
                .lines()
@@ -155,7 +158,7 @@ class VoiceAssistant: PluginBase() {
                .map { it.ansi() }
                .map { it.applyBackspace() }
                .onEach { runFX {
-                  speakingStdout.value = (speakingStdout.value ?: "") + it
+                  pythonStdOut.value = (pythonStdOut.value ?: "") + it
                   onLocalInput(it)
                } }
                .joinToString("")
@@ -243,10 +246,6 @@ class VoiceAssistant: PluginBase() {
    /** Last spoken text */
    val speakingText = speakingTextW.readOnly()
 
-   /** Console output */
-   val speakingStdout by cvnro(vn<String>(null)).multilineToBottom(20).noPersist()
-      .def(name = "Speech recognition output", info = "Shows console output of the python process", editable = EditMode.APP)
-
    /** Whether microphone listening is allowed. */
    val micOn by cv(true)
       .def(name = "Microphone enabled", info = "Whether microphone listening is allowed. In general, this also prevents initial loading of speech-to-text AI model until enabled.")
@@ -268,9 +267,17 @@ class VoiceAssistant: PluginBase() {
    val micEnergyDebug by cv(false)
       .def(name = "Microphone energy > debug", info = "Whether current microphone energy lvl is active. Use to setup microphone energy voice treshold.")
 
-   /** Whether `RAW: $text` values will be shown. */
-   val printRaw by cv(true)
-      .def(name = "Print raw", info = "Whether `RAW: \$text` values will be shown.")
+   /** Console output */
+   val pythonStdOut by cvnro(vn<String>(null)).multilineToBottom(20).noPersist().noUi()
+      .def(name = "Output", info = "Shows console output of the python process", editable = EditMode.APP)
+
+   /** Whether consoel output shows `RAW: $text` values. */
+   val pythonStdOutDebug by cv(true)
+      .def(name = "Output raw", info = "Whether `RAW: \$text` values will be shown.")
+
+   /** Opens console output */
+   val pythonStdOutOpen by cr { APP.widgetManager.widgets.find(speechRecognitionWidgetFactory.name, WidgetUse.ANY) }
+      .def(name = "Output console", info = "Shows console output of the python process")
 
    /** Invoked for every voice assistant local process input token. */
    val onLocalInput = Handler1<String>()
@@ -412,7 +419,7 @@ class VoiceAssistant: PluginBase() {
       // runtime-changeable properties
       // @formatter:off
       speechEngineCoquiVoice.chan().throttleToLast(2.seconds) subscribe { write("coqui-voice=$it") }
-                    printRaw.chan().throttleToLast(2.seconds) subscribe { write("print-raw=$it") }
+                    pythonStdOutDebug.chan().throttleToLast(2.seconds) subscribe { write("print-raw=$it") }
                        micOn.chan().throttleToLast(2.seconds) subscribe { write("mic-on=$it") }
                    micEnergy.chan().throttleToLast(2.seconds) subscribe { write("mic-energy=$it") }
               micEnergyDebug.chan().throttleToLast(2.seconds) subscribe { write("mic-energy-debug=$it") }

@@ -318,6 +318,7 @@ class Assist:
     def __call__(self, text: str, textSanitized: str):
         pass
 
+# LLM considers the functions in order
 assist_last_at = time.time()
 assist_last_diff = 0
 assist = Assist()
@@ -336,12 +337,12 @@ assist_function_prompt = """
 - speak|say from? clipboard
 - speak|say $text
 - lights-on|off
+- list-light-scenes
+- lights-scene-$scene  // sets light scene, scene is usually a mood
+- list-light-groups
+- lights-$groupname-on|off?  // group is usually a room
 - list-light-bulbs
 - light-bulb-$bulb_name-on|off?
-- list-light-scenes
-- lights-scene-$scene
-- list-light-groups
-- lights-$groupname-on|off?
 - set-reminder-on-$iso_datetime-$text
 - set-reminder-in-$time_period-$text
 - unidentified // no other command probable

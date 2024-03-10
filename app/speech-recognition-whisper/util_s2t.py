@@ -1,10 +1,9 @@
 import os.path
 import uuid
-from threading import Thread
 from time import sleep
-from queue import Queue
 from typing import Callable
 from speech_recognition import AudioData
+from util_actor import Actor
 from util_write_engine import Writer
 from os import makedirs
 from os.path import dirname, abspath, exists, join
@@ -17,56 +16,36 @@ import soundfile as sf
 import numpy as np
 import torch
 
-class SttNone:
+
+class Stt(Actor):
+    def __init__(self, name: str, enabled: bool, sample_rate: int):
+        super().__init__("stt", name, enabled)
+        self.sample_rate: int = sample_rate
+
+
+class SttNone(Stt):
     def __init__(self, enabled: bool):
-        self.name='SttNone'
-        self.queue = Queue()
-        self._stop = False
-        self.enabled: bool = enabled
-        self.sample_rate: int = 16000
-
-    def start(self):
-        Thread(name=self.name, target=self._loop, daemon=True).start()
-
-    def _clear_queue(self):
-        while not self.queue.empty(): self.queue.get()
+        super().__init__('SttNone', enabled, 16000)
 
     def _loop(self):
-        # prevent queue from filling up
-        while not self._stop:
-            sleep(0.1)
-            while not self.queue.empty(): self.queue.get()
+        self._loopLoadAndIgnoreEvents()
 
-        self._clear_queue()
-
-    def stop(self):
-        self._stop = True
 
 # home https://github.com/openai/whisper
-class SttWhisper:
+class SttWhisper(Stt):
     def __init__(self, target: Callable[str, None] | None, enabled: bool, device: str | None, model: str, write: Writer):
-        self.name = 'SttWhisper'
-        self.queue = Queue()
+        super().__init__('SttWhisper', enabled, whisper_sample_rate)
         self.write: Writer = write
         self._target = target
-        self._stop = False
         self.model = model
-        self.enabled: bool = enabled
         self.device = device
-        self.sample_rate: int = whisper_sample_rate
-
-    def start(self):
-        Thread(name=self.name, target=self._loop, daemon=True).start()
-
-    def _clear_queue(self):
-        while not self.queue.empty(): self.queue.get()
 
     def _loop(self):
-        # wait till whisper is on
+        # wait till enabled
         while not self.enabled and self._target is None:
+            self._clear_queue()
             if self._stop: return
             sleep(0.1)
-            self._clear_queue()
             continue
 
         modelDir = join(dirname(abspath(__file__)), "models-whisper")
@@ -78,6 +57,7 @@ class SttWhisper:
         # disable logging
         filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
 
+        self._loaded = True
         while not self._stop:
             try:
                 audio_data = self.queue.get()
@@ -87,6 +67,7 @@ class SttWhisper:
                 audio_array = audio_array.astype(np.float32)
                 if not self._stop and self.enabled:
                     text = model.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
+                    self.events_processed += 1
                     if not self._stop and self.enabled: self._target(text)
             except Exception as e:
                 self.write("ERR: Error occurred:" + str(e))
@@ -94,34 +75,22 @@ class SttWhisper:
 
         self._clear_queue()
 
-    def stop(self):
-        self._stop = True
 
 # home https://github.com/NVIDIA/NeMo
-class SttNemo:
+class SttNemo(Stt):
     def __init__(self, target: Callable[str, None] | None, enabled: bool, device: str | None, model: str, write: Writer):
-        self.name = 'SttNemo'
-        self.queue = Queue()
+        super().__init__('SttNemo', enabled, 16000)
         self.write: Writer = write
         self._target = target
-        self._stop = False
         self.model = model
-        self.enabled: bool = enabled
         self.device = device
-        self.sample_rate: int = 16000
-
-    def start(self):
-        Thread(name=self.name, target=self._loop, daemon=True).start()
-
-    def _clear_queue(self):
-        while not self.queue.empty(): self.queue.get()
 
     def _loop(self):
-        # wait till whisper is on
+        # wait till enabled
         while not self.enabled and self._target is None:
+            self._clear_queue()
             if self._stop: return
             sleep(0.1)
-            self._clear_queue()
             continue
 
         # disable logging
@@ -135,6 +104,7 @@ class SttNemo:
         device = None if self.device is None or len(self.device)==0 else torch.device(self.device)
         model.to(device)
 
+        self._loaded = True
         while not self._stop:
             try:
                 audio_data = self.queue.get()
@@ -150,14 +120,11 @@ class SttNemo:
                     hypotheses = model.transcribe([f])
                     hypothese1 = hypotheses[0] if hypotheses else None
                     text = hypothese1[0] if hypothese1 else None
-                    if text is not None:
-                        if not self._stop and self.enabled: self._target(text)
+                    self.events_processed += 1
+                    if text is not None and not self._stop and self.enabled: self._target(text)
 
             except Exception as e:
                 self.write("ERR: Error occurred:" + str(e))
                 print_exc()
 
         self._clear_queue()
-
-    def stop(self):
-        self._stop = True

@@ -14,6 +14,7 @@ from util_tty_engines import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui,
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
+from util_http import Http, HttpHandler, HttpHandlerState
 from util_s2t import SttNone, SttWhisper, SttNemo
 from util_write_engine import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
@@ -21,6 +22,7 @@ from util_com import CommandExecutor, CommandExecutorDoNothing, CommandExecutorA
 
 # util: print engine actor, non-blocking
 write = Writer()
+write.start()
 
 # util: print ex with flush (avoids no console output)
 def write_ex(text: str, exception):
@@ -219,7 +221,7 @@ name = wake_word[0].upper() + wake_word[1:]
 printRaw = arg('printRaw', "true")=="true"
 parentProcess = int(arg('parent-process', -1))
 
-micOn = arg('mic-on', "true")=="true"
+micEnabled = arg('mic-enabled', "true")=="true"
 micName = arg('mic-name', '')
 micEnergy = int(arg('mic-energy', "120"))
 micEnergyDebug = arg('mic-energy-debug', "false")=="true"
@@ -264,10 +266,8 @@ elif speakEngineType == 'os':
 elif speakEngineType == 'character-ai':
     speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, SdActor(), write)
 elif speakEngineType == 'coqui':
-    host, _, port = (None, None, None) if len(speakUseCoquiServer)==0 else speakUseCoquiServer.partition(":")
-    (host, port) = (None, None) if len(speakUseCoquiServer)==0 else (host, int(port))
     device = None if len(speakUseCoquiCudaDevice)==0 else int(speakUseCoquiCudaDevice)
-    speakEngine = TtyCoqui(speakUseCoquiVoice, device, host, port, SdActor(), write)
+    speakEngine = TtyCoqui(speakUseCoquiVoice, device, SdActor(), write)
 elif speakEngineType == 'http':
     if len(speakUseHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')
     if ':' not in speakUseHttpUrl: raise AssertionError('speech-server must be in format host:port')
@@ -277,25 +277,11 @@ else:
     speakEngine = TtyNone()
 speak = Tty(speakOn, speakEngine, write)
 
-# speak server
-speakServer: TtyCoqui | None = None
-if len(speakUseCoquiServer)==0:
-    speakServer = None
-elif speakEngineType == 'coqui':
-    speakServer = speak.tty
-else:
-    if ':' not in speakUseCoquiServer: raise AssertionError('coqui-server must be in format host:port')
-    host, _, port = speakUseCoquiServer.partition(":")
-    (host, port) = (host, int(port))
-    device = None if len(speakUseCoquiCudaDevice)==0 else int(speakUseCoquiCudaDevice)
-    speakServer = TtyCoqui(speakUseCoquiVoice, device, host, port, SdActor(), write)
-    speakServer.start()
-
 # commands
 commandExecutor = CommandExecutorDelegate(CommandExecutorDoNothing)
 
 # llm actor, non-blocking
-llm = LlmNone(speak, write)
+llm = LlmNone()
 if llmEngine == 'none':
     pass
 elif llmEngine == "gpt4all":
@@ -576,6 +562,7 @@ def stop(*args):  # pylint: disable=unused-argument
         mic.stop()
         stt.stop()
         speak.stop()
+        if http is not None: http.stop()
         write.stop()
 
 
@@ -587,16 +574,25 @@ def install_exit_handler():
     signal.signal(signal.SIGABRT, stop)
 
 
-if sttEngineType == 'none':
-    stt = SttNone(micOn)
-elif sttEngineType == 'whisper':
-    stt = SttWhisper(callback, micOn, sttWhisperDevice, sttWhisperModel, write)
-elif sttEngineType == 'nemo':
-    stt = SttNemo(callback, micOn, sttNemoDevice, sttNemoModel, write)
-else:
-    stt = SttNone(micOn)
+stt = SttNone(micEnabled)
+if sttEngineType == 'whisper': stt = SttWhisper(callback, micEnabled, sttWhisperDevice, sttWhisperModel, write)
+elif sttEngineType == 'nemo': stt = SttNemo(callback, micEnabled, sttNemoDevice, sttNemoModel, write)
+else: pass
 
-mic = Mic(None if len(micName)==0 else micName, micOn, stt.sample_rate, skip, stt.queue.put, speak, write, micEnergy, micEnergyDebug)
+mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, skip, stt.queue.put, speak, write, micEnergy, micEnergyDebug)
+
+# http
+http = None
+if len(speakUseCoquiServer)==0:
+    if ':' not in speakUseCoquiServer: raise AssertionError('coqui-server must be in format host:port')
+    (host, port) = (None, None) if len(speakUseCoquiServer)==0 else (host, int(port))
+    (host, port) = (host, int(port))
+    http = Http(host, port, write)
+    http.handlers.append(HttpHandlerState([write, mic, stt, llm]))
+    if isinstance(speak.tty, TtyCoqui): http.handlers.append(speak.tty._httpHandler())
+
+# start actors
+if http is not None: http.start()
 speak.start()
 stt.start()
 mic.start()
@@ -641,8 +637,8 @@ while True:
 
         # changing settings commands
         elif m.startswith("mic-on="):
-            mic.micOn = prop(m, "mic-on", "true").lower() == "true"
-            stt.enabled = mic.micOn
+            mic.enabled = prop(m, "mic-on", "true").lower() == "true"
+            stt.enabled = mic.enabled
 
         elif m.startswith("mic-energy-debug="):
             mic.energy_debug = prop(m, "mic-energy-debug", "false").lower() == "true"

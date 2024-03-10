@@ -13,7 +13,6 @@ import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.layout.WidgetFactory
-import sp.it.pl.layout.WidgetUse
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.main.APP
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
@@ -103,7 +102,7 @@ class VoiceAssistant: PluginBase() {
             "python", python.absolutePath,
             "wake-word=${wakeUpWord.value}",
             "printRaw=${pythonStdOutDebug.value}",
-            "mic-on=${micOn.value}",
+            "mic-enabled=${micEnabled.value}",
             "mic-name=${micName.value ?: ""}",
             "mic-energy=${micEnergy.value}",
             "mic-energy-debug=${micEnergyDebug.value}",
@@ -248,7 +247,7 @@ class VoiceAssistant: PluginBase() {
    val speakingText = speakingTextW.readOnly()
 
    /** Whether microphone listening is allowed. */
-   val micOn by cv(true)
+   val micEnabled by cv(true)
       .def(name = "Microphone enabled", info = "Whether microphone listening is allowed. In general, this also prevents initial loading of speech-to-text AI model until enabled.")
 
    /** Microphone to be used. Null if auto. */
@@ -421,7 +420,7 @@ class VoiceAssistant: PluginBase() {
       // @formatter:off
       speechEngineCoquiVoice.chan().throttleToLast(2.seconds) subscribe { write("coqui-voice=$it") }
                     pythonStdOutDebug.chan().throttleToLast(2.seconds) subscribe { write("print-raw=$it") }
-                       micOn.chan().throttleToLast(2.seconds) subscribe { write("mic-on=$it") }
+                       micEnabled.chan().throttleToLast(2.seconds) subscribe { write("mic-on=$it") }
                    micEnergy.chan().throttleToLast(2.seconds) subscribe { write("mic-energy=$it") }
               micEnergyDebug.chan().throttleToLast(2.seconds) subscribe { write("mic-energy-debug=$it") }
                     speechOn.chan().throttleToLast(2.seconds) subscribe { write("speech-on=$it") }

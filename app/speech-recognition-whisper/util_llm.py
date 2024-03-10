@@ -1,11 +1,10 @@
 import gpt4all.gpt4all
 from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
 from gpt4all.gpt4all import empty_chat_session
-from threading import Thread
-from queue import Queue
 from typing import Callable
 from util_tty_engines import Tty
 from util_write_engine import Writer
+from util_actor import Actor
 from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain, SingleLazyIterator
 from util_paste import pasteTokens
 
@@ -71,41 +70,29 @@ class ChatStop:
         pass
 
 
-class LlmBase:
-    def __init__(self):
-        self._stop = False
-        self.queue = Queue()
+class Llm(Actor):
+    def __init__(self, name: str):
+        super().__init__("llm", name, True)
         self.generating = False
-
-    def start(self):
-        pass
-
-    def stop(self):
-        """
-        Stop processing all elements and release all resources
-        """
-        self._stop = True
 
     def __call__(self, prompt: ChatStart | Chat | ChatProceed | ChatStop):
         self.queue.put(prompt)
 
+
+class LlmNone(Llm):
+    def __init__(self):
+        super().__init__('LlmNone')
+
     def _loop(self):
-        pass
-
-
-class LlmNone(LlmBase):
-    def __init__(self, speak: Tty, write: Writer):
-        super().__init__()
-        self.write = write
-        self.speak = speak
+        self._loopLoadAndIgnoreEvents()
 
 
 # home: https://github.com/nomic-ai/gpt4all
 # doc https://docs.gpt4all.io/gpt4all_python.html
-class LlmGpt4All(LlmBase):
+class LlmGpt4All(Llm):
 
     def __init__(self, model: str, speak: Tty, write: Writer, sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
-        super().__init__()
+        super().__init__('LlmGpt4All')
         self.write = write
         self.speak = speak
         # gpt4all.gpt4all.DEFAULT_MODEL_DIRECTORY = chatDir
@@ -114,22 +101,24 @@ class LlmGpt4All(LlmBase):
         self.temp = temp
         self.topp = topp
         self.topk = topk
-
-    def start(self):
-        Thread(name='LlmGpt4All', target=self._loop, daemon=True).start()
+        self.enabled = False # delayed load
 
     def _loop(self):
         llm = None
+        self._loaded = True # but remain at enabled==False until model load is triggered and done
         while not self._stop:
             e = self.queue.get()
+            self.events_processed += 1
 
             # load model lazily
             if llm is None: llm = GPT4All(model, allow_download=False)
+            self.enabled = True # delayed load
 
             if isinstance(e, ChatStart):
                 with llm.chat_session(self.sysPrompt):
                     while not self._stop:
                         t = self.queue.get()
+                        self.events_processed += 1
 
                         if isinstance(t, ChatStart):
                             pass
@@ -153,14 +142,15 @@ class LlmGpt4All(LlmBase):
                                 text_all = ''.join(tokensText)
                             finally:
                                 self.generating = False
+        self._clear_queue()
 
 
 # home https://github.com/openai/openai-python
 # howto https://cookbook.openai.com/examples/how_to_stream_completions
-class LlmHttpOpenAi(LlmBase):
+class LlmHttpOpenAi(Llm):
 
     def __init__(self, url: str, bearer: str, modelName: str, speak: Tty, write: Writer, commandExecutor: Callable[[str], str], sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
-        super().__init__()
+        super().__init__('LlmHttpOpenAi')
         self.write = write
         self.speak = speak
         self.commandExecutor = commandExecutor
@@ -172,9 +162,6 @@ class LlmHttpOpenAi(LlmBase):
         self.temp = temp
         self.topp = topp
         self.topk = topk
-
-    def start(self):
-        Thread(name='LlmHttpOpenAi', target=self._loop, daemon=True).start()
 
     def _loop(self):
         try:
@@ -188,8 +175,10 @@ class LlmHttpOpenAi(LlmBase):
         chat: ChatProceed | None = None
         client = OpenAI(api_key=self.bearer, base_url=self.url)
 
+        self._loaded = True
         while not self._stop:
             e = self.queue.get()
+            self.events_processed += 1
 
             if isinstance(e, ChatStart):
                 if chat is not None:
@@ -260,3 +249,5 @@ class LlmHttpOpenAi(LlmBase):
                     self.write(f"ERR: OpenAI returned {e.status_code} status code with response {e.response}")
                 finally:
                     self.generating = False
+
+        self._clear_queue()

@@ -4,6 +4,7 @@ import asyncio
 import traceback
 from threading import Thread
 from util_itr import teeThreadSafe, teeThreadSafeEager
+from util_http import HttpHandler
 from util_dir_cache import cache_file
 from util_write_engine import Writer
 from util_play_engine import SdActor
@@ -304,115 +305,104 @@ class TtyCharAi(TtyBase):
 
 # https://pypi.org/project/TTS/
 class TtyCoqui(TtyBase):
-    def __init__(self, voice: str, cudeDevice: int | None, serverHost: str | None, serverPort: int | None, play: SdActor, write: Writer):
+    def __init__(self, voice: str, cudeDevice: int | None, play: SdActor, write: Writer):
         super().__init__()
         self.speed = 1.0
         self.voice = voice
         self.cudeDevice: int | None = cudeDevice
         self._voice = voice
-        self.serverHost = serverHost
-        self.serverPort = serverPort
         self.play = play
         self.write = write
         self.model: Xtts | None = None
         self.loaded = False
-        self.server: HTTPServer = None
+        self.http_handler: HttpHandler | None = None
 
     def start(self):
         Thread(name='TtyCoqui', target=self._loop, daemon=True).start()
-        Thread(name='TtyCoqui-http', target=self._http, daemon=True).start()
         self.play.start()
 
-    def _http(self):
-        if self.serverHost is None: return
-        if self.serverPort is None: return
+    def _httpHandler(self) -> HttpHandler:
+        import torch, torchaudio
+        import numpy
+        import soundfile as sf
+        from http.server import BaseHTTPRequestHandler
         tty = self
-        try:
-            import torch, torchaudio
-            import numpy
-            import soundfile as sf
-            from http.server import BaseHTTPRequestHandler, HTTPServer
 
-            def waitTillLoaded():
-                while self.loaded is False:
-                    if self._stop: return
-                    time.sleep(0.1)
+        def waitTillLoaded():
+            while self.loaded is False:
+                if self._stop: return
+                time.sleep(0.1)
 
-            def gen(text):
-                return self.model.inference_stream(text, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
+        def gen(text):
+            return self.model.inference_stream(text, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
 
-            class MyRequestHandler(BaseHTTPRequestHandler):
-                def log_message(self, format, *args): pass
-                def do_POST(self):
-                    if tty._stop: return
-                    try:
-                        content_length = int(self.headers['Content-Length'])
-                        body = self.rfile.read(content_length)
-                        text = body.decode('utf-8')
-                        audio_file, audio_file_exists, cache_used = tty._cache_file_try(text)
+        class MyRequestHandler(HttpHandler):
+            def __init__(self, ):
+                super().__init__('POST', '/speech')
+
+            def __call__(self, req: BaseHTTPRequestHandler):
+                if tty._stop: return
+                try:
+                    content_length = int(req.headers['Content-Length'])
+                    body = req.rfile.read(content_length)
+                    text = body.decode('utf-8')
+                    audio_file, audio_file_exists, cache_used = tty._cache_file_try(text)
+
+                    # generate
+                    if not cache_used or not audio_file_exists:
+                        waitTillLoaded()
+
+                        req.send_response(200)
+                        req.send_header('Content-type', 'application/octet-stream')
+                        req.end_headers()
 
                         # generate
-                        if not cache_used or not audio_file_exists:
-                            waitTillLoaded()
+                        audio_chunks = []
+                        for audio_chunk in gen(text):
+                            audio_chunks.append(audio_chunk)
 
-                            self.send_response(200)
-                            self.send_header('Content-type', 'application/octet-stream')
-                            self.end_headers()
+                            if req.wfile.closed: return
+                            if tty._stop: req.wfile.close()
+                            if tty._stop: return
 
-                            # generate
-                            audio_chunks = []
-                            for audio_chunk in gen(text):
-                                audio_chunks.append(audio_chunk)
+                            req.wfile.write(audio_chunk.cpu().numpy().tobytes())
+                            req.wfile.flush()
 
-                                if self.wfile.closed: return
-                                if tty._stop: self.wfile.close()
-                                if tty._stop: return
+                        # update cache
+                        if cache_used and text:
+                            wav = torch.cat(audio_chunks, dim=0)
+                            try: torchaudio.save(audio_file, wav.squeeze().unsqueeze(0).cpu(), 24000)
+                            except Exception as e: tty.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
 
-                                self.wfile.write(audio_chunk.cpu().numpy().tobytes())
-                                self.wfile.flush()
+                    # play file
+                    else:
 
-                            # update cache
-                            if cache_used and text:
-                                wav = torch.cat(audio_chunks, dim=0)
-                                try: torchaudio.save(audio_file, wav.squeeze().unsqueeze(0).cpu(), 24000)
-                                except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
+                        req.send_response(200)
+                        req.send_header('Content-type', 'application/octet-stream')
+                        req.end_headers()
 
-                        # play file
-                        else:
+                        audio_data, fs = sf.read(audio_file, dtype='float32')
+                        if fs!=24000: return
+                        chunk_size = 1024
+                        audio_length = len(audio_data)
+                        start_pos = 0
+                        while start_pos < audio_length:
 
-                            self.send_response(200)
-                            self.send_header('Content-type', 'application/octet-stream')
-                            self.end_headers()
+                            if req.wfile.closed: return
+                            if tty._stop: req.wfile.close()
+                            if tty._stop: return
 
-                            audio_data, fs = sf.read(audio_file, dtype='float32')
-                            if fs!=24000: return
-                            chunk_size = 1024
-                            audio_length = len(audio_data)
-                            start_pos = 0
-                            while start_pos < audio_length:
+                            end_pos = min(start_pos + chunk_size, audio_length)
+                            chunk = audio_data[start_pos:end_pos]
+                            start_pos = end_pos
+                            req.wfile.write(chunk)
+                            req.wfile.flush()
 
-                                if self.wfile.closed: return
-                                if tty._stop: self.wfile.close()
-                                if tty._stop: return
+                except Exception as e:
+                    tty.write("ERR: error generating voice for http " + str(e))
+                    traceback.print_exc()
 
-                                end_pos = min(start_pos + chunk_size, audio_length)
-                                chunk = audio_data[start_pos:end_pos]
-                                start_pos = end_pos
-                                self.wfile.write(chunk)
-                                self.wfile.flush()
-
-                    except Exception as e:
-                        tty.write("ERR: error generating voice for http " + str(e))
-                        traceback.print_exc()
-            self.write("RAW: Speech server starting...")
-            self.server = HTTPServer((self.serverHost, self.serverPort), MyRequestHandler)
-            self.write("RAW: Speech server started")
-            self.server.serve_forever()
-            self.write("RAW: Speech server stopped")
-
-        except Exception as e:
-            self.write("ERR: error " + str(e))
-            traceback.print_exc()
+        return MyRequestHandler()
 
 
     def _loop(self):
@@ -520,7 +510,6 @@ class TtyCoqui(TtyBase):
 
     def stop(self):
         super().stop()
-        if self.server is not None: self.server.shutdown()
         self.play.stop()
 
 
@@ -555,7 +544,7 @@ class TtyHttp(TtyBase):
                 text = text.encode('utf-8')
                 conn = http.client.HTTPConnection(self.url, self.port)
                 conn.set_debuglevel(0)
-                conn.request('POST', '/', text, {})
+                conn.request('POST', '/speech', text, {})
                 response = conn.getresponse()
 
                 def read_wav_chunks_from_response(response):

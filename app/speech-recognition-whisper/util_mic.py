@@ -1,5 +1,3 @@
-from threading import Thread
-from queue import Queue
 from collections.abc import Iterator
 from time import sleep, time
 from speech_recognition import Recognizer, Microphone, WaitTimeoutError # https://github.com/Uberi/speech_recognition
@@ -8,6 +6,7 @@ from util_write_engine import Writer
 from itertools import chain
 from pysilero_vad import SileroVoiceActivityDetector
 
+from util_actor import Actor
 from typing import Callable
 from collections import deque
 import speech_recognition
@@ -38,8 +37,9 @@ def get_microphone_index_by_name(name):
     return device_index
 
 
-class Mic:
-    def __init__(self, micName: str | None, micOn: bool, sample_rate: int, onSpeechStart: Callable[[], None], onSpeechEnd: Callable[[AudioData], None], speak: Tty, write: Writer, micEnergy: int, micEnergyDebug: bool):
+class Mic(Actor):
+    def __init__(self, micName: str | None, enabled: bool, sample_rate: int, onSpeechStart: Callable[[], None], onSpeechEnd: Callable[[AudioData], None], speak: Tty, write: Writer, micEnergy: int, micEnergyDebug: bool):
+        super().__init__("mic", "Mic", enabled)
         self.listening = None
         self.sample_rate: int = sample_rate
         self.onSpeechStart: Callable[[], None] = onSpeechStart
@@ -47,8 +47,6 @@ class Mic:
         self.speak = speak
         self.write = write
         self.micName = micName
-        self.micOn = micOn
-        self._stop = False
 
         # recognizer fields
         self.energy_debug = micEnergyDebug
@@ -68,10 +66,8 @@ class Mic:
     def set_pause_threshold_talk(self):
         self.pause_threshold = 2.0
 
-    def start(self):
-        Thread(name='Mic', target=self._loop, daemon=True).start()
-
     def _loop(self):
+        self._loaded = True
         while not self._stop:
 
             # reconnect microphone
@@ -81,7 +77,7 @@ class Mic:
                 sourceI = sourceI+1
 
                 # wait till mic is on
-                if not self.micOn:
+                if not self.enabled:
                     sleep(1)
                     continue
 
@@ -125,7 +121,7 @@ class Mic:
                         if self._stop: break
 
                         # wait till mic is on
-                        while not self._stop and not self.micOn:
+                        while not self._stop and not self.enabled:
                             sleep(0.1)
                             continue
 
@@ -134,7 +130,7 @@ class Mic:
                             audio_data = self.listen(source, timeout=1)
 
                             # speech recognition
-                            if not self._stop and self.micOn and audio_data is not None: self.onSpeechEnd(audio_data)
+                            if not self._stop and self.enabled and audio_data is not None: self.onSpeechEnd(audio_data)
 
                         # ignore silence
                         except WaitTimeoutError:
@@ -155,9 +151,6 @@ class Mic:
                 self.write("ERR: Error occurred:" + str(e))
                 traceback.print_exc()
                 pass
-
-    def stop(self):
-        self._stop = True
 
     # This class is derived work of Recognizer class from speech_recognition,
     # which is under BSD 3-Clause "New" or "Revised" License (https://github.com/Uberi/speech_recognition/blob/master/LICENSE.txt)

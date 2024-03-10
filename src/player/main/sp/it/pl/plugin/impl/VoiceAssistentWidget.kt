@@ -5,9 +5,13 @@ import javafx.scene.control.ScrollPane
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Priority
+import sp.it.pl.layout.ComponentLoader
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.WidgetUse
+import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.loadIn
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
@@ -64,6 +68,9 @@ class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
       root.consumeScrolling()
       root.lay += vBox(null, Pos.CENTER) {
          lay += hBox(null, Pos.CENTER) {
+            lay += Icon(IconMD.AV_TIMER).tooltip("HW utilization").apply {
+               onClickDo { APP.instances.factoryGpuNvidiaInfo.loadIn() }
+            }
             lay += Icon(IconFA.COG).tooltip("Settings").apply {
                disableProperty() syncFrom plugin.map { it==null }
                onClickDo { APP.actions.app.openSettings(plugin.value?.configurableGroupPrefix) }

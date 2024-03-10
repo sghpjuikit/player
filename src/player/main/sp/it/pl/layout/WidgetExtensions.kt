@@ -58,7 +58,10 @@ private fun widgetContainingNode(node: Node?): Widget? {
       .find { it.ui?.root?.isAnyParentOf(node) ?: false }
 }
 
-fun ComponentFactory<*>.loadIn(strategy: ComponentLoaderStrategy, process: ComponentLoaderProcess = NORMAL) {
+fun ComponentFactory<*>.loadIn(
+   strategy: ComponentLoaderStrategy = APP.widgetManager.widgets.componentLastOpenStrategiesMap[if (this is WidgetFactory<*>) id else name] ?: ComponentLoaderStrategy.DOCK,
+   process: ComponentLoaderProcess = NORMAL
+) {
    val c = this
    val cId = if (c is WidgetFactory<*>) c.id else c.name
    when (process) {

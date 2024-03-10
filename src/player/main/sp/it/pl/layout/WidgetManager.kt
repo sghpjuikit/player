@@ -622,6 +622,10 @@ class WidgetManager {
       }
 
       /** Equivalent to: `find({ it.id()==name || it.name()==name }, source, ignore)` */
+      fun find(factory: ComponentFactory<*>, source: WidgetUse): Widget? =
+         find(factory.name, source)
+
+      /** Equivalent to: `find({ it.id()==name || it.name()==name }, source, ignore)` */
       fun find(name: String, source: WidgetUse): Widget? =
          find({ it.id==name || it.name==name }, source)
 

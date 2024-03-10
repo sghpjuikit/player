@@ -14,6 +14,7 @@ import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetUse
+import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.main.APP
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
 import sp.it.pl.main.IconMA
@@ -276,7 +277,7 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Output raw", info = "Whether `RAW: \$text` values will be shown.")
 
    /** Opens console output */
-   val pythonStdOutOpen by cr { APP.widgetManager.widgets.find(speechRecognitionWidgetFactory.name, WidgetUse.ANY) }
+   val pythonStdOutOpen by cr { APP.widgetManager.widgets.find(speechRecognitionWidgetFactory, ANY) }
       .def(name = "Output console", info = "Shows console output of the python process")
 
    /** Invoked for every voice assistant local process input token. */

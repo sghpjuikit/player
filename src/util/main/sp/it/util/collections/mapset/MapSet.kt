@@ -75,6 +75,8 @@ class MapSet<K: Any, E: Any>(backingMap: MutableMap<K, E>, keyMapper: (E) -> K):
 
    fun getOrSupply(key: K, or: Supplier<E>): E = if (key in m) m[key]!! else or.get()
 
+   fun getOrPut(key: K, or: Supplier<E>): E = m.computeIfAbsent(key) { or.get() }
+
    /** Equivalent to [removeValue]. */
    override fun remove(element: E) = removeValue(element)
 

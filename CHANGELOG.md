@@ -6,13 +6,24 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** widget info to display voice commands
 - Implement **Node/Custom** widget to show Node specific info
 - Implement String to Number functor radix parameter
+- Implement discovery of properties for ui types that do not extend ui types
+- Implement function editor help icon with popup showing available functions
+- Implement black screen action that hides screen
+- Implement **Voice assistant** **Nvidia Nemo ASR** voice recognition support
+- Implement **Voice assistant** actor state http API & UI
+- Implement **Voice assistant** voice command for listing and changing voice
 - Improve shortcut pane layout
+- Improve nullability inference for window properties in settings
 - Fix **Voice assistant** plugin not waking up from hibernate properly
 - Fix menu not showing F3 shortcut key
 - Fix playlist throwing selection index exception
 - Fix **Hue** plugin `lights on` command not working as expected
 - Fix not able to add video files to playlist sometimes
 - Fix incorrect mouse hover behavior/highlighting of some ui elements when some effects are used
+- Fix popup resize null pointer exception
+- Fix popup resize not working
+- Fix popup not respecting min size properly
+
 
 ## [8.0.0] 2023 10 27
 - Implement Windows taskbar icons

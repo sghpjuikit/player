@@ -7,8 +7,11 @@ import javafx.scene.control.ScrollPane
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
+import javafx.scene.layout.VBox
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.invoke
 import org.jetbrains.kotlin.utils.findIsInstanceAnd
@@ -24,6 +27,7 @@ import sp.it.pl.main.IconMD
 import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.toUi
 import sp.it.pl.ui.ValueToggleButtonGroup
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
@@ -34,10 +38,17 @@ import sp.it.util.access.visible
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.launch
+import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.dev.fail
-import sp.it.util.file.json.toPrettyS
+import sp.it.util.file.json.JsArray
+import sp.it.util.file.json.JsFalse
+import sp.it.util.file.json.JsNull
+import sp.it.util.file.json.JsNumber
+import sp.it.util.file.json.JsObject
+import sp.it.util.file.json.JsString
+import sp.it.util.file.json.JsTrue
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.functional.supplyIf
@@ -129,30 +140,39 @@ class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
                alignment = CENTER
             }
          }
+
          lay(ALWAYS) += stackPane {
-            lay += vBox {
-               id = "hw"
-               visible syncFrom mode.map { it == "Hw" }
-               visibleProperty() attachWhileTrue {
-                  var a by atomic(true)
-                  launch(VT) {
-                     while (a) {
-                        delay(1000)
-                        runTry {
-                           val actors = APP.http.client.get("http://localhost:1235/actor").bodyAsJs().asJsObject().value.values
-                           FX {
-                              actors.forEach {
-                                 val actor = it.asJsObject()
-                                 val actorName = actor.value["name"]!!.asJsStringValue()
-                                 val label = this@vBox.children.findIsInstanceAnd<Label> { it.id == actorName } ?: label() { isWrapText = true; this@vBox.lay += this }
-                                 label.id = actorName
-                                 label.text = actor.toPrettyS()
+            lay += scrollPane {
+               isFitToWidth = true
+               isFitToHeight = false
+               prefSize = -1 x -1
+               vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
+               hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+               content = vBox(10.emScaled) {
+                  id = "hw"
+                  visible syncFrom mode.map { it == "Hw" }
+
+                  val actorStates = MapSet { a: ActorState -> a.type }
+
+                  visibleProperty() attachWhileTrue {
+                     var a by atomic(true)
+                     launch(VT) {
+                        while (a) {
+                           runTry {
+                              val actors = APP.http.client.get("http://localhost:1235/actor").bodyAsJs().asJsObject().value
+                              FX {
+                                 actors.forEach { (type, actor) ->
+                                    actorStates.getOrPut(type) { ActorState(type).apply { this@vBox.lay += this } }.update(actor.asJsObject())
+                                 }
                               }
+                           }.ifError {
+                              it.printStackTrace()
                            }
+                           delay(1000)
                         }
                      }
+                     Subscription { a = false }
                   }
-                  Subscription { a = false }
                }
             }
             lay += hBox(5.emScaled, CENTER) {
@@ -231,6 +251,32 @@ class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
                      }
                   }
                }
+            }
+         }
+      }
+   }
+
+   private class ActorState(val type: String): VBox() {
+      init {
+         lay += label(type)
+      }
+      fun labelOf(key: String) = label {
+         id = key
+         onEventDown(MOUSE_CLICKED, PRIMARY) { if (userData!=null) APP.ui.actionPane.show(userData) }
+         lay += this
+      }
+      fun update(state: JsObject) {
+         state.value.forEach { (key, value) ->
+            val label = children.findIsInstanceAnd<Label> { it.id==key } ?: labelOf(key)
+            label.userData = value.takeIf { it is JsArray }
+            label.text = when (value) {
+               is JsArray -> "  " + key + ": " + value.value.size + " 🔍"
+               is JsObject -> "  " + key + ": " + value.value.size + " 🔍"
+               is JsString -> "  " + key + ": " + value.value.toUi()
+               is JsNumber -> "  " + key + ": " + value.value.toUi()
+               is JsNull -> "  " + key + ": " + null.toUi()
+               is JsTrue -> "  " + key + ": " + true.toUi()
+               is JsFalse -> "  " + key + ": " + false.toUi()
             }
          }
       }

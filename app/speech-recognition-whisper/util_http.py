@@ -24,13 +24,28 @@ class HttpHandlerState(HttpHandler):
         self.actors = actors
 
     def __call__(self, req: BaseHTTPRequestHandler):
-        state = { actor.group: { 'name': actor.name, 'events queued': actor.queuedSize(), 'events processed': actor.events_processed, 'state': actor.state() } for actor in self.actors}
+        def event_to_str(e) -> str:
+            if isinstance(e, str): return e
+            if isinstance(e, (int, float)): return e
+            else: return "n/a"
+
+        state = {}
+        for actor in self.actors:
+            state[actor.group] = {
+                'name': actor.name,
+                'events queued': list(map(event_to_str, actor.queued())),
+                'events processed': actor.events_processed,
+                'state': actor.state()
+            }
         data = json.dumps(state).encode('utf-8')
         req.send_response(200)
         req.send_header('Content-type', 'application/json')
         req.end_headers()
         req.wfile.write(data)
 
+    def event_to_str(self, event) -> str:
+        if isinstance(x, str): return x
+        else: return "n/a"
 
 class Http:
 
@@ -75,7 +90,7 @@ class Http:
         try:
             self.write("RAW: Http server starting...")
             self.server = HTTPServer((self.serverHost, self.serverPort), HttpRequestHandler)
-            self.write("RAW: Http server started")
+            self.write(f"RAW: Http server started on {self.serverHost}:{self.serverPort}")
             self.server.serve_forever()
             self.write("RAW: Http server stopped")
         except Exception as e:

@@ -13,8 +13,8 @@ class Actor:
         self._loaded: bool = False
         self.enabled: bool = enabled
 
-    def queuedSize(self) -> int:
-        return self.queue.qsize()
+    def queued(self) -> int:
+        return list(self.queue.queue)
 
     def _clear_queue(self):
         while not self.queue.empty(): self.queue.get()

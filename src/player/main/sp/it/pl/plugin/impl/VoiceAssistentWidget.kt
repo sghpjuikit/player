@@ -159,7 +159,9 @@ class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
                      launch(VT) {
                         while (a) {
                            runTry {
-                              val actors = APP.http.client.get("http://localhost:1235/actor").bodyAsJs().asJsObject().value
+                              val url = plugin.value?.speechServerUrl?.value?.net { "http://$it/actor"}
+                              if (url==null) return@runTry
+                              val actors = APP.http.client.get(url).bodyAsJs().asJsObject().value
                               FX {
                                  actors.forEach { (type, actor) ->
                                     actorStates.getOrPut(type) { ActorState(type).apply { this@vBox.lay += this } }.update(actor.asJsObject())

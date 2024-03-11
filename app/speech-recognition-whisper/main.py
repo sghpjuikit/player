@@ -583,11 +583,10 @@ mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, ski
 
 # http
 http = None
-if len(speakUseCoquiServer)==0:
+if len(speakUseCoquiServer)>0:
     if ':' not in speakUseCoquiServer: raise AssertionError('coqui-server must be in format host:port')
-    (host, port) = (None, None) if len(speakUseCoquiServer)==0 else (host, int(port))
-    (host, port) = (host, int(port))
-    http = Http(host, port, write)
+    host, _, port = speakUseCoquiServer.partition(":")
+    http = Http(host, int(port), write)
     http.handlers.append(HttpHandlerState([write, mic, stt, llm]))
     if isinstance(speak.tty, TtyCoqui): http.handlers.append(speak.tty._httpHandler())
 

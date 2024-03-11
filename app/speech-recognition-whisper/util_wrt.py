@@ -6,7 +6,7 @@ from util_actor import Actor
 
 class Writer(Actor):
     def __init__(self):
-        super().__init__("sdout", "Writer", True)
+        super().__init__("stdout", "Writer", True)
 
     def __call__(self, event: str | Iterator | object):
         self.queue.put(event)

@@ -580,7 +580,7 @@ class VoiceAssistant: PluginBase() {
       override val isSingleton = true
       override val isEnabledByDefault = false
 
-      val speechRecognitionWidgetFactory by lazy { WidgetFactory("VoiceAssistent", VoiceAssistentWidget::class, APP.location.widgets/"VoiceAssistent") }
+      val speechRecognitionWidgetFactory by lazy { WidgetFactory("VoiceAssistant", VoiceAssistantWidget::class, APP.location.widgets/"VoiceAssistant") }
 
       /** Ansi escape sequence pattern */
       private val ansi = Pattern.compile("\\x1B\\[[0-?]*[ -/]*[@-~]")

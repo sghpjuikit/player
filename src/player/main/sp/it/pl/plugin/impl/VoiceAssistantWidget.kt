@@ -14,7 +14,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.layout.VBox
-import javafx.scene.text.TextAlignment
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.invoke
 import org.jetbrains.kotlin.utils.findIsInstanceAnd
@@ -87,7 +86,7 @@ import sp.it.util.units.em
 import sp.it.util.units.version
 import sp.it.util.units.year
 
-class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
+class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
 
    init {
       val plugin = APP.plugins.plugin<VoiceAssistant>().asValue(onClose)

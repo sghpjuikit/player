@@ -1,7 +1,9 @@
 package sp.it.pl.plugin.impl
 
 import io.ktor.client.request.get
+import javafx.geometry.HPos
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.VPos
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane
 import javafx.scene.input.KeyCode.ENTER
@@ -12,6 +14,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.layout.VBox
+import javafx.scene.text.TextAlignment
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.invoke
 import org.jetbrains.kotlin.utils.findIsInstanceAnd
@@ -66,6 +69,7 @@ import sp.it.util.reactive.zip2
 import sp.it.util.text.nameUi
 import sp.it.util.type.atomic
 import sp.it.util.ui.appendTextSmart
+import sp.it.util.ui.flowPane
 import sp.it.util.ui.hBox
 import sp.it.util.ui.insertNewline
 import sp.it.util.ui.isNewlineOnShiftEnter
@@ -79,6 +83,7 @@ import sp.it.util.ui.styleclassToggle
 import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.units.em
 import sp.it.util.units.version
 import sp.it.util.units.year
 
@@ -114,13 +119,13 @@ class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
                disableProperty() syncFrom plugin.map { it==null }
                selected syncFrom plugin.flatMap { it!!.speechOn }.orElse(false)
                selected attach { plugin.value?.speechOn?.value = it }
-               tooltip("Enable/disable voice")
+               tooltip("Enable/disable voice output")
             }
             lay += CheckIcon().icons(IconMA.MIC, IconMA.MIC_OFF).apply {
                disableProperty() syncFrom plugin.map { it==null }
                selected syncFrom plugin.flatMap { it!!.micEnabled }.orElse(false)
                selected attach { plugin.value?.micEnabled?.value = it }
-               tooltip("Enable/disable microphone")
+               tooltip("Enable/disable voice input")
             }
             lay += label {
                plugin.sync { text = if (it!=null) "Active" else "Inactive" }
@@ -148,8 +153,11 @@ class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
                prefSize = -1 x -1
                vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
                hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-               content = vBox(10.emScaled) {
+               content = flowPane(2.em.emScaled, 2.em.emScaled) {
                   id = "hw"
+                  alignment = CENTER;
+                  rowValignment = VPos.CENTER
+                  columnHalignment = HPos.CENTER
                   visible syncFrom mode.map { it == "Hw" }
 
                   val actorStates = MapSet { a: ActorState -> a.type }
@@ -163,8 +171,8 @@ class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
                               if (url==null) return@runTry
                               val actors = APP.http.client.get(url).bodyAsJs().asJsObject().value
                               FX {
-                                 actors.forEach { (type, actor) ->
-                                    actorStates.getOrPut(type) { ActorState(type).apply { this@vBox.lay += this } }.update(actor.asJsObject())
+                                 actors.forEach { type, actor ->
+                                    actorStates.getOrPut(type) { ActorState(type).also { lay += it } }.update(actor.asJsObject())
                                  }
                               }
                            }.ifError {
@@ -260,7 +268,9 @@ class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
 
    private class ActorState(val type: String): VBox() {
       init {
-         lay += label(type)
+         lay += stackPane {
+            lay += label(type) { styleClass += listOf("h4", "h4p") }
+         }
       }
       fun labelOf(key: String) = label {
          id = key
@@ -272,13 +282,13 @@ class VoiceAssistentWidget(widget: Widget): SimpleController(widget) {
             val label = children.findIsInstanceAnd<Label> { it.id==key } ?: labelOf(key)
             label.userData = value.takeIf { it is JsArray }
             label.text = when (value) {
-               is JsArray -> "  " + key + ": " + value.value.size + " 🔍"
-               is JsObject -> "  " + key + ": " + value.value.size + " 🔍"
-               is JsString -> "  " + key + ": " + value.value.toUi()
-               is JsNumber -> "  " + key + ": " + value.value.toUi()
-               is JsNull -> "  " + key + ": " + null.toUi()
-               is JsTrue -> "  " + key + ": " + true.toUi()
-               is JsFalse -> "  " + key + ": " + false.toUi()
+               is JsArray -> key + ": " + value.value.size + " 🔍"
+               is JsObject -> key + ": " + value.value.size + " 🔍"
+               is JsString -> key + ": " + value.value.toUi()
+               is JsNumber -> key + ": " + value.value.toUi()
+               is JsNull -> key + ": " + null.toUi()
+               is JsTrue -> key + ": " + true.toUi()
+               is JsFalse -> key + ": " + false.toUi()
             }
          }
       }

@@ -25,6 +25,7 @@ class HttpHandlerState(HttpHandler):
 
     def __call__(self, req: BaseHTTPRequestHandler):
         def event_to_str(e) -> str:
+            if e is None: return e
             if isinstance(e, str): return e
             if isinstance(e, (int, float)): return e
             else: return "n/a"
@@ -33,9 +34,12 @@ class HttpHandlerState(HttpHandler):
         for actor in self.actors:
             state[actor.group] = {
                 'name': actor.name,
+                'state': actor.state(),
                 'events queued': list(map(event_to_str, actor.queued())),
                 'events processed': actor.events_processed,
-                'state': actor.state()
+                'event processing': None if actor.processing_event is None else [ event_to_str(actor.processing_event) ],
+                'event last processing time': actor.processingTimeLast(),
+                'event avg processing time': actor.processingTimeAvg()
             }
         data = json.dumps(state).encode('utf-8')
         req.send_response(200)
@@ -43,9 +47,6 @@ class HttpHandlerState(HttpHandler):
         req.end_headers()
         req.wfile.write(data)
 
-    def event_to_str(self, event) -> str:
-        if isinstance(x, str): return x
-        else: return "n/a"
 
 class Http:
 
@@ -54,7 +55,7 @@ class Http:
         self.serverPort = serverPort
         self.server = None
         self.write = write
-        self.handlers: List[HttpHandlerState] = []
+        self.handlers: List[HttpHandler] = []
 
     def start(self):
         Thread(name='Http', target=self.start_impl, daemon=True).start()

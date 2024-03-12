@@ -4,85 +4,87 @@ import numpy as np
 import sounddevice as sd
 import soundfile as sf
 from threading import Thread
+from util_actor import Actor
 from util_wrt import Writer
-from queue import Queue
-from queue import Empty
+from queue import Queue, Empty
 
-class SdActorPlayback:
-    def __init__(self):
-        self.queue = Queue()
+
+LOOP_BREAK = object()
+LOOP_CONTINUE = object()
+
+
+class SdActorPlayback(Actor):
+    def __init__(self, write: Writer):
+        super().__init__('play', 'SdActorPlayback', True)
         self._skip = False
-        self._stop = False
-        self.thread = None
         self.stream = None
         self.sentence_break = 0.3
         self.sample_rate = 24000
-
-    def start(self):
-        Thread(name='SdActorPlayback', target=self._loop, daemon=True).start()
+        self.write = write
 
     def skip(self):
         self._skip = True
         pass
 
     def stop(self):
-        self._stop = True
-        if self.stream is not None:
-            self.stream.stop()
+        super().stop()
+        if self.stream is not None: self.stream.stop()
 
     def _loop(self):
         self.stream = sd.OutputStream(channels=1, samplerate=24000)
         self.stream.start()
 
+        def process(event):
+            type, audio, skippable = event
+            if self._stop: return LOOP_BREAK
+
+            # skip
+            if self._skip and skippable:
+                return LOOP_CONTINUE
+
+            # skip stop at boundary
+            if type=='boundary':
+                self._skip = False
+                return LOOP_CONTINUE
+
+            # play pause
+            if type=='w':
+                samples_count = int(1 * self.sample_rate)
+                samples = np.zeros(samples_count)
+                self.stream.write(np.zeros(samples_count, dtype=np.float32))
+
+            # play file
+            if type=='f':
+                audio_data, fs = sf.read(audio, dtype='float32')
+                if fs!=self.sample_rate: return LOOP_CONTINUE
+                chunk_size = 1024
+                audio_length = len(audio_data)
+                start_pos = 0
+                while start_pos < audio_length:
+                    if (self._skip and skippable) or self._stop: break
+                    end_pos = min(start_pos + chunk_size, audio_length)
+                    chunk = audio_data[start_pos:end_pos]
+                    self.stream.write(chunk)
+                    start_pos = end_pos
+
+            # play wav chunk
+            if type=='b':
+                self.stream.write(audio)
         # loop
+        self._loaded = True
         while not self._stop:
-            try:
-                type, audio, skippable = self.queue.get()
-                if self._stop: break
-
-                # skip
-                if self._skip and skippable:
-                    continue
-
-                # skip stop at boundary
-                if type=='boundary':
-                    self._skip = False
-                    continue
-
-                # play pause
-                if type=='w':
-                    samples_count = int(1 * self.sample_rate)
-                    samples = np.zeros(samples_count)
-                    self.stream.write(np.zeros(samples_count, dtype=np.float32))
-
-                # play file
-                if type=='f':
-                    audio_data, fs = sf.read(audio, dtype='float32')
-                    if fs!=self.sample_rate: continue
-                    chunk_size = 1024
-                    audio_length = len(audio_data)
-                    start_pos = 0
-                    while start_pos < audio_length:
-                        if (self._skip and skippable) or self._stop: break
-                        end_pos = min(start_pos + chunk_size, audio_length)
-                        chunk = audio_data[start_pos:end_pos]
-                        self.stream.write(chunk)
-                        start_pos = end_pos
-
-                # play wav chunk
-                if type=='b':
-                    self.stream.write(audio)
-
-            except Empty:
-                continue
+            r = self._loopProcessEvent(process)
+            if r is LOOP_BREAK: break
+            if r is LOOP_CONTINUE: continue
+        self._clear_queue()
 
 
 class SdActor:
-    def __init__(self):
+    def __init__(self, write: Writer):
         self._skip = False
         self._stop = False
         self.queue = Queue()
-        self.play = SdActorPlayback()
+        self.play = SdActorPlayback(write)
 
     def start(self):
         self.play.start()

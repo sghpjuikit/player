@@ -264,15 +264,15 @@ elif speakEngineType == 'os' and sys.platform == 'darwin':
 elif speakEngineType == 'os':
     speakEngine = TtyOs(write)
 elif speakEngineType == 'character-ai':
-    speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, SdActor(), write)
+    speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, SdActor(write), write)
 elif speakEngineType == 'coqui':
     device = None if len(speakUseCoquiCudaDevice)==0 else int(speakUseCoquiCudaDevice)
-    speakEngine = TtyCoqui(speakUseCoquiVoice, device, SdActor(), write)
+    speakEngine = TtyCoqui(speakUseCoquiVoice, device, SdActor(write), write)
 elif speakEngineType == 'http':
     if len(speakUseHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')
     if ':' not in speakUseHttpUrl: raise AssertionError('speech-server must be in format host:port')
     host, _, port = speakUseHttpUrl.partition(":")
-    speakEngine = TtyHttp(host, int(port), SdActor(), write)
+    speakEngine = TtyHttp(host, int(port), SdActor(write), write)
 else:
     speakEngine = TtyNone()
 speak = Tty(speakOn, speakEngine, write)
@@ -587,7 +587,7 @@ if len(speakUseCoquiServer)>0:
     if ':' not in speakUseCoquiServer: raise AssertionError('coqui-server must be in format host:port')
     host, _, port = speakUseCoquiServer.partition(":")
     http = Http(host, int(port), write)
-    http.handlers.append(HttpHandlerState([write, mic, stt, llm]))
+    http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tty.play.play if isinstance(speak.tty.play, SdActor) else None]))))
     if isinstance(speak.tty, TtyCoqui): http.handlers.append(speak.tty._httpHandler())
 
 # start actors

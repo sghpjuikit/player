@@ -25,12 +25,7 @@ interface Suppressed {
 class Suppressor(override var isSuppressed: Boolean = false): Suppressed
 
 /** Invokes the block if [Suppressor.isSuppressed] is false */
-@OptIn(ExperimentalContracts::class)
 inline fun Suppressed.suppressed(block: () -> Unit) {
-   contract {
-      callsInPlace(block, AT_MOST_ONCE)
-   }
-
    if (!isSuppressed)
       block()
 }
@@ -49,12 +44,7 @@ inline fun <R> Suppressor.suppressingAlways(block: () -> R): R {
 }
 
 /** Invokes the block if [Suppressor.isSuppressed] is false, setting [Suppressor.isSuppressed] to true while it is being invoked */
-@OptIn(ExperimentalContracts::class)
 inline fun Suppressor.suppressing(block: () -> Unit) {
-   contract {
-      callsInPlace(block, AT_MOST_ONCE)
-   }
-
    if (!isSuppressed)
       suppressingAlways { block() }
 }

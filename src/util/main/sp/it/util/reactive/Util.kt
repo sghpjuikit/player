@@ -365,12 +365,7 @@ fun <O, R> ObservableValue<O>.syncIntoWhile(extractor: (O) -> ObservableValue<R>
 }
 
 /** [sync1If], that does not run immediately (even if the value passes the condition). */
-@OptIn(ExperimentalContracts::class)
 inline fun <T> ObservableValue<T>.attach1If(crossinline condition: (T) -> Boolean, crossinline block: (T) -> Unit): Subscription {
-   contract {
-      callsInPlace(block, AT_MOST_ONCE)
-   }
-
    val l = object: ChangeListener<T> {
       override fun changed(observable: ObservableValue<out T>, ov: T, nv: T) {
          if (condition(nv)) {
@@ -399,12 +394,7 @@ inline fun <T> ObservableValue<T>.attach1If(crossinline condition: (T) -> Boolea
  * @param condition test the value must pass for the action to execute
  * @param block action receiving the value as argument and that runs exactly once when the condition is first met
  */
-@OptIn(ExperimentalContracts::class)
 inline fun <T> ObservableValue<T>.sync1If(crossinline condition: (T) -> Boolean, crossinline block: (T) -> Unit): Subscription {
-   contract {
-      callsInPlace(block, AT_MOST_ONCE)
-   }
-
    return if (condition(value)) {
       block(value)
       Subscription {}
@@ -414,35 +404,18 @@ inline fun <T> ObservableValue<T>.sync1If(crossinline condition: (T) -> Boolean,
 }
 
 /** [attach1If] testing the value is not null. */
-@OptIn(ExperimentalContracts::class)
-inline fun <T: Any> ObservableValue<T?>.attach1IfNonNull(crossinline block: (T) -> Unit): Subscription {
-   contract {
-      callsInPlace(block, AT_MOST_ONCE)
-   }
-
-   return sync1If({ it!=null }, { block(it!!) })
-}
+inline fun <T: Any> ObservableValue<T?>.attach1IfNonNull(crossinline block: (T) -> Unit): Subscription =
+   sync1If({ it!=null }, { block(it!!) })
 
 /** [sync1If] testing the value is not null. */
-@OptIn(ExperimentalContracts::class)
-fun <T: Any> ObservableValue<T?>.sync1IfNonNull(block: (T) -> Unit): Subscription {
-   contract {
-      callsInPlace(block, AT_MOST_ONCE)
-   }
-
-   return sync1If({ it!=null }, { block(it!!) })
-}
+inline fun <T: Any> ObservableValue<T?>.sync1IfNonNull(crossinline block: (T) -> Unit): Subscription =
+   sync1If({ it!=null }, { block(it!!) })
 
 /**
  * Runs block once node is in scene graph and after proper layout, i.e., its scene being non-null and after executing
  * a layout pass. The block will never run in current scene pulse as [runLater] will be invoked at least once.
  */
-@OptIn(ExperimentalContracts::class)
 fun Node.sync1IfInScene(block: () -> Unit): Subscription {
-   contract {
-      callsInPlace(block, AT_MOST_ONCE)
-   }
-
    var disposed = false
    val disposer = Disposer().apply {  }
    fun Node.onAddedToScene(action: () -> Unit): Subscription = sceneProperty().sync1IfNonNull {
@@ -460,12 +433,7 @@ fun Node.sync1IfInScene(block: () -> Unit): Subscription {
    }
 }
 
-@OptIn(ExperimentalContracts::class)
 inline fun Image?.sync1IfImageLoaded(crossinline block: () -> Unit): Subscription {
-   contract {
-      callsInPlace(block, AT_MOST_ONCE)
-   }
-
    return if (this==null) {
       block()
       Subscription()
@@ -474,14 +442,8 @@ inline fun Image?.sync1IfImageLoaded(crossinline block: () -> Unit): Subscriptio
    }
 }
 
-@OptIn(ExperimentalContracts::class)
-inline fun ImageView.doIfImageLoaded(crossinline block: (Image?) -> Unit): Subscription {
-   contract {
-      callsInPlace(block, AT_MOST_ONCE)
-   }
-
-   return imageProperty().syncInto(Image::progressProperty) { if (it==1.0) block(image) }
-}
+inline fun ImageView.doIfImageLoaded(crossinline block: (Image?) -> Unit): Subscription =
+   imageProperty().syncInto(Image::progressProperty) { if (it==1.0) block(image) }
 
 /**
  * Call specified block on every invalidation, using [Observable.addListener].

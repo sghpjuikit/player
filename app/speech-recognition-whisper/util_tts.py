@@ -283,13 +283,13 @@ class TtyCharAi(TtyBase):
                 audio_data = await client.generate_voice(self.voice, text[:4094])
 
                 # play
-                self.play.playWavChunk(audio_data, skippable)
+                self.play.playWavChunk(text, audio_data, skippable)
 
                 # update cache
                 if cache_used:
                     sf.write(audio_file, audio_data, 24000)
             else:
-                self.play.playFile(audio_file, skippable)
+                self.play.playFile(text, audio_file, skippable)
 
     def _boundary(self):
         self.play.boundary()
@@ -476,7 +476,7 @@ class TtyCoqui(TtyBase):
                 consumer, audio_chunks_play, audio_chunks_cache = teeThreadSafeEager(audio_chunks, 2)
 
                 # play
-                self.play.playWavChunk(map(lambda x: x.cpu().numpy(), audio_chunks_play), skippable)
+                self.play.playWavChunk(text, map(lambda x: x.cpu().numpy(), audio_chunks_play), skippable)
                 consumer()
 
                 # update cache
@@ -489,7 +489,7 @@ class TtyCoqui(TtyBase):
                     try: torchaudio.save(audio_file, wav.squeeze().unsqueeze(0).cpu(), 24000)
                     except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
             else:
-                self.play.playFile(audio_file, skippable)
+                self.play.playFile(text, audio_file, skippable)
 
     def _cache_file_try(self, text: str) -> (str, bool, bool):
         # compute cache dir
@@ -569,7 +569,7 @@ class TtyHttp(TtyBase):
 
                 audio_chunks = read_wav_chunks_from_response(response)
                 consumer, audio_chunks = teeThreadSafeEager(audio_chunks, 1)
-                self.play.playWavChunk(audio_chunks, skippable)
+                self.play.playWavChunk(text, audio_chunks, skippable)
                 consumer()
                 conn.close()
             except Exception as e:

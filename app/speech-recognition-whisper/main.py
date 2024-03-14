@@ -587,7 +587,7 @@ if len(speakUseCoquiServer)>0:
     if ':' not in speakUseCoquiServer: raise AssertionError('coqui-server must be in format host:port')
     host, _, port = speakUseCoquiServer.partition(":")
     http = Http(host, int(port), write)
-    http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tty.play.play if isinstance(speak.tty.play, SdActor) else None]))))
+    http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tty.play if hasattr(speak.tty, 'play') else None]))))
     if isinstance(speak.tty, TtyCoqui): http.handlers.append(speak.tty._httpHandler())
 
 # start actors

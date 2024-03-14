@@ -4,6 +4,8 @@ from threading import Thread
 import time
 import traceback
 
+class Event:
+    def str(self): return str(this)
 
 class Actor:
 
@@ -44,6 +46,7 @@ class Actor:
 
     def _loopProcessEvent(self, func):
         try:
+            if self._stop: return
             event = self.queue.get()
             if self._stop or not self.enabled: return
             self.events_processed += 1

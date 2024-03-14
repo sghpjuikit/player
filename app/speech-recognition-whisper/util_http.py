@@ -5,7 +5,7 @@ from typing import List
 from urllib.parse import urlparse
 from threading import Thread
 from util_wrt import Writer
-from util_actor import Actor
+from util_actor import Actor, Event
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
@@ -28,6 +28,7 @@ class HttpHandlerState(HttpHandler):
             if e is None: return e
             if isinstance(e, str): return e
             if isinstance(e, (int, float)): return e
+            if isinstance(e, Event): return e.str()
             else: return "n/a"
 
         state = {}

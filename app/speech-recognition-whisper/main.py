@@ -10,7 +10,7 @@ from itertools import chain
 from threading import Thread, Timer
 from typing import cast
 from util_play_engine import SdActor
-from util_tts import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui, TtyHttp
+from util_tts import Tty, TtyNone, TtyOs, TtyOsMac, TtyCharAi, TtyCoqui, TtyHttp, TtyTacotron2
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
@@ -268,6 +268,9 @@ elif speakEngineType == 'character-ai':
 elif speakEngineType == 'coqui':
     device = None if len(speakUseCoquiCudaDevice)==0 else int(speakUseCoquiCudaDevice)
     speakEngine = TtyCoqui(speakUseCoquiVoice, device, SdActor(write), write)
+elif speakEngineType == 'tacotron2':
+    device = None if len(speakUseCoquiCudaDevice)==0 else int(speakUseCoquiCudaDevice)
+    speakEngine = TtyTacotron2(speakUseCoquiVoice, device, SdActor(write), write)
 elif speakEngineType == 'http':
     if len(speakUseHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')
     if ':' not in speakUseHttpUrl: raise AssertionError('speech-server must be in format host:port')

@@ -303,8 +303,34 @@ class TtyCharAi(TtyBase):
         self.play.stop()
 
 
+class TtyWithModelBase(TtyBase):
+    def __init__(self):
+        super().__init__()
+
+    def _boundary(self):
+        self.play.boundary()
+
+    def skip(self):
+        super().skip()
+        self.play.skip()
+
+    def stop(self):
+        super().stop()
+        self.play.stop()
+
+    def _cache_file_try(self, cache_name: str, text: str) -> (str, bool, bool):
+        # compute cache dir
+        self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", cache_name)
+        # prepare cache dir
+        if not os.path.exists(self.cache_dir): os.makedirs(self.cache_dir)
+        # compute cache file
+        audio_file, audio_file_exists = cache_file(text, self.cache_dir)
+        cache_used = len(text) < 100
+        return (audio_file, audio_file_exists, cache_used)
+
+
 # https://pypi.org/project/TTS/
-class TtyCoqui(TtyBase):
+class TtyCoqui(TtyWithModelBase):
     def __init__(self, voice: str, cudeDevice: int | None, play: SdActor, write: Writer):
         super().__init__()
         self.speed = 1.0
@@ -346,7 +372,7 @@ class TtyCoqui(TtyBase):
                     content_length = int(req.headers['Content-Length'])
                     body = req.rfile.read(content_length)
                     text = body.decode('utf-8')
-                    audio_file, audio_file_exists, cache_used = tty._cache_file_try(text)
+                    audio_file, audio_file_exists, cache_used = tty._cache_file_try('coqui', text)
 
                     # generate
                     if not cache_used or not audio_file_exists:
@@ -403,7 +429,6 @@ class TtyCoqui(TtyBase):
                     traceback.print_exc()
 
         return MyRequestHandler()
-
 
     def _loop(self):
         # initialize torch
@@ -491,27 +516,6 @@ class TtyCoqui(TtyBase):
             else:
                 self.play.playFile(text, audio_file, skippable)
 
-    def _cache_file_try(self, text: str) -> (str, bool, bool):
-        # compute cache dir
-        self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "coqui", self.voice.replace('.','-'))
-        # prepare cache dir
-        if not os.path.exists(self.cache_dir): os.makedirs(self.cache_dir)
-        # compute cache file
-        audio_file, audio_file_exists = cache_file(text, self.cache_dir)
-        cache_used = len(text) < 100
-        return (audio_file, audio_file_exists, cache_used)
-
-    def _boundary(self):
-        self.play.boundary()
-
-    def skip(self):
-        super().skip()
-        self.play.skip()
-
-    def stop(self):
-        super().stop()
-        self.play.stop()
-
 
 class TtyHttp(TtyBase):
     def __init__(self, url: str, port: int, play: SdActor, write: Writer):
@@ -534,7 +538,6 @@ class TtyHttp(TtyBase):
         except ImportError:
             self.write("ERR: http python module failed to load")
             return
-
 
         # loop
         while not self._stop:
@@ -576,13 +579,71 @@ class TtyHttp(TtyBase):
                 self.write("ERR: Failed to generate audio " + str(e))
                 traceback.print_exc()
 
-    def _boundary(self):
-        self.play.boundary()
 
-    def skip(self):
-        super().skip()
-        self.play.skip()
+# https://pytorch.org/hub/nvidia_deeplearningexamples_tacotron2/
+class TtyTacotron2(TtyBase):
+    def __init__(self, voice: str, cudeDevice: int | None, play: SdActor, write: Writer):
+        super().__init__()
+        self.speed = 1.0
+        self.voice = voice
+        self.cudeDevice: int | None = cudeDevice
+        self._voice = voice
+        self.play = play
+        self.write = write
+        self.model: Xtts | None = None
+        self.loaded = False
 
-    def stop(self):
-        super().stop()
-        self.play.stop()
+    def start(self):
+        Thread(name='TtyTacotron2', target=self._loop, daemon=True).start()
+        self.play.start()
+
+    def _loop(self):
+
+        # initialize
+        try:
+            import torch
+            import torchaudio
+            import numpy
+        except ImportError:
+            self.write("ERR: Torch, torchaudio, numpy python module failed to load")
+            return
+
+        # load the Tacotron2 model pre-trained on LJ Speech dataset and prepare it for inference:
+        import torch
+        tacotron2 = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_tacotron2', model_math='fp16')
+        tacotron2 = tacotron2.to("cuda")
+        tacotron2.eval()
+        # Load pretrained WaveGlow model
+        waveglow = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_waveglow', model_math='fp16')
+        waveglow = waveglow.remove_weightnorm(waveglow)
+        waveglow = waveglow.to("cuda")
+        waveglow.eval()
+        # load utils
+        utils = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_tts_utils')
+
+        # loop
+        while not self._stop:
+            text, skippable = self.get_next_element()
+            audio_file, audio_file_exists, cache_used = self._cache_file_try("tacotron2", text)
+
+            # generate
+            if not cache_used or not audio_file_exists:
+
+                # Format the input using utility methods
+                sequences, lengths = utils.prepare_input_sequence([text])
+
+                # Run the chained models
+                with torch.no_grad():
+                    mel, _, _ = tacotron2.infer(sequences, lengths)
+                    audio = waveglow.infer(mel)
+                audio_numpy = audio[0].data.cpu().numpy()
+
+                # play
+                self.play.playWavChunk(text, [audio_numpy], skippable)
+
+                # update cache
+                if cache_used and text:
+                    try: torchaudio.save(audio_file, torch.tensor(audio_numpy).unsqueeze(0), 24000)
+                    except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
+            else:
+                self.play.playFile(text, audio_file, skippable)

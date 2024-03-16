@@ -49,7 +49,7 @@ class SttWhisper(Stt):
         self._loopWaitTillReady()
 
         # init model dir
-        modelDir = join(dirname(abspath(__file__)), "models-whisper")
+        modelDir = "models-whisper"
         if not exists(modelDir): makedirs(modelDir)
         # load model
         device = None if self.device is None or len(self.device)==0 else torch.device(self.device)
@@ -86,6 +86,9 @@ class SttNemo(Stt):
         import logging
         import nemo.utils as nemo_utils
         nemo_utils.logging.setLevel(logging.ERROR)
+        # init cache dir
+        cacheDir = join('cache', 'nemo')
+        if not exists(cacheDir): makedirs(cacheDir)
         # load model
         import nemo.collections.asr as nemo_asr
         model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name=self.model)
@@ -99,7 +102,7 @@ class SttNemo(Stt):
             audio_array, sampling_rate = sf.read(wav_stream)
             audio_array = audio_array.astype(np.float32)
 
-            f = join('cache', str(uuid.uuid4())) + '.wav'
+            f = join('cache', 'nemo', str(uuid.uuid4())) + '.wav'
             sf.write(f, audio_array, sampling_rate)
 
             try:

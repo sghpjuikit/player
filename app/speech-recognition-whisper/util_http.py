@@ -36,11 +36,11 @@ class HttpHandlerState(HttpHandler):
             state[actor.group] = {
                 'name': actor.name,
                 'state': actor.state(),
+                'event processing': None if actor.processing_event is None else [ event_to_str(actor.processing_event) ],
                 'events queued': list(map(event_to_str, actor.queued())),
                 'events processed': actor.events_processed,
-                'event processing': None if actor.processing_event is None else [ event_to_str(actor.processing_event) ],
-                'event last processing time': actor.processingTimeLast(),
-                'event avg processing time': actor.processingTimeAvg()
+                'last processing time': actor.processingTimeLast(),
+                'avg processing time': actor.processingTimeAvg()
             }
         data = json.dumps(state).encode('utf-8')
         req.send_response(200)

@@ -10,6 +10,7 @@ import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.HBox
+import sp.it.pl.main.toUi
 import sp.it.util.access.V
 import sp.it.util.access.v
 import sp.it.util.access.vx
@@ -27,7 +28,7 @@ class ValueToggleButtonGroup<T>(val value: V<T>, val initialValue: T = value.val
       val group = ToggleGroup()
       lay += values.mapIndexed { i, v ->
          ToggleButton().apply {
-            text = v.toString()
+            text = v.toUi()
             userData = v
             customizer(v)
             toggleGroup = group

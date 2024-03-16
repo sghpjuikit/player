@@ -3,6 +3,7 @@ package sp.it.pl.plugin.impl
 import com.sun.jna.platform.win32.Kernel32
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
+import java.lang.StringBuilder
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.regex.Pattern
@@ -25,6 +26,7 @@ import sp.it.pl.ui.pane.action
 import sp.it.pl.voice.toVoiceS
 import sp.it.util.access.V
 import sp.it.util.access.readOnly
+import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.action.IsAction
 import sp.it.util.async.NEW
@@ -87,6 +89,8 @@ import sp.it.util.text.split2
 import sp.it.util.text.splitTrimmed
 import sp.it.util.text.useStrings
 import sp.it.util.text.words
+import sp.it.util.type.atomic
+import sp.it.util.type.volatile
 import sp.it.util.units.seconds
 
 /** Provides speech recognition and voice control capabilities. Uses whisper AI launched as python program. */
@@ -140,16 +144,61 @@ class VoiceAssistant: PluginBase() {
          var stdout = ""
          var stderr = ""
          val stdoutListener = process.inputStream.consume("SpeechRecognition-stdout") {
+
+            val p = object {
+               var state = null as String?
+               var str = StringBuilder("")
+               fun process(s: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
+                  if ("\n" in s) {
+                     s.split("\n").dropLast(1).forEach { processSingle(it.un(), onS, onE) }
+                     str.clear()
+                     str.append("".concatApplyBackspace(s.substringAfterLast("\n").un()))
+                     onS(s.substringAfterLast("\n").un(), state)
+                  } else {
+                     if (s.startsWith("RAW: ")) state = "RAW"
+                     else if (s.startsWith("USER: ")) state = "USER"
+                     else if (s.startsWith("SYS: ")) state = "SYS";
+                     else if (s.startsWith("CHAT: ")) state = "CHAT"
+                     else if (s.startsWith("COM: ")) state = "COM"
+                     else if (s.startsWith("COM-DET: ")) state = "COM-DET"
+                     val strOld = str.toString()
+                     str.clear()
+                     str.append(strOld.concatApplyBackspace(s.un()))
+                     onS(s.un(), state)
+                  }
+               }
+               fun processSingle(s: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
+                  str.append(s).append("\n")
+                  if (str.startsWith("RAW: ")) { state = "RAW"; onE(str.toString().substringAfter(": "), "RAW") }
+                  else if (str.startsWith("USER: ")) { state = "USER"; onE(str.toString().substringAfter(": "), "USER") }
+                  else if (str.startsWith("SYS: ")) { state = "SYS"; onE(str.toString().substringAfter(": "), "SYS") }
+                  else if (str.startsWith("CHAT: ")) { state = "CHAT"; onE(str.toString().substringAfter(": "), "CHAT") }
+                  else if (str.startsWith("COM: ")) { state = "COM"; onE(str.toString().substringAfter(": "), "COM") }
+                  else if (str.startsWith("COM-DET: ")) { state = "COM-DET"; onE(str.toString().substringAfter(": "), "COM-DET") }
+                  else Unit
+                  onS(s + "\n", state)
+               }
+            }
+
             stdout = it
                .map { it.ansi() }
                .filter { it.isNotEmpty() }
                .onEach { runFX {
-                  pythonStdOut.value = (pythonStdOut.value ?: "").concatApplyBackspace(it.un())
-                  onLocalInput(it.un())
+                  p.process(
+                     it,
+                     { e, state ->
+                        pythonOutStd.value = pythonOutStd.value.concatApplyBackspace(e)
+                        if (llmOn && (state=="CHAT" || state=="USER")) pythonOutChat.value = pythonOutChat.value.concatApplyBackspace(e)
+                        if (state=="CHAT" || state=="USER" || state=="SYS") pythonOutSpeak.value = pythonOutSpeak.value.concatApplyBackspace(e)
+                        onLocalInput(e to state)
+                     },
+                     { e, state ->
+                        handleInput(e, state)
+                     },
+                  )
                } }
                .lines()
                .map { it.applyBackspace() }
-               .onEach { handleInput(it.un()) }
                .joinToString("")
          }
          val stderrListener = process.errorStream.consume("SpeechRecognition-stderr") {
@@ -158,8 +207,8 @@ class VoiceAssistant: PluginBase() {
                .map { it.ansi() }
                .map { it.applyBackspace() }
                .onEach { runFX {
-                  pythonStdOut.value = (pythonStdOut.value ?: "") + it
-                  onLocalInput(it)
+                  pythonOutStd.value = pythonOutStd.value + it
+                  onLocalInput(it to null)
                } }
                .joinToString("")
          }
@@ -226,6 +275,9 @@ class VoiceAssistant: PluginBase() {
          SpeakHandler(                         "Lock OS", "lock system|pc|computer|os")                   { voiceCommandOsLock(it) },
          SpeakHandler(                      "Log off OS", "log off system|pc|computer|os")                { voiceCommandOsLogOff(it) },
          SpeakHandler(                    "Set reminder", "set reminder in|on \$time \$text")             { voiceCommandSetReminder(it) },
+         SpeakHandler(                    "Set reminder", "start conversation")                           { if (matches(it)) { llmOn = true; Ok(null) } else null },
+         SpeakHandler(                    "Set reminder", "restart conversation")                         { if (matches(it)) { llmOn = true; Ok(null) } else null },
+         SpeakHandler(                    "Set reminder", "stop conversation")                            { if (matches(it)) { llmOn = false; Ok(null) } else null },
       )
       .noPersist().readOnly().butElement { uiConverter { "${it.name} -> ${it.commandUi}" } }
       .def(
@@ -267,19 +319,26 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Microphone energy > debug", info = "Whether current microphone energy lvl is active. Use to setup microphone energy voice treshold.")
 
    /** Console output */
-   val pythonStdOut by cvnro(vn<String>(null)).multilineToBottom(20).noPersist().noUi()
+   val pythonOutStd by cvnro(v<String>("")).multilineToBottom(20).noPersist().noUi()
       .def(name = "Output", info = "Shows console output of the python process", editable = EditMode.APP)
 
    /** Whether consoel output shows `RAW: $text` values. */
    val pythonStdOutDebug by cv(true)
       .def(name = "Output raw", info = "Whether `RAW: \$text` values will be shown.")
 
+   /** Console output */
+   val pythonOutChat by cvnro(v<String>("")).multilineToBottom(20).noPersist().noUi()
+      .def(name = "Output", info = "Shows console output of the python process", editable = EditMode.APP)
+
+   val pythonOutSpeak by cvnro(v<String>("")).multilineToBottom(20).noPersist().noUi()
+      .def(name = "Output", info = "Shows console output of the python process", editable = EditMode.APP)
+
    /** Opens console output */
    val pythonStdOutOpen by cr { APP.widgetManager.widgets.find(speechRecognitionWidgetFactory, ANY) }
       .def(name = "Output console", info = "Shows console output of the python process")
 
    /** Invoked for every voice assistant local process input token. */
-   val onLocalInput = Handler1<String>()
+   val onLocalInput = Handler1<Pair<String, String?>>()
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
    val wakeUpWord by cv("system")
@@ -308,6 +367,18 @@ class VoiceAssistant: PluginBase() {
    /** [TtsEngine.NEMO] Torch device used to transcribe voice to text */
    val sttNemoDevice by cv("")
       .def(name = "Speech recognition > Nemo device", info = "Nemo torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
+
+   /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
+   val sttBlacklistWords by cList("a", "the", "please")
+      .def(
+         name = "Blacklisted words",
+         info = "Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive."
+      )
+
+   /** [sttBlacklistWords] in performance-optimal format */
+   private val sttBlacklistWords_ = mutableSetOf<String>().apply {
+      sttBlacklistWords.onChangeAndNow { this setTo sttBlacklistWords.map { it.lowercase() } }
+   }
 
    /** Whether speech is allowed. */
    val speechOn by cv(true)
@@ -359,17 +430,10 @@ class VoiceAssistant: PluginBase() {
    val speechServerUrl by cv("0.0.0.0:1235")
       .def(name = "Speech server > url", info = "Speech server address and port.")
 
-   /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
-   val speechBlacklistWords by cList("a", "the", "please")
-      .def(
-         name = "Blacklisted words",
-         info = "Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive."
-      )
 
-   /** [speechBlacklistWords] in performance-optimal format */
-   private val speechBlacklistWords_ = mutableSetOf<String>().apply {
-      speechBlacklistWords.onChangeAndNow { this setTo speechBlacklistWords.map { it.lowercase() } }
-   }
+   /** Whether [llmEngine] conversation is active */
+   var llmOn by atomic(false)
+      private set
 
    /** Engine used to generate voice. May require additional configuration */
    val llmEngine by cv(LlmEngine.NONE)
@@ -487,26 +551,23 @@ class VoiceAssistant: PluginBase() {
       if (Os.WINDOWS.isCurrent) Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS)
    }
 
-   private fun handleInput(text: String) {
-      if (text.startsWith("RAW: ")) Unit
-      if (text.startsWith("USER: ")) handleSpeechRaw(text)
-      if (text.startsWith("SYS: ")) handleSpeechRaw(text)
-      if (text.startsWith("CHAT: ")) handleSpeechRaw(text)
-      if (text.startsWith("COM: ")) handleSpeechRaw(text)
-      if (text.startsWith("COM-DET: ")) handleSpeechRaw(text)
+   private fun handleInput(text: String, state: String) {
+      when (state) {
+         "RAW" -> Unit
+         "USER" -> runFX { handleSpeech(text, user = true) }
+         "SYS" -> Unit
+         "CHAT" -> runFX { handleSpeech(text) }
+         "COM" -> runFX { handleSpeech(text, command = true, orDetectIntent = true) }
+         "COM-DET" -> runFX { handleSpeech(text, command = true, orDetectIntent = false) }
+      }
    }
 
-   private fun handleSpeechRaw(text: String) {
-      if (text.startsWith("COM: "))
-         runFX { handleSpeech(text.substringAfter(": "), true) }
-      if (text.startsWith("COM-DET: "))
-         runFX { handleSpeech(text.substringAfter(": "), false) }
-   }
-
-   private fun handleSpeech(text: String, orDetectIntent: Boolean) {
+   private fun handleSpeech(text: String, user: Boolean = false, command: Boolean = false, orDetectIntent: Boolean = false) {
       if (!isRunning) return
-      speakingTextW.value = text
-      var textSanitized = text.orEmpty().sanitize(speechBlacklistWords_)
+      if (user) speakingTextW.value = text
+      if (!command) return
+
+      var textSanitized = text.orEmpty().sanitize(sttBlacklistWords_)
       var result = handlers.firstNotNullOfOrNull { with(it) { SpeakContext(this, this@VoiceAssistant).action(textSanitized) } }
       if (result==null) {
          if (orDetectIntent) write("COM-DET: ${text.encodeBase64()}")

@@ -386,6 +386,7 @@ commandExecutor.commandExecutor = CommandExecutorMain()
 class AssistChat:
     def __init__(self):
         # start
+        write("COM: start conversation")
         llm(ChatStart())
         speak('Conversing')
         mic.set_pause_threshold_talk()
@@ -408,6 +409,7 @@ class AssistChat:
         elif text == "restart" or text == "reset" or text == "restart conversation" or text == "reset conversation":
             speak.skip()
             llm.generating = False
+            write("COM: restart conversation")
             llm(ChatStop())
             llm(ChatStart())
             speak("Ok")
@@ -415,6 +417,7 @@ class AssistChat:
         elif text.startswith("stop") or text.startswith("end"):
             speak.skip()
             llm.generating = False
+            write("COM: stop conversation")
             llm(ChatStop())
             speak("Ok")
             mic.set_pause_threshold_normal()
@@ -619,7 +622,8 @@ while True:
         if m.startswith("CHAT: "):
             text = base64.b64decode(m[6:]).decode('utf-8')
             write(f'USER: {name}, ' + text)
-            llm(ChatStart)
+            write("COM: start conversation")
+            llm(ChatStart())
             llm(Chat(text))
 
         if m.startswith("COM-DET: "):

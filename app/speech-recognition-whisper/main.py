@@ -218,8 +218,11 @@ Args:
 # args
 wake_word = arg('wake-word', 'system')
 name = wake_word[0].upper() + wake_word[1:]
-printRaw = arg('printRaw', "true")=="true"
-parentProcess = int(arg('parent-process', -1))
+sysPrintRaw = arg('printRaw', "true") == "true"
+sysParentProcess = int(arg('parent-process', -1))
+sysTerminating = False
+sysCacheDir = "cache"
+if not os.path.exists(sysCacheDir): os.makedirs(sysCacheDir)
 
 micEnabled = arg('mic-enabled', "true")=="true"
 micName = arg('mic-name', '')
@@ -232,15 +235,15 @@ sttWhisperModel = arg('stt-whisper-model', 'base.en')
 sttNemoDevice = arg('stt-nemo-device', '')
 sttNemoModel = arg('stt-nemo-model', 'nvidia/parakeet-tdt-1.1b')
 
-speakOn = arg('speech-on', "true")=="true"
-speakEngineType = arg('speech-engine', 'os')
-speakUseCharAiToken = arg('character-ai-token', '')
-speakUseCharAiVoice = int(arg('character-ai-voice', '22'))
-speakUseCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
-speakUseCoquiCudaDevice = arg('coqui-cuda-device', '')
-speakUseCoquiServer = arg('coqui-server', '')
-speakUseTacotron2Device = arg('tacotron2-cuda-device', '')
-speakUseHttpUrl = arg('speech-server', 'localhost:1235')
+ttsOn = arg('speech-on', "true") == "true"
+ttsEngineType = arg('speech-engine', 'os')
+ttsCharAiToken = arg('character-ai-token', '')
+ttsCharAiVoice = int(arg('character-ai-voice', '22'))
+ttsCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
+ttsCoquiCudaDevice = arg('coqui-cuda-device', '')
+ttsCoquiServer = arg('coqui-server', '')
+ttsTacotron2Device = arg('tacotron2-cuda-device', '')
+ttsHttpUrl = arg('speech-server', 'localhost:1235')
 
 llmEngine = arg('llm-engine', 'none')
 llmGpt4AllModelName = arg('llm-gpt4all-model', 'none')
@@ -253,33 +256,30 @@ llmChatTemp = float(arg('llm-chat-temp', '0.5'))
 llmChatTopp = float(arg('llm-chat-topp', '0.95'))
 llmChatTopk = int(arg('llm-chat-topk', '40'))
 
-terminating = False
-cache_dir = "cache"
-if not os.path.exists(cache_dir): os.makedirs(cache_dir)
 
 # speak engine actor, non-blocking
-if speakEngineType == 'none':
+if ttsEngineType == 'none':
     speakEngine = TtyNone()
-elif speakEngineType == 'os' and sys.platform == 'darwin':
+elif ttsEngineType == 'os' and sys.platform == 'darwin':
     speakEngine = TtyOsMac()
-elif speakEngineType == 'os':
+elif ttsEngineType == 'os':
     speakEngine = TtyOs(write)
-elif speakEngineType == 'character-ai':
-    speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, SdActor(write), write)
-elif speakEngineType == 'coqui':
-    device = None if len(speakUseCoquiCudaDevice)==0 else speakUseCoquiCudaDevice
-    speakEngine = TtyCoqui(speakUseCoquiVoice, device, SdActor(write), write)
-elif speakEngineType == 'tacotron2':
-    device = None if len(speakUseTacotron2Device)==0 else speakUseTacotron2Device
-    speakEngine = TtyTacotron2(speakUseCoquiVoice, device, SdActor(write), write)
-elif speakEngineType == 'http':
-    if len(speakUseHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')
-    if ':' not in speakUseHttpUrl: raise AssertionError('speech-server must be in format host:port')
-    host, _, port = speakUseHttpUrl.partition(":")
+elif ttsEngineType == 'character-ai':
+    speakEngine = TtyCharAi(ttsCharAiToken, ttsCharAiVoice, SdActor(write), write)
+elif ttsEngineType == 'coqui':
+    device = None if len(ttsCoquiCudaDevice) == 0 else ttsCoquiCudaDevice
+    speakEngine = TtyCoqui(ttsCoquiVoice, device, SdActor(write), write)
+elif ttsEngineType == 'tacotron2':
+    device = None if len(ttsTacotron2Device) == 0 else ttsTacotron2Device
+    speakEngine = TtyTacotron2(ttsCoquiVoice, device, SdActor(write), write)
+elif ttsEngineType == 'http':
+    if len(ttsHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')
+    if ':' not in ttsHttpUrl: raise AssertionError('speech-server must be in format host:port')
+    host, _, port = ttsHttpUrl.partition(":")
     speakEngine = TtyHttp(host, int(port), SdActor(write), write)
 else:
     speakEngine = TtyNone()
-speak = Tty(speakOn, speakEngine, write)
+speak = Tty(ttsOn, speakEngine, write)
 
 # commands
 commandExecutor = CommandExecutorDelegate(CommandExecutorDoNothing)
@@ -509,13 +509,13 @@ def skip():
     speak.skip()
 
 def callback(text):
-    if terminating: return
+    if sysTerminating: return
 
     textSanitized = text.rstrip(".").strip()
     text = text.lower().rstrip(".").strip()
 
     # log
-    if len(text) > 0 and printRaw: write('RAW: ' + text)
+    if len(text) > 0 and sysPrintRaw: write('RAW: ' + text)
 
     # ignore speech recognition noise
     if not text.startswith(wake_word) and isinstance(assist, AssistChat) is False: return
@@ -545,12 +545,12 @@ def callback(text):
 
 
 def start_exit_invoker():
-    if parentProcess==-1:
+    if sysParentProcess==-1:
         return
 
     def monitor():
         # wait until parent dies or listen forever
-        while not terminating and psutil.pid_exists(parentProcess):
+        while not sysTerminating and psutil.pid_exists(sysParentProcess):
             time.sleep(1)
         sys.exit(0)
 
@@ -558,9 +558,9 @@ def start_exit_invoker():
 
 
 def stop(*args):  # pylint: disable=unused-argument
-    global terminating
-    if not terminating:
-        terminating = True
+    global sysTerminating
+    if not sysTerminating:
+        sysTerminating = True
         speak(name + ' offline')
 
         llm.stop()
@@ -588,9 +588,9 @@ mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, ski
 
 # http
 http = None
-if len(speakUseCoquiServer)>0:
-    if ':' not in speakUseCoquiServer: raise AssertionError('coqui-server must be in format host:port')
-    host, _, port = speakUseCoquiServer.partition(":")
+if len(ttsCoquiServer)>0:
+    if ':' not in ttsCoquiServer: raise AssertionError('coqui-server must be in format host:port')
+    host, _, port = ttsCoquiServer.partition(":")
     http = Http(host, int(port), write)
     http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tty.play if hasattr(speak.tty, 'play') else None]))))
     if isinstance(speak.tty, TtyCoqui): http.handlers.append(speak.tty._httpHandler())
@@ -655,10 +655,10 @@ while True:
             speak.speakOn = prop(m, "speech-on", "true").lower() == "true"
 
         elif m.startswith("print-raw="):
-            printRaw = prop(m, "print-raw", "true").lower() == "true"
+            sysPrintRaw = prop(m, "print-raw", "true").lower() == "true"
 
         elif m.startswith("coqui-voice=") and isinstance(speak.tty, TtyCoqui):
-            commandExecutor.execute("change voice " + prop(m, "coqui-voice", speakUseCoquiVoice))
+            commandExecutor.execute("change voice " + prop(m, "coqui-voice", ttsCoquiVoice))
 
         elif m.startswith("llm-chat-sys-prompt="):
             llm.sysPrompt = arg('llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')

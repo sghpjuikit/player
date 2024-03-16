@@ -90,7 +90,6 @@ import sp.it.util.text.splitTrimmed
 import sp.it.util.text.useStrings
 import sp.it.util.text.words
 import sp.it.util.type.atomic
-import sp.it.util.type.volatile
 import sp.it.util.units.seconds
 
 /** Provides speech recognition and voice control capabilities. Uses whisper AI launched as python program. */
@@ -111,14 +110,14 @@ class VoiceAssistant: PluginBase() {
             "mic-energy=${micEnergy.value}",
             "mic-energy-debug=${micEnergyDebug.value}",
             "parent-process=${ProcessHandle.current().pid()}",
-            "speech-on=${speechOn.value}",
-            "speech-engine=${speechEngine.value.code}",
-            "character-ai-token=${speechEngineCharAiToken.value}",
+            "speech-on=${ttsOn.value}",
+            "speech-engine=${ttsEngine.value.code}",
+            "character-ai-token=${ttsEngineCharAiToken.value}",
             "character-ai-voice=22",
-            "coqui-voice=${speechEngineCoquiVoice.value}",
-            "coqui-cuda-device=${speechEngineCoquiCudaDevice.value}",
-            "coqui-server=${if (speechServer.value) speechServerUrl.value else ""}",
-            "speech-server=${speechEngineHttpUrl.value}",
+            "coqui-voice=${ttsEngineCoquiVoice.value}",
+            "coqui-cuda-device=${ttsEngineCoquiCudaDevice.value}",
+            "coqui-server=${if (ttsServer.value) ttsServerUrl.value else ""}",
+            "speech-server=${ttsEngineHttpUrl.value}",
             "llm-engine=${llmEngine.value.code}",
             "llm-gpt4all-model=${llmGpt4AllModel.value}",
             "llm-openai-url=${llmOpenAiUrl.value}",
@@ -381,22 +380,22 @@ class VoiceAssistant: PluginBase() {
    }
 
    /** Whether speech is allowed. */
-   val speechOn by cv(true)
+   val ttsOn by cv(true)
       .def(name = "Speech enabled", info = "Whether speech is allowed. In general, this also prevents initial loading of speech AI model until enabled.")
 
    /** Engine used to generate voice. May require additional configuration */
-   val speechEngine by cv(SpeechEngine.SYSTEM).uiNoOrder()
+   val ttsEngine by cv(SpeechEngine.SYSTEM).uiNoOrder()
       .def(name = "Speech engine", info = "Engine used to generate voice. May require additional configuration")
 
    /** Access token for character.ai account used when speech engine is Character.ai */
-   val speechEngineCharAiToken by cvn<String>(null).password()
+   val ttsEngineCharAiToken by cvn<String>(null).password()
       .def(
          name = "Speech engine > character.ai > token",
          info = "Access token for character.ai account used when using ${SpeechEngine.CHARACTER_AI.nameUi} speech engine"
       )
 
    /** Access token for character.ai account used when speech engine is Character.ai */
-   val speechEngineCoquiVoice by cv("Ann_Daniels.flac")
+   val ttsEngineCoquiVoice by cv("Ann_Daniels.flac")
       .valuesUnsealed { (dir / "voices-coqui").children().filter { it.isAudio() }.map { it.name }.toList() }
       .def(
          name = "Speech engine > coqui > voice",
@@ -407,26 +406,26 @@ class VoiceAssistant: PluginBase() {
       )
 
    /** [SpeechEngine.COQUI] torch device used to transcribe voice to text */
-   val speechEngineCoquiCudaDevice by cv("")
+   val ttsEngineCoquiCudaDevice by cv("")
       .def(
          name = "Speech engine > coqui > device",
          info = "Torch device for speech generation when using ${SpeechEngine.COQUI.nameUi} speech engine."
       )
 
    /** Speech server address and port to connect to. */
-   val speechEngineHttpUrl by cv("localhost:1235")
+   val ttsEngineHttpUrl by cv("localhost:1235")
       .def(
          name = "Speech engine > http > url",
          info = "Speech server address and port to connect to when using ${SpeechEngine.HTTP.nameUi} speech engine."
       )
 
    /** Whether http server providing speech generation should be started. The server will use coqui speech engine. */
-   val speechServer by cv(false)
+   val ttsServer by cv(false)
       .def(name = "Speech server",
          info = "Whether http server providing speech generation should be started. The server will use coqui speech engine")
 
    /** Speech server address and port. */
-   val speechServerUrl by cv("0.0.0.0:1235")
+   val ttsServerUrl by cv("0.0.0.0:1235")
       .def(name = "Speech server > url", info = "Speech server address and port.")
 
 
@@ -480,12 +479,12 @@ class VoiceAssistant: PluginBase() {
    override fun start() {
       // runtime-changeable properties
       // @formatter:off
-      speechEngineCoquiVoice.chan().throttleToLast(2.seconds) subscribe { write("coqui-voice=$it") }
+      ttsEngineCoquiVoice.chan().throttleToLast(2.seconds) subscribe { write("coqui-voice=$it") }
                     pythonStdOutDebug.chan().throttleToLast(2.seconds) subscribe { write("print-raw=$it") }
                        micEnabled.chan().throttleToLast(2.seconds) subscribe { write("mic-on=$it") }
                    micEnergy.chan().throttleToLast(2.seconds) subscribe { write("mic-energy=$it") }
               micEnergyDebug.chan().throttleToLast(2.seconds) subscribe { write("mic-energy-debug=$it") }
-                    speechOn.chan().throttleToLast(2.seconds) subscribe { write("speech-on=$it") }
+                    ttsOn.chan().throttleToLast(2.seconds) subscribe { write("speech-on=$it") }
             llmChatSysPrompt.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-sys-prompt=$it") }
             llmChatMaxTokens.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-max-tokens=$it") }
                  llmChatTemp.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-temp=$it") }
@@ -498,7 +497,7 @@ class VoiceAssistant: PluginBase() {
       val processChangeVals = listOf<V<*>>(
          wakeUpWord, micName,
          sttEngine, sttWhisperModel, sttWhisperDevice, sttNemoModel, sttNemoDevice,
-         speechEngine, speechEngineCharAiToken, speechEngineCoquiCudaDevice, speechEngineHttpUrl, speechServer, speechServerUrl,
+         ttsEngine, ttsEngineCharAiToken, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl, ttsServer, ttsServerUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
       )
       val processChange = processChangeVals.map { it.chan() }.reduce { a, b -> a + b }

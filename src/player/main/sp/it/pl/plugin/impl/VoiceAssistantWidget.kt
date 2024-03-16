@@ -1,7 +1,6 @@
 package sp.it.pl.plugin.impl
 
 import io.ktor.client.request.get
-import javafx.beans.value.ObservableValue
 import javafx.geometry.HPos
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.VPos
@@ -46,7 +45,6 @@ import sp.it.util.async.coroutine.launch
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.getDelegateConfig
-import sp.it.util.dev.fail
 import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsFalse
 import sp.it.util.file.json.JsNull
@@ -120,8 +118,8 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             lay += label("   ")
             lay += CheckIcon().icons(IconMD.TEXT_TO_SPEECH, IconMD.TEXT_TO_SPEECH_OFF).apply {
                disableProperty() syncFrom plugin.map { it==null }
-               selected syncFrom plugin.flatMap { it!!.speechOn }.orElse(false)
-               selected attach { plugin.value?.speechOn?.value = it }
+               selected syncFrom plugin.flatMap { it!!.ttsOn }.orElse(false)
+               selected attach { plugin.value?.ttsOn?.value = it }
                tooltip("Enable/disable voice output")
             }
             lay += CheckIcon().icons(IconMA.MIC, IconMA.MIC_OFF).apply {
@@ -162,7 +160,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                      launch(VT) {
                         while (a) {
                            runTry {
-                              val url = plugin.value?.speechServerUrl?.value?.net { "http://$it/actor"}
+                              val url = plugin.value?.ttsServerUrl?.value?.net { "http://$it/actor"}
                               if (url==null) return@runTry
                               val actors = APP.http.client.get(url).bodyAsJs().asJsObject().value
                               FX {
@@ -316,14 +314,14 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
          "Narrates the specified text using synthesized voice",
          {
             listOf(
-               it::speechOn,
-               it::speechEngine,
-               it::speechEngineCharAiToken,
-               it::speechEngineCoquiVoice,
-               it::speechEngineCoquiCudaDevice,
-               it::speechEngineHttpUrl,
-               it::speechServer,
-               it::speechServerUrl,
+               it::ttsOn,
+               it::ttsEngine,
+               it::ttsEngineCharAiToken,
+               it::ttsEngineCoquiVoice,
+               it::ttsEngineCoquiCudaDevice,
+               it::ttsEngineHttpUrl,
+               it::ttsServer,
+               it::ttsServerUrl,
             )
          }
       ),

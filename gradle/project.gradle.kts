@@ -89,8 +89,8 @@ allprojects {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
          implementation(kotlin("compiler-embeddable"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.8.0")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.8.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.8.1-Beta")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.8.1-Beta")
          implementation("org.jetbrains", "annotations", "24.1.0")
       }
 
@@ -116,7 +116,7 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
-         implementation("ch.qos.logback", "logback-classic", "1.5.1") // https://logback.qos.ch/news.html
+         implementation("ch.qos.logback", "logback-classic", "1.5.3") // https://logback.qos.ch/news.html
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
@@ -137,11 +137,11 @@ allprojects {
          implementation("com.github.f4b6a3", "uuid-creator", "5.3.7")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
-         implementation("com.github.oshi", "oshi-core", "6.4.13")  // https://github.com/oshi/oshi/releases
+         implementation("com.github.oshi", "oshi-core", "6.5.0")  // https://github.com/oshi/oshi/releases
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
-         implementation("org.apache.pdfbox", "pdfbox", "3.0.1") // https://pdfbox.apache.org
+         implementation("org.apache.pdfbox", "pdfbox", "3.0.2") // https://pdfbox.apache.org
          implementation("com.ezylang", "EvalEx", "3.1.2")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
          implementation("ch.obermuhlner", "big-math", "2.3.2")

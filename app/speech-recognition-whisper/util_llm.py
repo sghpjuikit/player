@@ -91,10 +91,11 @@ class LlmNone(Llm):
 # doc https://docs.gpt4all.io/gpt4all_python.html
 class LlmGpt4All(Llm):
 
-    def __init__(self, model: str, speak: Tty, write: Writer, sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
+    def __init__(self, modelPath: str, speak: Tty, write: Writer, sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
         super().__init__('LlmGpt4All')
         self.write = write
         self.speak = speak
+        self.model = modelPath
         # gpt4all.gpt4all.DEFAULT_MODEL_DIRECTORY = chatDir
         self.sysPrompt = sysPrompt
         self.maxTokens = maxTokens
@@ -111,7 +112,7 @@ class LlmGpt4All(Llm):
             self.events_processed += 1
 
             # load model lazily
-            if llm is None: llm = GPT4All(model, allow_download=False)
+            if llm is None: llm = GPT4All(model_path=self.model, allow_download=False)
             self.enabled = True # delayed load
 
             if isinstance(e, ChatStart):

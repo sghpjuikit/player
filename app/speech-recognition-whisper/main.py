@@ -288,10 +288,8 @@ llm = LlmNone()
 if llmEngine == 'none':
     pass
 elif llmEngine == "gpt4all":
-    llmModelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models-llm")
-    llmModel = os.path.join(llmModelDir, llmModelName)
-    llm = LlmGpt4All(
-        llmGpt4AllModelName, speak, write, llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk)
+    llmModel = os.path.join(os.path.abspath(__file__), "models-llm", llmGpt4AllModelName)
+    llm = LlmGpt4All(llmModel, speak, write, llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk)
 elif llmEngine == "openai":
     llm = LlmHttpOpenAi(
         llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModelName,

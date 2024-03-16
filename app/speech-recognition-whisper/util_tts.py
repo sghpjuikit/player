@@ -433,9 +433,7 @@ class TtyCoqui(TtyWithModelBase):
     def _loop(self):
         # initialize torch
         try:
-            import torch
-            import torchaudio
-            import numpy
+            import torch, torchaudio, numpy
         except ImportError:
             self.write("ERR: Torch, torchaudio, numpy or TTS python module failed to load")
             return
@@ -532,9 +530,7 @@ class TtyHttp(TtyBase):
     def _loop(self):
         # initialize http
         try:
-            import io
-            import numpy
-            import http.client
+            import io, numpy, http.client
         except ImportError:
             self.write("ERR: http python module failed to load")
             return
@@ -582,11 +578,11 @@ class TtyHttp(TtyBase):
 
 # https://pytorch.org/hub/nvidia_deeplearningexamples_tacotron2/
 class TtyTacotron2(TtyBase):
-    def __init__(self, voice: str, cudeDevice: int | None, play: SdActor, write: Writer):
+    def __init__(self, voice: str, device: None | str, play: SdActor, write: Writer):
         super().__init__()
         self.speed = 1.0
         self.voice = voice
-        self.cudeDevice: int | None = cudeDevice
+        self.device: int | None = device
         self._voice = voice
         self.play = play
         self.write = write
@@ -601,22 +597,20 @@ class TtyTacotron2(TtyBase):
 
         # initialize
         try:
-            import torch
-            import torchaudio
-            import numpy
+            import torch, torchaudio, numpy
         except ImportError:
             self.write("ERR: Torch, torchaudio, numpy python module failed to load")
             return
 
+        device = None if self.device is None or len(self.device)==0 else torch.device(self.device)
         # load the Tacotron2 model pre-trained on LJ Speech dataset and prepare it for inference:
-        import torch
         tacotron2 = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_tacotron2', model_math='fp16')
-        tacotron2 = tacotron2.to("cuda")
+        tacotron2 = tacotron2.to(device)
         tacotron2.eval()
         # Load pretrained WaveGlow model
         waveglow = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_waveglow', model_math='fp16')
         waveglow = waveglow.remove_weightnorm(waveglow)
-        waveglow = waveglow.to("cuda")
+        waveglow = waveglow.to(device)
         waveglow.eval()
         # load utils
         utils = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_tts_utils')

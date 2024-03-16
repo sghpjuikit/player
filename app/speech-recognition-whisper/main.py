@@ -239,6 +239,7 @@ speakUseCharAiVoice = int(arg('character-ai-voice', '22'))
 speakUseCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
 speakUseCoquiCudaDevice = arg('coqui-cuda-device', '')
 speakUseCoquiServer = arg('coqui-server', '')
+speakUseTacotron2Device = arg('tacotron2-cuda-device', '')
 speakUseHttpUrl = arg('speech-server', 'localhost:1235')
 
 llmEngine = arg('llm-engine', 'none')
@@ -266,10 +267,10 @@ elif speakEngineType == 'os':
 elif speakEngineType == 'character-ai':
     speakEngine = TtyCharAi(speakUseCharAiToken, speakUseCharAiVoice, SdActor(write), write)
 elif speakEngineType == 'coqui':
-    device = None if len(speakUseCoquiCudaDevice)==0 else int(speakUseCoquiCudaDevice)
+    device = None if len(speakUseCoquiCudaDevice)==0 else speakUseCoquiCudaDevice
     speakEngine = TtyCoqui(speakUseCoquiVoice, device, SdActor(write), write)
 elif speakEngineType == 'tacotron2':
-    device = None if len(speakUseCoquiCudaDevice)==0 else int(speakUseCoquiCudaDevice)
+    device = None if len(speakUseTacotron2Device)==0 else speakUseTacotron2Device
     speakEngine = TtyTacotron2(speakUseCoquiVoice, device, SdActor(write), write)
 elif speakEngineType == 'http':
     if len(speakUseHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')

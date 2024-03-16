@@ -116,7 +116,7 @@ class VoiceAssistant: PluginBase() {
             "character-ai-token=${speechEngineCharAiToken.value}",
             "character-ai-voice=22",
             "coqui-voice=${speechEngineCoquiVoice.value}",
-            "coqui-cuda-device=${speechEngineCoquiCudaDevice.value ?: ""}",
+            "coqui-cuda-device=${speechEngineCoquiCudaDevice.value}",
             "coqui-server=${if (speechServer.value) speechServerUrl.value else ""}",
             "speech-server=${speechEngineHttpUrl.value}",
             "llm-engine=${llmEngine.value.code}",
@@ -354,7 +354,7 @@ class VoiceAssistant: PluginBase() {
       .uiNoOrder()
       .def(name = "Speech recognition > Whisper model", info = "Whisper model for speech recognition.")
 
-   /** [TtsEngine.WHISPER] Torch device used to transcribe voice to text */
+   /** [TtsEngine.WHISPER] torch device used to transcribe voice to text */
    val sttWhisperDevice by cv("")
       .def(name = "Speech recognition > Whisper device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
 
@@ -364,7 +364,7 @@ class VoiceAssistant: PluginBase() {
       .uiNoOrder()
       .def(name = "Speech recognition > Nemo model", info = "Nemo model for speech recognition.")
 
-   /** [TtsEngine.NEMO] Torch device used to transcribe voice to text */
+   /** [TtsEngine.NEMO] torch device used to transcribe voice to text */
    val sttNemoDevice by cv("")
       .def(name = "Speech recognition > Nemo device", info = "Nemo torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
 
@@ -406,12 +406,11 @@ class VoiceAssistant: PluginBase() {
             "Should be 3-10s long."
       )
 
-   /** Access token for character.ai account used when speech engine is Character.ai */
-   val speechEngineCoquiCudaDevice by cvn<Int>(null)
-      .min(0)
+   /** [SpeechEngine.COQUI] torch device used to transcribe voice to text */
+   val speechEngineCoquiCudaDevice by cv("")
       .def(
-         name = "Speech engine > coqui > cuda device",
-         info = "Cuda device for speech generation when using ${SpeechEngine.COQUI.nameUi} speech engine."
+         name = "Speech engine > coqui > device",
+         info = "Torch device for speech generation when using ${SpeechEngine.COQUI.nameUi} speech engine."
       )
 
    /** Speech server address and port to connect to. */

@@ -192,7 +192,6 @@ class VoiceAssistant: PluginBase() {
       .def(
          name = "Commands > widget names",
          info = "Alternative names for widgets for voice control, either for customization or easier recognition. " +
-            "V" +
             "Comma separated names, widget per line, i.e.: `My widget = name1, name2, ..., nameN`"
       ).multiline(10) sync {
          commandWidgetNames = it.lines()
@@ -200,7 +199,7 @@ class VoiceAssistant: PluginBase() {
             .map { runTry { it.split2("=").net { (w, names) -> names.splitTrimmed(",").map { it.trim().lowercase() to w.trim().camelToSpaceCase() } } }.orNull() }
             .filterNotNull()
             .flatMap { it }
-            .associate { it }
+            .toMap()
       }
 
    /** Speech handlers called when user has spoken. Matched in order. */

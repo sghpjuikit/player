@@ -487,7 +487,7 @@ class TtyCoqui(TtyWithModelBase):
         # loop
         while not self._stop:
             text, skippable = self.get_next_element()
-            audio_file, audio_file_exists, cache_used = self._cache_file_try(text)
+            audio_file, audio_file_exists, cache_used = self._cache_file_try('coqui', text)
 
             # generate
             if not cache_used or not audio_file_exists:

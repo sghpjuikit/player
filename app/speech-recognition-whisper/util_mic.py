@@ -18,7 +18,6 @@ import os
 import io
 import numpy as np
 import soundfile as sf
-import torch
 import traceback
 import pyaudio
 import math

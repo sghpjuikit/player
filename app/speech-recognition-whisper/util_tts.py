@@ -2,6 +2,8 @@ import os
 import time
 import asyncio
 import traceback
+import numpy
+import torch, torchaudio
 from threading import Thread
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_http import HttpHandler
@@ -351,8 +353,6 @@ class TtsCoqui(TtsWithModelBase):
         self.http_handler: HttpHandler | None = None
 
     def _httpHandler(self) -> HttpHandler:
-        import torch, torchaudio
-        import numpy
         import soundfile as sf
         from http.server import BaseHTTPRequestHandler
         tts = self
@@ -434,13 +434,6 @@ class TtsCoqui(TtsWithModelBase):
         return MyRequestHandler()
 
     def _loop(self):
-        # initialize torch
-        try:
-            import torch, torchaudio, numpy
-        except ImportError:
-            self.write("ERR: Torch, torchaudio, numpy or TTS python module failed to load")
-            return
-
         # initialize gpu
         try:
             assert torch.cuda.is_available(), "CUDA is not availabe on this machine."
@@ -528,7 +521,7 @@ class TtsHttp(TtsWithModelBase):
     def _loop(self):
         # initialize http
         try:
-            import io, numpy, http.client
+            import io, http.client
         except ImportError:
             self.write("ERR: http python module failed to load")
             return
@@ -582,14 +575,6 @@ class TtsTacotron2(TtsWithModelBase):
         self.write = write
 
     def _loop(self):
-
-        # initialize
-        try:
-            import torch, torchaudio, numpy
-        except ImportError:
-            self.write("ERR: Torch, torchaudio, numpy python module failed to load")
-            return
-
         device = None if self.device is None or len(self.device)==0 else torch.device(self.device)
         # load the Tacotron2 model pre-trained on LJ Speech dataset and prepare it for inference:
         tacotron2 = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_tacotron2', model_math='fp16')
@@ -692,11 +677,10 @@ class TtsSpeechBrain(TtsWithModelBase):
 
         # initialize
         try:
-            import torch, torchaudio, numpy
             from speechbrain.inference.TTS import Tacotron2
             from speechbrain.inference.vocoders import HIFIGAN
         except ImportError:
-            self.write("ERR: Torch, torchaudio, numpy python module failed to load")
+            self.write("ERR: speechbrain python module failed to load")
             return
 
         device = None if self.device is None or len(self.device)==0 else torch.device(self.device)

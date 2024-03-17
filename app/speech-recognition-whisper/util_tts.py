@@ -15,10 +15,10 @@ from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 
 
-class Tty:
-    def __init__(self, speakOn: bool, tty, write: Writer):
+class Tts:
+    def __init__(self, speakOn: bool, tts, write: Writer):
         self.sentence_min_length = 40 # shorter == faster feedback, longer == less audio hallucinations in short audio
-        self.tty = tty
+        self.tts = tts
         self.speakOn = speakOn
         self.write = write
         self._stop = False
@@ -29,16 +29,16 @@ class Tty:
         self.history = []
 
     def start(self):
-        Thread(name='Tty', target=self._loop, daemon=True).start()
-        self.tty.start()
+        Thread(name='Tts', target=self._loop, daemon=True).start()
+        self.tts.start()
 
     def stop(self):
         self._stop = True
-        self.tty.stop()
+        self.tts.stop()
 
     def skip(self):
         self._skip = True
-        self.tty.skip()
+        self.tts.skip()
 
     def skippable(self, event: str):
         self.write('SYS: ' + event)
@@ -67,7 +67,7 @@ class Tty:
             sentence = ''
             text = ''
 
-            self.tty.speak(None, skippable=False)
+            self.tts.speak(None, skippable=False)
             for e in event:
 
                 # skip skippable
@@ -101,11 +101,11 @@ class Tty:
         ss = ''.join(c for c in ss if c not in self.ignored_chars)
         ss = ss.strip()
 
-        if (len(ss)>0): self.tty.speak(s, skippable=skippable)
-        if end: self.tty.speak(None, skippable=False)
+        if (len(ss)>0): self.tts.speak(s, skippable=skippable)
+        if end: self.tts.speak(None, skippable=False)
 
 
-class TtyBase:
+class TtsBase:
     def __init__(self):
         self.max_text_length = 400
         self._skip = False
@@ -172,7 +172,7 @@ class TtyBase:
         pass
 
 
-class TtyNone(TtyBase):
+class TtsNone(TtsBase):
     def __init__(self):
         super().__init__()
 
@@ -186,13 +186,13 @@ class TtyNone(TtyBase):
         pass
 
 
-class TtyOsMac(TtyBase):
+class TtsOsMac(TtsBase):
     def __init__(self):
         super().__init__()
         self.allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?!-_$:+-/ ")
 
     def start(self):
-        Thread(name='TtyOsMac', target=self._loop, daemon=True).start()
+        Thread(name='TtsOsMac', target=self._loop, daemon=True).start()
 
     def _loop(self):
         while not self._stop:
@@ -201,13 +201,13 @@ class TtyOsMac(TtyBase):
             os.system(f"say '{text}'")
 
 
-class TtyOs(TtyBase):
+class TtsOs(TtsBase):
     def __init__(self, write: Writer):
         super().__init__()
         self.write = write
 
     def start(self):
-        Thread(name='TtyOs', target=self._loop, daemon=True).start()
+        Thread(name='TtsOs', target=self._loop, daemon=True).start()
 
     def _loop(self):
         # initialize pyttsx3
@@ -235,7 +235,7 @@ class TtyOs(TtyBase):
 
 
 # https://github.com/Xtr4F/PyCharacterAI
-class TtyCharAi(TtyBase):
+class TtsCharAi(TtsBase):
     def __init__(self, token: str, voice: int, play: SdActor, write: Writer):
         super().__init__()
         self.token = token
@@ -244,7 +244,7 @@ class TtyCharAi(TtyBase):
         self.write = write
 
     def start(self):
-        Thread(name='TtyCharAi', target=self.process_queue_start, daemon=True).start()
+        Thread(name='TtsCharAi', target=self.process_queue_start, daemon=True).start()
         self.play.start()
 
     def process_queue_start(self):
@@ -303,9 +303,12 @@ class TtyCharAi(TtyBase):
         self.play.stop()
 
 
-class TtyWithModelBase(TtyBase):
-    def __init__(self):
+class TtsWithModelBase(TtsBase):
+    def __init__(self, group: str, name: str, play: SdActor):
         super().__init__()
+        self.group = group
+        self.name = name
+        self.play = play
 
     def _boundary(self):
         self.play.boundary()
@@ -313,6 +316,11 @@ class TtyWithModelBase(TtyBase):
     def skip(self):
         super().skip()
         self.play.skip()
+
+    def start(self):
+        super().start()
+        Thread(name=self.name, target=self._loop, daemon=True).start()
+        self.play.start()
 
     def stop(self):
         super().stop()
@@ -330,29 +338,24 @@ class TtyWithModelBase(TtyBase):
 
 
 # https://pypi.org/project/TTS/
-class TtyCoqui(TtyWithModelBase):
+class TtsCoqui(TtsWithModelBase):
     def __init__(self, voice: str, cudeDevice: int | None, play: SdActor, write: Writer):
-        super().__init__()
+        super().__init__('tts', 'TtsCoqui', play)
         self.speed = 1.0
         self.voice = voice
         self.cudeDevice: int | None = cudeDevice
         self._voice = voice
-        self.play = play
         self.write = write
         self.model: Xtts | None = None
         self.loaded = False
         self.http_handler: HttpHandler | None = None
-
-    def start(self):
-        Thread(name='TtyCoqui', target=self._loop, daemon=True).start()
-        self.play.start()
 
     def _httpHandler(self) -> HttpHandler:
         import torch, torchaudio
         import numpy
         import soundfile as sf
         from http.server import BaseHTTPRequestHandler
-        tty = self
+        tts = self
 
         def waitTillLoaded():
             while self.loaded is False:
@@ -367,12 +370,12 @@ class TtyCoqui(TtyWithModelBase):
                 super().__init__('POST', '/speech')
 
             def __call__(self, req: BaseHTTPRequestHandler):
-                if tty._stop: return
+                if tts._stop: return
                 try:
                     content_length = int(req.headers['Content-Length'])
                     body = req.rfile.read(content_length)
                     text = body.decode('utf-8')
-                    audio_file, audio_file_exists, cache_used = tty._cache_file_try(os.path.join('coqui', tty._voice), text)
+                    audio_file, audio_file_exists, cache_used = tts._cache_file_try(os.path.join('coqui', tts._voice), text)
 
                     # generate
                     if not cache_used or not audio_file_exists:
@@ -388,8 +391,8 @@ class TtyCoqui(TtyWithModelBase):
                             audio_chunks.append(audio_chunk)
 
                             if req.wfile.closed: return
-                            if tty._stop: req.wfile.close()
-                            if tty._stop: return
+                            if tts._stop: req.wfile.close()
+                            if tts._stop: return
 
                             req.wfile.write(audio_chunk.cpu().numpy().tobytes())
                             req.wfile.flush()
@@ -398,7 +401,7 @@ class TtyCoqui(TtyWithModelBase):
                         if cache_used and text:
                             wav = torch.cat(audio_chunks, dim=0)
                             try: torchaudio.save(audio_file, wav.squeeze().unsqueeze(0).cpu(), 24000)
-                            except Exception as e: tty.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
+                            except Exception as e: tts.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
 
                     # play file
                     else:
@@ -415,8 +418,8 @@ class TtyCoqui(TtyWithModelBase):
                         while start_pos < audio_length:
 
                             if req.wfile.closed: return
-                            if tty._stop: req.wfile.close()
-                            if tty._stop: return
+                            if tts._stop: req.wfile.close()
+                            if tts._stop: return
 
                             end_pos = min(start_pos + chunk_size, audio_length)
                             chunk = audio_data[start_pos:end_pos]
@@ -425,7 +428,7 @@ class TtyCoqui(TtyWithModelBase):
                             req.wfile.flush()
 
                 except Exception as e:
-                    tty.write("ERR: error generating voice for http " + str(e))
+                    tts.write("ERR: error generating voice for http " + str(e))
                     traceback.print_exc()
 
         return MyRequestHandler()
@@ -479,7 +482,7 @@ class TtyCoqui(TtyWithModelBase):
                 self.write(f"ERR: Failed to load TTS model {x}")
 
         # load model asynchronously (so we do not block speaking from cache)
-        loadModelThread = Thread(name='TtyCoqui-load-model', target=loadModel, daemon=True)
+        loadModelThread = Thread(name='TtsCoqui-load-model', target=loadModel, daemon=True)
         loadModelThread.start()
 
         # loop
@@ -515,17 +518,12 @@ class TtyCoqui(TtyWithModelBase):
                 self.play.playFile(text, audio_file, skippable)
 
 
-class TtyHttp(TtyBase):
+class TtsHttp(TtsWithModelBase):
     def __init__(self, url: str, port: int, play: SdActor, write: Writer):
-        super().__init__()
+        super().__init__('tts', 'TtsHttp', play)
         self.url = url
         self.port = port
-        self.play = play
         self.write = write
-
-    def start(self):
-        Thread(name='TtyHttp', target=self._loop, daemon=True).start()
-        self.play.start()
 
     def _loop(self):
         # initialize http
@@ -577,21 +575,11 @@ class TtyHttp(TtyBase):
 
 
 # https://pytorch.org/hub/nvidia_deeplearningexamples_tacotron2/
-class TtyTacotron2(TtyWithModelBase):
-    def __init__(self, voice: str, device: None | str, play: SdActor, write: Writer):
-        super().__init__()
-        self.speed = 1.0
-        self.voice = voice
+class TtsTacotron2(TtsWithModelBase):
+    def __init__(self, device: None | str, play: SdActor, write: Writer):
+        super().__init__('tts', 'TtsTacotron2', play)
         self.device: int | None = device
-        self._voice = voice
-        self.play = play
         self.write = write
-        self.model: Xtts | None = None
-        self.loaded = False
-
-    def start(self):
-        Thread(name='TtyTacotron2', target=self._loop, daemon=True).start()
-        self.play.start()
 
     def _loop(self):
 
@@ -639,6 +627,99 @@ class TtyTacotron2(TtyWithModelBase):
                 # update cache
                 if cache_used and text:
                     try: torchaudio.save(audio_file, torch.tensor(audio_numpy).unsqueeze(0), 24000)
+                    except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
+            else:
+                self.play.playFile(text, audio_file, skippable)
+
+
+# https://speechbrain.github.io
+class TtsSpeechBrain(TtsWithModelBase):
+    def __init__(self, device: None | str, play: SdActor, write: Writer):
+        super().__init__('tts', 'TtsSpeechBrain', play)
+        self.device: int | None = device
+        self.write = write
+
+    @staticmethod
+    def float_to_words(num: float):
+
+        def int_to_words(num: int):
+            units = ("", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen")
+            tens = ("", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety")
+            if num < 0:
+                return "minus " + convert_to_words(-num)
+            if num < 20:
+                return units[num]
+            if num < 100:
+                return tens[num // 10] + (" " + units[num % 10] if num % 10 != 0 else "")
+            if num < 1000:
+                return units[num // 100] + " hundred" + (" and " + convert_to_words(num % 100) if num % 100 != 0 else "")
+            if num < 1000000:
+                return convert_to_words(num // 1000) + " thousand" + (" " + convert_to_words(num % 1000) if num % 1000 != 0 else "")
+            if num < 1000000000:
+                return convert_to_words(num // 1000000) + " million" + (" " + convert_to_words(num % 1000000) if num % 1000000 != 0 else "")
+            else:
+                return convert_to_words(num // 1000000000) + " billion" + (" " + convert_to_words(num % 1000000000) if num % 1000000000 != 0 else "")
+
+        def floating_to_words(num: float):
+            num_str = str(num)[2:]  # Remove "0." prefix
+            result = []
+            for digit in num_str: result.append(int_to_words(int(digit)))
+            return ' '.join(result)
+
+        integer_part = int(num)
+        decimal_part = abs(num - integer_part)
+        if decimal_part == 0: return int_to_words(integer_part)
+        else: return f"{int_to_words(integer_part)} point {floating_to_words(decimal_part)}"
+
+    @staticmethod
+    def num_to_words(num: str):
+        return TtsSpeechBrain.float_to_words(float(num))
+
+    @staticmethod
+    def replace_numbers_with_words(text):
+        import re
+        # Regular expression to find all numbers, including negative and fractions
+        pattern = r"[-+]?\d*\.\d+|[-+]?\d+"
+        matches = re.findall(pattern, text)
+
+        # Replace each match with its English word representation
+        for match in matches:
+            text = text.replace(match, TtsSpeechBrain.num_to_words(match))
+
+        return text
+
+    def _loop(self):
+
+        # initialize
+        try:
+            import torch, torchaudio, numpy
+            from speechbrain.inference.TTS import Tacotron2
+            from speechbrain.inference.vocoders import HIFIGAN
+        except ImportError:
+            self.write("ERR: Torch, torchaudio, numpy python module failed to load")
+            return
+
+        device = None if self.device is None or len(self.device)==0 else torch.device(self.device)
+        tacotron2 = Tacotron2.from_hparams(source="speechbrain/tts-tacotron2-ljspeech", savedir=os.path.join("cache", "speechbrain" , "tts-tacotron2-ljspeech"))
+        hifi_gan = HIFIGAN.from_hparams(source="speechbrain/tts-hifigan-ljspeech", savedir=os.path.join("cache", "speechbrain" , "tts-hifigan-ljspeech"))
+
+        # loop
+        while not self._stop:
+            text, skippable = self.get_next_element()
+            audio_file, audio_file_exists, cache_used = self._cache_file_try("speechbrain", text)
+
+            # generate
+            if not cache_used or not audio_file_exists:
+                mel_output, mel_length, alignment = tacotron2.encode_text(TtsSpeechBrain.replace_numbers_with_words(text) + f"{'.' if text.endswith('.') else ''}")
+                waveforms = hifi_gan.decode_batch(mel_output)
+                audio_numpy = waveforms.detach().cpu().squeeze()
+
+                # play
+                self.play.playWavChunk(text, [audio_numpy], skippable)
+
+                # update cache
+                if cache_used and text:
+                    try: torchaudio.save(audio_file, audio_numpy.unsqueeze(0), 24000)
                     except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
             else:
                 self.play.playFile(text, audio_file, skippable)

@@ -2,7 +2,7 @@ import gpt4all.gpt4all
 from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
 from gpt4all.gpt4all import empty_chat_session
 from typing import Callable
-from util_tts import Tty
+from util_tts import Tts
 from util_wrt import Writer
 from util_actor import Actor
 from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain, SingleLazyIterator
@@ -93,7 +93,7 @@ class LlmNone(Llm):
 # doc https://docs.gpt4all.io/gpt4all_python.html
 class LlmGpt4All(Llm):
 
-    def __init__(self, modelPath: str, speak: Tty, write: Writer, sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
+    def __init__(self, modelPath: str, speak: Tts, write: Writer, sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
         super().__init__('LlmGpt4All')
         self.write = write
         self.speak = speak
@@ -152,7 +152,7 @@ class LlmGpt4All(Llm):
 # howto https://cookbook.openai.com/examples/how_to_stream_completions
 class LlmHttpOpenAi(Llm):
 
-    def __init__(self, url: str, bearer: str, modelName: str, speak: Tty, write: Writer, commandExecutor: Callable[[str], str], sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
+    def __init__(self, url: str, bearer: str, modelName: str, speak: Tts, write: Writer, commandExecutor: Callable[[str], str], sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
         super().__init__('LlmHttpOpenAi')
         self.write = write
         self.speak = speak

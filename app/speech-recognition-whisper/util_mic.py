@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 from time import sleep, time
 from speech_recognition import Recognizer, Microphone, WaitTimeoutError # https://github.com/Uberi/speech_recognition
-from util_tts import Tty
+from util_tts import Tts
 from util_wrt import Writer
 from itertools import chain
 from pysilero_vad import SileroVoiceActivityDetector
@@ -38,7 +38,7 @@ def get_microphone_index_by_name(name):
 
 
 class Mic(Actor):
-    def __init__(self, micName: str | None, enabled: bool, sample_rate: int, onSpeechStart: Callable[[], None], onSpeechEnd: Callable[[AudioData], None], speak: Tty, write: Writer, micEnergy: int, micEnergyDebug: bool):
+    def __init__(self, micName: str | None, enabled: bool, sample_rate: int, onSpeechStart: Callable[[], None], onSpeechEnd: Callable[[AudioData], None], speak: Tts, write: Writer, micEnergy: int, micEnergyDebug: bool):
         super().__init__("mic", "Mic", enabled)
         self.listening = None
         self.sample_rate: int = sample_rate

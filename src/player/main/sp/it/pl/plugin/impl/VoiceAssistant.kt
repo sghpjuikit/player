@@ -167,7 +167,7 @@ class VoiceAssistant: PluginBase() {
                   }
                }
                fun processSingle(s: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
-                  str.append(s).append("\n")
+                  str.append(s)
                   if (str.startsWith("RAW: ")) { state = "RAW"; onE(str.toString().substringAfter(": "), "RAW") }
                   else if (str.startsWith("USER: ")) { state = "USER"; onE(str.toString().substringAfter(": "), "USER") }
                   else if (str.startsWith("SYS: ")) { state = "SYS"; onE(str.toString().substringAfter(": "), "SYS") }
@@ -175,6 +175,7 @@ class VoiceAssistant: PluginBase() {
                   else if (str.startsWith("COM: ")) { state = "COM"; onE(str.toString().substringAfter(": "), "COM") }
                   else if (str.startsWith("COM-DET: ")) { state = "COM-DET"; onE(str.toString().substringAfter(": "), "COM-DET") }
                   else Unit
+                  str.clear()
                   onS(s + "\n", state)
                }
             }

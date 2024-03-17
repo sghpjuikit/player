@@ -141,7 +141,7 @@ fun SpeakContext.voiceCommandCountTo(text: String): ComMatch =
       val pattern = Regex("""count from (.*) to (.*)""")
       val (from, to) = pattern.find(text)!!.destructured.net { (a,b) -> (a.toIntOrNull() ?: 1) to (b.toIntOrNull() ?: 10) }
       runVT {
-         repeat(max(from, to) - min(from, to)) {
+         repeat(max(from, to) - min(from, to) + 1) {
             sleep(1000)
             APP.plugins.get<VoiceAssistant>()?.speak("${(from + it)}")
          }

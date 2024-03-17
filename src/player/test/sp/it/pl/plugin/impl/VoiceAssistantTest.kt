@@ -12,7 +12,7 @@ class VoiceAssistantTest: FreeSpec({
        "hey-hey\nhello".sanitize(setOf()) shouldBe "hey-hey hello"
    }
 
-   "regex" {
+   "voiceCommandRegex" {
       voiceCommandRegex("lights").toPattern().pattern() shouldBe "lights"
       voiceCommandRegex("lights off").toPattern().pattern() shouldBe "lights *off"
 
@@ -28,6 +28,8 @@ class VoiceAssistantTest: FreeSpec({
       voiceCommandRegex("lights off|on?").toPattern().pattern() shouldBe "lights *(off|on)?"
 
       voiceCommandRegex("speak \$text").toPattern().pattern() shouldBe "speak *.*"
+
+      voiceCommandRegex("count from \$number to \$number").toPattern().matcher("count from 1 to 10").matches() shouldBe true
    }
 
 

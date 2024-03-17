@@ -35,7 +35,9 @@ class ChatIntentDetect(ChatProceed):
     def __init__(self, assist_function_prompt, userPrompt: str):
         super().__init__(
             "From now on, identify user intent by returning one of following commands. " +
-            "Only respond with command in format : `COM-command-COM`. ? is optional, $ is command parameter." +
+            "Only respond with command in format: `COM-command-COM`."
+            "? is optional, $ is command parameter, : is default value." +
+            "Do not write $ after resolving parameter, e.g. `$number` -> `5`." +
             "Commands: \n" + assist_function_prompt,
             userPrompt
         )

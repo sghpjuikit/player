@@ -275,9 +275,10 @@ class VoiceAssistant: PluginBase() {
          SpeakHandler(                         "Lock OS", "lock system|pc|computer|os")                   { voiceCommandOsLock(it) },
          SpeakHandler(                      "Log off OS", "log off system|pc|computer|os")                { voiceCommandOsLogOff(it) },
          SpeakHandler(                    "Set reminder", "set reminder in|on \$time \$text")             { voiceCommandSetReminder(it) },
-         SpeakHandler(                    "Set reminder", "start conversation")                           { if (matches(it)) { llmOn = true; Ok(null) } else null },
-         SpeakHandler(                    "Set reminder", "restart conversation")                         { if (matches(it)) { llmOn = true; Ok(null) } else null },
-         SpeakHandler(                    "Set reminder", "stop conversation")                            { if (matches(it)) { llmOn = false; Ok(null) } else null },
+         SpeakHandler(                     "Count to...", "count from \$from to \$to")                    { voiceCommandCountTo(it) },
+         SpeakHandler(              "Start conversation", "start conversation")                           { if (matches(it)) { llmOn = true; Ok(null) } else null },
+         SpeakHandler(            "Restart conversation", "restart conversation")                         { if (matches(it)) { llmOn = true; Ok(null) } else null },
+         SpeakHandler(               "Stop conversation", "stop conversation")                            { if (matches(it)) { llmOn = false; Ok(null) } else null },
       )
       .noPersist().readOnly().butElement { uiConverter { "${it.name} -> ${it.commandUi}" } }
       .def(

@@ -339,6 +339,7 @@ assist_function_prompt = f"""
 - light-bulb-$bulb_name-on|off?
 - set-reminder-on-$iso_datetime-$text
 - set-reminder-in-$time_period-$text
+- count-from-$from:1-to-$to
 - unidentified // no other command probable
 """
 

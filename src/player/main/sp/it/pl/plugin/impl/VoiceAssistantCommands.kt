@@ -6,10 +6,14 @@ import java.time.Period
 import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyCode
 import javafx.scene.robot.Robot
+import kotlin.math.max
+import kotlin.math.min
 import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.main.APP
 import sp.it.pl.main.ScheduledNote
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakContext
+import sp.it.util.async.runVT
+import sp.it.util.async.sleep
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
@@ -126,9 +130,23 @@ fun SpeakContext.voiceCommandSetReminder(text: String): ComMatch =
          }.map {
             APP.scheduler.jobs += it
             Ok("Reminder scheduled")
-         }
-            .flatten()
+         }.flatten()
       }
+   } else {
+      null
+   }
+
+fun SpeakContext.voiceCommandCountTo(text: String): ComMatch =
+   if (matches(text)) {
+      val pattern = Regex("""count from (.*) to (.*)""")
+      val (from, to) = pattern.find(text)!!.destructured.net { (a,b) -> (a.toIntOrNull() ?: 1) to (b.toIntOrNull() ?: 10) }
+      runVT {
+         repeat(max(from, to) - min(from, to)) {
+            sleep(1000)
+            APP.plugins.get<VoiceAssistant>()?.speak("${(from + it)}")
+         }
+      }
+      Ok("Ok")
    } else {
       null
    }

@@ -146,16 +146,16 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                prefSize = -1 x -1
                vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
                hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+               visible syncFrom mode.map { it == Out.HW }
+
                content = flowPane(2.em.emScaled, 2.em.emScaled) {
                   id = "hw"
                   alignment = CENTER;
                   rowValignment = VPos.CENTER
                   columnHalignment = HPos.CENTER
-                  visible syncFrom mode.map { it == Out.HW }
-
                   val actorStates = MapSet { a: ActorState -> a.type }
 
-                  visibleProperty() attachWhileTrue {
+                  this@scrollPane.visibleProperty() attachWhileTrue {
                      var a by atomic(true)
                      launch(VT) {
                         while (a) {

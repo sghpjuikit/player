@@ -368,6 +368,7 @@ public class ActionPane extends OverlayPane<Object> {
 		var priority = NEVER;
 
 		var dataAsS = switch (data) {
+			case null -> null;
 			case UiResult dataUi -> null;
 			case String dataS when dataS.length()>40 -> dataS;
 			case Throwable t -> DebugKt.getStacktraceAsString(t);

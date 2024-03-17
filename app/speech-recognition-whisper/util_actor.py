@@ -78,7 +78,7 @@ class Actor:
     def _loopLoadAndIgnoreEvents(self):
         self._loaded = True
         while not self._stop:
-            sleep(0.1)
+            time.sleep(0.1)
             self._clear_queue()
         self._clear_queue()
 

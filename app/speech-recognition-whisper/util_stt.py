@@ -1,6 +1,8 @@
 import uuid
 from time import sleep
 from typing import Callable
+
+import whisper.audio
 from speech_recognition import AudioData
 from util_actor import Actor
 from util_wrt import Writer
@@ -39,7 +41,7 @@ class SttNone(Stt):
 # home https://github.com/openai/whisper
 class SttWhisper(Stt):
     def __init__(self, target: Callable[str, None] | None, enabled: bool, device: str, model: str, write: Writer):
-        super().__init__('SttWhisper', device, enabled, whisper_sample_rate, target)
+        super().__init__('SttWhisper', device, enabled, 16000, target)
         self.write: Writer = write
         self.model = model
         self.device = device
@@ -49,17 +51,17 @@ class SttWhisper(Stt):
 
         # initialize whisper
         try:
-            from whisper.audio import SAMPLE_RATE as whisper_sample_rate  # https://github.com/openai/whisper
-            from whisper import load_model as whisper_load  # https://github.com/openai/whisper
+            import whisper
         except ImportError:
             self.write("ERR: whisper python module failed to load")
             return
-
+        # init model dir
+        if self.sample_rate != whisper.audio.SAMPLE_RATE: raise Exception("Whisper must be 16000Hz sample rate")
         # init model dir
         modelDir = "models-whisper"
         if not exists(modelDir): makedirs(modelDir)
         # load model
-        model = whisper_load(self.model, download_root=modelDir, device=torch.device(self.device), in_memory=True)
+        model = whisper.load_model(self.model, download_root=modelDir, device=torch.device(self.device), in_memory=True)
         # disable logging
         filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
 

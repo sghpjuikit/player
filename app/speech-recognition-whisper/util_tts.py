@@ -372,7 +372,7 @@ class TtyCoqui(TtyWithModelBase):
                     content_length = int(req.headers['Content-Length'])
                     body = req.rfile.read(content_length)
                     text = body.decode('utf-8')
-                    audio_file, audio_file_exists, cache_used = tty._cache_file_try('coqui', text)
+                    audio_file, audio_file_exists, cache_used = tty._cache_file_try(os.path.join('coqui', tty._voice), text)
 
                     # generate
                     if not cache_used or not audio_file_exists:
@@ -485,7 +485,7 @@ class TtyCoqui(TtyWithModelBase):
         # loop
         while not self._stop:
             text, skippable = self.get_next_element()
-            audio_file, audio_file_exists, cache_used = self._cache_file_try('coqui', text)
+            audio_file, audio_file_exists, cache_used = self._cache_file_try(os.path.join('coqui', self._voice), text)
 
             # generate
             if not cache_used or not audio_file_exists:
@@ -577,7 +577,7 @@ class TtyHttp(TtyBase):
 
 
 # https://pytorch.org/hub/nvidia_deeplearningexamples_tacotron2/
-class TtyTacotron2(TtyBase):
+class TtyTacotron2(TtyWithModelBase):
     def __init__(self, voice: str, device: None | str, play: SdActor, write: Writer):
         super().__init__()
         self.speed = 1.0
@@ -625,6 +625,7 @@ class TtyTacotron2(TtyBase):
 
                 # Format the input using utility methods
                 sequences, lengths = utils.prepare_input_sequence([text])
+                sequences, lengths = (sequences.to(device), lengths.to(device))
 
                 # Run the chained models
                 with torch.no_grad():

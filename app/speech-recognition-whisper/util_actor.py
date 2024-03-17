@@ -9,9 +9,10 @@ class Event:
 
 class Actor:
 
-    def __init__(self, group: str, name: str, enabled: bool):
+    def __init__(self, group: str, name: str, deviceName: str | None, enabled: bool):
         self.group = group
         self.name = name
+        self.deviceName = deviceName
         self.queue = Queue()
         self.events_processed: int = 0
         self._stop: bool = False

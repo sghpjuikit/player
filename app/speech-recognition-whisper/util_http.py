@@ -36,6 +36,7 @@ class HttpHandlerState(HttpHandler):
             state[actor.group] = {
                 'name': actor.name,
                 'state': actor.state(),
+                'device': actor.deviceName,
                 'event processing': None if actor.processing_event is None else [ event_to_str(actor.processing_event) ],
                 'events queued': list(map(event_to_str, actor.queued())),
                 'events processed': actor.events_processed,

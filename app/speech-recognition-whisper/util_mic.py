@@ -39,7 +39,7 @@ def get_microphone_index_by_name(name):
 
 class Mic(Actor):
     def __init__(self, micName: str | None, enabled: bool, sample_rate: int, onSpeechStart: Callable[[], None], onSpeechEnd: Callable[[AudioData], None], speak: Tts, write: Writer, micEnergy: int, micEnergyDebug: bool):
-        super().__init__("mic", "Mic", enabled)
+        super().__init__("mic", "Mic", "cpu", enabled)
         self.listening = None
         self.sample_rate: int = sample_rate
         self.onSpeechStart: Callable[[], None] = onSpeechStart

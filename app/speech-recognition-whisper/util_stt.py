@@ -9,16 +9,14 @@ from os.path import dirname, abspath, exists, join
 from io import BytesIO
 from warnings import filterwarnings
 from traceback import print_exc
-from whisper.audio import SAMPLE_RATE as whisper_sample_rate  # https://github.com/openai/whisper
-from whisper import load_model as whisper_load  # https://github.com/openai/whisper
 import soundfile as sf
 import numpy as np
 import torch
 
 
 class Stt(Actor):
-    def __init__(self, name: str, enabled: bool, sample_rate: int, target: Callable[str, None] | None):
-        super().__init__("stt", name, enabled)
+    def __init__(self, name: str, deviceName: str | None, enabled: bool, sample_rate: int, target: Callable[str, None] | None):
+        super().__init__("stt", name, deviceName, enabled)
         self.sample_rate: int = sample_rate
         self.target = target
 
@@ -29,9 +27,10 @@ class Stt(Actor):
             sleep(0.1)
             continue
 
+
 class SttNone(Stt):
     def __init__(self, enabled: bool):
-        super().__init__('SttNone', enabled, 16000, lambda: None)
+        super().__init__('SttNone', "cpu", enabled, 16000, lambda: None)
 
     def _loop(self):
         self._loopLoadAndIgnoreEvents()
@@ -39,8 +38,8 @@ class SttNone(Stt):
 
 # home https://github.com/openai/whisper
 class SttWhisper(Stt):
-    def __init__(self, target: Callable[str, None] | None, enabled: bool, device: str | None, model: str, write: Writer):
-        super().__init__('SttWhisper', enabled, whisper_sample_rate, target)
+    def __init__(self, target: Callable[str, None] | None, enabled: bool, device: str, model: str, write: Writer):
+        super().__init__('SttWhisper', device, enabled, whisper_sample_rate, target)
         self.write: Writer = write
         self.model = model
         self.device = device
@@ -48,12 +47,19 @@ class SttWhisper(Stt):
     def _loop(self):
         self._loopWaitTillReady()
 
+        # initialize whisper
+        try:
+            from whisper.audio import SAMPLE_RATE as whisper_sample_rate  # https://github.com/openai/whisper
+            from whisper import load_model as whisper_load  # https://github.com/openai/whisper
+        except ImportError:
+            self.write("ERR: whisper python module failed to load")
+            return
+
         # init model dir
         modelDir = "models-whisper"
         if not exists(modelDir): makedirs(modelDir)
         # load model
-        device = None if self.device is None or len(self.device)==0 else torch.device(self.device)
-        model = whisper_load(self.model, download_root=modelDir, device=device, in_memory=True)
+        model = whisper_load(self.model, download_root=modelDir, device=torch.device(self.device), in_memory=True)
         # disable logging
         filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
 
@@ -72,8 +78,8 @@ class SttWhisper(Stt):
 
 # home https://github.com/NVIDIA/NeMo
 class SttNemo(Stt):
-    def __init__(self, target: Callable[str, None] | None, enabled: bool, device: str | None, model: str, write: Writer):
-        super().__init__('SttNemo', enabled, 16000, target)
+    def __init__(self, target: Callable[str, None] | None, enabled: bool, device: str, model: str, write: Writer):
+        super().__init__('SttNemo', device, enabled, 16000, target)
         self.write: Writer = write
         self.target = target
         self.model = model
@@ -92,9 +98,7 @@ class SttNemo(Stt):
         # load model
         import nemo.collections.asr as nemo_asr
         model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name=self.model)
-        # set device
-        device = None if self.device is None or len(self.device)==0 else torch.device(self.device)
-        model.to(device)
+        model.to(torch.device(self.device))
 
         def process(audio: AudioData):
             wav_bytes = audio.get_wav_data() # must be 16kHz

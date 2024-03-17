@@ -17,7 +17,7 @@ class SdEvent(Event):
 
 class SdActor(Actor):
     def __init__(self, write: Writer):
-        super().__init__('play', 'SdActor', True)
+        super().__init__('play', 'SdActor', "cpu", True)
         self._skip = False
         self.stream = None
         self.sentence_break = 0.3

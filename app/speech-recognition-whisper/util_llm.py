@@ -73,8 +73,8 @@ class ChatStop:
 
 
 class Llm(Actor):
-    def __init__(self, name: str):
-        super().__init__("llm", name, True)
+    def __init__(self, name: str, deviceName: str):
+        super().__init__("llm", name,  deviceName, True)
         self.generating = False
 
     def __call__(self, prompt: ChatStart | Chat | ChatProceed | ChatStop):
@@ -83,7 +83,7 @@ class Llm(Actor):
 
 class LlmNone(Llm):
     def __init__(self):
-        super().__init__('LlmNone')
+        super().__init__('LlmNone', 'cpu')
 
     def _loop(self):
         self._loopLoadAndIgnoreEvents()
@@ -94,7 +94,7 @@ class LlmNone(Llm):
 class LlmGpt4All(Llm):
 
     def __init__(self, modelPath: str, speak: Tts, write: Writer, sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
-        super().__init__('LlmGpt4All')
+        super().__init__('LlmGpt4All', "cpu")
         self.write = write
         self.speak = speak
         self.model = modelPath
@@ -114,7 +114,7 @@ class LlmGpt4All(Llm):
             self.events_processed += 1
 
             # load model lazily
-            if llm is None: llm = GPT4All(model_path=self.model, allow_download=False)
+            if llm is None: llm = GPT4All(model_path=self.model, device="cpu", allow_download=False)
             self.enabled = True # delayed load
 
             if isinstance(e, ChatStart):
@@ -153,7 +153,7 @@ class LlmGpt4All(Llm):
 class LlmHttpOpenAi(Llm):
 
     def __init__(self, url: str, bearer: str, modelName: str, speak: Tts, write: Writer, commandExecutor: Callable[[str], str], sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
-        super().__init__('LlmHttpOpenAi')
+        super().__init__('LlmHttpOpenAi', 'http')
         self.write = write
         self.speak = speak
         self.commandExecutor = commandExecutor

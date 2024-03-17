@@ -584,8 +584,8 @@ def install_exit_handler():
 
 
 stt = SttNone(micEnabled)
-if sttEngineType == 'whisper': stt = SttWhisper(callback, micEnabled, sttWhisperDevice, sttWhisperModel, write)
-elif sttEngineType == 'nemo': stt = SttNemo(callback, micEnabled, sttNemoDevice, sttNemoModel, write)
+if sttEngineType == 'whisper': stt = SttWhisper(callback, micEnabled, "cpu" if len(sttWhisperDevice)==0 else sttWhisperDevice, sttWhisperModel, write)
+elif sttEngineType == 'nemo': stt = SttNemo(callback, micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
 else: pass
 
 mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, skip, stt.queue.put, speak, write, micEnergy, micEnergyDebug)

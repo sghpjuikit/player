@@ -73,8 +73,9 @@ class ChatStop:
 
 
 class Llm(Actor):
-    def __init__(self, name: str, deviceName: str):
-        super().__init__("llm", name,  deviceName, True)
+    def __init__(self, name: str, deviceName: str, write: Writer, speak: Tts):
+        super().__init__("llm", name,  deviceName, write, True)
+        self.speak = speak
         self.generating = False
 
     def __call__(self, prompt: ChatStart | Chat | ChatProceed | ChatStop):
@@ -82,8 +83,8 @@ class Llm(Actor):
 
 
 class LlmNone(Llm):
-    def __init__(self):
-        super().__init__('LlmNone', 'cpu')
+    def __init__(self, write: Writer):
+        super().__init__('LlmNone', 'cpu', write, None)
 
     def _loop(self):
         self._loopLoadAndIgnoreEvents()
@@ -94,9 +95,7 @@ class LlmNone(Llm):
 class LlmGpt4All(Llm):
 
     def __init__(self, modelPath: str, speak: Tts, write: Writer, sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
-        super().__init__('LlmGpt4All', "cpu")
-        self.write = write
-        self.speak = speak
+        super().__init__('LlmGpt4All', "cpu", write, speak)
         self.model = modelPath
         # gpt4all.gpt4all.DEFAULT_MODEL_DIRECTORY = chatDir
         self.sysPrompt = sysPrompt
@@ -153,9 +152,7 @@ class LlmGpt4All(Llm):
 class LlmHttpOpenAi(Llm):
 
     def __init__(self, url: str, bearer: str, modelName: str, speak: Tts, write: Writer, commandExecutor: Callable[[str], str], sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
-        super().__init__('LlmHttpOpenAi', 'http')
-        self.write = write
-        self.speak = speak
+        super().__init__('LlmHttpOpenAi', 'http', write, speak)
         self.commandExecutor = commandExecutor
         self.url = url
         self.bearer = bearer

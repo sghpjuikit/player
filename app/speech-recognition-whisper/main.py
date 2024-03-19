@@ -259,34 +259,31 @@ llmChatTopk = int(arg('llm-chat-topk', '40'))
 
 # speak engine actor, non-blocking
 if ttsEngineType == 'none':
-    speakEngine = TtsNone()
+    speakEngine = TtsNone(write)
 elif ttsEngineType == 'os':
     speakEngine = TtsOs(SdActor(write), write)
 elif ttsEngineType == 'character-ai':
     speakEngine = TtsCharAi(ttsCharAiToken, ttsCharAiVoice, SdActor(write), write)
 elif ttsEngineType == 'coqui':
-    device = None if len(ttsCoquiCudaDevice) == 0 else ttsCoquiCudaDevice
-    speakEngine = TtsCoqui(ttsCoquiVoice, device, SdActor(write), write)
+    speakEngine = TtsCoqui(ttsCoquiVoice, "cuda" if len(ttsCoquiCudaDevice)==0 else ttsCoquiCudaDevice, SdActor(write), write)
 elif ttsEngineType == 'tacotron2':
-    device = None if len(ttsTacotron2Device) == 0 else ttsTacotron2Device
-    speakEngine = TtsTacotron2(device, SdActor(write), write)
+    speakEngine = TtsTacotron2("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
 elif ttsEngineType == 'speechbrain':
-    device = None if len(ttsTacotron2Device) == 0 else ttsTacotron2Device
-    speakEngine = TtsSpeechBrain(device, SdActor(write), write)
+    speakEngine = TtsSpeechBrain("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
 elif ttsEngineType == 'http':
     if len(ttsHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')
     if ':' not in ttsHttpUrl: raise AssertionError('speech-server must be in format host:port')
     host, _, port = ttsHttpUrl.partition(":")
     speakEngine = TtsHttp(host, int(port), SdActor(write), write)
 else:
-    speakEngine = TtsNone()
+    speakEngine = TtsNone(write)
 speak = Tts(ttsOn, speakEngine, write)
 
 # commands
 commandExecutor = CommandExecutorDelegate(CommandExecutorDoNothing)
 
 # llm actor, non-blocking
-llm = LlmNone()
+llm = LlmNone(write)
 if llmEngine == 'none':
     pass
 elif llmEngine == "gpt4all":
@@ -508,7 +505,7 @@ assist = assistStand
 
 def skip():
     if llm.generating: llm.generating = False
-    speak.skip()
+    speak.skipWithoutSound()
 
 def callback(text):
     if sysTerminating: return
@@ -545,7 +542,6 @@ def callback(text):
         write_ex("ERR: ", e)
         speak(name + " encountered an error. Please speak again.")
 
-
 def start_exit_invoker():
     if sysParentProcess==-1:
         return
@@ -554,7 +550,7 @@ def start_exit_invoker():
         # wait until parent dies or listen forever
         while not sysTerminating and psutil.pid_exists(sysParentProcess):
             time.sleep(1)
-        sys.exit(0)
+        stop()
 
     Thread(name='Process-Monitor', target=monitor, daemon=True).start()
 
@@ -581,7 +577,7 @@ def install_exit_handler():
     signal.signal(signal.SIGABRT, stop)
 
 
-stt = SttNone(micEnabled)
+stt = SttNone(micEnabled, write)
 if sttEngineType == 'whisper': stt = SttWhisper(callback, micEnabled, "cpu" if len(sttWhisperDevice)==0 else sttWhisperDevice, sttWhisperModel, write)
 elif sttEngineType == 'nemo': stt = SttNemo(callback, micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
 else: pass
@@ -594,7 +590,7 @@ if len(ttsCoquiServer)>0:
     if ':' not in ttsCoquiServer: raise AssertionError('coqui-server must be in format host:port')
     host, _, port = ttsCoquiServer.partition(":")
     http = Http(host, int(port), write)
-    http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tts.play if hasattr(speak.tts, 'play') else None]))))
+    http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tts, speak.tts.play if hasattr(speak.tts, 'play') else None]))))
     if isinstance(speak.tts, TtsCoqui): http.handlers.append(speak.tts._httpHandler())
 
 # start actors
@@ -679,9 +675,10 @@ while True:
 
         # exit command
         elif m == "EXIT":
-            sys.exit(0)
+            stop()
+            break
 
     except EOFError as _:
-        sys.exit(0)
+        stop()
     except Exception as e:
         write("ERR: Error occurred:" + str(e))

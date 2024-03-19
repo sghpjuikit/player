@@ -3,6 +3,7 @@ import sounddevice as sd
 import soundfile as sf
 from util_actor import Actor, Event
 from util_wrt import Writer
+from scipy import signal
 
 
 class SdEvent(Event):
@@ -12,71 +13,68 @@ class SdEvent(Event):
         self.audio = audio
         self.skippable = skippable
 
-    def str(self): return self.text
+    def str(self): return f'{self.type}:{self.text}'
 
 
 class SdActor(Actor):
     def __init__(self, write: Writer):
-        super().__init__('play', 'SdActor', "cpu", True)
+        super().__init__('play', 'SdActor', "cpu", write, True)
         self._skip = False
-        self.stream = None
-        self.sentence_break = 0.3
+        self.sentence_break = 1
         self.sample_rate = 24000
-        self.write = write
 
     def skip(self):
         self._skip = True
 
-    def stop(self):
-        super().stop()
-        if self.stream is not None: self.stream.stop()
-
     def _loop(self):
-        self.stream = sd.OutputStream(channels=1, samplerate=24000)
-        self.stream.start()
-
-        def process(event):
-            # skip
-            if self._skip and event.skippable:
-                return
-
-            # skip stop at boundary
-            if event.type=='boundary':
-                self._skip = False
-                return
-
-            # play pause
-            def playPause():
-                samples_count = int(1 * self.sample_rate)
-                samples = np.zeros(samples_count)
-                self.stream.write(np.zeros(samples_count, dtype=np.float32))
-
-            # play file
-            if event.type=='f':
-                audio_data, fs = sf.read(event.audio, dtype='float32')
-                if fs!=self.sample_rate: return
-                chunk_size = 1024
-                audio_length = len(audio_data)
-                start_pos = 0
-                while start_pos < audio_length:
-                    if (self._skip and event.skippable) or self._stop: break
-                    end_pos = min(start_pos + chunk_size, audio_length)
-                    chunk = audio_data[start_pos:end_pos]
-                    self.stream.write(chunk)
-                    start_pos = end_pos
-                playPause()
-
-            # play wav chunk
-            if event.type=='b':
-                for wav_chunk in event.audio:
-                    if self._skip and event.skippable: break
-                    self.stream.write(wav_chunk)
-                playPause()
+        stream = sd.OutputStream(channels=1, samplerate=24000)
+        stream.start()
 
         # loop
-        self._loaded = True
-        while not self._stop: self._loopProcessEvent(process)
-        self._clear_queue()
+        with self._looping():
+            while not self._stop:
+                with self._loopProcessEvent() as event:
+                    try:
+                        # skip
+                        if self._skip and event.skippable:
+                            continue
+
+                        # skip stop at boundary
+                        if event.type == 'boundary':
+                            self._skip = False
+                            continue
+
+                        # play pause
+                        def playPause():
+                            samples_count = int(self.sentence_break * self.sample_rate)
+                            samples = np.zeros(samples_count)
+                            stream.write(np.zeros(samples_count, dtype=np.float32))
+
+                        # play file
+                        if event.type == 'f':
+                            audio_data, fs = sf.read(event.audio, dtype='float32')
+                            if fs != self.sample_rate: audio_data = signal.resample(audio_data, int(len(audio_data) * self.sample_rate / fs))
+                            chunk_size = 1024
+                            audio_length = len(audio_data)
+                            start_pos = 0
+                            while start_pos < audio_length:
+                                if (self._skip and event.skippable) or self._stop: break
+                                end_pos = min(start_pos + chunk_size, audio_length)
+                                chunk = audio_data[start_pos:end_pos]
+                                stream.write(chunk)
+                                start_pos = end_pos
+                            playPause()
+
+                        # play wav chunk
+                        if event.type == 'b':
+                            for wav_chunk in event.audio:
+                                if self._skip and event.skippable: break
+                                stream.write(wav_chunk)
+                            playPause()
+                    except Exception as x:
+                        if (self._stop): pass  # daemon thread can get interrupted and stream crash mid write
+                        else: raise x
+        stream.stop()
 
     def boundary(self):
         self.queue.put(SdEvent('boundary', '', None, False))

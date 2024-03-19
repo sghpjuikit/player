@@ -115,3 +115,11 @@ def progress(iterator_has_started: Callable[[], bool], iterator):
 
     if bs>0: yield '\b\b\b'
     yield from iterator
+
+
+def words(text: str):
+    words = iter(text.split(' '))
+    yield next(words)
+    for element in words:
+        yield ' '
+        yield element

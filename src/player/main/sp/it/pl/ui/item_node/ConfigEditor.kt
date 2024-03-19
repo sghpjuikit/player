@@ -222,7 +222,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
                            }
                            menu("Value") {
                               items {
-                                 CoreMenus.menuItemBuilders[value]
+                                 CoreMenus.menuItemBuilders[config.value]
                               }
                               if (this@ConfigEditor is ComplexCE<*>) {
                                  item("Copy as text", keys = "CTRL + C") { editor.copyValueAsText() }

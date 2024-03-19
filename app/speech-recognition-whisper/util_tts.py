@@ -188,52 +188,61 @@ class TtsNone(TtsBase):
         pass
 
 
-class TtsOsMac(TtsBase):
-    def __init__(self):
-        super().__init__()
-        self.allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?!-_$:+-/ ")
-
-    def start(self):
-        Thread(name='TtsOsMac', target=self._loop, daemon=True).start()
-
-    def _loop(self):
-        while not self._stop:
-            textRaw, skippable = self.get_next_element()
-            text = ''.join(c for c in textRaw if c in self.allowed_chars)
-            os.system(f"say '{text}'")
-
-
 class TtsOs(TtsBase):
-    def __init__(self, write: Writer):
+    def __init__(self, play: SdActor, write: Writer):
         super().__init__()
         self.write = write
+        self.play = play
+        self._engine = None
 
     def start(self):
-        Thread(name='TtsOs', target=self._loop, daemon=True).start()
+        Thread(name='TtsWin', target=self._loop, daemon=True).start()
+        self.play.start()
 
     def _loop(self):
-        # initialize pyttsx3
+        # initialize
         try:
-            import pyttsx3
+            import rlvoice # https://github.com/Akul-AI/rlvoice-1
         except ImportError as e:
-            self.write("pyttsx3 python module failed to load")
+            self.write("rlvoice python module failed to load")
             return
 
         while not self._stop:
             text, skippable = self.get_next_element()
 
-            engine = pyttsx3.init()
+            e = rlvoice.init()
+            self._engine = e
+            e.setProperty('volume', 1.0)
+            e.setProperty('rate', 100)
+            # voices = cast(list, e.getProperty('voices'))
+            # for voice in voices:
+            #     if 'Zira' in voice.name:
+            #         e.setProperty('voice', voices[1].id)
 
-            # set Zira voice
-            voices = cast(list, engine.getProperty('voices'))
-            for voice in voices:
-                if 'Zira' in voice.name:
-                    engine.setProperty('voice', voices[1].id)
+            audios = []
+            e.to_memory(text, audios)
+            e.runAndWait()
+            audio = audios[0]
+            audio = numpy.array(audio, dtype=numpy.int32) # to numpty
+            audio = audio.astype(numpy.float32) / 32768.0 # normalize
+            self.play.playWavChunk(text, audio, skippable)
+            e.stop()
+            del self._engine
+            self._engine = None
 
-            engine.say(text)
-            engine.runAndWait()
-            engine.stop()
-            del engine
+
+    def skip(self):
+        super().skip()
+        self.play.skip()
+        e = self._engine
+        if e is not None: e.stop()
+
+    def stop(self):
+        super().stop()
+        e = self._engine
+        if e is not None: e.stop()
+        if e is not None: del self._engine
+        self.play.stop()
 
 
 # https://github.com/Xtr4F/PyCharacterAI

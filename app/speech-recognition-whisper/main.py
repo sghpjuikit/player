@@ -10,7 +10,7 @@ from itertools import chain
 from threading import Thread, Timer
 from typing import cast
 from util_play_engine import SdActor
-from util_tts import Tts, TtsNone, TtsOs, TtsOsMac, TtsCharAi, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain
+from util_tts import Tts, TtsNone, TtsOs, TtsCharAi, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
@@ -260,10 +260,8 @@ llmChatTopk = int(arg('llm-chat-topk', '40'))
 # speak engine actor, non-blocking
 if ttsEngineType == 'none':
     speakEngine = TtsNone()
-elif ttsEngineType == 'os' and sys.platform == 'darwin':
-    speakEngine = TtsOsMac()
 elif ttsEngineType == 'os':
-    speakEngine = TtsOs(write)
+    speakEngine = TtsOs(SdActor(write), write)
 elif ttsEngineType == 'character-ai':
     speakEngine = TtsCharAi(ttsCharAiToken, ttsCharAiVoice, SdActor(write), write)
 elif ttsEngineType == 'coqui':

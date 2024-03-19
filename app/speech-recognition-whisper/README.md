@@ -22,56 +22,53 @@ This is a voice assistant python program. Features:
 1. Install python >= `3.11`
 2. Install python dependencies
     ```
-    pip install openai-whisper
     pip install SpeechRecognition
     pip install playsound
     pip install sounddevice
     pip install soundfile
     pip install PyAudio
     pip install pysilero-vad
-    pip install pyttsx3
     pip install psutil
     pip install pyperclip
     pip install pyautogui
     pip install pygetwindow
-    pip install gpt4all
     ```
-3. Install ffmpeg
-    ```
-    // Ubuntu | Debian
-    sudo apt update && sudo apt install ffmpeg
-    
-    // Arch Linux
-    sudo pacman -S ff[tos_agreed.txt](models-coqui%2Ftos_agreed.txt)mpeg
-    
-    // MaxOS
-    brew install ffmpeg
-   
-    // Windows
-    choco install ffmpeg
-    scoop install ffmpeg
-    ```
-4. Install portaudio (macOS only)
-    ```
-    brew install portaudio
-    ```
-5. Download OpenAi Whisper [models](https://github.com/openai/whisper#available-models-and-languages) (optional)
-   - model will be downloaded automatically, but you can do so manually
-       - into the [models-whisper](models-whisper) directory
-       - from [official source](https://github.com/openai/whisper/blob/f296bcd3fac41525f1c5ab467062776f8e13e4d0/whisper/__init__.py)
-6. Download LLM model for [GPT4All](https://gpt4all.io/index.html) (optional)
-   - model is required only for conversation feature 
-       - into the [models-llm](models-llm) directory
-       - for example from [official source](https://gpt4all.io/models/models.json)
-7. Download XTTSv2 model (optional)
-   - required only when using coqui speech engine
-       - the following files into [models-coqui](models-coqui) directory
-           - `config.json`
-           - `hash.md5`
-           - `model.pth`
-           - `vocab.json`
-       - agree to the terms and conditions in [models-coqui](models-coqui) directory by
-           - creating `tos_agreed.txt` file with content `I have read, understood and agreed to the Terms and Conditions.`
+3. Install desired tts module:
+    1. **TtsOs** requires https://github.com/Akul-AI/rlvoice-1
+        - `pip install rlvoice-1`
+        - on Linux also needs `sudo apt update && sudo apt install espeak ffmpeg libespeak1`
+        - on OsX also needs `pip install pyobjc==9.0.1`
+    2. **TtsCoqui** requires https://pypi.org/project/TTS/
+        - `pip install TTS`
+        - Download XTTSv2 model
+           - the following files into [models-coqui](models-coqui) directory
+               - `config.json`
+               - `hash.md5`
+               - `model.pth`
+               - `vocab.json`
+           - agree to the terms and conditions in [models-coqui](models-coqui) directory by
+               - creating `tos_agreed.txt` file with content `I have read, understood and agreed to the Terms and Conditions.`
+    3. **TtsTacotron2**
+        - TODO
+    3. **TtsSpeecBrain** 
+        - TODO
+4. Install desired stt module:
+    1. **SttWhisper** requires https://github.com/openai/whisper
+        - `pip install openai-whisper`
+        - model will be downloaded automatically, but you can do so manually
+            - Download OpenAi Whisper [models](https://github.com/openai/whisper#available-models-and-languages) (optional)
+            - into the [models-whisper](models-whisper) directory
+            - from [official source](https://github.com/openai/whisper/blob/f296bcd3fac41525f1c5ab467062776f8e13e4d0/whisper/__init__.py)
+    2. **SttNemo**
+        - TODO
+5. Install desired llm module:
+    1. **LlmOpenAi**
+    2. **LlmGpt4All**
+        - `pip install gpt4all` 
+        - Download LLM model for [GPT4All](https://gpt4all.io/index.html) (optional)
+            - model is required only for conversation feature 
+                - into the [models-llm](models-llm) directory
+                - for example from [official source](https://gpt4all.io/models/models.json)
 
 ## Running
 

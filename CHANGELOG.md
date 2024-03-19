@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** **Nvidia Nemo ASR** voice recognition support
 - Implement **Voice assistant** actor state http API & UI
 - Implement **Voice assistant** voice command for listing and changing voice
+- Implement **Voice assistant** tts using **Tacotron2**, **SpeechBrain**
+- Implement **Voice assistant** tts using OS voice properly (supports cancelling)
+- Implement **Voice assistant** separate outputs for RAW, SPEAK, CHAT
 - Improve shortcut pane layout
 - Improve nullability inference for window properties in settings
 - Fix **Voice assistant** plugin not waking up from hibernate properly
@@ -23,7 +26,6 @@ All notable changes to this project will be documented in this file. Format base
 - Fix popup resize null pointer exception
 - Fix popup resize not working
 - Fix popup not respecting min size properly
-
 
 ## [8.0.0] 2023 10 27
 - Implement Windows taskbar icons

@@ -10,7 +10,6 @@ from os import makedirs, remove
 from os.path import dirname, abspath, exists, join
 from io import BytesIO
 from warnings import filterwarnings
-from traceback import print_exc
 import soundfile as sf
 import numpy as np
 import torch
@@ -48,12 +47,8 @@ class SttWhisper(Stt):
     def _loop(self):
         self._loopWaitTillReady()
 
-        # initialize whisper
-        try:
-            import whisper
-        except ImportError:
-            self.write("ERR: whisper python module failed to load")
-            return
+        # initialize
+        import whisper
         # init model dir
         if self.sample_rate != whisper.audio.SAMPLE_RATE: raise Exception("Whisper must be 16000Hz sample rate")
         # init model dir
@@ -86,15 +81,16 @@ class SttNemo(Stt):
     def _loop(self):
         self._loopWaitTillReady()
 
-        # disable logging
+        # initialize
         import logging
         import nemo.utils as nemo_utils
+        import nemo.collections.asr as nemo_asr
+        # disable logging
         nemo_utils.logging.setLevel(logging.ERROR)
         # init cache dir
         cacheDir = join('cache', 'nemo')
         if not exists(cacheDir): makedirs(cacheDir)
         # load model
-        import nemo.collections.asr as nemo_asr
         model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name=self.model)
         model.to(torch.device(self.device))
         # loop

@@ -8,6 +8,7 @@ class Writer(Actor):
     def __init__(self):
         super().__init__("stdout", "Writer", "cpu", None, True)
         self.write = self
+        self.write(f"RAW: {self.name} starting")
 
     def __call__(self, event: str | Iterator | object):
         self.queue.put(event)

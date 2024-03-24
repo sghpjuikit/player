@@ -261,17 +261,12 @@ class TtsOs(TtsWithModelBase):
         self._engine = None
 
     def _loop(self):
-        # initialize
-        try:
-            import uuid
-            import rlvoice # https://github.com/Akul-AI/rlvoice-1
-        except ImportError as e:
-            self.write("rlvoice python module failed to load")
-            return
-
+        # init
+        import uuid
+        import rlvoice # https://github.com/Akul-AI/rlvoice-1
+        # init dir
         cache_dir = self._cache_dir("os")
-
-        # load engine
+        # init engine
         self._engine = rlvoice.init(debug=True)
         # self._engine.setProperty('volume', 1.0)
         # self._engine.setProperty('rate', 100)
@@ -370,19 +365,13 @@ class TtsCharAi(TtsWithModelBase):
         asyncio.run(self._loopasync())
 
     async def _loopasync(self):
-        # initialize character.ai
-        if len(self.token)==0:
-            self.write("Character.ai speech engine token missing")
-            return
-        try:
-            from PyCharacterAI import Client
-        except ImportError as e:
-            self.write("Character.ai python module failed to load")
-            return
-
+        # init
+        if len(self.token)==0: raise Exception("Auth token missing")
+        from PyCharacterAI import Client
+        # init dir
         cache_dir = self._cache_dir("charai", str(self.voice))
+        # init client
         client = None
-
         # loop
         with self.looping():
             while not self._stop:
@@ -504,21 +493,10 @@ class TtsCoqui(TtsWithModelBase):
         return MyRequestHandler()
 
     def _loop(self):
-        # initialize TTS
-        try:
-            from TTS.tts.configs.xtts_config import XttsConfig
-            from TTS.tts.models.xtts import Xtts
-        except ImportError:
-            self.write("ERR: TTS python module failed to load")
-            return
-
-        # initialize gpu
-        try:
-            assert torch.cuda.is_available(), "CUDA is not availabe on this machine."
-        except Exception:
-            self.write("ERR: Torch cuda not available. Make sure you have cuda compatible hardware and software")
-            return
-
+        # init
+        from TTS.tts.configs.xtts_config import XttsConfig
+        from TTS.tts.models.xtts import Xtts
+        # init voice
         voiceFile = os.path.join("voices-coqui", self.voice)
         if not os.path.exists(voiceFile):
             self.write("ERR: Voice " + self.voice + "does not exist")
@@ -597,13 +575,8 @@ class TtsHttp(TtsWithModelBase):
         self.port = port
 
     def _loop(self):
-        # initialize http
-        try:
-            import io, http.client
-        except ImportError:
-            self.write("ERR: http python module failed to load")
-            return
-
+        # init
+        import io, http.client
         # loop
         with self._looping():
             while not self._stop:
@@ -662,7 +635,6 @@ class TtsTacotron2(TtsWithModelBase):
         waveglow.eval()
         # load utils
         utils = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_tts_utils')
-
         # loop
         with self._looping():
             while not self._stop:
@@ -750,18 +722,13 @@ class TtsSpeechBrain(TtsWithModelBase):
         return text
 
     def _loop(self):
-        # initialize
-        try:
-            from speechbrain.inference.TTS import Tacotron2
-            from speechbrain.inference.vocoders import HIFIGAN
-        except ImportError:
-            self.write("ERR: speechbrain python module failed to load")
-            return
-
+        # init
+        from speechbrain.inference.TTS import Tacotron2
+        from speechbrain.inference.vocoders import HIFIGAN
+        # init model
         device = torch.device(self.device)
         tacotron2 = Tacotron2.from_hparams(source="speechbrain/tts-tacotron2-ljspeech", savedir=os.path.join("cache", "speechbrain" , "tts-tacotron2-ljspeech"))
         hifi_gan = HIFIGAN.from_hparams(source="speechbrain/tts-hifigan-ljspeech", savedir=os.path.join("cache", "speechbrain" , "tts-hifigan-ljspeech"))
-
         # loop
         with self._looping():
             while not self._stop:

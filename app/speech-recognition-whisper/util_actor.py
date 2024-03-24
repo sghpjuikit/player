@@ -1,6 +1,7 @@
 
 from queue import Queue, Empty
 from threading import Thread
+from typing import Callable
 from contextlib import contextmanager
 import time
 import traceback
@@ -13,11 +14,12 @@ class Event:
 
 class Actor:
 
-    def __init__(self, group: str, name: str, deviceName: str | None, write, enabled: bool):
+    def __init__(self, group: str, name: str, deviceName: str | None, write: Callable, enabled: bool):
         self.group = group
         self.name = name
         self.deviceName = deviceName
         self.write = write
+        if isinstance(self.write, Callable): self.write(f"RAW: {self.name} starting")
         self.queue = Queue()
         self.events_processed: int = 0
         self._stop: bool = False
@@ -48,7 +50,7 @@ class Actor:
         """
         Start processing all future elements in queue, on newly started thread. Asynchronous
         """
-        Thread(name=self.name, target=self._loop, daemon=True).start()
+        Thread(name=self.name, target=self._loopEx, daemon=True).start()
 
     def stop(self):
         """
@@ -63,13 +65,27 @@ class Actor:
         """
         pass
 
+    def _loopEx(self):
+        """
+        Convenience method for thread to run, calls _loop
+        Catches and logs exceptions.
+        """
+        try:
+            self._loop()
+        except ImportError as e:
+            self.write(f'ERR: {self.name} failed to load due to import error {e}')
+        except Exception as e:
+            self.write(f'ERR: {self.name} failed to run due error {e}')
+
     @contextmanager
     def _looping(self, set_loading: bool = True):
         """
         Convenience method around loop
+        Rethrows exceptions.
         """
         try:
             if set_loading: self._loaded = True
+            if set_loading: self.write(f"RAW: {self.name} loaded")
             yield
             self._clear_queue()
         except Exception as e:
@@ -81,7 +97,8 @@ class Actor:
     @contextmanager
     def _loopProcessEvent(self):
         """
-        Convenience method around single event processing in the loop
+        Convenience method around single event processing in the loop.
+        Catches and logs exceptions.
         """
         try:
             # if self._stop or not self.enabled: return
@@ -114,7 +131,7 @@ class Actor:
             self.processing_start = None
             self.processing = False
             self.processing_event = None
-            if not isinstance(e, ActorStoppedException): self.write("ERR: Error occurred:" + str(e))
+            if not isinstance(e, ActorStoppedException): self.write(f"ERR: {self.name} event processing error {e}")
             if not isinstance(e, ActorStoppedException): traceback.print_exc()
 
     def _loopLoadAndIgnoreEvents(self):

@@ -17,6 +17,111 @@ This is a voice assistant python program. Features:
    - terminates automatically when parent terminates
 - optimized for real-time use (instant chat/voice feedback)
 
+## Architecture
+
+
+###### Input
+```mermaid
+flowchart TD
+  MICROPHONE([MICROPHONE DEVICE]) -.->|Continuous read| A
+  A[Mic Actor] -->|Speech audio chunks| B
+  A -.->|Voice Activity Detection| A
+  B[Tts Actor] -->|Speech transcribed as text| C
+  C[Decision function - state machine]
+    
+  STDIN1([User]) -.-> STDIN
+  STDIN2([Application]) -.-> STDIN
+  STDIN([STDIN]) --->|Stream of lines| PARSER
+  PARSER[Line parser] -->|Text| C
+  C[Decision function - state machine]
+```
+
+###### Output
+```mermaid
+flowchart TD
+  H[Speech actor] -->|Stream of text sentences| I
+  I[Tts actor] -->|Stream of audio sentences| J
+  J[Audio playback actor] -.->|Continuous write|AD
+  AD([AUDIO_DEVICE])
+  
+  W[Writer actor] -->|Stream of characters| STDOUT
+  STDOUT([STDOUT])
+```
+
+###### Logic
+```mermaid
+flowchart TD
+    INPUT[/Input/] ----->|Text| C((State machine))
+    
+    C -.-> LOGIC{State Logic}
+    LOGIC -.->|state==chat| LOGIC_STATE_CHAT[Handle by llm]
+    LOGIC -.->|state==state1| LOGIC_STATE1[Handle by state logic]
+    LOGIC -.->|state==state2| LOGIC_STATE2[Handle by state logic]
+    LOGIC_STATE_CHAT -.->|state==chat| LLM1
+    C -.->|command| CE[Command Executor]
+    C -.->|Generic text| LLM2
+    
+    LLM1[LLM Actor - Chat]
+    LLM2[LLM Actor - User intent detection]
+
+    LLM2 -.->|Stream of characters| LLM2JOIN
+    LLM2JOIN([Join output]) -.->|Text| C
+    
+    LLM1 -->|Stream of characters| LLM1SPLIT
+    LLM1SPLIT([Split output])
+    LLM1SPLIT -->|Stream of characters| WRITER1[/Writer Actor/]
+    LLM1SPLIT -->|Stream of characters| SPEECH1[/Speech Actor/]
+
+    CE -.-> CE_STA[/Adjust state machine/]
+    CE -.-> CE_EXE[/Invoke direct command/]
+    CE -.-> CE_OUT[/Output command/]
+    CE_OUT --->|Structured Text| WRITER[/Writer Actor/]
+```
+
+###### Tts
+
+```mermaid
+flowchart TD
+  V[Tts Actor]
+  V  -.-> V0[/TtsNone/]
+  V  -.-> V1[/TtsOs/]
+  V1 -.->|python native| V1X[(OS voice)]
+  V  -.-> V3[/TtsCoqui/]
+  V  -.-> V5[/TtsTacotron2/]
+  V5 -.->|pytorch| V5X[(speechbrain)]
+  V  -.-> V6[/TtsSpeechBrain/]
+  V6 -.->|pytorch| V6X[(speechbrain lib)]
+  V3 -.->|python lib| V3X[(Coqui TTS)]
+  V  -.-> V4[/TtsHttp/]
+  V4 -.->|http| V4X[(Other self instance)]
+  V  -.-> V2[/TtsCharAi/]
+  V2 -.->|http| V2X[(Character.AI Service)]
+```
+
+###### LLM
+```mermaid
+flowchart TD
+  LLMX[Llm Actor]
+  LLMX     -.->|python code| LLMX0[/LlmNone/]
+  LLMX     -.->|python lib| LLMX1[/LlmOpenAi/]
+  LLMX     -.->|python lib| LLMX2[/LlmGpt4All/]
+  LLMX1    -.->|http| LLMX3[(ChatGPT)]
+  LLMX1    -.->|http| LLMX4[(Local Server)]
+  LLMX2    -.->|python| LLMX5[(Gpt4All Executor)]
+  LLMX4    -.-> LMSTUDIO[/LmStudio/]
+  LLMX4    -.-> LAMMACPP[/Lamma.cpp/]
+  LLMX4    -.-> LAMMAETC[/Etc./]
+  LMSTUDIO -.-> LMSTUDIOHW2[/CPU / CPU+GPU Offloading / GPU / Multiple GPUs /]
+```
+
+###### Http
+```mermaid
+flowchart LR
+  HTTP[Http API]
+  HTTP -->|endpoint| HTTP1[path: speech \n returns generated audio \n requires Tts==TtsCoqui]
+  HTTP -->|endpoint| HTTP2[path: actor \n returns all actor states for monitoring]
+```
+
 ## Installation
 
 1. Install python >= `3.11`

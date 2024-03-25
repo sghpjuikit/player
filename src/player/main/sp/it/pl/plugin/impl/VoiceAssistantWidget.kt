@@ -160,7 +160,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                      launch(VT) {
                         while (a) {
                            runTry {
-                              val url = plugin.value?.ttsServerUrl?.value?.net { "http://$it/actor"}
+                              val url = plugin.value?.httpUrl?.value?.net { "$it/actor"}
                               if (url==null) return@runTry
                               val actors = APP.http.client.get(url).bodyAsJs().asJsObject().value
                               FX {

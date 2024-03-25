@@ -211,6 +211,10 @@ Args:
   llm-chat-topk=$int(1-inf)
     The llm model of the OpenAI or OpenAI-compatible server
     Default: 40
+    
+  http-url=$host:port
+    Url of the http API of the locally running AI executor
+    Default: localhost:1236
 """
     )
     quit()
@@ -255,6 +259,8 @@ llmChatMaxTokens = int(arg('llm-chat-max-tokens', '400'))
 llmChatTemp = float(arg('llm-chat-temp', '0.5'))
 llmChatTopp = float(arg('llm-chat-topp', '0.95'))
 llmChatTopk = int(arg('llm-chat-topk', '40'))
+
+httpUrl = arg('http-url', 'localhost:1236')
 
 
 # speak engine actor, non-blocking
@@ -586,12 +592,11 @@ mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, ski
 
 # http
 http = None
-if len(ttsCoquiServer)>0:
-    if ':' not in ttsCoquiServer: raise AssertionError('coqui-server must be in format host:port')
-    host, _, port = ttsCoquiServer.partition(":")
-    http = Http(host, int(port), write)
-    http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tts, speak.tts.play if hasattr(speak.tts, 'play') else None]))))
-    if isinstance(speak.tts, TtsCoqui): http.handlers.append(speak.tts._httpHandler())
+if ':' not in httpUrl: raise AssertionError('http-url must be in format host:port')
+host, _, port = httpUrl.partition(":")
+http = Http(host, int(port), write)
+http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tts, speak.tts.play if hasattr(speak.tts, 'play') else None]))))
+if isinstance(speak.tts, TtsCoqui): http.handlers.append(speak.tts._httpHandler())
 
 # start actors
 if http is not None: http.start()

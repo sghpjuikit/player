@@ -133,6 +133,7 @@ class VoiceAssistant: PluginBase() {
             "stt-whisper-device=${sttWhisperDevice.value}",
             "stt-nemo-model=${sttNemoModel.value}",
             "stt-nemo-device=${sttNemoDevice.value}",
+            "http-url=${httpUrl.value.net { it.substringAfterLast("/") }}",
          )
          val command = EnvironmentContext.runAsProgramArgsTransformer(commandRaw)
          val process = ProcessBuilder(command)
@@ -476,6 +477,13 @@ class VoiceAssistant: PluginBase() {
    val llmChatTopK by cvn(40).min(1)
       .def(name = "Llm chat > top K", info = "")
 
+   /** Url of the http API of the AI executor */
+   val httpUrl by cv("http://localhost:1236")
+      .def(
+         name = "Http url",
+         info = "Url of the http API of the locally running AI executor"
+      )
+
    private var isRunning = false
 
    override fun start() {
@@ -501,6 +509,7 @@ class VoiceAssistant: PluginBase() {
          sttEngine, sttWhisperModel, sttWhisperDevice, sttNemoModel, sttNemoDevice,
          ttsEngine, ttsEngineCharAiToken, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl, ttsServer, ttsServerUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
+         httpUrl
       )
       val processChange = processChangeVals.map { it.chan() }.reduce { a, b -> a + b }
       processChange.throttleToLast(2.seconds).subscribe { restart() } on onClose

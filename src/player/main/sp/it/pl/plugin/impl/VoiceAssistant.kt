@@ -98,7 +98,7 @@ class VoiceAssistant: PluginBase() {
    private val dir = APP.location / "speech-recognition-whisper"
    private var setup: Fut<Process>? = null
    private fun setup(): Fut<Process> {
-      fun doOnError(e: Throwable?, text: String?) = logger.error(e) { "Starting python failed.\n${text.wrap()}" }.toUnit()
+      fun doOnError(eText: String, e: Throwable?, details: String?) = logger.error(e) { "$eText\n${details.wrap()}" }.toUnit()
       return runOn(NEW("SpeechRecognition-python-starter")) {
          val python = dir / "main.py"
          val commandRaw = listOf(
@@ -220,18 +220,17 @@ class VoiceAssistant: PluginBase() {
             val success = process.waitFor()
             stdoutListener.block()
             stderrListener.block()
-            if (success!=0) doOnError(null, stdout + stderr)
-            if (success!=0) fail { "Python process failed and returned $success" }
+            if (success!=0) doOnError("Python process failed and returned $success", null, stdout + stderr)
             installHibernationPreventionOff()
             process
          }.onError {
             installHibernationPreventionOff()
-            doOnError(it, "")
+            doOnError("Starting python failed.", it, "")
          }
 
          process
       }.onError {
-         doOnError(it, "")
+         doOnError("Starting python failed.", it, "")
       }
    }
 

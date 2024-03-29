@@ -4,6 +4,8 @@ import io.ktor.client.request.get
 import javafx.geometry.HPos
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.VPos
+import javafx.scene.Cursor
+import javafx.scene.Cursor.HAND
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane
 import javafx.scene.input.KeyCode.ENTER
@@ -39,12 +41,14 @@ import sp.it.pl.ui.pane.ConfigPane
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
 import sp.it.util.access.visible
+import sp.it.util.access.vn
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.launch
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.getDelegateConfig
+import sp.it.util.dev.fail
 import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsFalse
 import sp.it.util.file.json.JsNull
@@ -148,28 +152,41 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
                visible syncFrom mode.map { it == Out.HW }
 
-               content = flowPane(2.em.emScaled, 2.em.emScaled) {
-                  id = "hw"
+               val errorProperty = vn<Throwable>(null)
+               val actorStates = MapSet { a: ActorState -> a.type }
+               val contentEr = stackPane {
+                  id = "hw-er"
+                  lay += label {
+                     isWrapText = true
+                     cursor = HAND
+                     textProperty() syncFrom (errorProperty map { it?.message })
+                     onEventDown(MOUSE_CLICKED, PRIMARY) { APP.ui.actionPane.show(errorProperty.value) }
+                  }
+               }
+               val contentOk = flowPane(2.em.emScaled, 2.em.emScaled) {
+                  id = "hw-ok"
                   alignment = CENTER;
                   rowValignment = VPos.CENTER
                   columnHalignment = HPos.CENTER
-                  val actorStates = MapSet { a: ActorState -> a.type }
 
                   this@scrollPane.visibleProperty() attachWhileTrue {
                      var a by atomic(true)
                      launch(VT) {
                         while (a) {
                            runTry {
-                              val url = plugin.value?.httpUrl?.value?.net { "$it/actor"}
-                              if (url==null) return@runTry
-                              val actors = APP.http.client.get(url).bodyAsJs().asJsObject().value
+                              val url = plugin.value?.httpUrl?.value?.net { "$it/actor"} ?: fail { "Voice Assistant not running" }
+                              APP.http.client.get(url).bodyAsJs().asJsObject().value
+                           }.ifOk { actors ->
                               FX {
+                                 errorProperty.value = null
                                  actors.forEach { type, actor ->
                                     actorStates.getOrPut(type) { ActorState(type).also { lay += it } }.update(actor.asJsObject())
                                  }
                               }
                            }.ifError {
-                              it.printStackTrace()
+                              FX {
+                                 errorProperty.value = if (it is java.net.ConnectException) RuntimeException("Unable to connect") else it
+                              }
                            }
                            delay(1000)
                         }
@@ -177,6 +194,8 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                      Subscription { a = false }
                   }
                }
+
+               contentProperty() syncFrom (errorProperty map { if (it != null) contentEr else contentOk })
             }
             lay += hBox(5.emScaled, CENTER) {
                visible syncFrom mode.map { it != Out.HW }

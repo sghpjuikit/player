@@ -5,10 +5,12 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import mu.KLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.util.async.sleep
 import sp.it.util.async.threadFactory
 import sp.it.util.functional.Option.Some
+import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
 import sp.it.util.type.volatile
 
@@ -24,12 +26,13 @@ class ActorVt<T>(
 ) {
    private var isClosed = AtomicBoolean(true)
    private var isRunning by volatile(true)
+   private val actionSafe = { t: T -> runTry { action(t) }.ifError { logger.error(it) { "$name failed to process event" } } }
 
    init {
       Thread.ofVirtual().name(name).start {
          while (true)
             if (queue.isEmpty() && !isRunning) break
-            else action(queue.take().value)
+            else actionSafe(queue.take().value)
       }
    }
 
@@ -50,6 +53,8 @@ class ActorVt<T>(
       isRunning = false
       while (queue.isNotEmpty()) sleep(1)
    }
+
+   companion object: KLogging()
 }
 
 /**
@@ -61,11 +66,12 @@ class ActorSe<T>(
    private val name: String,
    private val action: (T) -> Unit
 ) {
+   private val actionSafe = { t: T -> runTry { action(t) }.ifError { logger.error(it) { "Failed to process event" } } }
    private val executor = ThreadPoolExecutor(0, 1, 10, TimeUnit.SECONDS, LinkedBlockingQueue(), threadFactory(name, false))
 
    /** Send event for processing. Returns immediatelly. */
    operator fun invoke(message: T): Unit =
-      executor.execute { action(message) }
+      executor.execute { actionSafe(message) }
 
    /** Close actor. New events are ignored. Queued events will be processed. Returns immediatelly. */
    fun close(): Unit =
@@ -75,4 +81,6 @@ class ActorSe<T>(
    @Blocking
    fun closeAndWait(): Unit =
       executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS).toUnit()
+
+   companion object: KLogging()
 }

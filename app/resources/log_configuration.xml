@@ -17,7 +17,7 @@
             <MaxFileSize>512KB</MaxFileSize>
         </triggeringPolicy>
         <encoder>
-            <pattern>%d %-5level [%-15.-15thread] %logger{36} - %msg%n</pattern>
+            <pattern>%d %-5level [%-15.-15thread] %logger{36} - %msg %n</pattern>
         </encoder>
     </appender>
 
@@ -29,7 +29,7 @@
         </filter>
         <encoder>
             <!-- {0} log only class name (no packages)-->
-            <pattern>%d{mm:ss.SSS} %.-1level [%15.-15thread] %logger{0} - %msg%n</pattern>
+            <pattern>%d{mm:ss.SSS} %highlight(%.-1level) [%15.-15thread] %logger{0} - %msg%n</pattern>
         </encoder>
     </appender>
 

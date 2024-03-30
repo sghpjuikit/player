@@ -320,8 +320,10 @@ assist_last_diff = 0
 assist = Assist()
 assist_function_prompt = f"""
 - repeat // last speech
+- list-commands
 - what-can-you-do
-- start-conversation
+- restart assistant|yourself
+- start|restart|stop-conversation
 - list-available-voices
 - change-voice-$voice // resolve to one from {', '.join(voices)}
 - open-weather-info

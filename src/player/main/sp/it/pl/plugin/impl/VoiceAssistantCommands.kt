@@ -77,22 +77,41 @@ fun SpeakContext.voiceCommandOpenWidget(text: String): ComMatch =
    }
 
 fun SpeakContext.voiceCommandOsShutdown(text: String): ComMatch =
-   if (matches(text) && Os.WINDOWS.isCurrent) Windows.shutdown().map { null }.mapError { it.localizedMessage } else null
+   if (matches(text))
+      if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
+      else confirming("Do you really wish to shut down computer?", "yes") { Windows.shutdown().map { null }.mapError { it.localizedMessage } }
+   else null
 
 fun SpeakContext.voiceCommandOsRestart(text: String): ComMatch =
-   if (matches(text) && Os.WINDOWS.isCurrent) Windows.restart().map { null }.mapError { it.localizedMessage } else null
+   if (matches(text))
+      if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
+      else confirming("Do you really wish to restart computer?", "yes") { Windows.restart().map { null }.mapError { it.localizedMessage } }
+   else null
 
 fun SpeakContext.voiceCommandOsSleep(text: String): ComMatch =
-   if (matches(text) && Os.WINDOWS.isCurrent) Windows.sleep().map { null }.mapError { it.localizedMessage } else null
+   if (matches(text))
+      if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
+      else confirming("Do you really wish to sleep computer?", "yes") { Windows.sleep().map { null }.mapError { it.localizedMessage } }
+   else null
 
 fun SpeakContext.voiceCommandOsHibernate(text: String): ComMatch =
-   if (matches(text) && Os.WINDOWS.isCurrent) Windows.hibernate().map { null }.mapError { it.localizedMessage } else null
+   if (matches(text))
+      if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
+      else confirming("Do you really wish to hibernate computer?", "yes") { Windows.hibernate().map { null }.mapError { it.localizedMessage } }
+   else null
 
-fun SpeakContext.voiceCommandOsLock(text: String): ComMatch =
-   if (matches(text) && Os.WINDOWS.isCurrent) Windows.lock().map { null }.mapError { it.localizedMessage } else null
 
 fun SpeakContext.voiceCommandOsLogOff(text: String): ComMatch =
-   if (matches(text) && Os.WINDOWS.isCurrent) Windows.logOff().map { null }.mapError { it.localizedMessage } else null
+   if (matches(text))
+      if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
+      else confirming("Do you really wish to logOff computer?", "yes") { Windows.logOff().map { null }.mapError { it.localizedMessage } }
+   else null
+
+fun SpeakContext.voiceCommandOsLock(text: String): ComMatch =
+   if (matches(text))
+      if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
+      else Windows.lock().map { null }.mapError { it.localizedMessage }
+   else null
 
 fun SpeakContext.voiceCommandSetReminder(text: String): ComMatch =
    if (matches(text)) {

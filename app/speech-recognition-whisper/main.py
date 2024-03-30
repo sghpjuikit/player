@@ -322,8 +322,9 @@ assist_function_prompt = f"""
 - repeat // last speech
 - list-commands
 - what-can-you-do
-- restart assistant|yourself
+- restart-assistant|yourself
 - start|restart|stop-conversation
+- (shut-down|restart|hibernate|sleep|lock|log-off)-system|pc|computer|os
 - list-available-voices
 - change-voice-$voice // resolve to one from {', '.join(voices)}
 - open-weather-info

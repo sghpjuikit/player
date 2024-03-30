@@ -29,7 +29,8 @@ class VoiceAssistantTest: FreeSpec({
 
       voiceCommandRegex("speak \$text").toPattern().pattern() shouldBe "speak *.*"
 
-      voiceCommandRegex("count from \$number to \$number").toPattern().matcher("count from 1 to 10").matches() shouldBe true
+      voiceCommandRegex("count from \$number to \$number").matches("count from 1 to 10") shouldBe true
+      voiceCommandRegex("yes").matches("yes") shouldBe true
    }
 
 

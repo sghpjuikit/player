@@ -59,7 +59,6 @@ import sp.it.util.conf.uiNoCustomUnsealedValue
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
-import sp.it.util.dev.fail
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.functional.Try
@@ -78,7 +77,7 @@ import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
-import sp.it.util.system.Os
+import sp.it.util.system.Os.WINDOWS
 import sp.it.util.text.applyBackspace
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.concatApplyBackspace
@@ -254,33 +253,35 @@ class VoiceAssistant: PluginBase() {
 
    /** Speech handlers called when user has spoken. Matched in order. */
    val handlers by cList(
-         SpeakHandler(                            "Help", "help")                                         { if (matches(it)) Ok("List commands by saying, list commands") else null },
-         SpeakHandler(                      "Do nothing", "ignore")                                       { if (matches(it)) Ok(null) else null },
-         SpeakHandler(               "Restart Assistant", "restart assistant|yourself")                   { if (matches(it)) { speak("Ok"); restart(); Ok(null) } else null },
-         SpeakHandler(                   "Help Commands", "list commands")                                { if (matches(it)) Ok(handlersHelpText()) else null },
-         SpeakHandler(              "Start conversation", "start conversation")                           { if (matches(it)) { llmOn = true; Ok(null) } else null },
-         SpeakHandler(            "Restart conversation", "restart conversation")                         { if (matches(it)) { llmOn = true; Ok(null) } else null },
-         SpeakHandler(               "Stop conversation", "stop conversation")                            { if (matches(it)) { llmOn = false; Ok(null) } else null },
-         SpeakHandler(                    "Current time", "what time is it")                              { if (matches(it)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
-         SpeakHandler(                    "Current date", "what date is it")                              { if (matches(it)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
-         SpeakHandler(                 "Resume playback", "play|start|resume|continue music|playback")    { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
-         SpeakHandler(                  "Pause playback", "stop|end|pause music|playback")                { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
-         SpeakHandler(              "Play previous song", "play previous song")                           { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
-         SpeakHandler(                  "Play next song", "play next song")                               { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
-         SpeakHandler(       "Llm answer from clipboard", "generate|answer|write from? clipboard \$text") { voiceCommandGenerateClipboard(it) },
-         SpeakHandler(                      "Llm answer", "generate|answer|write \$text")                 { voiceCommandGenerate(it) },
-         SpeakHandler(            "Speak from clipboard", "speak|say from? clipboard")                    { voiceCommandSpeakClipboard(it) },
-         SpeakHandler(                           "Speak", "speak|say \$text")                             { voiceCommandSpeakText(it) },
-         SpeakHandler("Close window (${keys("ALT+F4")})", "close|hide window")                            { voiceCommandAltF4(it) },
-         SpeakHandler(             "Open widget by name", "open|show widget? \$widget-name widget?")      { voiceCommandOpenWidget(it) },
-         SpeakHandler(                     "Shutdown OS", "shut down system|pc|computer|os")              { voiceCommandOsShutdown(it) },
-         SpeakHandler(                      "Restart OS", "restart system|pc|computer|os")                { voiceCommandOsRestart(it) },
-         SpeakHandler(                    "Hibernate OS", "hibernate system|pc|computer|os")              { voiceCommandOsHibernate(it) },
-         SpeakHandler(                        "Sleep OS", "sleep system|pc|computer|os")                  { voiceCommandOsSleep(it) },
-         SpeakHandler(                         "Lock OS", "lock system|pc|computer|os")                   { voiceCommandOsLock(it) },
-         SpeakHandler(                      "Log off OS", "log off system|pc|computer|os")                { voiceCommandOsLogOff(it) },
-         SpeakHandler(                    "Set reminder", "set reminder in|on \$time \$text")             { voiceCommandSetReminder(it) },
-         SpeakHandler(                     "Count to...", "count from \$from to \$to")                    { voiceCommandCountTo(it) },
+         listOfNotNull(
+            SpeakHandler(                            "Help", "help")                                         { if (matches(it)) Ok("List commands by saying, list commands") else null },
+            SpeakHandler(                      "Do nothing", "ignore")                                       { if (matches(it)) Ok(null) else null },
+            SpeakHandler(               "Restart Assistant", "restart assistant|yourself")                   { if (matches(it)) { speak("Ok"); restart(); Ok(null) } else null },
+            SpeakHandler(                   "Help Commands", "list commands")                                { if (matches(it)) Ok(handlersHelpText()) else null },
+            SpeakHandler(              "Start conversation", "start conversation")                           { if (matches(it)) { llmOn = true; Ok(null) } else null },
+            SpeakHandler(            "Restart conversation", "restart conversation")                         { if (matches(it)) { llmOn = true; Ok(null) } else null },
+            SpeakHandler(               "Stop conversation", "stop conversation")                            { if (matches(it)) { llmOn = false; Ok(null) } else null },
+            SpeakHandler(                    "Current time", "what time is it")                              { if (matches(it)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" }) else null },
+            SpeakHandler(                    "Current date", "what date is it")                              { if (matches(it)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" }) else null },
+            SpeakHandler(                 "Resume playback", "play|start|resume|continue music|playback")    { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
+            SpeakHandler(                  "Pause playback", "stop|end|pause music|playback")                { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
+            SpeakHandler(              "Play previous song", "play previous song")                           { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
+            SpeakHandler(                  "Play next song", "play next song")                               { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
+            SpeakHandler(       "Llm answer from clipboard", "generate|answer|write from? clipboard \$text") { voiceCommandGenerateClipboard(it) },
+            SpeakHandler(                      "Llm answer", "generate|answer|write \$text")                 { voiceCommandGenerate(it) },
+            SpeakHandler(            "Speak from clipboard", "speak|say from? clipboard")                    { voiceCommandSpeakClipboard(it) },
+            SpeakHandler(                           "Speak", "speak|say \$text")                             { voiceCommandSpeakText(it) },
+            SpeakHandler("Close window (${keys("ALT+F4")})", "close|hide window")                            { voiceCommandAltF4(it) },
+            SpeakHandler(             "Open widget by name", "open|show widget? \$widget-name widget?")      { voiceCommandOpenWidget(it) },
+            SpeakHandler(                     "Shutdown OS", "shut down system|pc|computer|os")              { voiceCommandOsShutdown(it) }.takeIf { WINDOWS.isCurrent },
+            SpeakHandler(                      "Restart OS", "restart system|pc|computer|os")                { voiceCommandOsRestart(it) }.takeIf { WINDOWS.isCurrent },
+            SpeakHandler(                    "Hibernate OS", "hibernate system|pc|computer|os")              { voiceCommandOsHibernate(it) }.takeIf { WINDOWS.isCurrent },
+            SpeakHandler(                        "Sleep OS", "sleep system|pc|computer|os")                  { voiceCommandOsSleep(it) }.takeIf { WINDOWS.isCurrent },
+            SpeakHandler(                         "Lock OS", "lock system|pc|computer|os")                   { voiceCommandOsLock(it) }.takeIf { WINDOWS.isCurrent },
+            SpeakHandler(                      "Log off OS", "log off system|pc|computer|os")                { voiceCommandOsLogOff(it) }.takeIf { WINDOWS.isCurrent },
+            SpeakHandler(                    "Set reminder", "set reminder in|on \$time \$text")             { voiceCommandSetReminder(it) },
+            SpeakHandler(                     "Count to...", "count from \$from to \$to")                    { voiceCommandCountTo(it) },
+         )
       )
       .noPersist().readOnly().butElement { uiConverter { "${it.name} -> ${it.commandUi}" } }
       .def(
@@ -554,16 +555,23 @@ class VoiceAssistant: PluginBase() {
    }
 
    private fun installHibernationPreventionOn() {
-      if (Os.WINDOWS.isCurrent) Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS or Kernel32.ES_SYSTEM_REQUIRED)
+      if (WINDOWS.isCurrent) Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS or Kernel32.ES_SYSTEM_REQUIRED)
    }
 
    private fun installHibernationPreventionOff() {
-      if (Os.WINDOWS.isCurrent) Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS)
+      if (WINDOWS.isCurrent) Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS)
+   }
+
+   private val confirmers = mutableListOf<SpeakConfirmer>()
+
+   private fun confirm(text: String) {
+      val h = confirmers.removeLastOrNull()
+      if (h != null && h.regex.matches(text)) h.action(text)
    }
 
    private fun handleInput(text: String, state: String) {
       when (state) {
-         "RAW" -> Unit
+         "RAW" -> runFX { confirm(text) }
          "USER" -> runFX { handleSpeech(text, user = true) }
          "SYS" -> Unit
          "CHAT" -> runFX { handleSpeech(text) }
@@ -637,12 +645,23 @@ class VoiceAssistant: PluginBase() {
    data class SpeakContext(val handler: SpeakHandler, val plugin: VoiceAssistant) {
       /** [regex].matches(text) */
       fun matches(text: String): Boolean = handler.regex.matches(text)
+
+      public fun confirming(confirmText: String, commandUi: String, action: (String) -> Try<String?, String?>?): Try<String?, String?>? {
+         runFX { plugin.confirmers += SpeakConfirmer(commandUi, action) }
+         return Ok(confirmText)
+      }
    }
 
    /** Speech event handler. In ui shown as `"$name -> $commandUi"`. Action returns Try (with text to speak or null if none) or null if no match. */
    data class SpeakHandler(val name: String, val commandUi: String, val action: SpeakContext.(String) -> Try<String?, String?>?) {
       /** [commandUi] turned into regex */
       val regex by lazy { voiceCommandRegex(commandUi) }
+   }
+
+   /** Speech event handler. In ui shown as `"$name -> $commandUi"`. Action returns Try (with text to speak or null if none) or null if no match. */
+   private data class SpeakConfirmer(val commandUi: String, val action: (String) -> Try<String?, String?>?) {
+      /** [commandUi] turned into regex */
+      val regex = voiceCommandRegex(commandUi)
    }
 
    companion object: PluginInfo, KLogging() {

@@ -85,6 +85,8 @@ fun <T: Any?> cnOr(parent: KProperty0<Property<T>>, child: Property<T>, initialV
 /** Observable reified configurable list. Backed by [ListConfig]. */
 inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), observableArrayList(*initialItems))).nonNull()
 /** Observable reified configurable list. Backed by [ListConfig]. */
+inline fun <reified T: Any?> cList(initialItems: Collection<T>): ConfL<T> = ConfL(ConfList(type(), observableArrayList(initialItems))).nonNull()
+/** Observable reified configurable list. Backed by [ListConfig]. */
 inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemToConfigurable: (T) -> Configurable<*>, vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), itemFactory, itemToConfigurable, *initialItems)).nonNull()
 /** Observable reified configurable checked list. Backed by [CheckListConfig]. */
 inline fun <reified T: Any?> cCheckList(vararg initialItems: T): ConfCheckL<T, Boolean> = ConfCheckL(CheckList.nonNull(type(), initialItems.toList())).nonNull()

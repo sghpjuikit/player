@@ -148,7 +148,8 @@ class VoiceAssistant: PluginBase() {
             val p = object {
                var state = null as String?
                var str = StringBuilder("")
-               fun process(s: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
+               fun process(t: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
+                  var s = t.replace("\r\n", "\n")
                   if ("\n" in s) {
                      s.split("\n").dropLast(1).forEach { processSingle(it.un(), onS, onE) }
                      str.clear()

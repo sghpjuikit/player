@@ -512,9 +512,13 @@ class AssistStandard:
 assistStand = AssistStandard()
 assist = assistStand
 
-def skip():
+def skipWithoutSound():
     if llm.generating: llm.generating = False
     speak.skipWithoutSound()
+
+def skip():
+    if llm.generating: llm.generating = False
+    speak.skip()
 
 def callback(text):
     if sysTerminating: return
@@ -538,7 +542,7 @@ def callback(text):
     text = text.lstrip(wake_word).strip().lstrip(",").lstrip(".").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
 
     # cancel any ongoing activity
-    skip()
+    skipWithoutSound()
 
     # handle by active assistant state
     try:

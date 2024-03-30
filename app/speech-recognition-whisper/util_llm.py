@@ -192,7 +192,7 @@ class LlmHttpOpenAi(Llm):
 
                                 stream = client.chat.completions.create(
                                     model=self.modelName, messages=messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
-                                    stream=True, timeout=Timeout(write=1.0, read=None, connect=1.0, pool=None),
+                                    stream=True, timeout=Timeout(1.0),
                                     stop = "-COM" if isCommand else [],
                                 )
                                 try:
@@ -226,8 +226,7 @@ class LlmHttpOpenAi(Llm):
                                     command = self.commandExecutor(command)
                                     commandIterator.put(command)
                             except Exception as x:
-                                if isCommand:
-                                    commandIterator.put('unidentified')
+                                if isCommand: commandIterator.put('unidentified')
                                 raise x
 
                         except openai.APIConnectionError as e:

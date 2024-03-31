@@ -14,7 +14,8 @@ from util_tts import Tts, TtsNone, TtsOs, TtsCharAi, TtsCoqui, TtsHttp, TtsTacot
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
-from util_http import Http, HttpHandler, HttpHandlerState
+from util_http import Http, HttpHandler
+from util_http_handlers import HttpHandlerState, HttpHandlerIntent
 from util_stt import SttNone, SttWhisper, SttNemo
 from util_wrt import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
@@ -324,10 +325,11 @@ assist_function_prompt = f"""
 - what-can-you-do
 - restart-assistant|yourself
 - start|restart|stop-conversation
-- (shut-down|restart|hibernate|sleep|lock|log-off)-system|pc|computer|os
+- shut_down|restart|hibernate|sleep|lock|log_off-system|pc|computer|os
 - list-available-voices
 - change-voice-$voice // resolve to one from {', '.join(voices)}
-- open-weather-info
+- open-$widget_name  // various tasks can be acomplished using appropriate widget
+- open-weather
 - play-music
 - stop-music
 - play-previous-song
@@ -603,6 +605,7 @@ if ':' not in httpUrl: raise AssertionError('http-url must be in format host:por
 host, _, port = httpUrl.partition(":")
 http = Http(host, int(port), write)
 http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tts, speak.tts.play if hasattr(speak.tts, 'play') else None]))))
+http.handlers.append(HttpHandlerIntent(llm))
 if isinstance(speak.tts, TtsCoqui): http.handlers.append(speak.tts._httpHandler())
 
 # start actors

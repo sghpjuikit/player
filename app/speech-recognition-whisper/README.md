@@ -120,7 +120,118 @@ flowchart LR
   HTTP[Http API]
   HTTP -->|endpoint| HTTP1[path: speech \n returns generated audio \n requires Tts==TtsCoqui]
   HTTP -->|endpoint| HTTP2[path: actor \n returns all actor states for monitoring]
+  HTTP -->|endpoint| HTTP3[path: intent \n returns result of intent detection \n requires Llm!=LlmNone
 ```
+
+## Features
+
+###### Command matching
+Command can be matched with arbitrary logic. There is built-in regex-like matcher that can be used.
+Example of matcher with OR part, optional part and parameter: `open|show widget? $widget-name widget?`
+See `SpeakHandler` class.
+```kotlin
+SpeakHandler(name = "Log off OS", matcher = "log off system|pc|computer|os") {
+   if (matches(text)) {
+     logOff()
+     Ok()
+   } else
+     null
+}
+```
+
+###### Command feedback
+Upon matching command, it returns `Try<String?, String?>?`, meaning success/error/no match with optional speech feedback.
+This can be arbitrary complex, for example matching command but refusing match because of invalid parameter value:
+```kotlin
+SpeakHandler(name = "Say hello", matcher = "say hello"
+) {
+  if (matches(text))
+    if (feelLikIt()) Ok("Hello")
+    else Error("No thank you")
+  else
+    null // no match
+}
+```
+
+###### Command parameters
+It is up to the command logic to extract the parameters from the command, but the built in
+matcher is transformed into regex and matcher parameters to regex groups, so use `Regex` API.
+```kotlin
+SpeakHandler(...) {
+   if (matches(text)) {
+      // using regex API
+      val args = regex.matchEntire(text)!!.groupValues  // regex implicitly available, matching guaranteed to pass here
+      // manually
+      val arg1 = text.substringAfter("command-prefix") // arbitrary logic
+      
+      if (validateMyInput(arg1)==false) return null // return no match for bad parameter
+     ...
+   } else
+     null
+}
+```
+
+###### Command intent detection
+Sometimes the parameter value should be more flexible than simply used as spoken by user.
+User may not remember exact parameter values or even exact command. 
+If no command matches, and LLM Actor is running, the command is passed to LLM for intent-detection.
+
+In this phase, LLM takes a prompt with available commands and user speech and creates command by itself.
+If LLM assumes no command matches what user intended, it returns no-op command.
+The prompt with available commands needs not be structured and may have smart hints for the LLM,
+such as comment explaining the command parameters or giving range of possible values).
+```
+Available functions:
+- open-widget-$widget_name  // available widgets: weather, playlist, ...
+- ignored // when no command is probable
+```
+
+This way, saying `whats the weather like` may produce actual command `open-widget-weather-info`.
+This makes voice control much more flexible.
+This is automatic and requires no code or setup other than `Llm` actor enabled and good model
+(`mistral instruct v0.2 7B` or `Nous Hermes 2 Mistral DPO 7B` do a great job)
+
+###### Command parameter intent detection
+Sometimes the command or parameter is dynamic or the command hint for the LLM is too long or troublesome.
+Command may, after successful match, even after intent detection, use LLM to detect correct parameter value.
+For this `intent` function may be used, which invokes customized intent detection.
+One may wish to simply pass the result of the `intent` function back into itself, in such case be careful to break possible infinite loop.
+```kotlin
+fun SpeakContext.openWidget(text: String, breakLoop: Boolean = false): ComMatch =
+   if (matches(text)) {
+      val widgetName = ...
+      if (f!=null) openWidget(widgetName)
+      // widget found
+      if (f!=null) Ok("Ok")
+      // widget not found and we already tried custom intent 
+      else if (breakLoop) Error("No widget $fNameRaw available.")
+      // widget not found, try custom intent 
+      else intent(text, "${availableWidgets()}\n- unidentified // no recognized widget", f) { openWidget("open widget $it", true) }
+   } else {
+      // no match after custom intent was originally a match
+      if (!intent) Error("No such widget available.")
+      // no match
+      else null
+   }
+```
+
+###### General intent detection
+The `intent` http API is not limited in any way and can be used by any application and in any way.
+It is simply a service to intelligently convert input into output.
+
+###### Command confirmation
+Sometimes a command should require a confirmation before being invoked.
+For this command action may put itself into a confirmation queue using `confirming` function,
+which invokes the actual behavior after user confirms intention.
+The confirmation queue is `first-in-last-out` and (last) command is cleared on first user voice response, regardless of matching result.
+The confirmation request and confirmation matcher are both flexible. Example of such command:
+```kotlin
+SpeakHandler(name = "Log off OS", matcher = "log off system|pc|computer|os") {
+   if (matches(text)) confirming("Do you really wish to turn off pc?", "yes|indeed|roger") { turnOffPc() }
+   else null
+}
+```
+
 
 ## Installation
 

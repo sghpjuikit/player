@@ -65,15 +65,23 @@ fun SpeakContext.voiceCommandAltF4(text: String): ComMatch =
    } else
       null
 
-fun SpeakContext.voiceCommandOpenWidget(text: String): ComMatch =
+fun SpeakContext.availableWidgets() =
+   (plugin.commandWidgetNames.keys + APP.widgetManager.factories.getComponentFactories().map { it.name })
+      .map { "- ${it.lowercase()}" }
+      .joinToString("\n")
+
+fun SpeakContext.voiceCommandOpenWidget(text: String, intent: Boolean = true): ComMatch =
    if (text.startsWith("open")) {
       val fNameRaw = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
       val fName = plugin.commandWidgetNames.get(fNameRaw) ?: fNameRaw
       val f = APP.widgetManager.factories.getComponentFactories().find { it.name.camelToSpaceCase() equalsNc fName }
       if (f!=null) ComponentLoaderStrategy.DOCK.loader(f)
-      if (f!=null) Ok("Ok") else Error("No widget $fNameRaw available.")
+      if (f!=null) Ok("Ok")
+      else if (!intent) Error("No widget $fNameRaw available.")
+      else intent(text, "${availableWidgets()}\n- unidentified // no recognized function", fNameRaw) { voiceCommandOpenWidget("open widget $it", false) }
    } else {
-      null
+      if (!intent) Error("No such widget available.")
+      else null
    }
 
 fun SpeakContext.voiceCommandOsShutdown(text: String): ComMatch =
@@ -99,7 +107,6 @@ fun SpeakContext.voiceCommandOsHibernate(text: String): ComMatch =
       if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
       else confirming("Do you really wish to hibernate computer?", "yes") { Windows.hibernate().map { null }.mapError { it.localizedMessage } }
    else null
-
 
 fun SpeakContext.voiceCommandOsLogOff(text: String): ComMatch =
    if (matches(text))

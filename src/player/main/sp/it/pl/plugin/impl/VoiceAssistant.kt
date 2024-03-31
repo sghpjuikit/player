@@ -1,6 +1,9 @@
 package sp.it.pl.plugin.impl
 
 import com.sun.jna.platform.win32.Kernel32
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.statement.bodyAsText
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.lang.StringBuilder
@@ -10,9 +13,12 @@ import java.util.regex.Pattern
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Line
 import javax.sound.sampled.TargetDataLine
+import kotlinx.coroutines.invoke
 import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
+import sp.it.pl.core.bodyAsJs
+import sp.it.pl.core.bodyJs
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.main.APP
@@ -31,6 +37,8 @@ import sp.it.util.access.vn
 import sp.it.util.action.IsAction
 import sp.it.util.async.NEW
 import sp.it.util.async.actor.ActorVt
+import sp.it.util.async.coroutine.VT
+import sp.it.util.async.coroutine.launch
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runOn
@@ -59,8 +67,11 @@ import sp.it.util.conf.uiNoCustomUnsealedValue
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
+import sp.it.util.dev.fail
 import sp.it.util.file.children
 import sp.it.util.file.div
+import sp.it.util.file.json.JsObject
+import sp.it.util.file.json.JsString
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.getAny
@@ -650,6 +661,21 @@ class VoiceAssistant: PluginBase() {
          runFX { plugin.confirmers += SpeakConfirmer(commandUi, action) }
          return Ok(confirmText)
       }
+
+      public fun intent(text: String, functions: String, userPrompt: String, block: (String) -> Try<String?, String?>?): Try<String?, String?>? {
+         launch(VT) {
+            runTry {
+               val url = plugin.httpUrl.value.net { "$it/intent"}
+               val command = APP.http.client.post(url) { bodyJs(JsObject(mapOf("functions" to JsString(functions), "userPrompt" to JsString(userPrompt)))) }.bodyAsText()
+               var result = block(command)
+               result?.getAny().ifNotNull(plugin::speak)
+            }.ifError {
+               logger.error(it) { "Failed to understand command $text" }
+               plugin.speak("Failed to understand command $text")
+            }
+         }
+         return Ok(null)
+      }
    }
 
    /** Speech event handler. In ui shown as `"$name -> $commandUi"`. Action returns Try (with text to speak or null if none) or null if no match. */
@@ -658,7 +684,7 @@ class VoiceAssistant: PluginBase() {
       val regex by lazy { voiceCommandRegex(commandUi) }
    }
 
-   /** Speech event handler. In ui shown as `"$name -> $commandUi"`. Action returns Try (with text to speak or null if none) or null if no match. */
+   /** Speech event confirmer. In ui shown as `"$name -> $commandUi"`. Action returns Try (with text to speak or null if none) or null if no match. */
    private data class SpeakConfirmer(val commandUi: String, val action: (String) -> Try<String?, String?>?) {
       /** [commandUi] turned into regex */
       val regex = voiceCommandRegex(commandUi)

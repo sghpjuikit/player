@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -97,6 +98,7 @@ import static java.lang.Math.asin;
 import static java.lang.Math.ceil;
 import static java.lang.Math.random;
 import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
@@ -140,11 +142,19 @@ import static sp.it.util.units.DurationKt.toHMSMs;
 @SuppressWarnings({"FieldCanBeLocal", "unused", "UnnecessaryLocalVariable", "SameParameterValue", "UnusedReturnValue", "UnaryPlus"})
 interface Utils {
 
-	private static Font loadUiFont() {
+	public static Font loadUiFont() {
 		try {
-			return Font.loadFont(new FileInputStream(new File(APP.getLocation().getWidgets(), "Comet/rsc/Tele-Marines.TTF")), 14.0);
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
+			return requireNonNull(Font.font("Tele-Marines", 14.0));
+		} catch (Throwable x) {
+			try {
+				System.out.printf(new File(APP.getLocation().getWidgets(), "Comet/rsc/Tele-Marines.ttf").getAbsolutePath());
+				System.out.printf("" + new File(APP.getLocation().getWidgets(), "Comet/rsc/Tele-Marines.ttf").exists());
+				return requireNonNull(
+					Font.loadFont(new FileInputStream(new File(APP.getLocation().getWidgets(), "Comet/rsc/Tele-Marines.ttf")), 14.0)
+				);
+			} catch (Throwable e) {
+				return Font.getDefault();
+			}
 		}
 	}
 

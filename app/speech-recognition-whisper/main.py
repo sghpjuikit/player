@@ -538,8 +538,8 @@ def callback(text):
     assist_last_at = time.time()
 
     # sanitize
-    textSanitized = textSanitized.lstrip(wake_word).strip().lstrip(",").lstrip(".").rstrip(".").strip()
-    text = text.lstrip(wake_word).strip().lstrip(",").lstrip(".").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
+    textSanitized = textSanitized.removeprefix(wake_word).strip().lstrip(",").lstrip(".").rstrip(".").strip()
+    text = text.removeprefix(wake_word).strip().lstrip(",").lstrip(".").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
 
     # cancel any ongoing activity
     skipWithoutSound()

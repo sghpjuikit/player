@@ -9,7 +9,6 @@ from util_wrt import Writer
 from os import makedirs, remove
 from os.path import dirname, abspath, exists, join
 from io import BytesIO
-from warnings import filterwarnings
 import soundfile as sf
 import numpy as np
 import torch
@@ -56,8 +55,6 @@ class SttWhisper(Stt):
         if not exists(modelDir): makedirs(modelDir)
         # load model
         model = whisper.load_model(self.model, download_root=modelDir, device=torch.device(self.device), in_memory=True)
-        # disable logging
-        filterwarnings("ignore", category=UserWarning, module='whisper.transcribe', lineno=114)
         # loop
         with self._looping():
             while not self._stop:
@@ -82,11 +79,13 @@ class SttNemo(Stt):
         self._loopWaitTillReady()
 
         # initialize
-        import logging
         import nemo.utils as nemo_utils
+        from nemo.utils.nemo_logging import Logger
         import nemo.collections.asr as nemo_asr
         # disable logging
+        import logging
         nemo_utils.logging.setLevel(logging.ERROR)
+        logging.getLogger('nemo_logging').setLevel(logging.ERROR)
         # init cache dir
         cacheDir = join('cache', 'nemo')
         if not exists(cacheDir): makedirs(cacheDir)
@@ -106,7 +105,7 @@ class SttNemo(Stt):
                     sf.write(f, audio_array, sampling_rate)
 
                     try:
-                        hypotheses = model.transcribe([f])
+                        hypotheses = model.transcribe([f], verbose=False)
                         hypothese1 = hypotheses[0] if hypotheses else None
                         text = hypothese1[0] if hypothese1 else None
                         if text is not None and not self._stop and self.enabled: self.target(text)

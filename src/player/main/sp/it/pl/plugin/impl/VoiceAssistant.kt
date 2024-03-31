@@ -464,11 +464,11 @@ class VoiceAssistant: PluginBase() {
 
    /** The user authorization of the OpenAI or OpenAI-compatible server */
    val llmOpenAiBearer by cv("ABC123xyz789").password()
-      .def(name = "Llm engine > openai > bearer", info = "The user authorization of the OpenAI or OpenAI-compatible server")
+      .def(name = "Llm engine > openai > bearer", info = "The user authorization of the OpenAI or OpenAI-compatible server. Server may ignore this.")
 
    /** The llm model of the OpenAI or OpenAI-compatible server */
    val llmOpenAiModel by cv("").password()
-      .def(name = "Llm engine > openai > model", info = "The llm model of the OpenAI or OpenAI-compatible server")
+      .def(name = "Llm engine > openai > model", info = "The llm model of the OpenAI or OpenAI-compatible server. Server may ignore this.")
 
    /** System prompt telling llm to assume role, or exhibit behavior */
    val llmChatSysPrompt by cvn("You are helpful voice assistant. You are voiced by tts, be extremly short.").multiline(3)

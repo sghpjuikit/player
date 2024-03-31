@@ -21,6 +21,21 @@ class FutureChat(Event):
 
     def str(self): return str(self.event)
 
+class ChatStart:
+    def __init__(self):
+        pass
+
+class ChatStop:
+    def __init__(self):
+        pass
+
+class Chat:
+    def __init__(self, userPrompt: str):
+        self.outStart = 'CHAT: '
+        self.userPrompt = userPrompt
+        self.speakTokens = True
+        self.processTokens = lambda tokens: None
+
 class ChatProceed:
     def __init__(self, sysPrompt: str, userPrompt: str | None):
         self.outStart = 'CHAT '
@@ -28,7 +43,8 @@ class ChatProceed:
         self.userPrompt = userPrompt
         self.messages = [ ]
         self.messages.append({ "role": "system", "content": self.sysPrompt })
-        self.narrate = True
+        self.speakTokens = True
+        self.processTokens = lambda tokens: None
         if (userPrompt is not None): self.messages.append({ "role": "user", "content": self.userPrompt })
 
     @classmethod
@@ -45,7 +61,7 @@ class ChatWhatCanYouDo(ChatProceed):
         )
 
 class ChatIntentDetect(ChatProceed):
-    def __init__(self, assist_function_prompt, userPrompt: str, output: bool = True):
+    def __init__(self, assist_function_prompt, userPrompt: str, writeTokens: bool = True):
         super().__init__(
             "From now on, identify user intent by returning one of following commands. " +
             "Only respond with command in format: `COM-command-COM`."
@@ -54,9 +70,9 @@ class ChatIntentDetect(ChatProceed):
             "Commands: \n" + assist_function_prompt,
             userPrompt
         )
-        self.outStart = 'COM-DET: ' if output else ''
-        self.narrate = False
-        self.output = output
+        self.outStart = 'COM-DET: ' if writeTokens else ''
+        self.speakTokens = False
+        self.writeTokens = writeTokens
 
 class ChatPaste(ChatProceed):
     def __init__(self, userPrompt: str):
@@ -67,24 +83,8 @@ class ChatPaste(ChatProceed):
             userPrompt
         )
         self.outStart = 'PASTE: '
-        self.narrate = False
-
-class Chat:
-    def __init__(self, userPrompt: str):
-        self.outStart = 'CHAT: '
-        self.userPrompt = userPrompt
-        self.narrate = True
-
-
-class ChatStart:
-    def __init__(self):
-        pass
-
-
-class ChatStop:
-    def __init__(self):
-        pass
-
+        self.speakTokens = False
+        self.processTokens = pasteTokens
 
 class Llm(Actor):
     def __init__(self, name: str, deviceName: str, write: Writer, speak: Tts):
@@ -110,9 +110,11 @@ class LlmNone(Llm):
 # doc https://docs.gpt4all.io/gpt4all_python.html
 class LlmGpt4All(Llm):
 
-    def __init__(self, modelPath: str, speak: Tts, write: Writer, sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
+    def __init__(self, modelName: str, modelPath: str, speak: Tts, write: Writer, commandExecutor: Callable[[str], str], sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
         super().__init__('LlmGpt4All', "cpu", write, speak)
-        self.model = modelPath
+        self.commandExecutor = commandExecutor
+        self.modelName = modelName
+        self.modelPath = modelPath
         # gpt4all.gpt4all.DEFAULT_MODEL_DIRECTORY = chatDir
         self.sysPrompt = sysPrompt
         self.maxTokens = maxTokens
@@ -125,41 +127,65 @@ class LlmGpt4All(Llm):
         # init
         llm = None
         # loop
-        with self._looping():
+        with (self._looping()):
             while not self._stop:
                 ef = self.queue.get()
-                e, f = ef
+                x, f = ef
 
                 # load model lazily
-                if llm is None: llm = GPT4All(model_path=self.model, device="cpu", allow_download=False)
+                if llm is None: llm = GPT4All(model_name=self.modelName, model_path=self.modelPath, device="cpu", allow_download=True)
                 self.enabled = True # delayed load
 
-                if isinstance(e, ChatStart):
+                if isinstance(x, ChatStart):
                     f.set_result(None)
                     with llm.chat_session(self.sysPrompt):
                         while not self._stop:
                             with self._loopProcessEvent() as tf:
                                 t, f = tf
                                 if isinstance(t, ChatStart):
-                                    tf.set_result(None)
+                                    f.set_result(None)
                                     pass
                                 if isinstance(t, ChatStop):
-                                    tf.set_result(None)
+                                    f.set_result(None)
                                     break
-                                if isinstance(t, Chat):
+                                if isinstance(t, Chat | ChatProceed):
+                                    isCommand = isinstance(t, ChatIntentDetect)
+                                    isCommandWrite = isCommand and cast(ChatIntentDetect, t).writeTokens
+                                    commandIterator = SingleLazyIterator(lambda: not self.generating)
                                     try:
                                         self.generating = True
+
+                                        stop = "-COM" if isCommand else None,
+                                        text = ''
+                                        def process(token_id, token_string):
+                                            text = text + token_string
+                                            return not self._stop and self.generating and (not isCommand or stop in text)
                                         tokens = llm.generate(
                                             t.userPrompt, streaming=True,
                                             max_tokens=self.maxTokens, top_p=self.topp, top_k=self.topk, temp=self.temp,
-                                            callback=lambda token_id, token_string: not self._stop and self.generating
+                                            callback=process
                                         )
-                                        consumer, tokensWrite, tokensSpeech, tokensText = teeThreadSafeEager(tokens, 3)
-                                        self.write(chain(['CHAT: '], progress(consumer.hasStarted, tokensWrite)))
-                                        self.speak(tokensSpeech)
+                                        consumer, tokensWrite, tokensSpeech, tokensAlt = teeThreadSafeEager(tokens, 3)
+                                        if not isCommand: self.write(chain([t.outStart], progress(consumer.hasStarted, tokensWrite)))
+                                        if isCommandWrite: self.write(chain([t.outStart], progress(commandIterator.hasStarted, commandIterator)))
+                                        if t.speakTokens: self.speak(tokensSpeech)
+                                        t.processTokens(tokensAlt)
                                         consumer()
-                                        text_all = ''.join(tokensText)
-                                        tf.set_result(text_all)
+                                        canceled = self.generating is False
+                                        f.set_result(text)
+
+                                        if isCommandWrite:
+                                            command = text.strip().removeprefix("COM-").removesuffix("-COM").strip()
+                                            command = command.replace('-', ' ')
+                                            command = command.replace('unidentified', e.userPrompt)
+                                            command = 'unidentified' if len(command.strip())==0 else command
+                                            command = 'unidentified' if canceled else command
+                                            command = self.commandExecutor(command)
+                                            commandIterator.put(command)
+                                    except Exception as x:
+                                        if isCommandWrite: commandIterator.put('unidentified')
+                                        f.set_exception(x)
+                                        raise x
                                     finally:
                                         self.generating = False
                 else:
@@ -183,12 +209,11 @@ class LlmHttpOpenAi(Llm):
 
     def _loop(self):
         # init
-        from openai import OpenAI
         from httpx import Timeout
         import openai
         # init
         chat: ChatProceed | None = None
-        client = OpenAI(api_key=self.bearer, base_url=self.url)
+        client = openai.OpenAI(api_key=self.bearer, base_url=self.url)
         # loop
         with self._looping():
             while not self._stop:
@@ -204,9 +229,10 @@ class LlmHttpOpenAi(Llm):
                         f.set_result(None)
 
                     if isinstance(e, Chat | ChatProceed):
+                        isCommand = isinstance(e, ChatIntentDetect)
+                        isCommandWrite = isCommand and cast(ChatIntentDetect, e).writeTokens
+                        commandIterator = SingleLazyIterator(lambda: not self.generating)
                         try:
-                            isCommand = isinstance(e, ChatIntentDetect)
-                            isCommandWrite = isCommand and cast(ChatIntentDetect, e).output
                             self.generating = True
 
                             if isinstance(e, Chat):
@@ -230,35 +256,31 @@ class LlmHttpOpenAi(Llm):
                                 finally:
                                     stream.response.close()
 
-                            commandIterator = SingleLazyIterator(lambda: not self.generating)
-                            consumer, tokensWrite, tokensSpeech, tokensPaste, tokensText = teeThreadSafeEager(process(), 4)
-                            try:
-                                if not isCommand: self.write(chain([e.outStart], progress(consumer.hasStarted, tokensWrite)))
-                                if isCommandWrite: self.write(chain([e.outStart], progress(commandIterator.hasStarted, commandIterator)))
-                                if e.narrate: self.speak(tokensSpeech)
-                                if isinstance(e, ChatPaste): pasteTokens(tokensPaste)
-                                consumer()
-                                canceled = self.generating is False
-                                text = ''.join(tokensText)
-                                f.set_result(text)
+                            consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(process(), 4)
+                            if not isCommand: self.write(chain([e.outStart], progress(consumer.hasStarted, tokensWrite)))
+                            if isCommandWrite: self.write(chain([e.outStart], progress(commandIterator.hasStarted, commandIterator)))
+                            if e.speakTokens: self.speak(tokensSpeech)
+                            e.processTokens(tokensAlt)
+                            consumer()
+                            canceled = self.generating is False
+                            text = ''.join(tokensText)
+                            f.set_result(text)
 
-                                if isinstance(e, Chat):
-                                    if len(text)==0: self.write("ERR: chat responded with empty message")
-                                    else: chat.messages.append({ "role": "assistant", "content": text })
+                            if isinstance(e, Chat):
+                                if len(text)==0: self.write("ERR: chat responded with empty message")
+                                else: chat.messages.append({ "role": "assistant", "content": text })
 
-                                if isCommandWrite:
-                                    command = text.strip().removeprefix("COM-").removesuffix("-COM").strip()
-                                    command = command.replace('-', ' ')
-                                    command = command.replace('unidentified', e.userPrompt)
-                                    command = 'unidentified' if len(command.strip())==0 else command
-                                    command = 'unidentified' if canceled else command
-                                    command = self.commandExecutor(command)
-                                    commandIterator.put(command)
-                            except Exception as x:
-                                if isCommandWrite: commandIterator.put('unidentified')
-                                raise x
+                            if isCommandWrite:
+                                command = text.strip().removeprefix("COM-").removesuffix("-COM").strip()
+                                command = command.replace('-', ' ')
+                                command = command.replace('unidentified', e.userPrompt)
+                                command = 'unidentified' if len(command.strip())==0 else command
+                                command = 'unidentified' if canceled else command
+                                command = self.commandExecutor(command)
+                                commandIterator.put(command)
 
                         except Exception as e:
+                            if isCommandWrite: commandIterator.put('unidentified')
                             f.set_exception(e)
                             if isinstance(e, openai.APIConnectionError): self.write(f"ERR: OpenAI server could not be reached: {e.__cause__}")
                             elif isinstance(e, openai.APIStatusError): self.write(f"ERR: OpenAI returned {e.status_code} status code with response {e.response}")

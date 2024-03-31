@@ -10,7 +10,7 @@ from itertools import chain
 from threading import Thread, Timer
 from typing import cast
 from util_play_engine import SdActor
-from util_tts import Tts, TtsNone, TtsOs, TtsCharAi, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain
+from util_tts import Tts, TtsNone, TtsOs, TtsCharAi, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
@@ -272,7 +272,8 @@ elif ttsEngineType == 'os':
 elif ttsEngineType == 'character-ai':
     speakEngine = TtsCharAi(ttsCharAiToken, ttsCharAiVoice, SdActor(write), write)
 elif ttsEngineType == 'coqui':
-    speakEngine = TtsCoqui(ttsCoquiVoice, "cuda" if len(ttsCoquiCudaDevice)==0 else ttsCoquiCudaDevice, SdActor(write), write)
+    # speakEngine = TtsCoqui(ttsCoquiVoice, "cuda" if len(ttsCoquiCudaDevice)==0 else ttsCoquiCudaDevice, SdActor(write), write)
+    speakEngine = TtsFastPitch("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
 elif ttsEngineType == 'tacotron2':
     speakEngine = TtsTacotron2("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
 elif ttsEngineType == 'speechbrain':
@@ -294,8 +295,11 @@ llm = LlmNone(write)
 if llmEngine == 'none':
     pass
 elif llmEngine == "gpt4all":
-    llmModel = os.path.join(os.path.abspath(__file__), "models-llm", llmGpt4AllModelName)
-    llm = LlmGpt4All(llmModel, speak, write, llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk)
+    llm = LlmGpt4All(
+        llmGpt4AllModelName, "models-llm",
+        speak, write, commandExecutor.execute,
+        llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
+    )
 elif llmEngine == "openai":
     llm = LlmHttpOpenAi(
         llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModelName,

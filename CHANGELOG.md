@@ -9,15 +9,24 @@ All notable changes to this project will be documented in this file. Format base
 - Implement discovery of properties for ui types that do not extend ui types
 - Implement function editor help icon with popup showing available functions
 - Implement black screen action that hides screen
+- Implement **Voice assistant** http APIs
+- Implement **Voice assistant** asynchronous voice command support 
+- Implement **Voice assistant** voice command voice confirmation
+- Implement **Voice assistant** voice command programmatic intent detection 
+- Implement **Voice assistant** voice command nesting 
 - Implement **Voice assistant** **Nvidia Nemo ASR** voice recognition support
 - Implement **Voice assistant** actor state http API & UI
 - Implement **Voice assistant** voice command for listing and changing voice
 - Implement **Voice assistant** tts using **Tacotron2**, **SpeechBrain**
-- Implement **Voice assistant** tts using OS voice properly (supports cancelling)
+- Implement **Voice assistant** tts using OS voice to support all features and work reliably
+- Implement **Voice assistant** llm using Gpt4All to support all features
 - Implement **Voice assistant** separate outputs for RAW, SPEAK, CHAT
+- Implement log level highlighting
 - Improve shortcut pane layout
 - Improve nullability inference for window properties in settings
 - Fix **Voice assistant** plugin not waking up from hibernate properly
+- Fix **VoiceAssistant** python process error logging twice
+- Fix Kotlin Actor not handling exceptions correctly (this caused some issues that are now fixed too)
 - Fix menu not showing F3 shortcut key
 - Fix playlist throwing selection index exception
 - Fix **Hue** plugin `lights on` command not working as expected
@@ -26,6 +35,48 @@ All notable changes to this project will be documented in this file. Format base
 - Fix popup resize null pointer exception
 - Fix popup resize not working
 - Fix popup not respecting min size properly
+- Fix **Comet** widget not loading sometimes due to font loading
+
+### Voice Assistant
+Voice assistant has received a lot of updates to make it more usable and productive.
+
+There is more comprehensive documentation, see [speech-recognition-whisper](app/speech-recognition-whisper/README.md).
+
+The assistant has new http endpoints:
+- one to enable monitoring state of its components, including queued events and so on
+- another to do intent detection by 3rd parties (this allows more complex and usable voice commands, see below)
+ 
+The commands are not implicitly asynchronous, which makes it easy to call APIs or other complicated logic.
+The commands now have methods to allow multi-step commands or programmatic intent detection.
+This allows arbitrary command complexity, nesting, chaining and more, while programmaticaly guiding the AI
+to iteratively help the system and user to reach the final, specific command.
+This makes the system much more powerful and able to handle complex queries, by splitting the complexity of the
+command into multple steps (optionally involving user). This brings down the LLM model requirements to what is feasible.
+
+For example, instead of assistant complaining about invalid parameter, it can now ask user to (re-)specify it,
+or run additional inference only for the particular parameter or set of values of the inferred command and then,
+if still not sufficient, give offer user possible guidance, such as listing available values for the command.
+
+E.g., it would be possible to program command with the following interaction:
+```
+USER: Change settings
+(because user did omit the setting, system is programmed to ask for it)
+ASSISTANT: Which setting do you want to change?
+  USER: I dont know what it is called
+  (the system may be programmed to offer to list settings)
+  ASSISTANT1: Do you want me to list available settings?
+  USER: Yes, but only those related to voice
+  (the response can be programmed to run additional inference (with all available settngs as input) and let LLM respond)
+  ASSISTANT2: The settings are setting1, setting2
+USER: setting1
+ASSISTANT: which value do you want to set
+USER value1
+ASSISTANT: Done
+```
+
+### Known issues
+- VoiceAssistant llm actor LlmGpt4All does not process non chat event properly when chat is active 
+
 
 ## [8.0.0] 2023 10 27
 - Implement Windows taskbar icons
@@ -79,7 +130,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **WallpaperChanger** changing wallpaper on start
 - Fix importing single songs to db
 
-## Voice Assistant
+### Voice Assistant
 This update is all about adopting AI functionalities.
 Primarily, the goal is to allow voice control, but the plugin already supports much more than that.
 **Speech Recognition** plugin is thus now **Voice Assistant** plugin. The improvements are:
@@ -109,32 +160,32 @@ Primarily, the goal is to allow voice control, but the plugin already supports m
     - Coqui supports fully offline text-to-speech
     - Coqui supports voice cloning
 
-## Http Client
+### Http Client
 Application now provides/uses single lazy http client for all http requests. Use `APP.http.client`.
 
-## Http Server
+### Http Server
 Application now provides http server.
 It supports progrmmatic addition of request matchers/handlers that code and plugins may use.
 
-## Http Server API
+### Http Server API
 If enabled, application exposes `/audio` http API, which provides http access to the audio library.
 This makes it possible to play the songs from different PC.
 For this end, song metadata handling over http has been improved.
 
 There is also `/speech` API, which makes it possible to run **Voice Assistant** on different PC.
 
-## Singleton
+### Singleton
 Application no longer uses RMI to delegate launched SLAVE instances to single MASTER instance.
 Instead, http client and server is used.
 
-## Hue
+### Hue
 **Hue Scenes** widget is now split into widget (ui) and plugin (functionality).
 This allows programmatic control of the **Phillips Hue** system without requiring the widget to be open.
 The plugin now supports voice control using `SpeechRecognition` plugin - turning lights/bulbs/groups on/off,
 applying scenes, listing groups/scenes.
 There are multiple minor improvements the the UI and behavior.
 
-## Reminders
+### Reminders
 The application now enables to set persistent reminders.
 This works with voice commands as well.
 In the future a widget with calendar may be introduced.
@@ -179,7 +230,7 @@ In the future a widget with calendar may be introduced.
 - Fix file TreeCell slower performance (unnecessary updates)
 - Fix game cell icon overlay layout
 
-## Performance
+### Performance
 This version updates Java to 21, which officially introduces virtual threads.
 Java 21 also improves `InputStream` performance, which has effect when loading images.
 
@@ -195,7 +246,7 @@ This finally reuses compiler daemon and drastically reduces compilation time.
 The application now uses `-XX:+AutoCreateSharedArchive -XX:SharedArchiveFile=SpitPlayer.jsa`,
 which improves startup speed.
 
-## Voice recognition plugin
+### Voice recognition plugin
 This plugin used pure Java solution - `alphacephei`'s vosk AI models.
 
 Voice recognition now uses locally running Python program using OpenAI Whisper:
@@ -206,7 +257,7 @@ Voice recognition now uses locally running Python program using OpenAI Whisper:
 It also has configurable speech capability, voice feedback and LLM chat.
 See [README](/app/speech-recognition-whisper/README.md) for details.
 
-## Voice synthesis plugin
+### Voice synthesis plugin
 This plugin used pure Java solution - somewhat outdated `MaryTTS` (Java library).
 This plugin has been removed in favor of voice used for voice recognition plugin.
 

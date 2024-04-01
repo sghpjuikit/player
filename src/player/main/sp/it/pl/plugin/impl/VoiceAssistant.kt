@@ -1,7 +1,6 @@
 package sp.it.pl.plugin.impl
 
 import com.sun.jna.platform.win32.Kernel32
-import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
 import java.io.InputStream
@@ -17,7 +16,6 @@ import kotlinx.coroutines.invoke
 import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
-import sp.it.pl.core.bodyAsJs
 import sp.it.pl.core.bodyJs
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetUse.ANY
@@ -37,6 +35,7 @@ import sp.it.util.access.vn
 import sp.it.util.action.IsAction
 import sp.it.util.async.NEW
 import sp.it.util.async.actor.ActorVt
+import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.future.Fut
@@ -67,14 +66,15 @@ import sp.it.util.conf.uiNoCustomUnsealedValue
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
-import sp.it.util.dev.fail
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.functional.Try
+import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.getAny
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -575,29 +575,29 @@ class VoiceAssistant: PluginBase() {
 
    private val confirmers = mutableListOf<SpeakConfirmer>()
 
-   private fun confirm(text: String) {
+   private suspend fun confirm(text: String) {
       val h = confirmers.removeLastOrNull()
-      if (h != null && h.regex.matches(text)) h.action(text)
+      if (h != null && h.regex.matches(text)) h.action(text).getAny().ifNotNull(::speak)
    }
 
    private fun handleInput(text: String, state: String) {
       when (state) {
-         "RAW" -> runFX { confirm(text) }
-         "USER" -> runFX { handleSpeech(text, user = true) }
+         "RAW" -> launch(FX) { confirm(text) }
+         "USER" -> launch(FX) { handleSpeech(text, user = true) }
          "SYS" -> Unit
-         "CHAT" -> runFX { handleSpeech(text) }
-         "COM" -> runFX { handleSpeech(text, command = true, orDetectIntent = true) }
-         "COM-DET" -> runFX { handleSpeech(text, command = true, orDetectIntent = false) }
+         "CHAT" -> launch(FX) { handleSpeech(text) }
+         "COM" -> launch(FX) { handleSpeech(text, command = true, orDetectIntent = true) }
+         "COM-DET" -> launch(FX) { handleSpeech(text, command = true, orDetectIntent = false) }
       }
    }
 
-   private fun handleSpeech(text: String, user: Boolean = false, command: Boolean = false, orDetectIntent: Boolean = false) {
+   private suspend fun handleSpeech(text: String, user: Boolean = false, command: Boolean = false, orDetectIntent: Boolean = false) {
       if (!isRunning) return
       if (user) speakingTextW.value = text
       if (!command) return
 
       var textSanitized = text.orEmpty().sanitize(sttBlacklistWords_)
-      var result = handlers.firstNotNullOfOrNull { with(it) { SpeakContext(this, this@VoiceAssistant).action(textSanitized) } }
+      var result = handlers.firstNotNullOfOrNull { SpeakContext(it, this@VoiceAssistant)(textSanitized) }
       if (result==null) {
          if (orDetectIntent) write("COM-DET: ${text.encodeBase64()}")
          else speak("Unrecognized command: $text")
@@ -653,39 +653,64 @@ class VoiceAssistant: PluginBase() {
    }
 
    /** [SpeakHandler] action context. */
-   data class SpeakContext(val handler: SpeakHandler, val plugin: VoiceAssistant) {
-      /** [regex].matches(text) */
+   data class SpeakContext(val handler: SpeakHandler, val plugin: VoiceAssistant, val intent: Boolean = true) {
+
+      /** @return result of handler action, i.e., `handler.regex.matches(text)` */
+      suspend operator fun invoke(text: String): Try<String?, String?>? = invoke(text, handler.action)
+
+      /** @return result of action, i.e., `handler.regex.matches(text)` */
+      suspend operator fun invoke(text: String, action: suspend SpeakContext.(String) -> Try<String?, String?>?): Try<String?, String?>? = action(this, text)
+
+      /** @return copy with [intent], i.e., `copy(intent = false)` */
+      fun withIntent(): SpeakContext = copy(intent = false)
+
+      /** @return whether handler matches specified text, i.e., `handler.regex.matches(text)` */
       fun matches(text: String): Boolean = handler.regex.matches(text)
 
-      public fun confirming(confirmText: String, commandUi: String, action: (String) -> Try<String?, String?>?): Try<String?, String?>? {
-         runFX { plugin.confirmers += SpeakConfirmer(commandUi, action) }
-         return Ok(confirmText)
-      }
+      /**
+       * @param confirmText text to be spoken to user to request feedback
+       * @param commandUi matcher
+       * @param action action that runs on FX thread, takes intent detection result an returns voice feedback
+       * @return `Ok(null)` ([confirmText] is always spoken)
+       */
+      public suspend fun confirming(confirmText: String, commandUi: String, action: suspend (String) -> Try<String?, String?>): Ok<Nothing?> =
+         FX {
+            plugin.confirmers += SpeakConfirmer(commandUi, action)
+            plugin.speak(confirmText)
+            Ok(null)
+         }
 
-      public fun intent(text: String, functions: String, userPrompt: String, block: (String) -> Try<String?, String?>?): Try<String?, String?>? {
-         launch(VT) {
+      /**
+       * @param action action that runs on FX thread, takes intent detection result, returns Try (with text to speak or null if none) or null if no match.
+       * @return `Ok(null)`
+       */
+      public suspend fun intent(text: String, functions: String, userPrompt: String, action: suspend SpeakContext.(String) -> Try<String?, String?>?): Try<String?, String?>? =
+         VT {
             runTry {
                val url = plugin.httpUrl.value.net { "$it/intent"}
                val command = APP.http.client.post(url) { bodyJs(JsObject(mapOf("functions" to JsString(functions), "userPrompt" to JsString(userPrompt)))) }.bodyAsText()
-               var result = block(command)
-               result?.getAny().ifNotNull(plugin::speak)
-            }.ifError {
+               FX {
+                  withIntent()(command, action)
+               }
+            }.getOrSupply {
                logger.error(it) { "Failed to understand command $text" }
-               plugin.speak("Failed to understand command $text")
+               Error("Failed to understand command $text")
             }
          }
-         return Ok(null)
-      }
    }
 
-   /** Speech event handler. In ui shown as `"$name -> $commandUi"`. Action returns Try (with text to speak or null if none) or null if no match. */
-   data class SpeakHandler(val name: String, val commandUi: String, val action: SpeakContext.(String) -> Try<String?, String?>?) {
+   /**
+    * Speech event handler. In ui shown as `"$name -> $commandUi"`.
+    * @param action action that runs on FX thread, takes command, returns Try (with text to speak or null if none) or null if no match. */
+   data class SpeakHandler(val name: String, val commandUi: String, val action: suspend SpeakContext.(String) -> Try<String?, String?>?) {
       /** [commandUi] turned into regex */
       val regex by lazy { voiceCommandRegex(commandUi) }
    }
 
-   /** Speech event confirmer. In ui shown as `"$name -> $commandUi"`. Action returns Try (with text to speak or null if none) or null if no match. */
-   private data class SpeakConfirmer(val commandUi: String, val action: (String) -> Try<String?, String?>?) {
+   /**
+    * Speech event confirmer. In ui shown as `"$name -> $commandUi"`
+    * @param action action that runs on FX thread, takes original command, returns Try (with text to speak or null if none). */
+   private data class SpeakConfirmer(val commandUi: String, val action: suspend (String) -> Try<String?, String?>) {
       /** [commandUi] turned into regex */
       val regex = voiceCommandRegex(commandUi)
    }

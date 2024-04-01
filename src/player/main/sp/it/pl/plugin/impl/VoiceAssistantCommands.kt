@@ -70,7 +70,7 @@ fun SpeakContext.availableWidgets() =
       .map { "- ${it.lowercase()}" }
       .joinToString("\n")
 
-fun SpeakContext.voiceCommandOpenWidget(text: String, intent: Boolean = true): ComMatch =
+suspend fun SpeakContext.voiceCommandOpenWidget(text: String): ComMatch =
    if (text.startsWith("open")) {
       val fNameRaw = text.removePrefix("open").trimStart().removePrefix("widget").removeSuffix("widget").trim().camelToSpaceCase()
       val fName = plugin.commandWidgetNames.get(fNameRaw) ?: fNameRaw
@@ -78,37 +78,37 @@ fun SpeakContext.voiceCommandOpenWidget(text: String, intent: Boolean = true): C
       if (f!=null) ComponentLoaderStrategy.DOCK.loader(f)
       if (f!=null) Ok("Ok")
       else if (!intent) Error("No widget $fNameRaw available.")
-      else intent(text, "${availableWidgets()}\n- unidentified // no recognized function", fNameRaw) { voiceCommandOpenWidget("open widget $it", false) }
+      else intent(text, "${availableWidgets()}\n- unidentified // no recognized function", fNameRaw) { this("open widget $it") }
    } else {
       if (!intent) Error("No such widget available.")
       else null
    }
 
-fun SpeakContext.voiceCommandOsShutdown(text: String): ComMatch =
+suspend fun SpeakContext.voiceCommandOsShutdown(text: String): ComMatch =
    if (matches(text))
       if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
       else confirming("Do you really wish to shut down computer?", "yes") { Windows.shutdown().map { null }.mapError { it.localizedMessage } }
    else null
 
-fun SpeakContext.voiceCommandOsRestart(text: String): ComMatch =
+suspend fun SpeakContext.voiceCommandOsRestart(text: String): ComMatch =
    if (matches(text))
       if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
       else confirming("Do you really wish to restart computer?", "yes") { Windows.restart().map { null }.mapError { it.localizedMessage } }
    else null
 
-fun SpeakContext.voiceCommandOsSleep(text: String): ComMatch =
+suspend fun SpeakContext.voiceCommandOsSleep(text: String): ComMatch =
    if (matches(text))
       if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
       else confirming("Do you really wish to sleep computer?", "yes") { Windows.sleep().map { null }.mapError { it.localizedMessage } }
    else null
 
-fun SpeakContext.voiceCommandOsHibernate(text: String): ComMatch =
+suspend fun SpeakContext.voiceCommandOsHibernate(text: String): ComMatch =
    if (matches(text))
       if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
       else confirming("Do you really wish to hibernate computer?", "yes") { Windows.hibernate().map { null }.mapError { it.localizedMessage } }
    else null
 
-fun SpeakContext.voiceCommandOsLogOff(text: String): ComMatch =
+suspend fun SpeakContext.voiceCommandOsLogOff(text: String): ComMatch =
    if (matches(text))
       if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
       else confirming("Do you really wish to logOff computer?", "yes") { Windows.logOff().map { null }.mapError { it.localizedMessage } }

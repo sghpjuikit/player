@@ -750,3 +750,74 @@ class TtsSpeechBrain(TtsWithModelBase):
                             except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
                     else:
                         self.play.playFile(text, audio_file, skippable)
+
+
+# https://huggingface.co/nvidia/tts_en_fastpitch
+class TtsFastPitch(TtsWithModelBase):
+    def __init__(self, device: str, play: SdActor, write: Writer):
+        super().__init__('TtsFastPitch', play, write)
+        self.deviceName = device
+        self.device = device
+
+    def _download_file(self, url, target_path):
+        import wget
+        if not os.path.exists(target_path):
+            self.write(f'RAW: {self.name} downloading {target_path}')
+            wget.download(url, target_path)
+        return target_path
+
+
+    def _loop(self):
+        import urllib.request
+        # Download files
+        cmudict = self._download_file('https://raw.githubusercontent.com/NVIDIA/NeMo/main/scripts/tts_dataset_files/cmudict-0.7b_nv22.10', os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", 'fastpitch-files', 'cmudict-0.7b'))
+        heteronyms = self._download_file('https://raw.githubusercontent.com/NVIDIA/NeMo/main/scripts/tts_dataset_files/heteronyms-052722', os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", 'fastpitch-files', 'heteronyms'))
+        # Load models
+        fastpitch, generator_train_setup = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_fastpitch')
+        hifigan, vocoder_train_setup, denoiser = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_hifigan')
+        tp = torch.hub.load('NVIDIA/DeepLearningExamples:torchhub', 'nvidia_textprocessing_utils', cmudict_path=cmudict, heteronyms_path=heteronyms)
+
+        # Verify that generator and vocoder models agree on input parameters.
+        CHECKPOINT_SPECIFIC_ARGS = [
+            'sampling_rate', 'hop_length', 'win_length', 'p_arpabet', 'text_cleaners',
+            'symbol_set', 'max_wav_value', 'prepend_space_to_text',
+            'append_space_to_text'
+        ]
+        for k in CHECKPOINT_SPECIFIC_ARGS:
+            v1 = generator_train_setup.get(k, None)
+            v2 = vocoder_train_setup.get(k, None)
+            assert v1 is None or v2 is None or v1 == v2, f'{k} mismatch in spectrogram generator and vocoder'
+
+        # Put all models on available device.
+        device = torch.device(self.device)
+        fastpitch.to(device)
+        hifigan.to(device)
+        denoiser.to(device)
+        # loop
+        with self._looping():
+            while not self._stop:
+                with self._loopProcessEvenDecorator() as (text, skippable):
+                    audio_file, audio_file_exists, cache_used = self._cache_file_try("fastpitch", text)
+
+                    # generate
+                    if not cache_used or not audio_file_exists:
+
+                        batches = tp.prepare_input_sequence([text], batch_size=1)
+                        gen_kw = {'pace': 1.0, 'speaker': 0, 'pitch_tgt': None, 'pitch_transform': None}
+                        denoising_strength = 0.005
+                        batch = batches[0]
+                        with torch.no_grad():
+                            mel, mel_lens, *_ = fastpitch(batch['text'].to(device), **gen_kw)
+                            audio = hifigan(mel).float()
+                            audio = denoiser(audio.squeeze(1), denoising_strength)
+                            audio = audio.cpu().squeeze(1)
+
+                        # play
+                        self.play.playWavChunk(text, audio, skippable)
+
+                        # update cache
+                        if cache_used and text:
+                            try: torchaudio.save(audio_file, torch.tensor(audio), vocoder_train_setup['sampling_rate'])
+                            except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
+                    else:
+                        self.play.playFile(text, audio_file, skippable)

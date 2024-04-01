@@ -42,6 +42,7 @@ import sp.it.pl.plugin.HueSceneType.GroupScene
 import sp.it.pl.plugin.HueSceneType.LightScene
 import sp.it.pl.plugin.impl.VoiceAssistant
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler
+import sp.it.pl.plugin.impl.availableWidgets
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.IO
@@ -56,6 +57,8 @@ import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.div
 import sp.it.util.file.json.toPrettyS
+import sp.it.util.functional.Try
+import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -112,23 +115,15 @@ class Hue: PluginBase() {
       val speechHandlers = listOf(
          SpeakHandler("Turn hue lights on/off", "turn? lights on|off?") { text ->
             if (matches(text)) {
-               scope.launch(FX) {
-                  val s = when { text.endsWith("on") -> true; text.endsWith("off") -> false; else -> null }
-                  hueBridge.init().toggleBulbGroup("0", s).ui { refreshes(Unit) }
-               }
+               val s = when { text.endsWith("on") -> true; text.endsWith("off") -> false; else -> null }
+               hueBridge.init().toggleBulbGroup("0", s).ui { refreshes(Unit) }
                Ok("Ok")
             } else
                null
          },
          SpeakHandler("List hue light bulbs", "list light bulbs") { text ->
-            if (matches(text)) {
-               scope.launch(FX) {
-                  val t = hueBridge.init().bulbs().joinToString(prefix = "The available light bulbs are: ", separator = ", ") { it.name }
-                  APP.plugins.get<VoiceAssistant>()?.speak(t)
-               }
-               Ok(null) // handle async result manually
-            } else
-               null
+            if (matches(text)) Ok("The available light bulbs are: " + hueBridge.init().bulbs().joinToString(", ") { it.name })
+            else null
          },
          SpeakHandler("Turn hue light bulb on/off", "turn? light bulb \$bulb-name on|off?") { text ->
             if (matches(text)) {
@@ -137,50 +132,32 @@ class Hue: PluginBase() {
                   .replace("off ", "").replace(" off", "")
                   .replace("_", " ")
                val s = when { text.endsWith("on") -> true; text.endsWith("off") -> false; else -> null }
-               scope.launch(FX) {
-                  val voice = APP.plugins.get<VoiceAssistant>()
-                  val bulbs = hueBridge.init().bulbs()
-                  val b = bulbs.find { it.name.lowercase() equalsNcs bName }
-                  if (b!=null) hueBridge.toggleBulb(b.id, s).ui { refreshes(Unit) }
-                  if (b!=null) voice?.speak("Ok") else voice?.speak("No Light Bulb $bName available")
-               }
-               Ok(null) // handle async result manually
+               val bulbs = hueBridge.init().bulbs()
+               val b = bulbs.find { it.name.lowercase() equalsNcs bName }
+               if (b!=null) hueBridge.toggleBulb(b.id, s).ui { refreshes(Unit) }
+               if (b!=null) Ok("Ok")
+               else Error("No Light Bulb $bName available")
             } else
                null
          },
          SpeakHandler("List hue light scenes", "list light scenes") { text ->
-            if (text == "list light scenes") {
-               scope.launch(FX) {
-                  val t = hueBridge.init().scenes().joinToString(prefix = "The available light scenes are: ", separator = ", ") { it.name }
-                  APP.plugins.get<VoiceAssistant>()?.speak(t)
-               }
-               Ok(null) // handle async result manually
-            } else
-               null
+            if (text == "list light scenes") Ok("The available light scenes are: " + hueBridge.init().scenes().joinToString(", ") { it.name })
+            else null
          },
          SpeakHandler("Set hue lights scene", "lights scene \$scene-name") { text ->
             if (text.startsWith("lights scene ")) {
                val sName = text.substringAfter("lights scene ").removeSuffix(" on").removeSuffix(" off").replace("_", " ")
-               scope.launch(FX) {
-                  val voice = APP.plugins.get<VoiceAssistant>()
-                  val scenes = hueBridge.init().scenes()
-                  val s = scenes.find { it.name.lowercase() equalsNcs sName }
-                  if (s!=null) hueBridge.applyScene(s).ui { refreshes(Unit) }
-                  if (s!=null) voice?.speak("Ok") else voice?.speak("No Light Scene $sName available")
-               }
-               Ok(null) // handle async result manually
+               val scenes = hueBridge.init().scenes()
+               val s = scenes.find { it.name.lowercase() equalsNcs sName }
+               if (s!=null) hueBridge.applyScene(s).ui { refreshes(Unit) }
+               if (s!=null) Ok("Ok")
+               else Error("No Light Scene $sName available")
             } else
                null
          },
          SpeakHandler("List hue light groups", "list light groups") { text ->
-            if (matches(text)) {
-               scope.launch(FX) {
-                  val t = hueBridge.init().bulbsAndGroups().second.joinToString(prefix = "The available light groups are: ", separator = ", ") { it.name }
-                  APP.plugins.get<VoiceAssistant>()?.speak(t)
-               }
-               Ok(null) // handle async result manually
-            } else
-               null
+            if (matches(text)) Ok("The available light groups are: " + hueBridge.init().bulbsAndGroups().second.joinToString(", ") { it.name })
+            else null
          },
          SpeakHandler("Turn hue light group on/off", "turn? lights group? \$group-name on|off?") { text ->
             if (matches(text)) {
@@ -189,17 +166,23 @@ class Hue: PluginBase() {
                   .replace("on ", "").replace(" on", "")
                   .replace("off ", "").replace(" off", "")
                   .replace("_", " ")
-               scope.launch(FX) {
-                  val voice = APP.plugins.get<VoiceAssistant>()
-                  val s = when { text.endsWith("on") -> true; text.endsWith("off") -> false; else -> null }
-                  val (_, groups) = hueBridge.init().bulbsAndGroups()
-                  val g = groups.find { it.name.lowercase() equalsNcs gName }
-                  if (g!=null) hueBridge.toggleBulbGroup(g.id, s).ui { refreshes(Unit) }
-                  if (g!=null) voice?.speak("Ok") else voice?.speak("No Light Group $gName available")
+               val (s, ss) = when { text.endsWith("on") -> true to "on"; text.endsWith("off") -> false to "off"; else -> null to "" }
+               val (_, groups) = hueBridge.init().bulbsAndGroups()
+               val groupsCsv = groups.map { "- ${it.name.lowercase()}" }.joinToString("\n")
+               val g = groups.find { it.name.lowercase() equalsNcs gName }
+               if (g!=null) hueBridge.toggleBulbGroup(g.id, s).ui { refreshes(Unit) }
+               if (g!=null) Ok("Ok")
+               else if (intent) intent(text, "$groupsCsv\n- unidentified // no recognized function", gName) { this("lights group $it $ss") }
+               else confirming("No Light Group $gName available. Please repeat the group name", "\$group") { gName2 ->
+                  var groupIsValid = groups.find { it.name.lowercase() equalsNcs gName2.lowercase() }!=null
+                  if (groupIsValid) this@SpeakHandler.copy(handler, plugin)("turn lights group $gName2 $ss")!!
+                  else confirming("No such group. Would you like me to list available groups?", "yes") {
+                     Ok("The available light groups are: " + groups.joinToString(", ") { it.name })
+                  }
                }
-               Ok(null) // handle async result manually
             } else
-               null
+               if (!intent) Error("No such Light Group available.")
+               else null
          },
       )
 

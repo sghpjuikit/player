@@ -125,6 +125,21 @@ flowchart LR
 
 ## Features
 
+###### Custom/Programmatic commands
+Voice commands can be registered/unregistered programmatically at any time.
+```kotlin
+// create command
+val handler = SpeakHandler("Name of the command", "command speech matcher") { text ->
+   if (matches(text)) { doX(); Ok("Ok") }
+   else null
+}
+// subscribe command
+val unregister = Disposer()
+val assistant = APP.plugins.plugin<VoiceAssistant>()
+assistant.syncWhile { it.handlers addRem handler } on unregister  // subscribes handler while assistant is on and until custom disposer
+unregister() // unsubscribe
+```
+
 ###### Command matching
 Command can be matched with arbitrary logic. There is built-in regex-like matcher that can be used.
 Example of matcher with OR part, optional part and parameter: `open|show widget? $widget-name widget?`
@@ -152,6 +167,10 @@ SpeakHandler(name = "Say hello", matcher = "say hello"
     null // no match
 }
 ```
+
+###### Asynchronous commands
+The commands are Kotlin suspending functions and as such implicitly support asynchronous execution.
+Inside the handler, it is possible to launch Kotlin coroutines, wait for jobs or futures, delay, and so on.
 
 ###### Command parameters
 It is up to the command logic to extract the parameters from the command, but the built in
@@ -194,37 +213,33 @@ This is automatic and requires no code or setup other than `Llm` actor enabled a
 ###### Command parameter intent detection
 Sometimes the command or parameter is dynamic or the command hint for the LLM is too long or troublesome.
 Command may, after successful match, even after intent detection, use LLM to detect correct parameter value.
-For this `intent` function may be used, which invokes customized intent detection.
-One may wish to simply pass the result of the `intent` function back into itself, in such case be careful to break possible infinite loop.
+For this `SpeakContext.intent` function may be used, which invokes customized intent detection.
+One may wish to simply pass the result of the `intent` function back into itself, which is possible and prevents infinite loop automatically.
 ```kotlin
-fun SpeakContext.openWidget(text: String, breakLoop: Boolean = false): ComMatch =
+fun SpeakContext.openWidget(text: String): ComMatch =
    if (matches(text)) {
       val widgetName = ...
       if (f!=null) openWidget(widgetName)
       // widget found
       if (f!=null) Ok("Ok")
-      // widget not found and we already tried custom intent 
-      else if (breakLoop) Error("No widget $fNameRaw available.")
-      // widget not found, try custom intent 
-      else intent(text, "${availableWidgets()}\n- unidentified // no recognized widget", f) { openWidget("open widget $it", true) }
+      // widget not found and we already tried custom intent (propagated automatically with `SpeakContext` as `this.intent`)  
+      else if (!intent) Error("No widget $fNameRaw available.")
+      // widget not found, try custom intent that calls self
+      else intent(text, "${availableWidgets()}\n- unidentified // no recognized function", fNameRaw) { this("open widget $it") }
    } else {
-      // no match after custom intent was originally a match
       if (!intent) Error("No such widget available.")
-      // no match
       else null
    }
+SpeakHandler("Open widget by name", "open|show widget? \$widget-name widget?") { openWidget(it) }
 ```
 
-###### General intent detection
-The `intent` http API is not limited in any way and can be used by any application and in any way.
-It is simply a service to intelligently convert input into output.
-
 ###### Command confirmation
-Sometimes a command should require a confirmation before being invoked.
-For this command action may put itself into a confirmation queue using `confirming` function,
-which invokes the actual behavior after user confirms intention.
+Sometimes a command should require a confirmation or ask user for additional arguments before being invoked.
+For this, command may put itself into a confirmation queue using `SpeakContext.confirming` function,
+which invokes the actual behavior with the additional user voice feedback.
 The confirmation queue is `first-in-last-out` and (last) command is cleared on first user voice response, regardless of matching result.
-The confirmation request and confirmation matcher are both flexible. Example of such command:
+The confirmation request and confirmation matcher are both flexible.
+Example of such command:
 ```kotlin
 SpeakHandler(name = "Log off OS", matcher = "log off system|pc|computer|os") {
    if (matches(text)) confirming("Do you really wish to turn off pc?", "yes|indeed|roger") { turnOffPc() }
@@ -232,6 +247,33 @@ SpeakHandler(name = "Log off OS", matcher = "log off system|pc|computer|os") {
 }
 ```
 
+###### Command chaining
+The `SpeakContext.confirming` and `SpeakContext.intent` functions can be mixed and nested to do hierarchical command matching.
+This allows reducing the size of command hint prompt to LLM and reducing chance
+that LLM will confuse multiple similar commands by using multiple guided inferences instead of one complicated one.
+Developer has power to guide the matching process freely and provide dynamic context to guide LLM.
+
+If these multiple inferences should be part of user interaction, use `confirming`, if they need be hidden, use `intnt()`.
+```kotlin
+SpeakHandler(name = "Configure", matcher = "configure system") {
+   if (matches(text))
+     confirming("Which settings?", "\$setting") { setting ->
+       if (isUnknownSettng(setting) 
+         Error("Unknown setting $setting")
+       else confirming("What value? Possible values are: ${listSettings()}", "\$value}") { value ->
+         if (isUnknownValue(setting) Error("Unknown setting value $value")
+         else changeSetting(setting, value)
+       }
+     }
+   else
+    null
+}
+```
+
+###### General intent detection
+The `SpeakContext.intent` uses `\intent` http API of the underlying python process.
+The `\intent` http API is not limited and can be used by any application and in any way.
+It is simply a service to intelligently convert input into output.
 
 ## Installation
 

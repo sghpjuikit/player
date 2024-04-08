@@ -227,15 +227,12 @@ class VoiceAssistant: PluginBase() {
 
          // run
          runOn(NEW("SpeechRecognition")) {
-            installHibernationPreventionOn()
             val success = process.waitFor()
             stdoutListener.block()
             stderrListener.block()
             if (success!=0) doOnError("Python process failed and returned $success", null, stdout + stderr)
-            installHibernationPreventionOff()
             process
          }.onError {
-            installHibernationPreventionOff()
             doOnError("Starting python failed.", it, "")
          }
 
@@ -562,16 +559,8 @@ class VoiceAssistant: PluginBase() {
       // the python process !recover from hibernating properly and the AI is very heavy to be used in hibernate anyway
       // the closing must prevent hibernate until ai termination is complete, see
       // the startup is delayed so system is ready, which avoids starup issues
-      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Stop) { stopSpeechRecognition() }
-      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Start) { runFX(5.seconds) { startSpeechRecognition()} }
-   }
-
-   private fun installHibernationPreventionOn() {
-      if (WINDOWS.isCurrent) Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS or Kernel32.ES_SYSTEM_REQUIRED)
-   }
-
-   private fun installHibernationPreventionOff() {
-      if (WINDOWS.isCurrent) Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS)
+      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Start) { stopSpeechRecognition() }
+      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Stop) { runFX(5.seconds) { startSpeechRecognition()} }
    }
 
    private val confirmers = mutableListOf<SpeakConfirmer>()

@@ -70,10 +70,6 @@ It is possible to exit gracefully (on any platform) by writing 'EXIT' to stdin
 
 Args:
 
-  print-raw=$bool
-    Optional bool whether RAW values should be print
-    Default: True
-
   mic-on=$bool
     Optional bool whether microphone listening should be allowed.
     When false, speech recognition will receive no input and will not do anything.
@@ -223,7 +219,6 @@ Args:
 # args
 wake_word = arg('wake-word', 'system')
 name = wake_word[0].upper() + wake_word[1:]
-sysPrintRaw = arg('printRaw', "true") == "true"
 sysParentProcess = int(arg('parent-process', -1))
 sysTerminating = False
 sysCacheDir = "cache"
@@ -534,7 +529,7 @@ def callback(text):
     text = text.lower().rstrip(".").strip()
 
     # log
-    if len(text) > 0 and sysPrintRaw: write('RAW: ' + text)
+    if len(text) > 0: write('RAW: ' + text)
 
     # ignore speech recognition noise
     if not text.startswith(wake_word) and isinstance(assist, AssistChat) is False: return
@@ -671,9 +666,6 @@ while True:
 
         elif m.startswith("speech-on="):
             speak.speakOn = prop(m, "speech-on", "true").lower() == "true"
-
-        elif m.startswith("print-raw="):
-            sysPrintRaw = prop(m, "print-raw", "true").lower() == "true"
 
         elif m.startswith("coqui-voice=") and isinstance(speak.tts, TtsCoqui):
             commandExecutor.execute("change voice " + prop(m, "coqui-voice", ttsCoquiVoice))

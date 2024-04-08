@@ -4,7 +4,6 @@ import io.ktor.client.request.get
 import javafx.geometry.HPos
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.VPos
-import javafx.scene.Cursor
 import javafx.scene.Cursor.HAND
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane
@@ -34,6 +33,8 @@ import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
+import sp.it.pl.plugin.impl.VoiceAssistantWidget.OutRaw.DEBUG
+import sp.it.pl.plugin.impl.VoiceAssistantWidget.OutRaw.INFO
 import sp.it.pl.ui.ValueToggleButtonGroup
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
@@ -47,7 +48,10 @@ import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.launch
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.ListConfigurable
+import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateConfig
+import sp.it.util.conf.noUi
 import sp.it.util.dev.fail
 import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsFalse
@@ -56,6 +60,7 @@ import sp.it.util.file.json.JsNumber
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsTrue
+import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.functional.supplyIf
@@ -80,6 +85,7 @@ import sp.it.util.ui.insertNewline
 import sp.it.util.ui.isNewlineOnShiftEnter
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
+import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.singLineProperty
@@ -93,13 +99,19 @@ import sp.it.util.units.version
 import sp.it.util.units.year
 
 class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
+   private val textArea = textArea("")
+   private val textAreaWrapText by cv(textArea.wrapTextProperty())
+   private var run = {}
+   private val chatSettings = v(false)
+   private val plugin = APP.plugins.plugin<VoiceAssistant>().asValue(onClose)
+
+   private val consoleLevel by cv(DEBUG)
+      .def(name = "Console level", info = "Level of console output.")
+
+   private val mode by cv(Out.RAW).noUi()
+      .def(name = "Tab", info = "Level of console output.")
 
    init {
-      val plugin = APP.plugins.plugin<VoiceAssistant>().asValue(onClose)
-      var run = {}
-      val mode = v(Out.CHAT)
-      val chatSettings = v(false)
-
       root.prefSize = 500.emScaled x 500.emScaled
       root.consumeScrolling()
       root.lay += vBox(null, CENTER) {
@@ -111,14 +123,9 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                disableProperty() syncFrom plugin.map { it==null }
                onClickDo { APP.actions.app.openSettings(plugin.value?.configurableGroupPrefix) }
             }
-            lay += CheckIcon().icons(IconMD.FILTER, IconMD.FILTER_REMOVE_OUTLINE).apply {
-               disableProperty() syncFrom plugin.map { it==null }
-               selected syncFrom plugin.flatMap { it!!.pythonStdOutDebug }.orElse(true)
-               selected attach { plugin.value?.pythonStdOutDebug?.value = it }
-               tooltip("Hide debug and raw output")
+            lay += Icon(IconFA.REFRESH).tooltip("Restart voice assistent").apply {
+               onClickDo { plugin.value?.restart() }
             }
-            lay += Icon(IconFA.REFRESH).tooltip("Restart voice assistent")
-               .onClickDo { plugin.value?.restart() }
             lay += label("   ")
             lay += CheckIcon().icons(IconMD.TEXT_TO_SPEECH, IconMD.TEXT_TO_SPEECH_OFF).apply {
                disableProperty() syncFrom plugin.map { it==null }
@@ -201,7 +208,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                visible syncFrom mode.map { it != Out.HW }
 
                lay(ALWAYS) += vBox(5.emScaled, CENTER) {
-                  lay(ALWAYS) += textArea {
+                  lay(ALWAYS) += textArea.apply {
                      id = "output"
                      isEditable = false
                      isFocusTraversable = false
@@ -209,14 +216,17 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                      prefColumnCount = 100
 
                      onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
-                     mode syncWhile { m ->
-                        text = plugin.value?.net(m.initText) ?: ""
+                     mode zip consoleLevel syncWhile { (m, lvl) ->
+                        text = plugin.value?.net(m.initText(this@VoiceAssistantWidget)) ?: ""
                         plugin.syncNonNullWhile { p ->
                            p.onLocalInput attach { (it, state) ->
                               when (m!!) {
-                                 Out.RAW -> appendTextSmart(it)
-                                 Out.CHAT -> if (p.llmOn && (state=="USER" || state=="CHAT")) appendTextSmart(it)
+                                 Out.RAW -> when (lvl!!) {
+                                    INFO -> if (state!=null && state!="") appendTextSmart(it)
+                                    DEBUG -> appendTextSmart(it)
+                                 }
                                  Out.SPEAK -> if (state=="SYS" || state=="USER" || state=="CHAT") appendTextSmart(it)
+                                 Out.CHAT -> if (state=="USER" || state=="CHAT") appendTextSmart(it)
                                  Out.HW -> Unit
                               }
                            }
@@ -225,7 +235,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                   }
                   lay += stackPane {
                      lay(CENTER) += hBox(null, CENTER) {
-                        lay(ALWAYS) += textArea("") {
+                        lay(ALWAYS) += textArea {
                            id = "input"
                            isWrapText = true
                            isNewlineOnShiftEnter = true
@@ -257,6 +267,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                }
                lay += stackPane {
                   chatSettings zip plugin zip2 mode map { (showSettings, active, mode) -> mode to (showSettings && active!=null && mode!=Out.HW) } sync { (m, show) ->
+                     lay.children.forEach { it.onNodeDispose() }
                      lay.clear()
                      lay += supplyIf(show) {
                         scrollPane {
@@ -268,7 +279,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            minWidth = 250.emScaled
                            content = ConfigPane(
                               ListConfigurable.Companion.heterogeneous(
-                                 plugin.value?.net { m.configs(it).map { it.getDelegateConfig() } }.orEmpty()
+                                 plugin.value?.net { m.configs(this@VoiceAssistantWidget, it).map { it.getDelegateConfig() } }.orEmpty()
                               )
                            )
                         }
@@ -308,21 +319,27 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       }
    }
 
+   enum class OutRaw(
+      val initText: VoiceAssistantWidget.(VoiceAssistant) -> String
+   ) {
+      DEBUG({ it.pythonOutStd.value }),
+      INFO({ it.pythonOutEvent.value }),
+   }
    enum class Out(
       override val nameUi: String,
-      val initText: (VoiceAssistant) -> String,
+      val initText: VoiceAssistantWidget.(VoiceAssistant) -> String,
       val desc: String,
       val runDesc: String,
-      val configs: (VoiceAssistant) -> List<KProperty0<*>>,
+      val configs: VoiceAssistantWidget.(VoiceAssistant) -> List<KProperty0<*>>,
    ): NameUi {
       RAW(
          "Raw",
-         { it.pythonOutStd.value },
+         { consoleLevel.value.initText(this, it) },
          "Show console output",
          "Send the text to the Voice Assestant as if user wrote it in console",
          {
             listOf(
-               it::pythonStdOutDebug
+               this::consoleLevel
             )
          }
       ),

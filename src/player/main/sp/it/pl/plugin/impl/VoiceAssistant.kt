@@ -6,8 +6,6 @@ import io.ktor.client.statement.bodyAsText
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.lang.StringBuilder
-import java.time.LocalDate
-import java.time.LocalTime
 import java.util.regex.Pattern
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Line
@@ -27,7 +25,6 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.action
-import sp.it.pl.voice.toVoiceS
 import sp.it.util.access.V
 import sp.it.util.access.readOnly
 import sp.it.util.access.v
@@ -45,20 +42,16 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
 import sp.it.util.conf.Constraint.RepeatableAction
-import sp.it.util.conf.EditMode
 import sp.it.util.conf.between
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
-import sp.it.util.conf.cvnro
 import sp.it.util.conf.def
 import sp.it.util.conf.min
 import sp.it.util.conf.multiline
-import sp.it.util.conf.multilineToBottom
 import sp.it.util.conf.noPersist
-import sp.it.util.conf.noUi
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
@@ -114,7 +107,6 @@ class VoiceAssistant: PluginBase() {
          val commandRaw = listOf(
             "python", python.absolutePath,
             "wake-word=${wakeUpWord.value}",
-            "printRaw=${pythonStdOutDebug.value}",
             "mic-enabled=${micEnabled.value}",
             "mic-name=${micName.value ?: ""}",
             "mic-energy=${micEnergy.value}",
@@ -158,24 +150,28 @@ class VoiceAssistant: PluginBase() {
             val p = object {
                var state = null as String?
                var str = StringBuilder("")
+               fun String.onS(onS: (String, String?) -> Unit) = if (isNotEmpty()) onS(this, state) else Unit
                fun process(t: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
                   var s = t.replace("\r\n", "\n")
                   if ("\n" in s) {
                      s.split("\n").dropLast(1).forEach { processSingle(it.un(), onS, onE) }
                      str.clear()
                      str.append("".concatApplyBackspace(s.substringAfterLast("\n").un()))
-                     onS(s.substringAfterLast("\n").un(), state)
+                     s.substringAfterLast("\n").un().onS(onS)
                   } else {
-                     if (s.startsWith("RAW: ")) state = "RAW"
-                     else if (s.startsWith("USER: ")) state = "USER"
-                     else if (s.startsWith("SYS: ")) state = "SYS";
-                     else if (s.startsWith("CHAT: ")) state = "CHAT"
-                     else if (s.startsWith("COM: ")) state = "COM"
-                     else if (s.startsWith("COM-DET: ")) state = "COM-DET"
+                     state = when {
+                        s.startsWith("RAW: ") -> "RAW"
+                        s.startsWith("USER: ") -> "USER"
+                        s.startsWith("SYS: ") -> "SYS"
+                        s.startsWith("CHAT: ") -> "CHAT"
+                        s.startsWith("COM: ") -> "COM"
+                        s.startsWith("COM-DET: ") -> "COM-DET"
+                        else -> ""
+                     }
                      val strOld = str.toString()
                      str.clear()
                      str.append(strOld.concatApplyBackspace(s.un()))
-                     onS(s.un(), state)
+                     s.un().onS(onS)
                   }
                }
                fun processSingle(s: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
@@ -186,9 +182,9 @@ class VoiceAssistant: PluginBase() {
                   else if (str.startsWith("CHAT: ")) { state = "CHAT"; onE(str.toString().substringAfter(": "), "CHAT") }
                   else if (str.startsWith("COM: ")) { state = "COM"; onE(str.toString().substringAfter(": "), "COM") }
                   else if (str.startsWith("COM-DET: ")) { state = "COM-DET"; onE(str.toString().substringAfter(": "), "COM-DET") }
-                  else Unit
+                  else { state = "" }
                   str.clear()
-                  onS(s + "\n", state)
+                  (s + "\n").onS(onS)
                }
             }
 
@@ -200,7 +196,8 @@ class VoiceAssistant: PluginBase() {
                      it,
                      { e, state ->
                         pythonOutStd.value = pythonOutStd.value.concatApplyBackspace(e)
-                        if (llmOn && (state=="CHAT" || state=="USER")) pythonOutChat.value = pythonOutChat.value.concatApplyBackspace(e)
+                        if (state!=null && state!="") pythonOutEvent.value = pythonOutEvent.value.concatApplyBackspace(e)
+                        if (state=="CHAT" || state=="USER") pythonOutChat.value = pythonOutChat.value.concatApplyBackspace(e)
                         if (state=="CHAT" || state=="USER" || state=="SYS") pythonOutSpeak.value = pythonOutSpeak.value.concatApplyBackspace(e)
                         onLocalInput(e to state)
                      },
@@ -331,20 +328,17 @@ class VoiceAssistant: PluginBase() {
    val micEnergyDebug by cv(false)
       .def(name = "Microphone energy > debug", info = "Whether current microphone energy lvl is active. Use to setup microphone energy voice treshold.")
 
-   /** Console output */
-   val pythonOutStd by cvnro(v<String>("")).multilineToBottom(20).noPersist().noUi()
-      .def(name = "Output", info = "Shows console output of the python process", editable = EditMode.APP)
+   /** Console output - all */
+   val pythonOutStd = v<String>("")
 
-   /** Whether consoel output shows `RAW: $text` values. */
-   val pythonStdOutDebug by cv(true)
-      .def(name = "Output raw", info = "Whether `RAW: \$text` values will be shown.")
+   /** Console output - app events only */
+   val pythonOutEvent = v<String>("")
 
-   /** Console output */
-   val pythonOutChat by cvnro(v<String>("")).multilineToBottom(20).noPersist().noUi()
-      .def(name = "Output", info = "Shows console output of the python process", editable = EditMode.APP)
+   /** Console output - speaking only */
+   val pythonOutSpeak = v<String>("")
 
-   val pythonOutSpeak by cvnro(v<String>("")).multilineToBottom(20).noPersist().noUi()
-      .def(name = "Output", info = "Shows console output of the python process", editable = EditMode.APP)
+   /** Console output - chat only */
+   val pythonOutChat = v<String>("")
 
    /** Opens console output */
    val pythonStdOutOpen by cr { APP.widgetManager.widgets.find(speechRecognitionWidgetFactory, ANY) }
@@ -501,16 +495,15 @@ class VoiceAssistant: PluginBase() {
       // runtime-changeable properties
       // @formatter:off
       ttsEngineCoquiVoice.chan().throttleToLast(2.seconds) subscribe { write("coqui-voice=$it") }
-                    pythonStdOutDebug.chan().throttleToLast(2.seconds) subscribe { write("print-raw=$it") }
-                       micEnabled.chan().throttleToLast(2.seconds) subscribe { write("mic-on=$it") }
-                   micEnergy.chan().throttleToLast(2.seconds) subscribe { write("mic-energy=$it") }
-              micEnergyDebug.chan().throttleToLast(2.seconds) subscribe { write("mic-energy-debug=$it") }
+               micEnabled.chan().throttleToLast(2.seconds) subscribe { write("mic-on=$it") }
+                micEnergy.chan().throttleToLast(2.seconds) subscribe { write("mic-energy=$it") }
+           micEnergyDebug.chan().throttleToLast(2.seconds) subscribe { write("mic-energy-debug=$it") }
                     ttsOn.chan().throttleToLast(2.seconds) subscribe { write("speech-on=$it") }
-            llmChatSysPrompt.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-sys-prompt=$it") }
-            llmChatMaxTokens.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-max-tokens=$it") }
-                 llmChatTemp.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-temp=$it") }
-                 llmChatTopP.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-topp=$it") }
-                 llmChatTopK.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-topk=$it") }
+         llmChatSysPrompt.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-sys-prompt=$it") }
+         llmChatMaxTokens.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-max-tokens=$it") }
+              llmChatTemp.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-temp=$it") }
+              llmChatTopP.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-topp=$it") }
+              llmChatTopK.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-topk=$it") }
 
       startSpeechRecognition()
 
@@ -572,6 +565,7 @@ class VoiceAssistant: PluginBase() {
 
    private fun handleInput(text: String, state: String) {
       when (state) {
+         "" -> Unit
          "RAW" -> launch(FX) { confirm(text) }
          "USER" -> launch(FX) { handleSpeech(text, user = true) }
          "SYS" -> Unit

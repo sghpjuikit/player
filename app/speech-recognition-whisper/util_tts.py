@@ -768,7 +768,6 @@ class TtsFastPitch(TtsWithModelBase):
 
 
     def _loop(self):
-        import urllib.request
         # Download files
         cmudict = self._download_file('https://raw.githubusercontent.com/NVIDIA/NeMo/main/scripts/tts_dataset_files/cmudict-0.7b_nv22.10', os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", 'fastpitch-files', 'cmudict-0.7b'))
         heteronyms = self._download_file('https://raw.githubusercontent.com/NVIDIA/NeMo/main/scripts/tts_dataset_files/heteronyms-052722', os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", 'fastpitch-files', 'heteronyms'))
@@ -817,7 +816,7 @@ class TtsFastPitch(TtsWithModelBase):
 
                         # update cache
                         if cache_used and text:
-                            try: torchaudio.save(audio_file, torch.tensor(audio), vocoder_train_setup['sampling_rate'])
+                            try: torchaudio.save(audio_file, audio.clone().detach(), vocoder_train_setup['sampling_rate'])
                             except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
                     else:
                         self.play.playFile(text, audio_file, skippable)

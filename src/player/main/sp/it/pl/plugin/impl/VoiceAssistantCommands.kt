@@ -2,16 +2,20 @@ package sp.it.pl.plugin.impl
 
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
 import java.time.Period
 import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyCode
 import javafx.scene.robot.Robot
 import kotlin.math.max
 import kotlin.math.min
+import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.main.APP
 import sp.it.pl.main.ScheduledNote
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakContext
+import sp.it.pl.voice.toVoiceS
 import sp.it.util.async.runVT
 import sp.it.util.async.sleep
 import sp.it.util.functional.Try
@@ -30,6 +34,23 @@ import sp.it.util.text.words
 import sp.it.util.units.uuid
 
 typealias ComMatch = Try<String?, String?>?
+
+fun SpeakContext.voiceCommandCurrentTime(text: String): ComMatch =
+   if (matches(text)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" })
+   else null
+
+fun SpeakContext.voiceCommandCurrentDate(text: String): ComMatch =
+   if (matches(text)) Ok(LocalDate.now().net { "Today is ${it.toVoiceS()}" })
+   else null
+
+fun SpeakContext.voiceCommandCurrentSong(text: String): ComMatch =
+   if (matches(text))
+      Ok(
+         APP.audio.playingSong.value.takeIf { it!=Metadata.EMPTY }
+            ?.net { it.getTitle()?.net { "It is $it " }.orEmpty() + (it.getArtist() ?: it.getAlbumArtist())?.net { " by $it" }.orEmpty() }
+            ?: "There is no active playback"
+      )
+   else null
 
 fun SpeakContext.voiceCommandGenerate(text: String): ComMatch =
    if (matches(text)) {

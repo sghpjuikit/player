@@ -338,11 +338,12 @@ assist_function_prompt = f"""
 - stop-music
 - play-previous-song
 - play-next-song
+- what-song-is-active
 - what-time-is-it
 - what-date-is-it
-- generate from? clipboard
-- speak|say from? clipboard
-- speak|say $text
+- generate-from?-clipboard
+- speak|say-from?-clipboard
+- speak|say-$text
 - lights-on|off
 - list-light-scenes
 - lights-scene-$scene  // sets light scene, scene is usually a mood, user must include 'scene' word

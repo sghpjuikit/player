@@ -53,7 +53,7 @@ fun Any?.toNull() = null
 infix fun <A, B, C> ((A) -> B).compose(then: (B) -> C): (A) -> C = { then(this(it)) }
 
 /** @return partially applied this with the 1st parameter fixed to the specified value */
-fun <A, B, C> ((A, B) -> C).invoke(a: A): (B) -> C = { this(a, it) }
+operator fun <A, B, C> ((A, B) -> C).invoke(a: A): (B) -> C = { this(a, it) }
 
 /** @return kotlin consumer that invokes java consumer */
 fun <T> consumer(consumer: Consumer<T>): (T) -> Unit = { consumer(it) }

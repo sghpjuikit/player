@@ -52,7 +52,7 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
    fun use(executor: Executor = CURR, block: (T) -> Unit) = then(executor) { block(it); it }
 
    /** Legacy version of [use] for Java taking a [Consumer]. */
-   fun useBy(executor: Executor = CURR, block: Consumer<in T>) = then(executor) { block.invoke(it); it }
+   fun useBy(executor: Executor = CURR, block: Consumer<in T>) = then(executor) { block(it); it }
 
    /** Sets [block] to be invoked when this future finishes with success. Returns this. */
    fun onOk(executor: Executor = CURR, block: (T) -> Unit) = onDone(executor) { it.toTry().ifOk(block) }
@@ -61,9 +61,7 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
    fun onError(executor: Executor = CURR, block: (Throwable) -> Unit) = onDone(executor) { it.toTry().ifError(block) }
 
    /** Sets [block] to be invoked when this future finishes regardless of success. Returns this. */
-   fun onDone(executor: Executor = CURR, block: (Result<T>) -> Unit) = apply {
-      f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor)
-   }
+   fun onDone(executor: Executor = CURR, block: (Result<T>) -> Unit) = f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor).net { this }
 
    fun <R> thenRecover(executor: Executor = CURR, block: (Result<T>) -> R) = Fut<R>(f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor))
 

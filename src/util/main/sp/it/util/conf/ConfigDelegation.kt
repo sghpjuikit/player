@@ -83,9 +83,9 @@ fun <T: Any> cOr(parent: KProperty0<Property<T>>, child: Property<T>, initialVal
 /** Inheritable observable nullable configurable value. Subscribed to the specified [parent] and [syncBiFromWithOverride]d to the specified [child] value, until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */
 fun <T: Any?> cnOr(parent: KProperty0<Property<T>>, child: Property<T>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr(initialValue) { OrV(parent.call(), initialValue).apply { child syncBiFromWithOverride this on unsubscriber } on unsubscriber }
 /** Observable reified configurable list. Backed by [ListConfig]. */
-inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), observableArrayList(*initialItems))).nonNull()
+inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL<T>(ConfList<T>(type(), observableArrayList(*initialItems))).nonNull()
 /** Observable reified configurable list. Backed by [ListConfig]. */
-inline fun <reified T: Any?> cList(initialItems: Collection<T>): ConfL<T> = ConfL(ConfList(type(), observableArrayList(initialItems))).nonNull()
+inline fun <reified T: Any?> cList(initialItems: Collection<T>): ConfL<T> = ConfL<T>(ConfList<T>(type(), observableArrayList(initialItems))).nonNull()
 /** Observable reified configurable list. Backed by [ListConfig]. */
 inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemToConfigurable: (T) -> Configurable<*>, vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), itemFactory, itemToConfigurable, *initialItems)).nonNull()
 /** Observable reified configurable checked list. Backed by [CheckListConfig]. */

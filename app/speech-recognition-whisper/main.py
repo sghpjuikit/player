@@ -339,7 +339,7 @@ assist_function_prompt = f"""
 - generate-from?-clipboard
 - speak|say-from?-clipboard
 - speak|say-$text
-- lights-on|off
+- lights-on|off // turns all lights on/off
 - list-light-scenes
 - lights-scene-$scene  // sets light scene, scene is usually a mood, user must include 'scene' word
 - list-light-groups

@@ -393,14 +393,19 @@ commandExecutor.commandExecutor = CommandExecutorMain()
 
 
 
+class Assist:
+    def needsWakeWord(self) -> bool: return True
+    def __call__(self, text: str, textSanitized: str): pass
 
-class AssistChat:
+
+class AssistChat(Assist):
     def __init__(self):
         # start
         write("COM: start conversation")
         llm(ChatStart())
         speak('Conversing')
         mic.set_pause_threshold_talk()
+    def needsWakeWord(self): False
     def __call__(self, text: str, textSanitized: str):
         # announcement
         if len(text) == 0: speak('Yes, we are talking')
@@ -438,10 +443,11 @@ class AssistChat:
         else: llm(Chat(textSanitized))
 
 
-class AssistEnVocab:
+class AssistEnVocab(Assist):
     def __init__(self):
         # start
         speak("Certainly. Say a word and explain what it means. I'll check if you understand it correctly. To end the excersize, say stop, or end.")
+    def needsWakeWord(self): False
     def __call__(self, text: str, textSanitized: str):
         # announcement
         if len(text) == 0:
@@ -459,11 +465,17 @@ class AssistEnVocab:
             llm(ChatProceed("You are English Teacher evaluating user's understanding of a word. Be short. Criticize, but improve.", text))
 
 
-class AssistStandard:
+class AssistStandard(Assist):
+    def __init__(self):
+        self.last_announcement_at = 0.0
+        self.wake_word_delay = 5.0
+
+    def needsWakeWord(self): return time.time() - self.last_announcement_at > self.wake_word_delay
     def __call__(self, text: str, textSanitized: str):
         global assist
         # announcement
         if len(text) == 0:
+            self.last_announcement_at = time.time()
             speak('Yes')
 
         # do greeting
@@ -532,7 +544,7 @@ def callback(text):
     if len(text) > 0: write('RAW: ' + text)
 
     # ignore speech recognition noise
-    if not text.startswith(wake_word) and isinstance(assist, AssistChat) is False: return
+    if not text.startswith(wake_word) and assist.needsWakeWord(): return
 
     # monitor activity time
     global assist_last_at

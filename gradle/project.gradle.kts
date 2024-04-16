@@ -2,6 +2,8 @@ import kotlin.text.Charsets.UTF_8
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTIUM
 import org.gradle.jvm.toolchain.JvmVendorSpec.AMAZON
+import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
@@ -59,18 +61,22 @@ allprojects {
    }
 
    tasks.withType<KotlinCompile> {
-      kotlinOptions.apiVersion = "2.0"
-      kotlinOptions.languageVersion = "2.0"
-      kotlinOptions.suppressWarnings = false
-      kotlinOptions.verbose = true
-      kotlinOptions.freeCompilerArgs += listOf(
-         "-Xno-call-assertions",
-         "-Xno-param-assertions",
-         "-Xjvm-default=all",
-         "-Xlambdas=indy",
-         "-Xstring-concat=indy-with-constants",
-      )
-      kotlinOptions.javaParameters = true
+      // https://kotlinlang.org/docs/gradle-compiler-options.html
+      compilerOptions {
+         apiVersion = KOTLIN_2_0
+         languageVersion = KOTLIN_2_0
+         suppressWarnings = false
+         verbose = true
+         freeCompilerArgs = listOf(
+            "-Xno-call-assertions",
+            "-Xno-param-assertions",
+            "-Xjvm-default=all",
+            "-Xlambdas=indy",
+            "-Xstring-concat=indy-with-constants",
+         )
+         javaParameters = true
+         // jvmTarget.set(JvmTarget.JVM_21)  TODO: does not compile
+      }
       kotlinOptions.jvmTarget = "21"
    }
 

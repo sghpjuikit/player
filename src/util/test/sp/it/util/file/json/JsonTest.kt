@@ -662,7 +662,7 @@ j.fromJson<Double>("-1.7976931348623157E309") shouldBeTry Error("-1.797693134862
       }
    }
 
-   val dirJSONTestSuite = (File("").absoluteFile.parentFile?.parentFile?.parentFile?.net { it / "JSONTestSuite" }).printIt()
+   val dirJSONTestSuite = (File("").absoluteFile.parentFile?.parentFile?.parentFile?.net { it / "JSONTestSuite" })
    "comprehensive (https://github.com/nst/JSONTestSuite)".config(enabled = dirJSONTestSuite?.exists()==true) - {
       for (f in (dirJSONTestSuite!! / "test_parsing").children().toList()) {
          val n = f.name

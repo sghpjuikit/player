@@ -68,7 +68,7 @@ open class MenuBuilder<M, V>(val owner: M, val value: V) {
 inline fun ContextMenu.dsl(block: (MenuBuilder<ContextMenu, Nothing?>).() -> Unit) = dsl(null, block)
 
 @Dsl
-inline fun <S: Any?> ContextMenu.dsl(selected: S, block: (MenuBuilder<ContextMenu, S>).() -> Unit) = apply { MenuBuilder(this, selected).block() }
+inline fun <S> ContextMenu.dsl(selected: S, block: (MenuBuilder<ContextMenu, S>).() -> Unit) = apply { MenuBuilder(this, selected).block() }
 
 @Dsl
 fun <M: MenuItem> M.dsl(block: (MenuBuilder<M, Nothing?>).() -> Unit) = dsl(null, block)

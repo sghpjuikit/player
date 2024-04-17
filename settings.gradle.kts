@@ -2,7 +2,7 @@
 // Defines all projects and build script classpath.
 
 plugins {
-   id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0" // https://github.com/gradle/foojay-toolchains
+   id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0" // for jvm toolchains, see https://github.com/gradle/foojay-toolchains
 }
 
 rootProject.apply {

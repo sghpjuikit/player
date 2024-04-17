@@ -45,6 +45,7 @@ import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.net
+import sp.it.util.functional.sortedByMemoized
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -132,7 +133,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
       // always include project parent dirs
       .flatMap { it.traverse { it.parentFile }.takeWhile { it != inputFile.value } }
       .distinct()
-      .sortedBy { it.path }
+      .sortedByMemoized { it.path.lowercase() }
 
    fun visitProject(p: Project?) {
       mdHistory.clear()

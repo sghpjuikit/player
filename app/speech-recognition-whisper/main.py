@@ -570,16 +570,13 @@ def callback(text):
         speak(name + " encountered an error. Please speak again.")
 
 def start_exit_invoker():
-    if sysParentProcess==-1:
-        return
+    if sysParentProcess==-1: return
 
-    def monitor():
-        # wait until parent dies or listen forever
-        while not sysTerminating and psutil.pid_exists(sysParentProcess):
-            time.sleep(1)
+    def waitAndStopWithParentProcess():
+        while not sysTerminating and psutil.pid_exists(sysParentProcess): time.sleep(1)
         stop()
 
-    Thread(name='Process-Monitor', target=monitor, daemon=True).start()
+    Thread(name='Process-Monitor', target=waitAndStopWithParentProcess, daemon=True).start()
 
 
 def stop(*args):  # pylint: disable=unused-argument

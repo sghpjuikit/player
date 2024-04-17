@@ -65,6 +65,7 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.input.Clipboard;
@@ -282,8 +283,8 @@ public class MdNodeHelper extends VBox {
 			if (shouldShowContent()) {
 				newParagraph();
 
-				flow.getStyleClass().add("markdown-heading-" + heading.getLevel());
 				flow.getStyleClass().add("markdown-heading");
+				flow.getStyleClass().add("markdown-heading-" + heading.getLevel());
 				flow.addEventHandler(MOUSE_CLICKED, e -> {
 					if (e.getButton() == PRIMARY) {
 						parent.scrollToAnchor(heading.getAnchorRefText().replace(" ", "-"));
@@ -553,7 +554,6 @@ public class MdNodeHelper extends VBox {
 		if(!text.isEmpty()) {
 
 			Text toAdd = new Text(text);
-
 			toAdd.getStyleClass().add("markdown-text");
 
 			addFeatures(toAdd,wholeText);

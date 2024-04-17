@@ -16,6 +16,7 @@ import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.canvas.Canvas
 import javafx.scene.control.Button
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Hyperlink
 import javafx.scene.control.Label
 import javafx.scene.control.Labeled
@@ -171,6 +172,9 @@ inline fun text(text: String = "", block: Text.() -> Unit = {}) = Text(text).app
 inline fun textField(text: String = "", block: TextField.() -> Unit = {}) = TextField(text).apply(block)
 inline fun textArea(text: String = "", block: TextArea.() -> Unit = {}) = TextArea(text).apply(block)
 inline fun textFlow(block: TextFlow.() -> Unit = {}) = TextFlow().apply(block)
+inline fun contextMenu(vararg items: MenuItem, block: (ContextMenu).() -> Unit = {}) = ContextMenu(*items).apply(block)
+inline fun contextMenuDsl(block: (MenuBuilder<ContextMenu, Nothing?>).() -> Unit) = ContextMenu().dsl(block)
+inline fun <S> contextMenuDsl(selected: S, block: (MenuBuilder<ContextMenu, S>).() -> Unit) = ContextMenu().dsl(selected, block)
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
 inline fun menuItem(text: String, graphics: Node? = null, crossinline action: (ActionEvent) -> Unit) = MenuItem(text, graphics).apply { onAction = EventHandler { action(it) } }
 inline fun menuItem(text: String, graphics: Node? = null, keys: String?, crossinline action: (ActionEvent) -> Unit) = menuItem(text, graphics, action).apply { acceleratorText = keys }

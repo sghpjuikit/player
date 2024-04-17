@@ -4236,8 +4236,11 @@ TextFlow > * {
 }
 
 .markdown-heading .markdown-text {
-    /*-fx-line-spacing: 100;*/
     -fx-fill: -mdfx-font-color;
+}
+.markdown-heading .markdown-text:hover {
+    -fx-underline: true;
+    -fx-cursor: HAND;
 }
 .markdown-heading-1 { -fx-padding: 1.166667em 0 1.166667em 0; }
 .markdown-heading-2 { -fx-padding: 0.833333em 0 0.833333em 0; }

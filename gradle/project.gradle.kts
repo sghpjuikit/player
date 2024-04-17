@@ -3,6 +3,7 @@ import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTIUM
 import org.gradle.jvm.toolchain.JvmVendorSpec.AMAZON
 import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -75,9 +76,8 @@ allprojects {
             "-Xstring-concat=indy-with-constants",
          )
          javaParameters = true
-         // jvmTarget.set(JvmTarget.JVM_21)  TODO: does not compile
+         jvmTarget = JVM_21
       }
-      kotlinOptions.jvmTarget = "21"
    }
 
    repositories {

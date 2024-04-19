@@ -84,12 +84,14 @@ import sp.it.util.system.EnvironmentContext
 import sp.it.util.system.Os.WINDOWS
 import sp.it.util.text.applyBackspace
 import sp.it.util.text.camelToSpaceCase
+import sp.it.util.text.chars32
 import sp.it.util.text.concatApplyBackspace
 import sp.it.util.text.encodeBase64
 import sp.it.util.text.keys
 import sp.it.util.text.lines
 import sp.it.util.text.split2
 import sp.it.util.text.splitTrimmed
+import sp.it.util.text.toPrintableNonWhitespace
 import sp.it.util.text.useStrings
 import sp.it.util.text.words
 import sp.it.util.type.atomic
@@ -148,7 +150,7 @@ class VoiceAssistant: PluginBase() {
          val stdoutListener = process.inputStream.consume("SpeechRecognition-stdout") {
 
             val p = object {
-               var state = null as String?
+               var state = "" as String?
                var str = StringBuilder("")
                fun String.onS(onS: (String, String?) -> Unit) = if (isNotEmpty()) onS(this, state) else Unit
                fun process(t: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
@@ -159,18 +161,18 @@ class VoiceAssistant: PluginBase() {
                      str.append("".concatApplyBackspace(s.substringAfterLast("\n").un()))
                      s.substringAfterLast("\n").un().onS(onS)
                   } else {
-                     state = when {
-                        s.startsWith("RAW: ") -> "RAW"
-                        s.startsWith("USER: ") -> "USER"
-                        s.startsWith("SYS: ") -> "SYS"
-                        s.startsWith("CHAT: ") -> "CHAT"
-                        s.startsWith("COM: ") -> "COM"
-                        s.startsWith("COM-DET: ") -> "COM-DET"
-                        else -> ""
-                     }
                      val strOld = str.toString()
                      str.clear()
                      str.append(strOld.concatApplyBackspace(s.un()))
+                     state = when {
+                        str.startsWith("RAW: ") -> "RAW"
+                        str.startsWith("USER: ") -> "USER"
+                        str.startsWith("SYS: ") -> "SYS"
+                        str.startsWith("CHAT: ") -> "CHAT"
+                        str.startsWith("COM: ") -> "COM"
+                        str.startsWith("COM-DET: ") -> "COM-DET"
+                        else -> ""
+                     }
                      s.un().onS(onS)
                   }
                }

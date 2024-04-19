@@ -627,7 +627,7 @@ install_exit_handler()
 start_exit_invoker()
 speak(name + " online")
 
-while True:
+while not sysTerminating:
     try:
         m = input()
 
@@ -697,7 +697,6 @@ while True:
         # exit command
         elif m == "EXIT":
             stop()
-            break
 
     except EOFError as _:
         stop()

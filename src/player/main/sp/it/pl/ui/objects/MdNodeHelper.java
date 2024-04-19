@@ -125,22 +125,22 @@ public class MdNodeHelper extends VBox {
 		root.getChildren().add(newFlow);
 		flow = newFlow;
 	}
-
-	public MdNodeHelper(MdNodeContent parent, String mdString) {
-		this.parent = parent;
-
-		root.getStyleClass().add("markdown-paragraph-list");
-		root.setFillWidth(true);
-
+	private ThreadLocal<Parser> parser = ThreadLocal.withInitial(() -> {
 		LinkedList<Extension> extensions = new LinkedList<>();
 		extensions.add(AutolinkExtension.create());
 		extensions.add(TablesExtension.create());
 		extensions.add(AttributesExtension.create());
 		extensions.add(StrikethroughExtension.create());
 		extensions.add(TaskListExtension.create());
-		Parser parser = Parser.builder().extensions(extensions).build();
+		return Parser.builder().extensions(extensions).build();
+	});
+	public MdNodeHelper(MdNodeContent parent, String mdString) {
+		this.parent = parent;
 
-		runIO(() -> parser.parse(mdString)).then(FX, node -> {
+		root.getStyleClass().add("markdown-paragraph-list");
+		root.setFillWidth(true);
+
+		runIO(() -> parser.get().parse(mdString)).then(FX, node -> {
 			new MdNodeHelper.MDParser(node).visitor.visitChildren(node);
 			this.getChildren().add(root);
 			return null;

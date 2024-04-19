@@ -341,7 +341,7 @@ abstract class OverlayPane<in T>: StackPane() {
       } else {
          runSuspendingFx {
             val screen = computeScreen()
-            val image = op.displayBgr.value.computeImage(screen)?.adjustForBlur(blurMax)
+            val image = op.displayBgr.value.computeImage(screen)?.let { IO { it.adjustForBlur(blurMax) } }
             val bgr = pane {
                styleClass += "bgr-image"   // replicate app window bgr for style & consistency
             }

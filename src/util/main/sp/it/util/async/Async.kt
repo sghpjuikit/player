@@ -128,9 +128,11 @@ class IOLaterExecutor(private val e: Executor = burstTPExecutor(32, 1.minutes, t
 }
 
 /** Executes the specified block on thread in an IO thread pool. */
-class VTExecutor: Executor by Executors.newVirtualThreadPerTaskExecutor()!! {
-   fun named(name: String): Executor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name(name).factory())
-   operator fun invoke(name: String): Executor = Executor { Thread.ofVirtual().name(name).start(it) }
+class VTExecutor(private val name: String = "VT"): Executor {
+   private val e = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name(name).factory())!!
+   override fun execute(command: Runnable) = if (Thread.currentThread().let { it.isVirtual && it.name.startsWith(name) }) command() else e.execute(command)
+   fun named(name: String): VTExecutor = VTExecutor(name)
+   operator fun invoke(name: String): VTExecutor = VTExecutor(name)
 }
 
 /** Sleeps currently executing thread for specified duration. When interrupted, returns.  */

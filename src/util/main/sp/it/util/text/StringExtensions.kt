@@ -381,3 +381,6 @@ fun String.concatApplyBackspace(str: String): String {
    }
    return result.toString()
 }
+
+/** @return String with each [Char32] transformed with [Char32.toPrintableNonWhitespace] */
+fun String.toPrintableNonWhitespace() = chars32().map { it.toPrintableNonWhitespace() }.joinToString("")

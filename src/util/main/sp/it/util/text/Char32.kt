@@ -27,6 +27,8 @@ fun Char32.toPrintableNonWhitespace() = when {
    Character.isSpaceChar(value) -> '·'.toChar32()
    // U+0000—U+001F (C0)
    value in 0..32 -> Char32(2*16*16 + 4*16 + value) // \u2400..\u241F
+   // U+0008 (BACKSPACE)
+   value == 8 -> Char32(8592) // Backspace Unicode icon
    // U+007F (DELETE)
    value==127 -> Char32(2421)
    // U+0080—U+009F (C1 controls).

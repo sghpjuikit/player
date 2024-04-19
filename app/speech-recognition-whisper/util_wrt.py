@@ -46,8 +46,12 @@ class Writer(Actor):
             self.queue = queue
             self.stdout: TextIO = sys.stdout
 
-        def switchStdout(self): sys.stdout = self
-        def switchStdoutBack(self): sys.stdout = self.sout
+        def switchStdout(self):
+            self.sout = sys.stdout
+            sys.stdout = self
+        def switchStdoutBack(self):
+            sys.stdout = self.sout
+            del self.sout
 
         def close(self): pass
         def detach(self): pass

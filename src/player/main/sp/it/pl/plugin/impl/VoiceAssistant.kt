@@ -38,6 +38,7 @@ import sp.it.util.async.coroutine.launch
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runOn
+import sp.it.util.collections.list.DestructuredList
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
@@ -82,6 +83,7 @@ import sp.it.util.reactive.plus
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
 import sp.it.util.system.Os.WINDOWS
+import sp.it.util.text.Char32
 import sp.it.util.text.applyBackspace
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.chars32
@@ -280,7 +282,7 @@ class VoiceAssistant: PluginBase() {
             SpeakHandler(            "Speak from clipboard", "speak|say from? clipboard")                    { voiceCommandSpeakClipboard(it) },
             SpeakHandler(                           "Speak", "speak|say \$text")                             { voiceCommandSpeakText(it) },
             SpeakHandler("Close window (${keys("ALT+F4")})", "close|hide window")                            { voiceCommandAltF4(it) },
-            SpeakHandler(             "Open widget by name", "open|show widget? \$widget-name widget?")      { voiceCommandOpenWidget(it) },
+            SpeakHandler(             "Open widget by name", "open|show widget? \$widget_name widget?")      { voiceCommandOpenWidget(it) },
             SpeakHandler(                     "Shutdown OS", "shut down system|pc|computer|os")              { voiceCommandOsShutdown(it) }.takeIf { WINDOWS.isCurrent },
             SpeakHandler(                      "Restart OS", "restart system|pc|computer|os")                { voiceCommandOsRestart(it) }.takeIf { WINDOWS.isCurrent },
             SpeakHandler(                    "Hibernate OS", "hibernate system|pc|computer|os")              { voiceCommandOsHibernate(it) }.takeIf { WINDOWS.isCurrent },
@@ -635,7 +637,7 @@ class VoiceAssistant: PluginBase() {
    enum class LlmEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
       NONE("none", "None", "No chat"),
       GPT4ALL("gpt4all", "Gpt4All", "Gpt4All python bindings (requires downloading and specifying model)"),
-      OPENAI("openai", "OpenAi", "OpenAI http client (requires access, but custom local server is also possible, e.g. LmStudio )"),
+      OPENAI("openai", "OpenAi", "OpenAI http client (requires access, but custom local server is also possible, e.g. LmStudio)"),
    }
 
    /** [SpeakHandler] action context. */
@@ -650,8 +652,11 @@ class VoiceAssistant: PluginBase() {
       /** @return copy with [intent], i.e., `copy(intent = false)` */
       fun withIntent(): SpeakContext = copy(intent = false)
 
-      /** @return whether handler matches specified text, i.e., `handler.regex.matches(text)` */
-      fun matches(text: String): Boolean = handler.regex.matches(text)
+      /** @return whether handler matches specified text (with non-empty parameter values), i.e., `handler.regex.matches(text)` */
+      fun matches(text: String): Boolean = handler.regex.matches(text) && args(text).none { it.isBlank() }
+
+      /** @return parameter values or fails if not [matches] */
+      fun args(text: String) = DestructuredList(handler.regex.matchEntire(text)!!.groupValues.drop(1).map { it.replace("_", " ") })
 
       /**
        * @param confirmText text to be spoken to user to request feedback

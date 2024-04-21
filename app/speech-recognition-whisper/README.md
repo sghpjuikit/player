@@ -177,7 +177,11 @@ unregister() // unsubscribe
 
 ###### Command matching
 Command can be matched with arbitrary logic. There is built-in regex-like matcher that can be used.
-Example of matcher with OR part, optional part and parameter: `open|show widget? $widget-name widget?`
+This syntax supports:
+- optional word using `word?`
+- alternative word using `word1|word2|word3`
+- parameters using `$param` (use `_` as delimiter)
+Example of a matcher: `open|show widget? $widget_name widget?`
 See `SpeakHandler` class.
 ```kotlin
 SpeakHandler(name = "Log off OS", matcher = "log off system|pc|computer|os") {
@@ -209,7 +213,8 @@ Inside the handler, it is possible to launch Kotlin coroutines, wait for jobs or
 
 ###### Command parameters
 It is up to the command logic to extract the parameters from the command, but the built in
-matcher is transformed into regex and matcher parameters to regex groups, so use `Regex` API.
+matcher is transformed into regex and can be used to extract the values using `Regex` API.
+TO make this easier, there is `args(text)` method, that does this, and with destructuring support
 ```kotlin
 SpeakHandler(...) {
    if (matches(text)) {
@@ -217,6 +222,8 @@ SpeakHandler(...) {
       val args = regex.matchEntire(text)!!.groupValues  // regex implicitly available, matching guaranteed to pass here
       // manually
       val arg1 = text.substringAfter("command-prefix") // arbitrary logic
+      // auto
+      val (arg1, arg2) = args(text) // destructures to tuple of any size!
       
       if (validateMyInput(arg1)==false) return null // return no match for bad parameter
      ...

@@ -341,9 +341,9 @@ assist_function_prompt = f"""
 - speak|say-$text
 - lights-on|off // turns all lights on/off
 - list-light-scenes
-- lights-scene-$scene  // sets light scene, scene is usually a mood, user must include 'scene' word
+- lights-scene-$scene_name  // sets light scene, scene is usually a mood, user must say 'scene' word
 - list-light-groups
-- lights-$groupname-on|off?  // group is usually a room
+- lights-$group_name-on|off?  // group is usually a room
 - list-light-bulbs
 - light-bulb-$bulb_name-on|off?
 - set-reminder-on-$iso_datetime-$text

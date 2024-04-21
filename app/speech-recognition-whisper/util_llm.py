@@ -64,9 +64,12 @@ class ChatIntentDetect(ChatProceed):
     def __init__(self, assist_function_prompt, userPrompt: str, writeTokens: bool = True):
         super().__init__(
             "From now on, identify user intent by returning one of following commands. " +
-            "Only respond with command in format: `COM-command-COM`."
-            "? is optional, $ is command parameter, : is default value." +
-            "Do not write $ after resolving parameter, e.g. `$number` -> `5`." +
+            "Only respond with command in format: `COM-command-COM`. " +
+            "? is optional, $ is command parameter, : is default value. " +
+            "Use '-' as word separator in command. " +
+            "Use '_' as word separator in $ parameter values. " +
+            "Do not write $ after resolving parameter, e.g. `$number` -> `5`. " +
+            "Example: DET-command-prefix-parameter_value-command-suffix-DET. " +
             "Commands: \n" + assist_function_prompt,
             userPrompt
         )
@@ -247,7 +250,7 @@ class LlmHttpOpenAi(Llm):
                                 stream = client.chat.completions.create(
                                     model=self.modelName, messages=messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
                                     stream=True, timeout=Timeout(1.0),
-                                    stop = "-COM" if isCommand else [],
+                                    stop = ["-COM", "<|eot_id|>"] if isCommand else ["<|eot_id|>"],
                                 )
                                 try:
                                     for chunk in stream:

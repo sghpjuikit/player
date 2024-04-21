@@ -201,14 +201,12 @@ fun voiceCommandRegex(commandUi: String) = Regex(
    commandUi.net { it ->
       fun String.rr() = replace("(", "").replace(")", "").replace("?", "")
       it.split(" ")
-         .map {
-            if (it.startsWith("$")) ".*" else it
-         }
          .map { p ->
             when {
-               p.contains("|") && p.endsWith("?") -> p.rr().net { "(${it.split("|").joinToString("|") { it }})?" }
-               p.endsWith("?") -> p.rr().net { "(${it})?" }
-               p.contains("|") -> p.rr().net { "($it)" }
+               p.startsWith("$") -> "(.+?)"
+               p.contains("|") && p.endsWith("?") -> p.rr().net { "(?:${it.split("|").joinToString("|") { it }})?" }
+               p.endsWith("?") -> p.rr().net { "(?:${it})?" }
+               p.contains("|") -> p.rr().net { "(?:$it)" }
                else -> p.rr()
             }
          }

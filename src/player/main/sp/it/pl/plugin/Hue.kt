@@ -125,12 +125,9 @@ class Hue: PluginBase() {
             if (matches(text)) Ok("The available light bulbs are: " + hueBridge.init().bulbs().joinToString(", ") { it.name })
             else null
          },
-         SpeakHandler("Turn hue light bulb on/off", "turn? light bulb \$bulb-name on|off?") { text ->
+         SpeakHandler("Turn hue light bulb on/off", "turn? light bulb \$bulb_name on|off?") { text ->
             if (matches(text)) {
-               val bName = text.substringAfter("light bulb ")
-                  .replace("on ", "").replace(" on", "")
-                  .replace("off ", "").replace(" off", "")
-                  .replace("_", " ")
+               val (bName) = args(text)
                val s = when { text.endsWith("on") -> true; text.endsWith("off") -> false; else -> null }
                val bulbs = hueBridge.init().bulbs()
                val b = bulbs.find { it.name.lowercase() equalsNcs bName }
@@ -144,9 +141,9 @@ class Hue: PluginBase() {
             if (text == "list light scenes") Ok("The available light scenes are: " + hueBridge.init().scenes().joinToString(", ") { it.name })
             else null
          },
-         SpeakHandler("Set hue lights scene", "lights scene \$scene-name") { text ->
+         SpeakHandler("Set hue lights scene", "lights scene \$scene_name") { text ->
             if (text.startsWith("lights scene ")) {
-               val sName = text.substringAfter("lights scene ").removeSuffix(" on").removeSuffix(" off").replace("_", " ")
+               val (sName) = args(text)
                val scenes = hueBridge.init().scenes()
                val s = scenes.find { it.name.lowercase() equalsNcs sName }
                if (s!=null) hueBridge.applyScene(s).ui { refreshes(Unit) }
@@ -159,23 +156,19 @@ class Hue: PluginBase() {
             if (matches(text)) Ok("The available light groups are: " + hueBridge.init().bulbsAndGroups().second.joinToString(", ") { it.name })
             else null
          },
-         SpeakHandler("Turn hue light group on/off", "turn? lights group? \$group-name on|off?") { text ->
+         SpeakHandler("Turn hue light group on/off", "turn? lights group? \$group_name on|off?") { text ->
             if (matches(text)) {
-               val gName = text.substringAfter("lights ")
-                  .replace("group ", "").replace("in ", "")
-                  .replace("on ", "").replace(" on", "")
-                  .replace("off ", "").replace(" off", "")
-                  .replace("_", " ")
-               val (s, ss) = when { text.endsWith("on") -> true to "on"; text.endsWith("off") -> false to "off"; else -> null to "" }
+               val (gName) = args(text)
+               val (s, ss) = when { text.endsWith("on") -> true to " on"; text.endsWith("off") -> false to " off"; else -> null to "" }
                val (_, groups) = hueBridge.init().bulbsAndGroups()
-               val groupsCsv = groups.map { "- ${it.name.lowercase()}" }.joinToString("\n")
+               val groupsCsv = groups.map { "- ${it.name.lowercase().replace(" ", "_")}" }.joinToString("\n")
                val g = groups.find { it.name.lowercase() equalsNcs gName }
                if (g!=null) hueBridge.toggleBulbGroup(g.id, s).ui { refreshes(Unit) }
                if (g!=null) Ok("Ok")
-               else if (intent) intent(text, "$groupsCsv\n- unidentified // no recognized function", gName) { this("lights group $it $ss") }
+               else if (intent) intent(text, "$groupsCsv\n- unidentified // no recognized function", gName) { this("lights group $it$ss") }
                else confirming("No Light Group $gName available. Please repeat the group name", "\$group") { gName2 ->
                   var groupIsValid = groups.find { it.name.lowercase() equalsNcs gName2.lowercase() }!=null
-                  if (groupIsValid) this@SpeakHandler.copy(handler, plugin)("turn lights group $gName2 $ss")!!
+                  if (groupIsValid) this@SpeakHandler.copy(handler, plugin)("turn lights group $gName2$ss")!!
                   else confirming("No such group. Would you like me to list available groups?", "yes") {
                      Ok("The available light groups are: " + groups.joinToString(", ") { it.name })
                   }

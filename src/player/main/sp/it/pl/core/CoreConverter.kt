@@ -401,6 +401,7 @@ object CoreConverter: Core {
       addP<Paint>(ConverterPaint)
       addP<Font>(ConverterFont)
       addParserToS(Node::class) { it::class.jvmName }
+      addParserToS(Image::class) { "${it::class.jvmName}(${it.url})" }
       addParserToS(Skin::class) { it::class.jvmName }
       addParserToS(Scene::class) { it::class.jvmName }
       addP<GlyphIcons>(Glyphs)

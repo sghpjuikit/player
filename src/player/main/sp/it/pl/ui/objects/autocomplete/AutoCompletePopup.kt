@@ -36,6 +36,7 @@ import javafx.util.StringConverter
 import sp.it.util.JavaLegacy.COMBO_BOX_STYLE_CLASS
 import sp.it.util.access.v
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
 import sp.it.util.reactive.Handler1
 
 /** Provides a list of available suggestions in order to complete current user input. */
@@ -63,11 +64,8 @@ open class AutoCompletePopup<T>: PopupControl() {
 
       val scene = node.scene ?: fail { "Can not show popup. The node must be attached to a scene." }
       val window = scene.window ?: fail { "Can not show popup. The node must be attached to a window." }
-      this.show(
-         window,
-         node.localToScreen(node.boundsInLocal).minX,
-         node.localToScreen(node.boundsInLocal).maxY
-      )
+      val pos = node.localToScreen(0.0, node.boundsInLocal.getMaxY());
+      show(window, pos.x, pos.y)
    }
 
    override fun createDefaultSkin() = AutoCompletePopupSkin(this, 1)

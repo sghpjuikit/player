@@ -143,7 +143,7 @@ allprojects {
          implementation("com.github.f4b6a3", "uuid-creator", "5.3.7")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
-         implementation("com.github.oshi", "oshi-core", "6.5.0")  // https://github.com/oshi/oshi/releases
+         implementation("com.github.oshi", "oshi-core", "6.6.0")  // https://github.com/oshi/oshi/releases
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }

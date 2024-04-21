@@ -21,10 +21,18 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** tts using OS voice to support all features and work reliably
 - Implement **Voice assistant** llm using Gpt4All to support all features
 - Implement **Voice assistant** separate outputs for RAW, SPEAK, CHAT
+- Implement **Voice assistant** wake delay action
+- Implement current song voice command
 - Implement log level highlighting
+- Implement **GitProjects** faster and better file sorting
+- Implement **GitProjects** markdown edit support
+- Implement **GitProjects** non-README markdown file support
+- Implement `MdNode` mark-down heading anchor & simpler layout
+- Implement markdown support for widget/plugin descriptions
+- Implement better UI for widget features in widget management settings
 - Improve shortcut pane layout
 - Improve nullability inference for window properties in settings
-- Fix **Voice assistant** plugin not waking up from hibernate properly
+- Fix **VoiceAssistant** plugin not waking up from hibernate properly
 - Fix **VoiceAssistant** python process error logging twice
 - Fix Kotlin Actor not handling exceptions correctly (this caused some issues that are now fixed too)
 - Fix menu not showing F3 shortcut key
@@ -36,6 +44,12 @@ All notable changes to this project will be documented in this file. Format base
 - Fix popup resize not working
 - Fix popup not respecting min size properly
 - Fix **Comet** widget not loading sometimes due to font loading
+- Fix `OverlayPane` show stutter due to blur
+- Fix `MdNode` ui stutter due to Parser
+- Fix `Fut` & `CUR`/`VT` executor interop (no more virtual thread switching)
+- Fix **Weather Info** widget visibility null issue
+- Fix app search autocompletion popup not centered correctly
+- Fix app search autocompletion popup cell text not rendered correctly
 
 ### Voice Assistant
 Voice assistant has received a lot of updates to make it more usable and productive.
@@ -73,6 +87,20 @@ ASSISTANT: which value do you want to set
 USER value1
 ASSISTANT: Done
 ```
+
+#### Delay Action 
+User can now avoid speaking assistant name during short period after the name was already spoken.
+```
+USR: System
+SYS: Yes
+USE: command without repeating system name
+```
+
+### Markdown
+Markdown renderer has been optimized.
+The markdown styling has been improved as well, particularly to be consistent in vertical layout.
+The headings now have visual GitHub-like anchors.
+Now, the `MdNode` can be used seamlessly to render text-based UIs.
 
 ### Known issues
 - VoiceAssistant llm actor LlmGpt4All does not process non chat event properly when chat is active 

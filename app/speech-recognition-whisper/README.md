@@ -125,6 +125,41 @@ flowchart LR
 
 ## Features
 
+###### Voice control
+User can speak to the assistant by speaking its name (configurable, `System` by default)
+```
+USR: System
+SYS: yes
+```
+```
+USR: System, command
+SYS: doing command...
+```
+
+###### Assistant name
+User can change assistant name to any text value.
+However, the name should be easy for the system to recognize.
+Further, name implying the function of the assistant may improve recognition of the following content, such as commands.
+Hence, `System` turns out to be really good name, while custom names such as `Jarvis` less so.
+
+###### Delayed voice control
+User can avoid speaking assistant name during short period after the name was already spoken.
+```
+USR: System
+SYS: Yes
+USE: command without repeating system name
+```
+
+###### Voice chat
+Use can speak without calling the assistant's name completely in `CHAT` mode.
+In this mode user is conversing with LLM, which requires LlmActor enabled and running.
+```
+USR: System start covnersation
+SYS: Conversing...
+USR: Tell a joke
+...
+```
+
 ###### Custom/Programmatic commands
 Voice commands can be registered/unregistered programmatically at any time.
 ```kotlin

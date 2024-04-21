@@ -33,6 +33,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.layout.VBox
 import javafx.scene.text.Font
@@ -305,44 +306,54 @@ fun textColon(named: Named): Node = textColon(named.name, named.value)
 
 /** @return standardized ui text for the specified data displaying it in the most natural ui form */
 fun textColon(name: String, data: Any?): Node = when (data) {
-   null -> text("$name: ${data.toUi()}")
-   is Na -> text("$name: n/a")
-   is Path -> textColon(name, data.toFileOrNull() ?: data.toUi())
-   is URL -> data.toURIOrNull()?.net { textColon(name, it) } ?: textColon(name, data.toUi())
-   is URI -> data.toFileOrNull()?.net { textColon(name, it) } ?: hBox {
-      lay(NEVER) += text("$name: ")
-      lay += appHyperlinkFor(data)
-   }
-   is File -> hBox(0.0, CENTER_LEFT) {
-      lay(NEVER) += text("$name: ")
-      lay += appHyperlinkFor(data)
-   }
-   is Try.Ok<*> -> textColon(name, data.value)
-   is Try.Error<*> -> label("$name: ") {
-      contentDisplay = ContentDisplay.RIGHT
-      graphic = errorIcon(data.value)
-   }
-   is Fut<*> -> stackPane {
-      lay(CENTER_LEFT) += Spinner(INDETERMINATE_PROGRESS)
-      data.onDone(FX) {
-         lay.clear()
-         lay += textColon(name, it.toTryRaw())
-      }
-   }
-   is FutVal<*> -> stackPane {
-      lay(CENTER_LEFT) += hBox(0.0, CENTER_LEFT) {
+   null ->
+      text("$name: ${data.toUi()}")
+   is Na ->
+      text("$name: n/a")
+   is Node ->
+      hBox(0.0, CENTER_LEFT) {
          lay(NEVER) += text("$name: ")
-         lay += hyperlink("Compute...") {
-            onEventDown(MOUSE_CLICKED, PRIMARY) {
-               data.value().onDone(FX) {
-                  this@stackPane.lay.clear()
-                  this@stackPane.lay(CENTER_LEFT) += textColon(name, it.toTryRaw())
+         lay(ALWAYS) += data
+      }
+   is Path ->
+      textColon(name, data.toFileOrNull() ?: data.toUi())
+   is URL ->
+      textColon(name, data.toURIOrNull() ?: data.toUi())
+   is URI ->
+      textColon(name, data.toFileOrNull() ?: appHyperlinkFor(data))
+   is File ->
+      textColon(name, appHyperlinkFor(data))
+   is Try.Ok<*> ->
+      textColon(name, data.value)
+   is Try.Error<*> ->
+      label("$name: ") {
+         contentDisplay = ContentDisplay.RIGHT
+         graphic = errorIcon(data.value)
+      }
+   is Fut<*> ->
+      stackPane {
+         lay(CENTER_LEFT) += Spinner(INDETERMINATE_PROGRESS)
+         data.onDone(FX) {
+            lay.clear()
+            lay += textColon(name, it.toTryRaw())
+         }
+      }
+   is FutVal<*> ->
+      stackPane {
+         lay(CENTER_LEFT) += hBox(0.0, CENTER_LEFT) {
+            lay(NEVER) += text("$name: ")
+            lay += hyperlink("Compute...") {
+               onEventDown(MOUSE_CLICKED, PRIMARY) {
+                  data.value().onDone(FX) {
+                     this@stackPane.lay.clear()
+                     this@stackPane.lay(CENTER_LEFT) += textColon(name, it.toTryRaw())
+                  }
                }
             }
          }
       }
-   }
-   else -> text(name + ": " + data.toUi())
+   else ->
+      text(name + ": " + data.toUi())
 }
 
 data class FutVal<T>(val value: () -> Fut<T>)

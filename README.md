@@ -1,5 +1,5 @@
 
-# ![icon](app/resources/icons/icon48.png) Spit Player [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/uxtvscyxb7dewki6/branch/master?svg=true)](https://ci.appveyor.com/project/Xerus2000/player) [![Travis Build Status](https://travis-ci.org/sghpjuikit/player.svg?branch=master)](https://travis-ci.org/sghpjuikit/player)
+# ![icon](app/resources/icons/icon32.png) Spit Player [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/uxtvscyxb7dewki6/branch/master?svg=true)](https://ci.appveyor.com/project/Xerus2000/player) [![Travis Build Status](https://travis-ci.org/sghpjuikit/player.svg?branch=master)](https://travis-ci.org/sghpjuikit/player)
 
 - [What is this?](#what-is-this)
 - [Download -> Build -> Run](#use)

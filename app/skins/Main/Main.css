@@ -4225,9 +4225,6 @@ TextFlow > * {
     -mdfx-bq-color-background: #0000ff0c;
 }
 
-.markdown-text {
-    -fx-font-family: ARIAL;
-}
 .markdown-italic {
     -fx-font-style: italic;
 }
@@ -4239,8 +4236,7 @@ TextFlow > * {
 }
 
 .markdown-normal-flow {
-    -fx-padding: 0.3em;
-    -fx-line-spacing: 0.5em;
+    -fx-padding: 0.5em 0 0.5em 0;
 }
 
 .markdown-text {
@@ -4250,10 +4246,6 @@ TextFlow > * {
 
 .markdown-heading .markdown-text {
     -fx-fill: -mdfx-font-color;
-}
-.markdown-heading .markdown-text:hover {
-    -fx-underline: true;
-    -fx-cursor: HAND;
 }
 .markdown-heading-1 { -fx-padding: 1.166667em 0 1.166667em 0; }
 .markdown-heading-2 { -fx-padding: 0.833333em 0 0.833333em 0; }
@@ -4277,7 +4269,11 @@ TextFlow > * {
     -fx-font-size: 1em;
     -fx-font-weight: bold;
 }
-
+.markdown-heading-anchor {
+    -fx-opacity: 0.4;
+    -fx-translate-x: 1em; // distance from heading
+    -fx-cursor: HAND;
+}
 .markdown-link {
     -fx-cursor: HAND;
     -fx-fill: -fx-focus-color;
@@ -4287,12 +4283,13 @@ TextFlow > * {
 }
 
 .markdown-paragraph-list {
-    -fx-spacing: 0.5em;
+    -fx-spacing: 0em;
+    -fx-padding: 0em;
 }
 .markdown-list-item-dot {
     -fx-font-size: 1em;
     -fx-text-fill: -mdfx-font-color;
-    -fx-padding: 0.3em 0.3em 0 0.3em;
+    -fx-padding: 0.5em 0 0.5em 0;
 }
 
 .markdown-code {

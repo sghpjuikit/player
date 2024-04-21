@@ -57,6 +57,7 @@ import com.vladsch.flexmark.util.ast.Document;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
 import com.vladsch.flexmark.util.misc.Extension;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -65,9 +66,7 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.input.Clipboard;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -78,14 +77,18 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.util.Pair;
+import static de.jensd.fx.glyphs.GlyphsDude.createIcon;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.LINK_VARIANT;
 import static javafx.scene.input.DataFormat.PLAIN_TEXT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static sp.it.pl.ui.objects.MdNodeHelperKt.toNode;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runIO;
+import static sp.it.util.functional.Util.with;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.EventsKt.onEventDown;
+import static sp.it.util.reactive.UtilKt.attach;
 
 public class MdNodeHelper extends VBox {
 
@@ -192,23 +195,21 @@ public class MdNodeHelper extends VBox {
 		public void visit(Code code) {
 
 			var text = code.getText().normalizeEOL();
-			Label label = new Label(text);
+			Text label = new Text(text);
 			label.getStyleClass().add("markdown-code");
 
 			Region bgr1 = new Region();
 			bgr1.setManaged(false);
 			bgr1.getStyleClass().add("markdown-code-background");
 			label.boundsInParentProperty().addListener((p, oldV, newV) -> {
-				bgr1.setTranslateX(newV.getMinX() + 2);
-				bgr1.setTranslateY(newV.getMinY() - 2);
-				bgr1.resize(newV.getWidth() - 4, newV.getHeight() + 4);
+				bgr1.setTranslateX(newV.getMinX());
+				bgr1.setTranslateY(newV.getMinY() - 4);
+				bgr1.resize(newV.getWidth() + 4, newV.getHeight() + 4);
 			});
 			onEventDown(label, MOUSE_CLICKED, PRIMARY, true, consumer(it -> Clipboard.getSystemClipboard().setContent(Map.of(PLAIN_TEXT, text))));
 
 			flow.getChildren().add(bgr1);
 			flow.getChildren().add(label);
-
-//			visitor.visitChildren(code);
 		}
 
 		public void visit(BlockQuote customBlock) {
@@ -285,14 +286,27 @@ public class MdNodeHelper extends VBox {
 
 				flow.getStyleClass().add("markdown-heading");
 				flow.getStyleClass().add("markdown-heading-" + heading.getLevel());
-				flow.addEventHandler(MOUSE_CLICKED, e -> {
-					if (e.getButton() == PRIMARY) {
-						parent.scrollToAnchor(heading.getAnchorRefText().replace(" ", "-"));
-						e.consume();
-					}
-				});
 
+				// create heading content
 				visitor.visitChildren(heading);
+
+				// create heading anchor
+				flow.getChildren().add(
+					with(createIcon(LINK_VARIANT), anchor -> {
+						anchor.getStyleClass().add("markdown-heading-anchor");
+						anchor.getStyleClass().add("markdown-heading-anchor-" + heading.getLevel());
+						// show on heading hover
+						anchor.setVisible(false);
+						attach(flow.hoverProperty(), consumer(it -> anchor.setVisible(it)));
+						// scroll on anchor click
+						anchor.addEventHandler(MOUSE_CLICKED, e -> {
+							if (e.getButton() == PRIMARY) {
+								parent.scrollToAnchor(heading.getAnchorRefText().replace(" ", "-"));
+								e.consume();
+							}
+						});
+					})
+				);
 			}
 		}
 
@@ -300,12 +314,13 @@ public class MdNodeHelper extends VBox {
 			VBox oldRoot = root;
 
 			VBox newRoot = new VBox();
+			newRoot.setAlignment(Pos.BOTTOM_LEFT);
 			newRoot.getStyleClass().add("markdown-paragraph-list");
 			newRoot.setFillWidth(true);
 
 			orderedListCounter += 1;
 
-			Label dot = new Label(text);
+			TextFlow dot = new TextFlow(new Text(text));
 			dot.getStyleClass().add("markdown-list-item-dot");
 			dot.getStyleClass().add("markdown-text");
 
@@ -344,9 +359,8 @@ public class MdNodeHelper extends VBox {
 			isListOrdered = false;
 			VBox oldRoot = root;
 			root = new VBox();
+			root.setAlignment(Pos.BOTTOM_LEFT);
 			oldRoot.getChildren().add(root);
-			newParagraph();
-			flow.getStyleClass().add("markdown-normal-flow");
 			visitor.visitChildren(bulletList);
 			root = oldRoot;
 		}
@@ -357,9 +371,8 @@ public class MdNodeHelper extends VBox {
 			isListOrdered = true;
 			VBox oldRoot = root;
 			root = new VBox();
+			root.setAlignment(Pos.BOTTOM_LEFT);
 			oldRoot.getChildren().add(root);
-			newParagraph();
-			flow.getStyleClass().add("markdown-normal-flow");
 			visitor.visitChildren(orderedList);
 			orderedListCounter = previousCounter;
 			root = oldRoot;

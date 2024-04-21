@@ -33,7 +33,7 @@
 - File rename event
   Similar to file delete event, then support file renaming in file tables/grids 
 - Optimize markdown & support selection
-  Will probably require [RichTextFX](https://github.com/FXMisc/RichTextFX)
+  Will probably use new JavaFX rich text area once it is out
 - Implement multivalued **Song.Artist** support
   Should work like tags
 - Implement `Window` & `Component` `Shower` using smart window resize algorithm expanding window to available screen area  
@@ -105,7 +105,7 @@
   reported, native excelsior compiler has been discontinued; using kotlin-compiler-embeddable jar improves speed dramatically due to daemon; K2 also improves speed a lot 
 - [ ] [KT-54348](https://youtrack.jetbrains.com/issue/KT-54348) False positive: "Inappropriate blocking method call" with coroutines and Dispatchers.IO.invoke
   reported, open
-- [ ] [OSHII-2016](https://github.com/oshi/oshi/pull/2016/files) Disabled performance counters check failing
+- [-] [OSHII-2016](https://github.com/oshi/oshi/pull/2016/files) Disabled performance counters check failing
   reported, worked around by enabling the counters on app startup using `CoreOshi::class`
 - [x] [694](https://github.com/haraldk/TwelveMonkeys/issues/694) Incorrect subSampling out put for bmp image  
   fixed

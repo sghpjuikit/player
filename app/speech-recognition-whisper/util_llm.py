@@ -69,7 +69,7 @@ class ChatIntentDetect(ChatProceed):
             "Use '-' as word separator in command. " +
             "Use '_' as word separator in $ parameter values. " +
             "Do not write $ after resolving parameter, e.g. `$number` -> `5`. " +
-            "Example: DET-command-prefix-parameter_value-command-suffix-DET. " +
+            "Command example: COM-command-prefix-parameter_value-command-suffix-COM. " +
             "Commands: \n" + assist_function_prompt,
             userPrompt
         )

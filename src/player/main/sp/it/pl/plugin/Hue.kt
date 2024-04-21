@@ -156,7 +156,7 @@ class Hue: PluginBase() {
             if (matches(text)) Ok("The available light groups are: " + hueBridge.init().bulbsAndGroups().second.joinToString(", ") { it.name })
             else null
          },
-         SpeakHandler("Turn hue light group on/off", "turn? lights group? \$group_name on|off?") { text ->
+         SpeakHandler("Turn hue light group on/off", "turn? lights group \$group_name on|off?") { text ->
             if (matches(text)) {
                val (gName) = args(text)
                val (s, ss) = when { text.endsWith("on") -> true to " on"; text.endsWith("off") -> false to " off"; else -> null to "" }

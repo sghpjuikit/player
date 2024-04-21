@@ -340,12 +340,12 @@ assist_function_prompt = f"""
 - speak|say-from?-clipboard
 - speak|say-$text
 - lights-on|off // turns all lights on/off
-- list-light-scenes
-- lights-scene-$scene_name  // sets light scene, scene is usually a mood, user must say 'scene' word
+- lights-group-$group_name-on|off?  // room is usually a group
 - list-light-groups
-- lights-$group_name-on|off?  // group is usually a room
-- list-light-bulbs
 - light-bulb-$bulb_name-on|off?
+- list-light-bulbs
+- lights-scene-$scene_name  // sets light scene, scene is usually a mood, user must say 'scene' word
+- list-light-scenes
 - set-reminder-on-$iso_datetime-$text
 - set-reminder-in-$time_period-$text
 - count-from-$from:1-to-$to

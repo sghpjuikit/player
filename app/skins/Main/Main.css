@@ -4271,7 +4271,7 @@ TextFlow > * {
 }
 .markdown-heading-anchor {
     -fx-opacity: 0.4;
-    -fx-translate-x: 1em; // distance from heading
+    -fx-translate-x: 0.5em; // distance from heading
     -fx-cursor: HAND;
 }
 .markdown-link {

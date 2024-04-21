@@ -5,11 +5,13 @@ import javafx.collections.ObservableSet
 import javafx.css.StyleableObjectProperty
 import javafx.scene.control.Label
 import javafx.scene.control.TextField
+import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode.BACK_SPACE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.FlowPane
+import javax.tools.Tool
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.pl.main.showFloating
@@ -39,6 +41,7 @@ import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.zip
+import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.onNodeDispose
@@ -47,7 +50,11 @@ import sp.it.util.ui.pseudoClassToggle
 import sp.it.util.ui.textField
 
 /** [TextField], which can be decorated with nodes inside on the left and right. */
-open class TagTextField<T>(converter: ConverterFromString<T>, converterToUi: ConverterToString<T> = ConverterToString { it.toUi() }): FlowPane() {
+open class TagTextField<T>(
+   converter: ConverterFromString<T>,
+   converterToUi: ConverterToString<T> = ConverterToString { it.toUi() },
+   converterToDesc: (T) -> String? = { null }
+): FlowPane() {
    /** Converter that creates item from the text */
    val converterToUi: ConverterToString<T> = converterToUi
    /** Converter that creates item from the text */
@@ -134,7 +141,7 @@ open class TagTextField<T>(converter: ConverterFromString<T>, converterToUi: Con
       }
 
       items.onItemSyncWhile {
-         val tagNode = TagNode(it, converterToUi.toS(it)).updateEditable()
+         val tagNode = TagNode(it, converterToUi.toS(it), converterToDesc(it)).updateEditable()
          if (isEditable.value) lay -= textField
          if (isEditable.value) lay -= plusNode
          lay += tagNode
@@ -162,9 +169,10 @@ open class TagTextField<T>(converter: ConverterFromString<T>, converterToUi: Con
 
    enum class EditableBy { PLUS_NODE, TEXT_FIELD }
 
-   class TagNode<T>(val tagItem: T, text: String): Label(text) {
+   class TagNode<T>(val tagItem: T, text: String, desc: String?): Label(text) {
       init {
          styleClass += STYLECLASS
+         if (desc!=null) install(Tooltip(desc))
       }
 
       companion object {

@@ -2748,6 +2748,7 @@ TextFlow > * {
 /*
  * inherits: .label
  * pseudoClasses: readonly
+                  uninteractive: ui only, no interaction
  */
 .tag-text-field .tag-text-field-tag {
     -fx-content-display: right;
@@ -2761,6 +2762,18 @@ TextFlow > * {
 }
 .tag-text-field .tag-text-field-tag:hover {
     -fx-border-color: -fx-focus-color;
+}
+
+.tag-text-field:uninteractive {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.tag-text-field:hover:uninteractive {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.tag-text-field:uninteractive .tag-text-field-tag:hover {
+    -fx-border-color: -skin-def-font-color;
 }
 
 /*

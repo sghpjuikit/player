@@ -152,9 +152,20 @@ class VoiceAssistant: PluginBase() {
          val stdoutListener = process.inputStream.consume("SpeechRecognition-stdout") {
 
             val p = object {
-               var state = "" as String?
+               var state = ""
                var str = StringBuilder("")
                fun String.onS(onS: (String, String?) -> Unit) = if (isNotEmpty()) onS(this, state) else Unit
+               fun StringBuilder.determineState(): String {
+                  return when {
+                     startsWith("RAW: ") -> "RAW"
+                     startsWith("USER: ") -> "USER"
+                     startsWith("SYS: ") -> "SYS"
+                     startsWith("CHAT: ") -> "CHAT"
+                     startsWith("COM: ") -> "COM"
+                     startsWith("COM-DET: ") -> "COM-DET"
+                     else -> ""
+                  }
+               }
                fun process(t: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
                   var s = t.replace("\r\n", "\n")
                   if ("\n" in s) {
@@ -166,27 +177,17 @@ class VoiceAssistant: PluginBase() {
                      val strOld = str.toString()
                      str.clear()
                      str.append(strOld.concatApplyBackspace(s.un()))
-                     state = when {
-                        str.startsWith("RAW: ") -> "RAW"
-                        str.startsWith("USER: ") -> "USER"
-                        str.startsWith("SYS: ") -> "SYS"
-                        str.startsWith("CHAT: ") -> "CHAT"
-                        str.startsWith("COM: ") -> "COM"
-                        str.startsWith("COM-DET: ") -> "COM-DET"
-                        else -> ""
-                     }
+                     state = str.determineState()
                      s.un().onS(onS)
                   }
                }
+
                fun processSingle(s: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
                   str.append(s)
-                  if (str.startsWith("RAW: ")) { state = "RAW"; onE(str.toString().substringAfter(": "), "RAW") }
-                  else if (str.startsWith("USER: ")) { state = "USER"; onE(str.toString().substringAfter(": "), "USER") }
-                  else if (str.startsWith("SYS: ")) { state = "SYS"; onE(str.toString().substringAfter(": "), "SYS") }
-                  else if (str.startsWith("CHAT: ")) { state = "CHAT"; onE(str.toString().substringAfter(": "), "CHAT") }
-                  else if (str.startsWith("COM: ")) { state = "COM"; onE(str.toString().substringAfter(": "), "COM") }
-                  else if (str.startsWith("COM-DET: ")) { state = "COM-DET"; onE(str.toString().substringAfter(": "), "COM-DET") }
-                  else { state = "" }
+                  state = str.determineState()
+                  if (state.isNotEmpty()) {
+                     onE(str.toString().substringAfter(": "), state)
+                  }
                   str.clear()
                   (s + "\n").onS(onS)
                }

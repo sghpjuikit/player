@@ -46,7 +46,7 @@ The assistant has new http endpoints:
 - one to enable monitoring state of its components, including queued events and so on
 - another to do intent detection by 3rd parties (this allows more complex and usable voice commands, see below)
  
-The commands are not implicitly asynchronous, which makes it easy to call APIs or other complicated logic.
+The commands are now implicitly asynchronous, which makes it easy to call APIs or other complicated logic.
 The commands now have methods to allow multi-step commands or programmatic intent detection.
 This allows arbitrary command complexity, nesting, chaining and more, while programmaticaly guiding the AI
 to iteratively help the system and user to reach the final, specific command.

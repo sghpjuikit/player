@@ -61,7 +61,7 @@ Building from the latest sources:
     2. `./gradlew jar` creates jar & copies dependencies to `/lib`
     3. Application is now build in [app](/app) directory
 3. Deploy application
-    1. `./gradlew linkJdk`to link [app/java](/app/java) to JDK
+    1. `./gradlew linkJdk` to link [app/java](/app/java) to JDK
     2. copy [app](/app) directory to whenever you want
         - to be fully portable, turn the link [app/java](/app/java) into a directory (remove link, copy target directory with same name) 
 4. [Run application](CONTRIBUTING.md#running-application)

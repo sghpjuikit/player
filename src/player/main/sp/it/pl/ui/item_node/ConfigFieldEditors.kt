@@ -81,6 +81,7 @@ import sp.it.pl.layout.NodeFactory
 import sp.it.pl.layout.TemplateFactory
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetManager
+import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppOsMenuIntegrator
 import sp.it.pl.main.IconFA
@@ -100,11 +101,13 @@ import sp.it.pl.ui.ValueRadioButtonGroup
 import sp.it.pl.ui.ValueToggleButtonGroup
 import sp.it.pl.ui.item_node.ChainValueNode.ListChainValueNode
 import sp.it.pl.ui.labelForWithClick
+import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.SpitComboBox.ImprovedComboBoxListCell
 import sp.it.pl.ui.objects.SpitSliderSkin
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.complexfield.ComplexTextField
+import sp.it.pl.ui.objects.complexfield.TagTextField
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.NullCheckIcon
@@ -119,6 +122,7 @@ import sp.it.pl.ui.objects.textfield.SpitTextField
 import sp.it.pl.ui.objects.textfield.TimeTextField
 import sp.it.pl.ui.objects.textfield.ValueTextFieldBi
 import sp.it.pl.ui.pane.ConfigPane
+import sp.it.util.Na
 import sp.it.util.access.OrV
 import sp.it.util.access.Values
 import sp.it.util.access.editable
@@ -207,6 +211,7 @@ import sp.it.util.ui.listView
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.pseudoClassChanged
+import sp.it.util.ui.pseudoClassToggle
 import sp.it.util.ui.singLineProperty
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.styleclassToggle
@@ -970,10 +975,7 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
                   lay += textColon("Location (user data)", p.userLocation)
                   lay += textColon("Enabled by default", p.info.isEnabledByDefault)
                   lay += textColon("Runs in SLAVE application", p.info.isSingleton.not())
-                  lay += textFlow {
-                     styleClass += "h4p"
-                     lay += text(p.info.description.toUi())
-                  }
+                  lay(ALWAYS) += MdNode().apply { readText(p.info.description) }
                }
                lay(TOP_RIGHT) += Icon(p.info.icon ?: IconFA.PLUG, 128.0).apply {
                   isFocusTraversable = false
@@ -1083,14 +1085,8 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                         lay += textColon("Contributor", f.contributor)
                         lay += textColon("Location", f.location)
                         lay += textColon("Location (user data)", f.userLocation)
-                        lay += textFlow {
-                           styleClass += "h4p"
-                           lay += text(f.descriptionLong.toUi())
-                           lay += text {
-                              val fs = f.features
-                              text = "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString("\n") { "\t${it.name} - ${it.description}" })
-                           }
-                        }
+                        lay += textColon("Features", f.features.featuresUi())
+                        lay(ALWAYS) += MdNode().apply { readText(f.descriptionLong) }
                      }
                      is TemplateFactory -> {
                         lay += textColon("Type", "Predefined component")
@@ -1108,16 +1104,8 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                         lay += textColon("Author", f.info?.author)
                         lay += textColon("Contributor", f.info?.contributor)
                         lay += textColon("Location (user data)", f.userLocation)
-                        lay += textFlow {
-                           styleClass += "h4p"
-                           lay += supplyIfNotNull(f.info?.descriptionLong) {
-                              text(it.toUi())
-                           }
-                           lay += text {
-                              val fs = f.info?.features.orEmpty()
-                              text = "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString("\n") { "\t${it.name} - ${it.description}" })
-                           }
-                        }
+                        lay += textColon("Features", f.info?.features?.featuresUi())
+                        lay(ALWAYS) += MdNode().apply { readText(f.info?.descriptionLong ?: "") }
                      }
                   }
                }
@@ -1139,6 +1127,18 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
             is WidgetFactory<*> -> this.icon ?: IconOC.PLUG
             is NodeFactory<*> -> this.info?.icon ?: IconOC.PLUG
             else -> IconOC.PACKAGE
+         }
+      fun List<Feature>?.featuresUi(): Any? =
+         this?.takeIf { it.isNotEmpty() }?.let { fs ->
+            TagTextField<Feature>(
+               converter = { fail { "Forbidden" } },
+               converterToUi = { it.name },
+               converterToDesc = { it.description }
+            ).apply {
+               pseudoClassToggle("uninteractive", true)
+               isEditable.value = false
+               items setTo fs
+            }
          }
    }
 }

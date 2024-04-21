@@ -32,14 +32,11 @@
   Requires CommandRunnable of sort
 - File rename event
   Similar to file delete event, then support file renaming in file tables/grids 
-- Optimize markdown & support selection
-  Will probably use new JavaFX rich text area once it is out
 - Implement multivalued **Song.Artist** support
   Should work like tags
 - Implement `Window` & `Component` `Shower` using smart window resize algorithm expanding window to available screen area  
   It is not clear where exactly this would make the most impact. Potentially, custom action to reorganize windows.
-- Use standalone `README.md` for widgets  
-  Will require lots of work. Also needs markdown support for displaying widget info in `Settings` and `WidgetPicker`.
+- Implement and update widget descriptions as markdown.
 - Implement multiple-screen support for `Dock`  
   It is not clear how it should behave - be duplicated or displayed on screen with mouse?
 - Implement [virtual keyboard](https://github.com/comtel2000/fx-experience)  

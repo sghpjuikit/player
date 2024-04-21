@@ -70,6 +70,7 @@ import static sp.it.util.reactive.UtilKt.sync1If;
 import static sp.it.util.type.Util.getFieldValue;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 import static sp.it.util.ui.MouseDragKt.initMouseDrag;
+import static sp.it.util.ui.UiDelegateKt.setUiDelegate;
 import static sp.it.util.ui.UtilKt.setScaleXYByTo;
 import static sp.it.util.ui.image.FitFrom.INSIDE;
 import static sp.it.util.ui.image.UtilKt.imgImplLoadFX;
@@ -245,6 +246,8 @@ public class Thumbnail {
 		root.addEventFilter(MOUSE_ENTERED, e -> hoverRaw.push(true));
 		root.addEventFilter(MOUSE_EXITED, e -> hoverRaw.push(false));
 		root.addEventFilter(MOUSE_EXITED, e -> hoverState.setValue(false));
+
+		setUiDelegate(root, this);
 	}
 
 	public final ObservableList<String> getStyleClass() {

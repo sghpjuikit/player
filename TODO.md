@@ -71,7 +71,6 @@
 
 ## Bugs
 - Popup unable to receive focus sometimes
-- Application search shortening result label width unnecessarily
 - Recompiling or manual widget loading does not rebind inputs properly
 - **Function Viewer** plotting steep functions clipped too soon
 
@@ -99,7 +98,7 @@
 - [x] [KT-38817](https://youtrack.jetbrains.com/issue/KT-38817) Bad behavior:`String.capitalize()`  
   fixed. See `TextUtilTest`.
 - [ ] [KT-22792](https://youtrack.jetbrains.com/issue/KT-22792) Reflection:`objectInstance` throws IllegalAccessException  
-  reported, open
+  reported, worked around using objectInstanceSafe method
 - [-] [KT-14119](https://youtrack.jetbrains.com/issue/KT-14119) Bad API: `String?.toBoolean()`  
   reported, implemented wrongly
 - [-] [KT-52460](https://youtrack.jetbrains.com/issue/KT-52460) Slow Kotlin compilation

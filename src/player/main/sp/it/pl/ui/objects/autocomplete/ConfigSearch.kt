@@ -1,6 +1,7 @@
 package sp.it.pl.ui.objects.autocomplete
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -25,6 +26,7 @@ import javafx.scene.input.KeyCode.TAB
 import javafx.scene.input.KeyCode.UP
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
@@ -43,7 +45,9 @@ import sp.it.util.conf.Config
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.recurseDF
+import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncFrom
@@ -57,9 +61,9 @@ import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAt
-import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.uninstall
+import sp.it.util.ui.width
 
 class ConfigSearch: AutoCompletion<Entry> {
    private val textField: TextField
@@ -277,26 +281,41 @@ class ConfigSearch: AutoCompletion<Entry> {
    private class EntryListCell: ListCell<Entry>() {
       private val icon = Icon()
       private val text = Label()
-      private val configNodeRoot = stackPane()
+      private val contentSpacing = 5.0
+      private val contentPadding = Insets(0.0, 10.0, 0.0, 10.0)
+      private val configNodeRoot = hBox(contentSpacing, CENTER_RIGHT)
       private val root = stackPane {
-         padding = Insets(0.0, 10.0, 0.0, 10.0)
-         lay(CENTER_LEFT) += hBox(5.0, CENTER_LEFT) {
+         padding = contentPadding
+         lay(CENTER_LEFT) += hBox(contentSpacing, CENTER_LEFT) {
             lay += icon
             lay += text
          }
          lay(CENTER_RIGHT) += configNodeRoot
       }
       private val rootTooltip = appTooltip()
+      private val nextUpdate = Disposer()
+      private val configNodeRootWidth = SimpleDoubleProperty(0.0)
 
       init {
          icon.isFocusTraversable = false
          text.textAlignment = TextAlignment.LEFT
          text.textOverrun = CENTER_ELLIPSIS
-         text.setMinPrefMaxSize(USE_COMPUTED_SIZE)
+         val w = root.widthProperty() - configNodeRootWidth - icon.widthProperty() - (2*contentSpacing + contentPadding.width)
+         text.minWidthProperty() syncFrom w
+         text.prefWidthProperty() syncFrom w
+         text.maxWidthProperty() syncFrom w
          root.lookupChildAt<HBox>(0).minWidth = 200.0
-         root.lookupChildAt<HBox>(0).prefWidthProperty() syncFrom (root.widthProperty() - configNodeRoot.widthProperty() - 10)
+         root.lookupChildAt<HBox>(0).prefWidthProperty() syncFrom (w)
          root.lookupChildAt<HBox>(0).maxWidthProperty() syncFrom (root.widthProperty() - 100)
          root.lookupChildAt<HBox>(0).padding = Insets(2.5, 0.0, 2.5, 0.0)
+         root.onEventUp(MouseEvent.MOUSE_CLICKED) {
+            println()
+            println(root.width)
+            println(root.lookupChildAt<HBox>(0).width)
+            println(configNodeRootWidth.value)
+            println(w.value)
+            println(configNodeRoot.children.sumOf { it.layoutBounds.width })
+         }
          rootTooltip.textProperty() attach {
             if (it.isNullOrBlank()) root uninstall rootTooltip
             else root install rootTooltip
@@ -310,7 +329,7 @@ class ConfigSearch: AutoCompletion<Entry> {
 
       override fun updateItem(item: Entry?, empty: Boolean) {
          if (this.item == item) return
-
+         nextUpdate()
          super.updateItem(item, empty)
 
          if (empty || item==null) {
@@ -327,16 +346,18 @@ class ConfigSearch: AutoCompletion<Entry> {
             val node = item.graphics
             if (node is HBox) node.alignment = CENTER_RIGHT
             if (node==null) {
+               configNodeRootWidth.value = 0.0
                configNodeRoot.children.clear()
             } else {
                configNodeRoot.children setToOne node
+               node.layoutBoundsProperty() attach { configNodeRootWidth.value = it.width } on nextUpdate
                node.onEventDown(KeyEvent.ANY) {
                   when {
                      it.code==ENTER -> Unit // allows executing the action even if item graphics has focus
                      it.code==TAB -> Unit // allows moving focus from item graphics
                      else -> it.consume() // allows interaction with item graphics without interfering with the autocomplete
                   }
-               }
+               } on nextUpdate
                StackPane.setAlignment(node, CENTER_RIGHT)
             }
             root.requestLayout()

@@ -65,7 +65,7 @@ class HttpHandlerIntent(HttpHandler):
         try:
             f = self.llm(ChatIntentDetect(body.functions, body.userPrompt, False))
             data: str = f.result()
-            data = data.removeprefix("COM-")
+            data = data.removeprefix("COM-").removesuffix("-COM").strip().replace('-', ' ')
             data = data.encode('utf-8')
             req.send_response(200)
             req.send_header('Content-type', 'text/plain')

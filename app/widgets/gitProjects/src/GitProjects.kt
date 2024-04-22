@@ -119,8 +119,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
                   }
                }
             }
-            lay += stackPane {
-               padding = Insets(50.emScaled, 0.0, 50.emScaled, 0.0)
+            lay(CENTER, Insets(50.emScaled, 0.0, 50.emScaled, 0.0)) += stackPane {
                minWidth = 220.emScaled
                lay += contentPr.apply {
                   isFitToHeight = true

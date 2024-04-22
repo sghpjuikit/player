@@ -368,6 +368,11 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
          "Reply to system",
          {
             listOf(
+               it::llmEngine,
+               it::llmOpenAiUrl,
+               it::llmOpenAiBearer,
+               it::llmOpenAiModel,
+               it::llmGpt4AllModel,
                it::llmChatSysPrompt,
                it::llmChatMaxTokens,
                it::llmChatTemp,

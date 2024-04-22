@@ -114,11 +114,25 @@ class Llm(Actor):
         self.queue.put(ef)
 
         def on_done(future):
-            try: text = future.result()
-            except Exception: text = None
+            try: (text, canceled, commandIterator) = future.result()
+            except Exception: (text, canceled, commandIterator) = (None, None, None)
+
+            # speak generated text or fallback if error
             if isinstance(e, ChatReact):
                 if text is None: text = e.fallback
                 self.speak(text)
+
+            # run generated command or unidentified if error
+            if isinstance(e, ChatIntentDetect) and e.writeTokens:
+                if text is None:
+                    commandIterator.put('unidentified')
+                else:
+                    command = text.strip().removeprefix("COM-").removesuffix("-COM").strip().replace('-', ' ')
+                    command = command.replace('unidentified', e.userPrompt)
+                    command = 'unidentified' if len(command.strip())==0 else command
+                    command = 'unidentified' if canceled else command
+                    command = self.commandExecutor(command)
+                    commandIterator.put(command)
 
         ef.future.add_done_callback(on_done)
         return ef.future
@@ -138,9 +152,9 @@ class LlmNone(Llm):
                 if isinstance(e, ChatReact):
                     f.set_result(e.fallback)
                 elif isinstance(e, ChatIntentDetect):
-                    if e.writeTokens: self.write('COM-DET: ' + e.userPrompt)
                     f.set_result('COM-' + e.userPrompt + '-COM')
                     self.commandExecutor(text)
+                    if e.writeTokens: self.write('COM-DET: ' + e.userPrompt)
                 else:
                     f.set_exception(Exception("This is a custom exception"))
         self._clear_queue()
@@ -213,18 +227,8 @@ class LlmGpt4All(Llm):
                                         consumer()
                                         canceled = self.generating is False
                                         text = ''.join(tokensText)
-                                        f.set_result(text)
-
-                                        if isCommandWrite:
-                                            command = text.strip().removeprefix("COM-").removesuffix("-COM").strip()
-                                            command = command.replace('-', ' ')
-                                            command = command.replace('unidentified', e.userPrompt)
-                                            command = 'unidentified' if len(command.strip())==0 else command
-                                            command = 'unidentified' if canceled else command
-                                            command = self.commandExecutor(command)
-                                            commandIterator.put(command)
+                                        f.set_result((text, canceled, commandIterator))
                                     except Exception as x:
-                                        if isCommandWrite: commandIterator.put('unidentified')
                                         f.set_exception(x)
                                         raise x
                                     finally:
@@ -305,24 +309,13 @@ class LlmHttpOpenAi(Llm):
                             consumer()
                             canceled = self.generating is False
                             text = ''.join(tokensText)
-
-                            f.set_result(text)
+                            f.set_result((text, canceled, commandIterator))
 
                             if isinstance(e, Chat):
                                 if len(text)==0: self.write("ERR: chat responded with empty message")
                                 else: chat.messages.append({ "role": "assistant", "content": text })
 
-                            if isCommandWrite:
-                                command = text.strip().removeprefix("COM-").removesuffix("-COM").strip()
-                                command = command.replace('-', ' ')
-                                command = command.replace('unidentified', e.userPrompt)
-                                command = 'unidentified' if len(command.strip())==0 else command
-                                command = 'unidentified' if canceled else command
-                                command = self.commandExecutor(command)
-                                commandIterator.put(command)
-
                         except Exception as e:
-                            if isCommandWrite: commandIterator.put('unidentified')
                             f.set_exception(e)
                             if isinstance(e, openai.APIConnectionError): self.write(f"ERR: OpenAI server could not be reached: {e.__cause__}")
                             elif isinstance(e, openai.APIStatusError): self.write(f"ERR: OpenAI returned {e.status_code} status code with response {e.response}")

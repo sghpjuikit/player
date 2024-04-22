@@ -64,13 +64,16 @@ class HttpHandlerIntent(HttpHandler):
 
         try:
             f = self.llm(ChatIntentDetect(body.functions, body.userPrompt, False))
-            data: str = f.result()
-            data = data.removeprefix("COM-").removesuffix("-COM").strip().replace('-', ' ')
-            data = data.encode('utf-8')
+            (command, canceled, commandIterator) = f.result()
+            command = command.strip().removeprefix("COM-").removesuffix("-COM").strip().replace('-', ' ')
+            command = command.replace('unidentified', body.userPrompt)
+            command = 'unidentified' if len(command.strip())==0 else command
+            command = 'unidentified' if canceled else command
+            command = command.encode('utf-8')
             req.send_response(200)
             req.send_header('Content-type', 'text/plain')
             req.end_headers()
-            req.wfile.write(data)
+            req.wfile.write(command)
         except Exception as e:
             req.send_error(500, f"{e}")
 

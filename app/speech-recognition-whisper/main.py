@@ -472,11 +472,9 @@ class AssistStandard(Assist):
         if len(text) == 0:
             self.last_announcement_at = time.time()
             llm(ChatReact(llmSysPrompt, "Afk user prodded you - acknowledge", "Yes"))
-
         # do greeting
         elif text == "hi" or text == "hello" or text == "greetings":
             commandExecutor.execute(f"greeting {text}")
-
         # do help
         elif text == "help":
             speak.skippable(
@@ -486,30 +484,13 @@ class AssistStandard(Assist):
                 f'Run command by saying the command.'
             )
             write('COM: help')  # allows application to customize the help output
-
         # start LLM conversation
         elif "start conversation" in text:
             commandExecutor.execute("start conversation")
-
         # do command
         else:
             command = commandExecutor.execute(text)
             write('COM: ' + command)
-
-        # experimental:
-        # do random activity
-        # import random
-        # import string
-        # if assist_last_diff>5*60 and random.random() <= 0.1 and isinstance(llm, LlmHttpOpenAi):
-        # if isinstance(llm, LlmHttpOpenAi):
-        #     Timer(
-        #         1, lambda: llm(ChatProceed(
-        #             "You are pretending to be a character.",
-        #             f"Say single short sentence, choose between:\n" +
-        #             f"- Complain angrily that user haven't needed anything (if too long, last response was {assist_last_diff} seconds ago)" +
-        #             f"- Mention passionately short trivia or interesting fact about random topic containing letter {random.choice(string.ascii_uppercase)}"
-        #         ))
-        #    ).start()
 
 
 assistStand = AssistStandard()

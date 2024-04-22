@@ -770,7 +770,7 @@ interface Utils {
 			g.getColumnConstraints().add(new ColumnConstraints(20));
 			g.getColumnConstraints().add(new ColumnConstraints(-1,-1,-1, ALWAYS, HPos.LEFT, false));
 
-			R<Integer> i = new R<>(-1); // row index
+			var i = new R<>(-1); // row index
 			enhancers
 				.sorted(by(enhancer -> enhancer.name))
 				.forEach(enhancer -> {
@@ -871,7 +871,7 @@ interface Utils {
 			achievementPane.getColumnConstraints().add(new ColumnConstraints(-1,-1,-1, ALWAYS, HPos.LEFT, false));
 
 			// build rows
-			R<Integer> i = new R<>(-1); // row index
+			var i = new R<>(-1); // row index
 			game.mode.achievements().stream()
 				.filter(a -> a.condition==null || a.condition.test(game))
 				.flatMap(a -> stream(a.evaluator.apply(game)).collect(toMap(player -> player, player -> a)).entrySet().stream())

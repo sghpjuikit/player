@@ -26,7 +26,6 @@ import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.pane.ShortcutPane
-import sp.it.util.access.ref.LazyR
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.async.FX
@@ -138,7 +137,7 @@ class WeatherInfo: HBox(15.0) {
 
          lay += stackPane {
             this@vBox.heightProperty() map { it.toDouble() > forecastMinRequiredHeight } attach {
-               if (it && lay.isEmpty()) lay += forecastContent.get()
+               if (it && lay.isEmpty()) lay += forecastContent
                else if (!it && !lay.isEmpty()) lay.clear()
             }
          }
@@ -215,7 +214,7 @@ class WeatherInfo: HBox(15.0) {
    private val forecastMinRequiredHeight = 800
    private var forecastHourlyPopupContent: WeatherInfoForecastHourly? = null
    private var forecastDailyPopupContent: WeatherInfoForecastDaily? = null
-   private var forecastContent = LazyR {
+   private val forecastContent by lazy {
       forecastHourlyPopupContent = WeatherInfoForecastHourly(units.value, computeForecastH())
       forecastDailyPopupContent = WeatherInfoForecastDaily(units.value, computeForecastD())
       vBox {
@@ -230,7 +229,7 @@ class WeatherInfo: HBox(15.0) {
    }
    private fun computeForecastPopup(): PopWindow = popWindow {
       title.value = "Weather forecast"
-      content.value = forecastContent.get()
+      content.value = forecastContent
    }
 
    private fun computeForecastH() =

@@ -64,7 +64,7 @@ class ThumbnailWithAdd constructor(dragIcon: GlyphIcons = DETAILS, dragDescripti
             showFor(root, focus)
             animateShow(imageView)
          }
-      else DragPane.PANE.ifSet {
+      else DragPane.PANE.ifInitialized {
          it.hide()
          it.animateHide()
       }

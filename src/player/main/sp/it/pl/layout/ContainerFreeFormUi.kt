@@ -171,7 +171,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
             w.ui = null
             n = c.load(r)
             a = c
-            c.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
+            c.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifInitialized { it.updateIcons() } }
          }
          is Widget -> {
             w.ui = null

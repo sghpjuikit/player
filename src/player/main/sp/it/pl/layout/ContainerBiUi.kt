@@ -66,8 +66,8 @@ class ContainerBiUi(c: ContainerBi): ContainerUi<ContainerBi>(c) {
 
          ui1.asIf<WidgetUi?>()?.controls?.updateAbsB()
          ui2.asIf<WidgetUi?>()?.controls?.updateAbsB()
-         container.children[1].asIf<Container<*>?>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
-         container.children[2].asIf<Container<*>?>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
+         container.children[1].asIf<Container<*>?>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifInitialized { it.updateIcons() } }
+         container.children[2].asIf<Container<*>?>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifInitialized { it.updateIcons() } }
       }
    var collapsed: Int
       get() = container.collapsed.value

@@ -95,7 +95,7 @@ public interface Values {
 	/** @return next modular element in the list or null if empty */
 	static <T> T next(List<T> list, T element) {
 		if (list.isEmpty()) return null;
-		if (element==null) return list.get(0);
+		if (element==null) return list.getFirst();
 		int index = list.indexOf(element);
 		return list.get(index<0 ? 0 : incrIndex(list, index));
 	}
@@ -103,7 +103,7 @@ public interface Values {
 	/** @return previous modular element in the list or null if empty */
 	static <T> T previous(List<T> list, T element) {
 		if (list.isEmpty()) return null;
-		if (element==null) return list.get(0);
+		if (element==null) return list.getFirst();
 		int index = list.indexOf(element);
 		return list.get(index<0 ? 0 : decrIndex(list, index));
 	}

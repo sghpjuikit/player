@@ -48,7 +48,8 @@ public class DragPane extends Placeholder {
 	private static final String STYLECLASS = "drag-pane";
 	private static final String STYLECLASS_ICON = "drag-pane-icon";
 	private static final GlyphIcons DEFAULT_ICON = CLIPBOARD;
-	public static final SingleR<DragPane,Data> PANE = new SingleR<>(DragPane::new,
+	public static final SingleR<DragPane,Data> PANE = new SingleR<>(
+		DragPane::new,
 		(p, data) -> {
 			p.getIcon().icon(data.icon==null, DEFAULT_ICON, data.icon);
 			p.getInfo().setText(data.info.get());
@@ -117,8 +118,8 @@ public class DragPane extends Placeholder {
 		node.addEventHandler(DRAG_OVER, e -> {
 			if (!node.getProperties().containsKey(ACTIVE)) { // guarantees cond executes only once
 				if (d.cond.invoke(e)) {
-					PANE.ifSet(it -> it.hide());
-					PANE.ifSet(it -> it.whileActiveOfSibling.invoke());
+					PANE.ifInitialized(it -> it.hide());
+					PANE.ifInitialized(it -> it.whileActiveOfSibling.invoke());
 
 					if (except==null || !except.invoke(e)) { // null is equivalent to e -> false
 						installUninstall(node, d.whileActive);

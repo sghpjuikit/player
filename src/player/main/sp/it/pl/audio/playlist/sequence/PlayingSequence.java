@@ -32,7 +32,7 @@ public class PlayingSequence {
      */
     public PlaylistSong getNext(PlaylistSong current, List<PlaylistSong> playlist) {
         if (current==null || !playlist.contains(current))
-            return playlist.isEmpty() ? null : playlist.get(0);
+            return playlist.isEmpty() ? null : playlist.getFirst();
         else
             return selector.next(playlist.size(), playlist.indexOf(current), current, playlist);
     }
@@ -46,7 +46,7 @@ public class PlayingSequence {
      */
     public PlaylistSong getPrevious(PlaylistSong current, List<PlaylistSong> playlist) {
         if (current==null || !playlist.contains(current))
-            return playlist.isEmpty() ? null : playlist.get(0);
+            return playlist.isEmpty() ? null : playlist.getFirst();
         else
             return selector.previous(playlist.size(), playlist.indexOf(current), current, playlist);
     }
@@ -59,12 +59,12 @@ public class PlayingSequence {
                 return new PlaylistSongSelector<>(
                         (size, index, current_item, playlist) -> {
                             if (size==0 || index==0) return null;
-                            if (current_item==null) return playlist.get(0);
+                            if (current_item==null) return playlist.getFirst();
                             return playlist.get(Values.decrIndex(size, index));
                         },
                         (size, index, current_item, playlist) -> {
                             if (size==0 || index==size - 1) return null;
-                            if (current_item==null) return playlist.get(0);
+                            if (current_item==null) return playlist.getFirst();
                             return playlist.get(Values.incrIndex(size, index));
                         });
             }
@@ -73,7 +73,7 @@ public class PlayingSequence {
             @Override
             public PlaylistSongSelector<PlaylistSong> selector() {
                 Selection<PlaylistSong> sel = (size, index, current_item, playlist) -> {
-                    if (current_item==null && size>0) return playlist.get(0);
+                    if (current_item==null && size>0) return playlist.getFirst();
                     return current_item;
                 };
                 return new PlaylistSongSelector<>(sel, sel);
@@ -115,12 +115,12 @@ public class PlayingSequence {
                 return new PlaylistSongSelector<>(
                         (size, index, current_item, playlist) -> {
                             if (size==0) return null;
-                            if (current_item==null) return playlist.get(0);
+                            if (current_item==null) return playlist.getFirst();
                             else return playlist.get(Values.decrIndex(size, index));
                         },
                         (size, index, current_item, playlist) -> {
                             if (size==0) return null;
-                            if (current_item==null) return playlist.get(0);
+                            if (current_item==null) return playlist.getFirst();
                             else return playlist.get(Values.incrIndex(size, index));
                         });
             }

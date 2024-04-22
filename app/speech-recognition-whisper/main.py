@@ -12,7 +12,7 @@ from typing import cast
 from util_play_engine import SdActor
 from util_tts import Tts, TtsNone, TtsOs, TtsCharAi, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
-from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatWhatCanYouDo, ChatPaste, ChatStop
+from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatReact, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
 from util_http import Http, HttpHandler
 from util_http_handlers import HttpHandlerState, HttpHandlerIntent
@@ -219,6 +219,7 @@ Args:
 # args
 wake_word = arg('wake-word', 'system')
 name = wake_word[0].upper() + wake_word[1:]
+write(name + " booting up...")
 sysParentProcess = int(arg('parent-process', -1))
 sysTerminating = False
 sysCacheDir = "cache"
@@ -286,7 +287,7 @@ speak = Tts(ttsOn, speakEngine, write)
 commandExecutor = CommandExecutorDelegate(CommandExecutorDoNothing)
 
 # llm actor, non-blocking
-llm = LlmNone(write)
+llm = LlmNone(write, commandExecutor.execute)
 if llmEngine == 'none':
     pass
 elif llmEngine == "gpt4all":
@@ -364,6 +365,8 @@ class CommandExecutorMain(CommandExecutor):
         if text == "repeat":
             speak.repeatLast()
             return handled
+        if text.startswith("speak "):
+            speak(text.removeprefix("speak "))
         if text == "list available voices":
             speak("The available voices are: " + ', '.join(voices))
             return handled
@@ -408,12 +411,13 @@ class AssistChat(Assist):
         # start
         write("COM: start conversation")
         llm(ChatStart())
-        speak('Conversing')
+        llm(ChatReact("User started conversing with you. Greet him", "Conversing"))
         mic.set_pause_threshold_talk()
     def needsWakeWord(self): False
     def __call__(self, text: str, textSanitized: str):
         # announcement
-        if len(text) == 0: speak('Yes, we are talking')
+        if len(text) == 0:
+            llm(ChatReact("After period of inactivity, user prodded you for response - say you are still conversing", "Yes, we are talking"))
         # do help
         elif text == "help":
             speak(
@@ -440,7 +444,7 @@ class AssistChat(Assist):
             llm.generating = False
             write("COM: stop conversation")
             llm(ChatStop())
-            speak("Ok")
+            llm(ChatReact("User stopped conversing with you", "Ok"))
             mic.set_pause_threshold_normal()
             global assist
             assist = assistStand
@@ -459,18 +463,17 @@ class AssistStandard(Assist):
         # announcement
         if len(text) == 0:
             self.last_announcement_at = time.time()
-            speak('Yes')
+            llm(ChatReact("After period of inactivity, user prodded you for response - you are here", "Yes"))
 
         # do greeting
         elif text == "hi" or text == "hello" or text == "greetings":
-            speak(text.capitalize())
+            llm(ChatReact(f"User greeted you with {text}", text.capitalize()))
 
         # do help
         elif text == "help":
             speak.skippable(
                 f'I am an AI assistant. Talk to me by calling {wake_word}. ' +
                 f'Start conversation by saying, start conversation. ' +
-                f'Stop active conversation by saying, stop or end conversation. ' +
                 f'Ask for help by saying, help. ' +
                 f'Run command by saying the command.'
             )
@@ -540,7 +543,6 @@ def callback(text):
     try:
         write(f'USER: {name}' + (', ' + text if len(text)>0 else ''))
         if text == "repeat": commandExecutor.execute(text)
-        elif text.startswith("generate"): write(f"COM: {text}")
         else: assist(text, textSanitized)
     except Exception as e:
         traceback.print_exc()
@@ -629,8 +631,7 @@ while not sysTerminating:
 
         if m.startswith("COM-DET: "):
             text = base64.b64decode(m[9:]).decode('utf-8')
-            if isinstance(llm, LlmHttpOpenAi): llm(ChatIntentDetect(assist_function_prompt, text))
-            else: write('COM-DET: ' + text)
+            llm(ChatIntentDetect(assist_function_prompt, text))
 
         if m.startswith("CALL: "):
             text = m[6:]

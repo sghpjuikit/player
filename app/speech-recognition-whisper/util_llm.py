@@ -38,7 +38,7 @@ class Chat:
 
 class ChatProceed:
     def __init__(self, sysPrompt: str, userPrompt: str | None):
-        self.outStart = 'CHAT '
+        self.outStart = 'CHAT: '
         self.sysPrompt = sysPrompt
         self.userPrompt = userPrompt
         self.messages = [ ]
@@ -52,7 +52,7 @@ class ChatProceed:
         return cls(sysPrompt, None)
 
 class ChatWhatCanYouDo(ChatProceed):
-    def __init__(self, assist_function_prompt, userPrompt: str):
+    def __init__(self, assist_function_prompt):
         super().__init__(
             "You are voice assistant capable of these functions. "
             "If user askes you about what you can do, you give him overview of your functions. "
@@ -61,7 +61,7 @@ class ChatWhatCanYouDo(ChatProceed):
         )
 
 class ChatIntentDetect(ChatProceed):
-    def __init__(self, assist_function_prompt, userPrompt: str, writeTokens: bool = True):
+    def __init__(self, assist_function_prompt: str, userPrompt: str, writeTokens: bool = True):
         super().__init__(
             "From now on, identify user intent by returning one of following commands. " +
             "Only respond with command in format: `COM-command-COM`. " +
@@ -77,6 +77,16 @@ class ChatIntentDetect(ChatProceed):
         self.speakTokens = False
         self.writeTokens = writeTokens
 
+class ChatReact(ChatProceed):
+    def __init__(self, event_to_react_to: str, fallback: str):
+        super().__init__(
+            "You are a friend. You are terse and concise. You only react to provided events with single word or sentence.",
+            f"{event_to_react_to}.\n React extremely terse."
+        )
+        self.outStart = 'COM: speak '
+        self.speakTokens = False
+        self.fallback = fallback
+
 class ChatPaste(ChatProceed):
     def __init__(self, userPrompt: str):
         super().__init__(
@@ -85,7 +95,7 @@ class ChatPaste(ChatProceed):
             "If user asks to write code, only provide the code",
             userPrompt
         )
-        self.outStart = 'PASTE: '
+        self.outStart = 'CHAT: '
         self.speakTokens = False
         self.processTokens = pasteTokens
 
@@ -177,6 +187,9 @@ class LlmGpt4All(Llm):
                                         canceled = self.generating is False
                                         f.set_result(text)
 
+                                        if isinstance(t, ChatReact):
+                                            self.commandExecutor(text)
+                                            
                                         if isCommandWrite:
                                             command = text.strip().removeprefix("COM-").removesuffix("-COM").strip()
                                             command = command.replace('-', ' ')
@@ -186,6 +199,7 @@ class LlmGpt4All(Llm):
                                             command = self.commandExecutor(command)
                                             commandIterator.put(command)
                                     except Exception as x:
+                                        if isinstance(t, ChatReact): self.commandExecutor(f"speak {e.fallback}")
                                         if isCommandWrite: commandIterator.put('unidentified')
                                         f.set_exception(x)
                                         raise x
@@ -273,6 +287,9 @@ class LlmHttpOpenAi(Llm):
                                 if len(text)==0: self.write("ERR: chat responded with empty message")
                                 else: chat.messages.append({ "role": "assistant", "content": text })
 
+                            if isinstance(e, ChatReact):
+                                self.commandExecutor(text)
+
                             if isCommandWrite:
                                 command = text.strip().removeprefix("COM-").removesuffix("-COM").strip()
                                 command = command.replace('-', ' ')
@@ -283,6 +300,7 @@ class LlmHttpOpenAi(Llm):
                                 commandIterator.put(command)
 
                         except Exception as e:
+                            if isinstance(e, ChatReact): self.commandExecutor(f"speak {e.fallback}")
                             if isCommandWrite: commandIterator.put('unidentified')
                             f.set_exception(e)
                             if isinstance(e, openai.APIConnectionError): self.write(f"ERR: OpenAI server could not be reached: {e.__cause__}")

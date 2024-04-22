@@ -160,6 +160,11 @@ USR: Tell a joke
 ...
 ```
 
+###### Voice dynamic responses
+If LlmActor is enabled, user will try to avoid common hardcoded responses and
+instead use Lllm to generate dynamic ones based on the (customizable) system prompt.
+This can give the assistant more personality.
+
 ###### Custom/Programmatic commands
 Voice commands can be registered/unregistered programmatically at any time.
 ```kotlin

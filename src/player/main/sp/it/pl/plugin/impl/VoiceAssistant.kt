@@ -281,6 +281,8 @@ class VoiceAssistant: PluginBase() {
             SpeakHandler(       "Llm answer from clipboard", "generate|answer|write from? clipboard \$text") { voiceCommandGenerateClipboard(it) },
             SpeakHandler(                      "Llm answer", "generate|answer|write \$text")                 { voiceCommandGenerate(it) },
             SpeakHandler(            "Speak from clipboard", "speak|say from? clipboard")                    { voiceCommandSpeakClipboard(it) },
+            SpeakHandler(                   "Describe text", "describe clipboard")                           { voiceCommandDescribeClipboard(it) },
+            SpeakHandler(              "Describe clipboard", "describe \$text")                              { voiceCommandDescribeText(it) },
             SpeakHandler(                           "Speak", "speak|say \$text")                             { voiceCommandSpeakText(it) },
             SpeakHandler("Close window (${keys("ALT+F4")})", "close|hide window")                            { voiceCommandAltF4(it) },
             SpeakHandler(             "Open widget by name", "open|show widget? \$widget_name widget?")      { voiceCommandOpenWidget(it) },
@@ -599,6 +601,8 @@ class VoiceAssistant: PluginBase() {
    }
 
    fun write(text: String): Unit = writing(setup to text)
+   
+   fun writeCom(command: String): Unit = writing(setup to "COM: ${command.encodeBase64()}")
 
    @IsAction(name = "Speak text", info = "Identical to \"Narrate text\"")
    fun synthesize() = speak()

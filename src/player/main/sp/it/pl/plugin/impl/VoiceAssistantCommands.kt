@@ -54,14 +54,28 @@ fun SpeakContext.voiceCommandCurrentSong(text: String): ComMatch =
 
 fun SpeakContext.voiceCommandGenerate(text: String): ComMatch =
    if (matches(text)) {
-      plugin.write("PASTE: " + ("Generate " + text).encodeBase64())
+      plugin.writeCom("generate " + text)
       Ok(null)
    } else
       null
 
 fun SpeakContext.voiceCommandGenerateClipboard(text: String): ComMatch =
    if (matches(text)) {
-      plugin.write("PASTE: " + ("Generate " + text + "\nClipboard:\n```" + (Clipboard.getSystemClipboard().string ?: "" + "```")).encodeBase64())
+      plugin.writeCom("generate " + text + "\nClipboard:\n```" + (Clipboard.getSystemClipboard().string ?: "" + "```"))
+      Ok(null)
+   } else
+      null
+
+fun SpeakContext.voiceCommandDescribeClipboard(text: String): ComMatch =
+   if (matches(text)) {
+      plugin.writeCom("do-describe " + Clipboard.getSystemClipboard().string.orEmpty())
+      Ok(null)
+   } else
+      null
+
+fun SpeakContext.voiceCommandDescribeText(text: String): ComMatch =
+   if (matches(text)) {
+      plugin.writeCom("do-describe $text")
       Ok(null)
    } else
       null

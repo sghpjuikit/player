@@ -336,6 +336,8 @@ assist_function_prompt = f"""
 - what-song-is-active
 - what-time-is-it
 - what-date-is-it
+- describe-clipboard
+- describe-$text
 - generate-from?-clipboard
 - speak|say-from?-clipboard
 - speak|say-$text
@@ -378,6 +380,9 @@ class CommandExecutorMain(CommandExecutor):
         if text.startswith("generate "):
             speak("Ok")
             llm(ChatPaste(text))
+            return handled
+        if text.startswith("do-describe "):
+            llm(ChatProceed(llmSysPrompt, "Describe the following content:\n" + text.removeprefix("describe ")))
             return handled
         elif text == 'what can you do':
             llm(ChatWhatCanYouDo(assist_function_prompt))
@@ -658,9 +663,9 @@ while not sysTerminating:
             text = m[6:]
             callback(text)
 
-        if m.startswith("PASTE: "):
-            text = base64.b64decode(m[7:]).decode('utf-8')
-            commandExecutor.execute("generate " + text)
+        if m.startswith("COM: "):
+            text = base64.b64decode(m[5:]).decode('utf-8')
+            commandExecutor.execute(text)
 
         # changing settings commands
         elif m.startswith("mic-on="):

@@ -163,6 +163,7 @@ class VoiceAssistant: PluginBase() {
                      startsWith("CHAT: ") -> "CHAT"
                      startsWith("COM: ") -> "COM"
                      startsWith("COM-DET: ") -> "COM-DET"
+                     startsWith("ERR: ") -> "ERR"
                      else -> ""
                   }
                }
@@ -185,9 +186,7 @@ class VoiceAssistant: PluginBase() {
                fun processSingle(s: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
                   str.append(s)
                   state = str.determineState()
-                  if (state.isNotEmpty()) {
-                     onE(str.toString().substringAfter(": "), state)
-                  }
+                  if (state.isNotEmpty()) onE(str.toString().substringAfter(": "), state)
                   str.clear()
                   (s + "\n").onS(onS)
                }
@@ -573,6 +572,7 @@ class VoiceAssistant: PluginBase() {
    private fun handleInput(text: String, state: String) {
       when (state) {
          "" -> Unit
+         "ERR" -> Unit
          "RAW" -> launch(FX) { confirm(text) }
          "USER" -> launch(FX) { handleSpeech(text, user = true) }
          "SYS" -> Unit

@@ -448,28 +448,6 @@ class AssistChat(Assist):
         else: llm(Chat(textSanitized))
 
 
-class AssistEnVocab(Assist):
-    def __init__(self):
-        # start
-        speak("Certainly. Say a word and explain what it means. I'll check if you understand it correctly. To end the excersize, say stop, or end.")
-    def needsWakeWord(self): False
-    def __call__(self, text: str, textSanitized: str):
-        # announcement
-        if len(text) == 0:
-            speak("Yes, I'm testing your English vocabulary.")
-        # end
-        elif text.startswith("stop") or text.startswith("end"):
-            speak("Ok")
-            global assist
-            assist = assistStand
-        # do help
-        elif text == "help":
-            speak("Yes, say a word and explain what it means. I'll check if you understand it correctly. To end the excersize, say stop, or end.")
-        # normal
-        else:
-            llm(ChatProceed("You are English Teacher evaluating user's understanding of a word. Be short. Criticize, but improve.", text))
-
-
 class AssistStandard(Assist):
     def __init__(self):
         self.last_announcement_at = 0.0
@@ -501,11 +479,6 @@ class AssistStandard(Assist):
         # start LLM conversation
         elif "start conversation" in text:
             commandExecutor.execute("start conversation")
-
-        # start en vocab excersize
-        elif text == "start english vocabulary exercise":
-            if isinstance(llm, LlmHttpOpenAi): assist = AssistEnVocab()
-            else: speak('No supporting conversation model is loaded. Use OpenAI chat engine.')
 
         # do command
         else:

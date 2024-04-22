@@ -34,6 +34,7 @@ class Chat:
         self.outStart = 'CHAT: '
         self.userPrompt = userPrompt
         self.speakTokens = True
+        self.writeTokens = True
         self.processTokens = lambda tokens: None
 
 class ChatProceed:
@@ -44,6 +45,7 @@ class ChatProceed:
         self.messages = [ ]
         self.messages.append({ "role": "system", "content": self.sysPrompt })
         self.speakTokens = True
+        self.writeTokens = True
         self.processTokens = lambda tokens: None
         if (userPrompt is not None): self.messages.append({ "role": "user", "content": self.userPrompt })
 
@@ -78,13 +80,14 @@ class ChatIntentDetect(ChatProceed):
         self.writeTokens = writeTokens
 
 class ChatReact(ChatProceed):
-    def __init__(self, event_to_react_to: str, fallback: str):
+    def __init__(self, sys_prompt: str, event_to_react_to: str, fallback: str):
         super().__init__(
-            "You are a friend. You are terse and concise. You only react to provided events with single word or sentence.",
-            f"{event_to_react_to}.\n React extremely terse."
+            f"{sys_prompt}. You are a friend. You are terse and concise. You only react to provided events with single word or sentence.",
+            f"{event_to_react_to}."
         )
-        self.outStart = 'COM: speak '
+        self.outStart = 'CHAT: '
         self.speakTokens = False
+        self.writeTokens = False
         self.fallback = fallback
 
 class ChatPaste(ChatProceed):
@@ -99,16 +102,26 @@ class ChatPaste(ChatProceed):
         self.speakTokens = False
         self.processTokens = pasteTokens
 
+
 class Llm(Actor):
     def __init__(self, name: str, deviceName: str, write: Writer, speak: Tts):
         super().__init__("llm", name,  deviceName, write, True)
         self.speak = speak
         self.generating = False
 
-    def __call__(self, prompt: ChatStart | Chat | ChatProceed | ChatStop) -> Future[str]:
-        e = FutureChat(prompt, Future())
-        self.queue.put(e)
-        return e.future
+    def __call__(self, e: ChatStart | Chat | ChatProceed | ChatStop) -> Future[str]:
+        ef = FutureChat(e, Future())
+        self.queue.put(ef)
+
+        def on_done(future):
+            try: text = future.result()
+            except Exception: text = None
+            if isinstance(e, ChatReact):
+                if text is None: text = e.fallback
+                self.speak(text)
+
+        ef.future.add_done_callback(on_done)
+        return ef.future
 
 
 class LlmNone(Llm):
@@ -123,8 +136,7 @@ class LlmNone(Llm):
                 e, f = ef
 
                 if isinstance(e, ChatReact):
-                    self.commandExecutor(f'speak {e.fallback}')
-                    f.set_result('')
+                    f.set_result(e.fallback)
                 elif isinstance(e, ChatIntentDetect):
                     if e.writeTokens: self.write('COM-DET: ' + e.userPrompt)
                     f.set_result('COM-' + e.userPrompt + '-COM')
@@ -193,18 +205,16 @@ class LlmGpt4All(Llm):
                                             max_tokens=self.maxTokens, top_p=self.topp, top_k=self.topk, temp=self.temp,
                                             callback=process
                                         )
-                                        consumer, tokensWrite, tokensSpeech, tokensAlt = teeThreadSafeEager(tokens, 3)
-                                        if not isCommand: self.write(chain([t.outStart], progress(consumer.hasStarted, tokensWrite)))
+                                        consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(tokens, 4)
+                                        if not isCommand and t.writeTokens: self.write(chain([t.outStart], progress(consumer.hasStarted, tokensWrite)))
                                         if isCommandWrite: self.write(chain([t.outStart], progress(commandIterator.hasStarted, commandIterator)))
                                         if t.speakTokens: self.speak(tokensSpeech)
                                         t.processTokens(tokensAlt)
                                         consumer()
                                         canceled = self.generating is False
+                                        text = ''.join(tokensText)
                                         f.set_result(text)
 
-                                        if isinstance(t, ChatReact):
-                                            self.commandExecutor(text)
-                                            
                                         if isCommandWrite:
                                             command = text.strip().removeprefix("COM-").removesuffix("-COM").strip()
                                             command = command.replace('-', ' ')
@@ -214,7 +224,6 @@ class LlmGpt4All(Llm):
                                             command = self.commandExecutor(command)
                                             commandIterator.put(command)
                                     except Exception as x:
-                                        if isinstance(t, ChatReact): self.commandExecutor(f"speak {e.fallback}")
                                         if isCommandWrite: commandIterator.put('unidentified')
                                         f.set_exception(x)
                                         raise x
@@ -289,21 +298,19 @@ class LlmHttpOpenAi(Llm):
                                     stream.response.close()
 
                             consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(process(), 4)
-                            if not isCommand: self.write(chain([e.outStart], progress(consumer.hasStarted, tokensWrite)))
+                            if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, tokensWrite)))
                             if isCommandWrite: self.write(chain([e.outStart], progress(commandIterator.hasStarted, commandIterator)))
                             if e.speakTokens: self.speak(tokensSpeech)
                             e.processTokens(tokensAlt)
                             consumer()
                             canceled = self.generating is False
                             text = ''.join(tokensText)
+
                             f.set_result(text)
 
                             if isinstance(e, Chat):
                                 if len(text)==0: self.write("ERR: chat responded with empty message")
                                 else: chat.messages.append({ "role": "assistant", "content": text })
-
-                            if isinstance(e, ChatReact):
-                                self.commandExecutor(text)
 
                             if isCommandWrite:
                                 command = text.strip().removeprefix("COM-").removesuffix("-COM").strip()
@@ -315,7 +322,6 @@ class LlmHttpOpenAi(Llm):
                                 commandIterator.put(command)
 
                         except Exception as e:
-                            if isinstance(e, ChatReact): self.commandExecutor(f"speak {e.fallback}")
                             if isCommandWrite: commandIterator.put('unidentified')
                             f.set_exception(e)
                             if isinstance(e, openai.APIConnectionError): self.write(f"ERR: OpenAI server could not be reached: {e.__cause__}")

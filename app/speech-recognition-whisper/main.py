@@ -352,6 +352,7 @@ assist_function_prompt = f"""
 - set-reminder-on-$iso_datetime-$text
 - set-reminder-in-$time_period-$text
 - count-from-$from:1-to-$to
+- greeting-$user_greeting
 - unidentified // no other command probable
 """
 
@@ -366,9 +367,16 @@ class CommandExecutorMain(CommandExecutor):
             speak.repeatLast()
             return handled
         if text.startswith("speak "):
-            speak(text.removeprefix("speak "))
+            return text
+        if text.startswith("do speak "):
+            speak(text.removeprefix("do speak "))
+            return handled
         if text == "list available voices":
             speak("The available voices are: " + ', '.join(voices))
+            return handled
+        if text.startswith("greeting "):
+            g = text.removeprefix("greeting ").replace('_', ' ').capitalize()
+            llm(ChatReact(llmSysPrompt, "User greeted you with " + g, g))
             return handled
         if text.startswith("change voice "):
             voice = text.removeprefix("change voice ")
@@ -411,13 +419,13 @@ class AssistChat(Assist):
         # start
         write("COM: start conversation")
         llm(ChatStart())
-        llm(ChatReact("User started conversing with you. Greet him", "Conversing"))
+        llm(ChatReact(llmSysPrompt, "User started conversing with you. Greet him", "Conversing"))
         mic.set_pause_threshold_talk()
     def needsWakeWord(self): False
     def __call__(self, text: str, textSanitized: str):
         # announcement
         if len(text) == 0:
-            llm(ChatReact("After period of inactivity, user prodded you for response - say you are still conversing", "Yes, we are talking"))
+            llm(ChatReact(llmSysPrompt, "Afk user prodded you - say you are still conversing", "Yes, we are talking"))
         # do help
         elif text == "help":
             speak(
@@ -444,7 +452,7 @@ class AssistChat(Assist):
             llm.generating = False
             write("COM: stop conversation")
             llm(ChatStop())
-            llm(ChatReact("User stopped conversing with you", "Ok"))
+            llm(ChatReact(llmSysPrompt, "User stopped conversing with you", "Ok"))
             mic.set_pause_threshold_normal()
             global assist
             assist = assistStand
@@ -463,11 +471,11 @@ class AssistStandard(Assist):
         # announcement
         if len(text) == 0:
             self.last_announcement_at = time.time()
-            llm(ChatReact("After period of inactivity, user prodded you for response - you are here", "Yes"))
+            llm(ChatReact(llmSysPrompt, "Afk user prodded you - acknowledge", "Yes"))
 
         # do greeting
         elif text == "hi" or text == "hello" or text == "greetings":
-            llm(ChatReact(f"User greeted you with {text}", text.capitalize()))
+            commandExecutor.execute(f"greeting {text}")
 
         # do help
         elif text == "help":
@@ -659,7 +667,8 @@ while not sysTerminating:
             commandExecutor.execute("change voice " + prop(m, "coqui-voice", ttsCoquiVoice))
 
         elif m.startswith("llm-chat-sys-prompt="):
-            llm.sysPrompt = arg('llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')
+            llmSysPrompt = arg('llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')
+            llm.sysPrompt = llmSysPrompt
 
         elif m.startswith("llm-chat-max-tokens="):
             llm.maxTokens = int(prop(m, "llm-chat-max-tokens", "300"))

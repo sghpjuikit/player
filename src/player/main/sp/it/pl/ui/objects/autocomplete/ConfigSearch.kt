@@ -308,14 +308,6 @@ class ConfigSearch: AutoCompletion<Entry> {
          root.lookupChildAt<HBox>(0).prefWidthProperty() syncFrom (w)
          root.lookupChildAt<HBox>(0).maxWidthProperty() syncFrom (root.widthProperty() - 100)
          root.lookupChildAt<HBox>(0).padding = Insets(2.5, 0.0, 2.5, 0.0)
-         root.onEventUp(MouseEvent.MOUSE_CLICKED) {
-            println()
-            println(root.width)
-            println(root.lookupChildAt<HBox>(0).width)
-            println(configNodeRootWidth.value)
-            println(w.value)
-            println(configNodeRoot.children.sumOf { it.layoutBounds.width })
-         }
          rootTooltip.textProperty() attach {
             if (it.isNullOrBlank()) root uninstall rootTooltip
             else root install rootTooltip

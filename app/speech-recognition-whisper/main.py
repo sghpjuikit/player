@@ -385,7 +385,7 @@ class CommandExecutorMain(CommandExecutor):
             llm(ChatPaste(text))
             return handled
         if text.startswith("do-describe "):
-            llm(ChatProceed(llmSysPrompt, "Describe the following content:\n" + text.removeprefix("describe ")))
+            llm(ChatProceed(llmSysPrompt, "Describe the following content:\n" + text.removeprefix("do describe ")))
             return handled
         elif text == 'what can you do':
             llm(ChatWhatCanYouDo(assist_function_prompt))

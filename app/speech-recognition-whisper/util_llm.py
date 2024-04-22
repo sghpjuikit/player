@@ -112,11 +112,26 @@ class Llm(Actor):
 
 
 class LlmNone(Llm):
-    def __init__(self, write: Writer):
+    def __init__(self, write: Writer, commandExecutor: Callable[[str], str]):
         super().__init__('LlmNone', 'cpu', write, None)
+        self.commandExecutor = commandExecutor
 
     def _loop(self):
-        self._loopLoadAndIgnoreEvents()
+        self._loaded = True
+        while not self._stop:
+            with self._loopProcessEvent() as ef:
+                e, f = ef
+
+                if isinstance(e, ChatReact):
+                    self.commandExecutor(f'speak {e.fallback}')
+                    f.set_result('')
+                elif isinstance(e, ChatIntentDetect):
+                    if e.writeTokens: self.write('COM-DET: ' + e.userPrompt)
+                    f.set_result('COM-' + e.userPrompt + '-COM')
+                    self.commandExecutor(text)
+                else:
+                    f.set_exception(Exception("This is a custom exception"))
+        self._clear_queue()
 
 
 # home: https://github.com/nomic-ai/gpt4all

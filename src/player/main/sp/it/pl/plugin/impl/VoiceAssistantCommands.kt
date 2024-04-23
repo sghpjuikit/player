@@ -10,6 +10,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.robot.Robot
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.delay
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.main.APP
@@ -17,20 +18,20 @@ import sp.it.pl.main.ScheduledNote
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakContext
 import sp.it.pl.voice.toVoiceS
 import sp.it.util.async.runVT
-import sp.it.util.async.sleep
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.flatten
 import sp.it.util.functional.net
-import sp.it.util.system.Os
-import sp.it.util.system.Windows
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.system.Os
+import sp.it.util.system.Windows
 import sp.it.util.text.camelToSpaceCase
-import sp.it.util.text.encodeBase64
 import sp.it.util.text.equalsNc
 import sp.it.util.text.words
+import sp.it.util.ui.pressReleaseShortcut
+import sp.it.util.ui.pressReleaseText
 import sp.it.util.units.uuid
 
 typealias ComMatch = Try<String?, String?>?
@@ -90,11 +91,32 @@ fun SpeakContext.voiceCommandSpeakText(text: String): ComMatch =
 
 fun SpeakContext.voiceCommandAltF4(text: String): ComMatch =
    if (matches(text)) {
+      Robot().pressReleaseShortcut(KeyCode.ALT, KeyCode.F4)
+      Ok(null)
+   } else
+      null
+
+suspend fun SpeakContext.voiceSearch(text: String): ComMatch =
+   if (matches(text)) {
       Robot().apply {
-         keyPress(KeyCode.ALT)
-         keyPress(KeyCode.F4)
-         keyRelease(KeyCode.F4)
-         keyRelease(KeyCode.ALT)
+         pressReleaseShortcut(KeyCode.CONTROL, KeyCode.F)
+         delay(100)
+         fun String.isSpelled() = words().all { it.length==1 }
+         fun String.despell() = replace(" ", "")
+         val t = args(text)[0].net { if (it.isSpelled()) it.despell() else it }
+         pressReleaseText(t)
+      }
+      Ok(null)
+   } else
+      null
+
+suspend fun SpeakContext.voiceType(text: String): ComMatch =
+   if (matches(text)) {
+      Robot().apply {
+         fun String.isSpelled() = words().all { it.length==1 }
+         fun String.despell() = replace(" ", "")
+         val t = args(text)[0].net { if (it.isSpelled()) it.despell() else it }
+         pressReleaseText(t)
       }
       Ok(null)
    } else

@@ -284,6 +284,8 @@ class VoiceAssistant: PluginBase() {
             SpeakHandler(              "Describe clipboard", "describe \$text")                              { voiceCommandDescribeText(it) },
             SpeakHandler(                           "Speak", "speak|say \$text")                             { voiceCommandSpeakText(it) },
             SpeakHandler("Close window (${keys("ALT+F4")})", "close|hide window")                            { voiceCommandAltF4(it) },
+            SpeakHandler(                     "Search text", "search for? \$text")                           { voiceSearch(it) },
+            SpeakHandler(                       "Type text", "type \$text")                                  { voiceType(it) },
             SpeakHandler(             "Open widget by name", "open|show widget? \$widget_name widget?")      { voiceCommandOpenWidget(it) },
             SpeakHandler(                     "Shutdown OS", "shut down system|pc|computer|os")              { voiceCommandOsShutdown(it) }.takeIf { WINDOWS.isCurrent },
             SpeakHandler(                      "Restart OS", "restart system|pc|computer|os")                { voiceCommandOsRestart(it) }.takeIf { WINDOWS.isCurrent },

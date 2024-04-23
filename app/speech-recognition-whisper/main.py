@@ -350,7 +350,7 @@ assist_function_prompt = f"""
 - lights-scene-$scene_name  // sets light scene, scene is usually a mood, user must say 'scene' word
 - list-light-scenes
 - set-reminder-on-$iso_datetime-$text
-- set-reminder-in-$time_period-$text
+- set-reminder-in-$time_period-$text // units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year
 - count-from-$from:1-to-$to
 - greeting-$user_greeting
 - unidentified // no other command probable

@@ -489,8 +489,11 @@ class AssistStandard(Assist):
             commandExecutor.execute("start conversation")
         # do command
         else:
-            command = commandExecutor.execute(text)
-            write('COM: ' + command)
+            from util_com import commands
+            for c in commands(text):
+                c = commandExecutor.execute(c)
+                write('COM: ' + c)
+                time.sleep(0.1) # simulate user
 
 
 assistStand = AssistStandard()

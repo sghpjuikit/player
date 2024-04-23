@@ -471,7 +471,7 @@ class AssistStandard(Assist):
         # announcement
         if len(text) == 0:
             self.last_announcement_at = time.time()
-            llm(ChatReact(llmSysPrompt, "Afk user prodded you - acknowledge", "Yes"))
+            llm(ChatReact(llmSysPrompt, "Afk user prodded you - are you there?", "Yes"))
         # do greeting
         elif text == "hi" or text == "hello" or text == "greetings":
             commandExecutor.execute(f"greeting {text}")
@@ -594,7 +594,7 @@ mic.start()
 llm.start()
 install_exit_handler()
 start_exit_invoker()
-speak(name + " online")
+llm(ChatReact(llmSysPrompt, "You booted up", f"{name} online"))
 
 while not sysTerminating:
     try:

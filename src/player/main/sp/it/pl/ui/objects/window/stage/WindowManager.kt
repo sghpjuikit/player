@@ -450,6 +450,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                } on mw.window.onClose
             }
          }
+         mw.window.closeWithAnim = Runnable { mwShower.hide() }
          mw.window.stage.installHideOnFocusLost(mwAutohide) { mwShower.hide() }
          mw.window.stage.scene.root.onEventDown(DRAG_ENTERED) { mwShower.show() }
          mw.window.stage.scene.root.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }
@@ -502,30 +503,31 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    }
 
    @ThreadSafe
-   fun deserialize(): Fut<*> = runVT {
-      logger.info { "Deserializing windows..." }
-      val dir = APP.location.user.layouts.current
-      if (isValidatedDirectory(dir)) {
-         val fs = dir.children().filter { it hasExtension "ws" }.toList()
-         val ws = fs.mapNotNull { APP.serializerJson.fromJson<WindowDb>(it).orNull() }
-         logger.info { "Deserializing windows ok: ${ws.size}/${fs.size}" }
-         ws
-      } else {
-         logger.error { "Deserializing windows failed: $dir not accessible" }
-         listOf()
+   fun deserialize(): Fut<*> =
+      runVT {
+         logger.info { "Deserializing windows..." }
+         val dir = APP.location.user.layouts.current
+         if (isValidatedDirectory(dir)) {
+            val fs = dir.children().filter { it hasExtension "ws" }.toList()
+            val ws = fs.mapNotNull { APP.serializerJson.fromJson<WindowDb>(it).orNull() }
+            logger.info { "Deserializing windows ok: ${ws.size}/${fs.size}" }
+            ws
+         } else {
+            logger.error { "Deserializing windows failed: $dir not accessible" }
+            listOf()
+         }
+      } ui {
+         if (it.isEmpty()) {
+            createWindow(true)
+         } else {
+            val ws = it.map { it.toDomain() }
+            if (mainWindow==null) setAsMain(ws.first())
+            ws.forEach { w -> w.s.onEventDown1(WINDOW_SHOWING) { w.update() } }
+            ws.forEach { it.show() }
+            WidgetIoManager.requestWidgetIOUpdate()
+         }
+         getActive()?.focus()
       }
-   } ui {
-      if (it.isEmpty()) {
-         createWindow(true)
-      } else {
-         val ws = it.map { it.toDomain() }
-         if (mainWindow==null) setAsMain(ws.first())
-         ws.forEach { w -> w.s.onEventDown1(WINDOW_SHOWING) { w.update() } }
-         ws.forEach { it.show() }
-         WidgetIoManager.requestWidgetIOUpdate()
-      }
-      getActive()?.focus()
-   }
 
    fun slideWindow(c: Component): Window {
       val screen = getScreenForMouse()
@@ -606,6 +608,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       shower()
 
       runFX(300.millis) {
+         mw.closeWithAnim = Runnable { hider() }
          mw.stage.installHideOnFocusLost(mwAutohide, hider)
          mw.stage.scene.root.onEventDown(KEY_PRESSED, ESCAPE) { hider() }
          mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!it.isPrimaryButtonDown && !APP.ui.isLayoutMode) hider() }

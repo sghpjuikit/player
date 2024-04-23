@@ -48,6 +48,8 @@ import sp.it.util.access.WithSetterObservableValue;
 import sp.it.util.action.ActionRegistrar;
 import sp.it.util.animation.Anim;
 import sp.it.util.async.executor.EventReducer;
+import sp.it.util.dev.DebugKt;
+import sp.it.util.dev.DevKt;
 import sp.it.util.math.P;
 import sp.it.util.reactive.Disposer;
 import sp.it.util.reactive.Subscribed;
@@ -218,7 +220,11 @@ public class Window extends WindowBase {
 		// normally we would bind bgr size, but we will bind it more dynamically later
 		// bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
 
-		s.setOnCloseRequest(e -> close()); // avoid window not closing properly sometimes (like when OS requests closing the window)
+		// avoid window not closing properly sometimes (like when OS requests closing the window)
+		s.setOnCloseRequest(e -> {
+			closeWithAnim();  // close() as it would disrupt animation, since this ALT+F4 calls this AND key handler both
+			e.consume();  // disable default behavior
+		});
 
 		// fullscreen
 		fullScreenExitHint.setValue("");
@@ -432,7 +438,7 @@ public class Window extends WindowBase {
 				}
 				if (e.getCode()==Q) {
 					if (e.getEventType()==KEY_RELEASED) {
-						close();
+						closeWithAnim();
 					}
 					e.consume();
 				}
@@ -734,6 +740,23 @@ public class Window extends WindowBase {
 			onClose.invoke();
 		}
 		super.close();
+	}
+
+	/** Prevents {@link #closeWithAnim} from being called multiple times */
+	private boolean closing = false;
+
+	/** Implements delay or animation for {@link #closeWithAnim}. Can be changed. By default calls {@link #close}. */
+	public Runnable closeWithAnim = () -> close();
+
+	/**
+	 * Same as {@link #close}, but potentially with delay or animation.
+	 * Calls {@link #closeWithAnim} (which eventually calls {@link #close}).
+	 * Only takes effect 1st time, subsequent calls do nothing.
+	 */
+	public void closeWithAnim() {
+		if (closing) return;
+		closing = true;
+		closeWithAnim.run();
 	}
 
 /* ---------- MOVING & RESIZING ------------------------------------------------------------------------------------- */

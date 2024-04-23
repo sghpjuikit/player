@@ -194,7 +194,7 @@ fun Scene.installWindowInteraction() = Subscription(
    onEventDown(KEY_PRESSED) {
       if (it.isAltDown && it.code==F4) {
          window.ifNotNull { w ->
-            w.asAppWindow().ifNotNull { it.close() }.ifNull { w.hide() }
+            w.asAppWindow()?.closeWithAnim() ?: w.hide()
             it.consume()
          }
       }

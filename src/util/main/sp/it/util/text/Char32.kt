@@ -9,7 +9,16 @@ data class Char32(val value: Int) {
       failIf(value !in 0..0x10FFFF) { "Invalid Char32 value: $value" }
    }
 
+   /** @return [Int] codepoint value */
    fun toInt() = value
+
+   /** @return [toChar16] */
+   fun toChar(): Char? = toChar()
+
+   /** @return [Char16] if this codepoint is in [Char16] range or null */
+   fun toChar16(): Char16? =
+      if (value in Char.MIN_VALUE.code..Char.MAX_VALUE.code) value.toChar()
+      else null
 
    override fun toString() = String(IntArray(1) { value }, 0, 1)
 

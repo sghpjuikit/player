@@ -401,7 +401,7 @@ It is simply a service to intelligently convert input into output.
     1. **LlmOpenAi**
         - `pip install openai` 
     2. **LlmGpt4All**
-        - `pip install gpt4all` 
+        - `pip install gpt4all==2.0.2` 
         - Download LLM model for [GPT4All](https://gpt4all.io/index.html) (optional)
             - model is required only for conversation feature 
                 - into the [models-llm](models-llm) directory

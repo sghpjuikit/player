@@ -70,7 +70,7 @@ It is possible to exit gracefully (on any platform) by writing 'EXIT' to stdin
 
 Args:
 
-  mic-on=$bool
+  mic-enabled=$bool
     Optional bool whether microphone listening should be allowed.
     When false, speech recognition will receive no input and will not do anything.
     Interacting with the program is still fully possible through stdin `CHAT: ` command.
@@ -635,8 +635,8 @@ while not sysTerminating:
             commandExecutor.execute(text)
 
         # changing settings commands
-        elif m.startswith("mic-on="):
-            mic.enabled = prop(m, "mic-on", "true").lower() == "true"
+        elif m.startswith("mic-enabled="):
+            mic.enabled = prop(m, "mic-enabled", "true").lower() == "true"
             stt.enabled = mic.enabled
 
         elif m.startswith("mic-energy-debug="):

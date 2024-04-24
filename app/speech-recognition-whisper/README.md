@@ -88,9 +88,11 @@ flowchart TD
   V1 -.->|python native| V1X[(OS voice)]
   V  -.-> V3[/TtsCoqui/]
   V  -.-> V5[/TtsTacotron2/]
-  V5 -.->|pytorch| V5X[(speechbrain)]
+  V5 -.->|pytorch| V5X[(torch lib)]
   V  -.-> V6[/TtsSpeechBrain/]
   V6 -.->|pytorch| V6X[(speechbrain lib)]
+  V  -.-> V7[/TtsFastPitch/]
+  V7 -.->|pytorch| V7X[(torch lib)]
   V3 -.->|python lib| V3X[(Coqui TTS)]
   V  -.-> V4[/TtsHttp/]
   V4 -.->|http| V4X[(Other self instance)]
@@ -98,7 +100,20 @@ flowchart TD
   V2 -.->|http| V2X[(Character.AI Service)]
 ```
 
-###### LLM
+###### Stt
+```mermaid
+flowchart TD
+  STTX[Stt Actor]
+  STTX     -.-> STTX0[/SttNone/]
+  STTX     -.-> STTX1[/SttWhisper/]
+  STTX     -.-> STTX2[/SttNemo/]
+  STTX     -.-> STTX3[/SttHttp/]
+  STTX2    -.->|python| STTXX1[(Local AI Model)]
+  STTX1    -.->|python| STTXX2[(Local AI Model)]
+  STTX3    -.->|http| STTXX4[(Other self instance)]
+```
+
+###### Llm
 ```mermaid
 flowchart TD
   LLMX[Llm Actor]
@@ -120,7 +135,8 @@ flowchart LR
   HTTP[Http API]
   HTTP -->|endpoint| HTTP1[path: speech \n returns generated audio \n requires Tts==TtsCoqui]
   HTTP -->|endpoint| HTTP2[path: actor \n returns all actor states for monitoring]
-  HTTP -->|endpoint| HTTP3[path: intent \n returns result of intent detection \n requires Llm!=LlmNone
+  HTTP -->|endpoint| HTTP3[path: intent \n returns result of intent detection \n requires Llm!=LlmNone]
+  HTTP -->|endpoint| HTTP4[path: stt \n returns text result of speech recognition \n requires Stt!=SttNone]
 ```
 
 ## Features
@@ -366,7 +382,9 @@ It is simply a service to intelligently convert input into output.
                - creating `tos_agreed.txt` file with content `I have read, understood and agreed to the Terms and Conditions.`
     3. **TtsTacotron2**
         - TODO
-    3. **TtsSpeecBrain** 
+    4. **TtsSpeecBrain** 
+        - TODO
+    5. **TtsFastpitch** 
         - TODO
 4. Install desired stt module:
     1. **SttWhisper** requires https://github.com/openai/whisper
@@ -377,8 +395,11 @@ It is simply a service to intelligently convert input into output.
             - from [official source](https://github.com/openai/whisper/blob/f296bcd3fac41525f1c5ab467062776f8e13e4d0/whisper/__init__.py)
     2. **SttNemo**
         - TODO
+    2. **SttHttp**
+        - TODO
 5. Install desired llm module:
     1. **LlmOpenAi**
+        - `pip install openai` 
     2. **LlmGpt4All**
         - `pip install gpt4all` 
         - Download LLM model for [GPT4All](https://gpt4all.io/index.html) (optional)

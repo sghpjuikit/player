@@ -576,13 +576,17 @@ def install_exit_handler():
 
 
 stt = SttNone(micEnabled, write)
-if sttEngineType == 'whisper': stt = SttWhisper(callback, micEnabled, "cpu" if len(sttWhisperDevice)==0 else sttWhisperDevice, sttWhisperModel, write)
-elif sttEngineType == 'nemo': stt = SttNemo(callback, micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
+if sttEngineType == 'whisper':
+    stt = SttWhisper(micEnabled, "cpu" if len(sttWhisperDevice)==0 else sttWhisperDevice, sttWhisperModel, write)
+elif sttEngineType == 'nemo':
+    stt = SttNemo(micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
 elif sttEngineType == 'http':
     if ':' not in sttHttpUrl: raise AssertionError('stt-http-url must be in format host:port')
     host, _, port = sttHttpUrl.partition(":")
-    stt = SttHttp(host, int(port), callback, micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
-else: pass
+    stt = SttHttp(host, int(port), micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
+else:
+    pass
+stt.onDone = callback
 
 mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, skip, lambda a: stt(a), speak, write, micEnergy, micEnergyDebug)
 

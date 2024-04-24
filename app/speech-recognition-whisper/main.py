@@ -288,7 +288,7 @@ speak = Tts(ttsOn, speakEngine, write)
 commandExecutor = CommandExecutorDelegate(CommandExecutorDoNothing)
 
 # llm actor, non-blocking
-llm = LlmNone(write, commandExecutor.execute)
+llm = LlmNone(speak, write, commandExecutor.execute)
 if llmEngine == 'none':
     pass
 elif llmEngine == "gpt4all":

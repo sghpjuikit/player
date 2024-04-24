@@ -11,7 +11,7 @@ from concurrent.futures import Future
 from dataclasses import dataclass
 
 @dataclass
-class FutureChat(Event):
+class EventLlm(Event):
     event: object
     future: Future
 
@@ -110,7 +110,7 @@ class Llm(Actor):
         self.generating = False
 
     def __call__(self, e: ChatStart | Chat | ChatProceed | ChatStop) -> Future[str]:
-        ef = FutureChat(e, Future())
+        ef = EventLlm(e, Future())
         self.queue.put(ef)
 
         def on_done(future):
@@ -119,8 +119,7 @@ class Llm(Actor):
 
             # speak generated text or fallback if error
             if isinstance(e, ChatReact):
-                if text is None: text = e.fallback
-                self.speak(text)
+                self.speak(e.fallback if text is None else text)
 
             # run generated command or unidentified if error
             if isinstance(e, ChatIntentDetect) and e.writeTokens:
@@ -139,8 +138,8 @@ class Llm(Actor):
 
 
 class LlmNone(Llm):
-    def __init__(self, write: Writer, commandExecutor: Callable[[str], str]):
-        super().__init__('LlmNone', 'cpu', write, None)
+    def __init__(self, speak: Tts, write: Writer, commandExecutor: Callable[[str], str]):
+        super().__init__('LlmNone', 'cpu', write, speak)
         self.commandExecutor = commandExecutor
 
     def _loop(self):
@@ -156,7 +155,7 @@ class LlmNone(Llm):
                     self.commandExecutor(text)
                     if e.writeTokens: self.write('COM-DET: ' + e.userPrompt)
                 else:
-                    f.set_exception(Exception("This is a custom exception"))
+                    f.set_exception(Exception("Illegal"))
         self._clear_queue()
 
 

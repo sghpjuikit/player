@@ -134,6 +134,9 @@ Args:
       requires specifying character-ai-token, optionally character-ai-voice
     - Use 'coqui' to use xttsv2 model (offline, low performance, realistic quality)
       optionally specify coqui-voice
+    - Use 'tacotron2' to use tacotron2 (offline, realistic quality)
+    - Use 'speechbrain' to use speechbrain (offline, realistic quality)
+    - Use 'fastpitch' to use fastpitch (offline, fast, realistic quality)
     - Use 'http' to use another instance of this program to generate audio over http.
       requires the other instance to use coqui
       requires specifying the speech-server as the url of the other instance
@@ -269,8 +272,7 @@ elif ttsEngineType == 'os':
 elif ttsEngineType == 'character-ai':
     speakEngine = TtsCharAi(ttsCharAiToken, ttsCharAiVoice, SdActor(write), write)
 elif ttsEngineType == 'coqui':
-    # speakEngine = TtsCoqui(ttsCoquiVoice, "cuda" if len(ttsCoquiCudaDevice)==0 else ttsCoquiCudaDevice, SdActor(write), write)
-    speakEngine = TtsFastPitch("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
+    speakEngine = TtsCoqui(ttsCoquiVoice, "cuda" if len(ttsCoquiCudaDevice)==0 else ttsCoquiCudaDevice, SdActor(write), write)
 elif ttsEngineType == 'tacotron2':
     speakEngine = TtsTacotron2("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
 elif ttsEngineType == 'speechbrain':
@@ -281,6 +283,8 @@ elif ttsEngineType == 'http':
     if ':' not in ttsHttpUrl: raise AssertionError('speech-server must be in format host:port')
     host, _, port = ttsHttpUrl.partition(":")
     speakEngine = TtsHttp(host, int(port), SdActor(write), write)
+elif ttsEngineType == 'fastpitch':
+    speakEngine = TtsFastPitch("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
 else:
     speakEngine = TtsNone(write)
 speak = Tts(ttsOn, speakEngine, write)
@@ -581,6 +585,7 @@ if sttEngineType == 'whisper':
 elif sttEngineType == 'nemo':
     stt = SttNemo(micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
 elif sttEngineType == 'http':
+    sttHttpUrl = sttHttpUrl.removeprefix("http://").removeprefix("https://")
     if ':' not in sttHttpUrl: raise AssertionError('stt-http-url must be in format host:port')
     host, _, port = sttHttpUrl.partition(":")
     stt = SttHttp(host, int(port), micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)

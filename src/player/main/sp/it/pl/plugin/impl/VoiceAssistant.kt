@@ -644,6 +644,7 @@ class VoiceAssistant: PluginBase() {
       COQUI("coqui", "Coqui", "Voice using huggingface.co/coqui/XTTS-v2 model. Fully offline"),
       TACOTRON2("tacotron2", "Tacotron2", "Voice using pytorch.org/hub/nvidia_deeplearningexamples_tacotron2 model. Fully offline"),
       SPEECHBRAIN("speechbrain", "Speechbrain", "Voice using speechbrain/tts-tacotron2-ljspeech + speechbrain/tts-hifigan-ljspeech model. Fully offline"),
+      FASTPITCH("fastpitch", "Fastpitch", "Voice using Nvidia's fastpitch. Fully offline"),
       HTTP("http", "Http server", "Voice using different instance of this application with speech server enabled"),
    }
 

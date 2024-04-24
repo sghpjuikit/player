@@ -392,13 +392,16 @@ It is simply a service to intelligently convert input into output.
 
 For help invoke `-h` or `--help`
 
-#### Recommended setup
+#### First run & recommended setup
 First run the raw script with no arguments.
 Setup microphone sensitivity settings and speech recognition model (`base.en` should be absolutely enough.
 Or skip audio setup and control program though CLI `SAY`/`CHAT` commands.
 Then try couple of commands.
 For speech generation try offline `speech-engine=coqui`.
 For llm chat try `llm-engine=openai` with [LmStudio](https://lmstudio.ai) and run it simply as server (everything should work out of the box).
+
+#### Specialized setup
+- Only stt: `python main.py  llm-engine=none speech-engine=none stt-engine=whisper stt-whisper-model=tiny.en`
 
 #### Performance
 Weak systems:

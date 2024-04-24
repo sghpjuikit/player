@@ -3,15 +3,28 @@ from time import sleep
 from typing import Callable
 
 import whisper.audio
-from speech_recognition import AudioData
-from util_actor import Actor
+from speech_recognition.audio import AudioData
+from util_actor import Actor, Event
 from util_wrt import Writer
 from os import makedirs, remove
 from os.path import dirname, abspath, exists, join
+from dataclasses import dataclass
+from concurrent.futures import Future
 from io import BytesIO
 import soundfile as sf
 import numpy as np
 import torch
+
+@dataclass
+class EventStt(Event):
+    event: AudioData
+    future: Future
+
+    def __iter__(self):
+        yield self.event
+        yield self.future
+
+    def str(self): return str(self.event)
 
 
 class Stt(Actor):
@@ -20,6 +33,18 @@ class Stt(Actor):
         self.sample_rate: int = sample_rate
         self.target = target
 
+    def __call__(self, e: AudioData, speak: bool = True) -> Future[str]:
+        ef = EventStt(e, Future())
+        self.queue.put(ef)
+
+        def on_done(future):
+            try: text = future.result()
+            except Exception: text = None
+            if text is not None: self.target(text)
+
+        if speak: ef.future.add_done_callback(on_done)
+        return ef.future
+    
     def _loopWaitTillReady(self):
         while not self.enabled and self.target is None:
             self._clear_queue()
@@ -58,14 +83,19 @@ class SttWhisper(Stt):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvent() as audio:
-                    wav_bytes = audio.get_wav_data()  # must be 16kHz
-                    wav_stream = BytesIO(wav_bytes)
-                    audio_array, sampling_rate = sf.read(wav_stream)
-                    audio_array = audio_array.astype(np.float32)
-                    text = model.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
-                    if not self._stop and self.enabled: self.target(text)
-
+                with self._loopProcessEvent() as af:
+                    try:
+                        audio, f = af
+                        wav_bytes = audio.get_wav_data()  # must be 16kHz
+                        wav_stream = BytesIO(wav_bytes)
+                        audio_array, sampling_rate = sf.read(wav_stream)
+                        audio_array = audio_array.astype(np.float32)
+                        text = model.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
+                        if not self._stop and self.enabled: f.set_result(text)
+                        else: f.set_exception(Exception("Stopped or disabled"))
+                    except Exception as e:
+                        f.set_exception(e)
+                        raise e
 
 # home https://github.com/NVIDIA/NeMo
 class SttNemo(Stt):
@@ -93,21 +123,60 @@ class SttNemo(Stt):
         model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name=self.model)
         model.to(torch.device(self.device))
         # loop
-        with self._looping():
+        with (self._looping()):
             while not self._stop:
-                with self._loopProcessEvent() as audio:
-                    wav_bytes = audio.get_wav_data()  # must be 16kHz
-                    wav_stream = BytesIO(wav_bytes)
-                    audio_array, sampling_rate = sf.read(wav_stream)
-                    audio_array = audio_array.astype(np.float32)
-
-                    f = join('cache', 'nemo', str(uuid.uuid4())) + '.wav'
-                    sf.write(f, audio_array, sampling_rate)
-
+                with self._loopProcessEvent() as af:
                     try:
+                        audio, f = af
+                        wav_bytes = audio.get_wav_data()  # must be 16kHz
+                        wav_stream = BytesIO(wav_bytes)
+                        audio_array, sampling_rate = sf.read(wav_stream)
+                        audio_array = audio_array.astype(np.float32)
+    
+                        f = join('cache', 'nemo', str(uuid.uuid4())) + '.wav'
+                        sf.write(f, audio_array, sampling_rate)
+
                         hypotheses = model.transcribe([f], verbose=False)
                         hypothese1 = hypotheses[0] if hypotheses else None
                         text = hypothese1[0] if hypothese1 else None
-                        if text is not None and not self._stop and self.enabled: self.target(text)
+                        if not self._stop and self.enabled: f.set_result(text if text is not None else '')
+                        else: f.set_exception(Exception("Stopped or disabled"))
+                    except Exception as e:
+                        f.set_exception(e)
+                        raise e
                     finally:
                         remove(f)
+
+# home https://github.com/openai/whisper
+class SttHttp(Stt):
+    def __init__(self, url: str, port: int, target: Callable[str, None] | None, enabled: bool, device: str, model: str, write: Writer):
+        super().__init__('SttHttp', 'http', write, enabled, 16000, target)
+        self.url = url
+        self.port = port
+
+    def _loop(self):
+        self._loopWaitTillReady()
+
+        # initialize
+        import io, http.client
+        # loop
+        with self._looping():
+            while not self._stop:
+                with self._loopProcessEvent() as af:
+                    try:
+                        audio, f = af
+                        audio_data = audio.frame_data
+                        audio_sample_rate = audio.sample_rate.to_bytes(4, 'little')
+                        audio_sample_width = audio.sample_width.to_bytes(2, 'little')
+                        byte_array = audio_sample_rate + audio_sample_width + audio_data
+
+                        conn = http.client.HTTPConnection(self.url, self.port)
+                        conn.set_debuglevel(0)
+                        conn.request('POST', '/stt', byte_array, {})
+                        text = conn.getresponse().read().decode('utf-8')
+                        
+                        if not self._stop and self.enabled: f.set_result(text)
+                        else: f.set_exception(Exception("Stopped or disabled"))
+                    except Exception as e:
+                        f.set_exception(e)
+                        raise e

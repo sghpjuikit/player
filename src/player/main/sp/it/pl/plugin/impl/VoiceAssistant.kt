@@ -139,6 +139,7 @@ class VoiceAssistant: PluginBase() {
             "stt-whisper-device=${sttWhisperDevice.value}",
             "stt-nemo-model=${sttNemoModel.value}",
             "stt-nemo-device=${sttNemoDevice.value}",
+            "stt-http-url=${sttHttpUrl.value}",
             "http-url=${httpUrl.value.net { it.substringAfterLast("/") }}",
          )
          val command = EnvironmentContext.runAsProgramArgsTransformer(commandRaw)
@@ -360,7 +361,7 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Wake up word", info = "Words or phrase that activates voice recognition. Case-insensitive.")
 
    /** Engine used to recognize speech. May require additional configuration */
-   val sttEngine by cv(TtsEngine.WHISPER)
+   val sttEngine by cv(TtsEngine.WHISPER).uiNoOrder()
       .def(name = "Speech recognition", info = "Engine used to recognize speech. May require additional configuration")
 
    /** [TtsEngine.WHISPER] AI model used to transcribe voice to text */
@@ -382,6 +383,10 @@ class VoiceAssistant: PluginBase() {
    /** [TtsEngine.NEMO] torch device used to transcribe voice to text */
    val sttNemoDevice by cv("")
       .def(name = "Speech recognition > Nemo device", info = "Nemo torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
+
+   /** [TtsEngine.HTTP] torch device used to transcribe voice to text */
+   val sttHttpUrl by cv("localhost:1235")
+      .def(name = "Speech recognition > Http url", info = "Voice recognition server address and port.")
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
    val sttBlacklistWords by cList("a", "the", "please")
@@ -450,7 +455,7 @@ class VoiceAssistant: PluginBase() {
       private set
 
    /** Engine used to generate voice. May require additional configuration */
-   val llmEngine by cv(LlmEngine.NONE)
+   val llmEngine by cv(LlmEngine.NONE).uiNoOrder()
       .def(name = "Llm engine", info = "LLM engine for chat")
 
    /** Model for gpt4all. Must be in models-llm. */
@@ -518,7 +523,7 @@ class VoiceAssistant: PluginBase() {
       // restart-requiring properties
       val processChangeVals = listOf<V<*>>(
          wakeUpWord, micName,
-         sttEngine, sttWhisperModel, sttWhisperDevice, sttNemoModel, sttNemoDevice,
+         sttEngine, sttWhisperModel, sttWhisperDevice, sttNemoModel, sttNemoDevice, sttHttpUrl,
          ttsEngine, ttsEngineCharAiToken, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl, ttsServer, ttsServerUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
          httpUrl
@@ -629,6 +634,7 @@ class VoiceAssistant: PluginBase() {
       NONE("none", "None", "No speech recognition"),
       WHISPER("whisper", "Whisper", "OpenAI Whisper speech recognition. Fully offline."),
       NEMO("nemo", "Nemo", "Nvidia Nemo ASR. Fully offline."),
+      HTTP("http", "Http", "Recognition using different instance of this application with http enabled."),
    }
 
    enum class SpeechEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {

@@ -15,8 +15,8 @@ from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatReact, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
 from util_http import Http, HttpHandler
-from util_http_handlers import HttpHandlerState, HttpHandlerIntent
-from util_stt import SttNone, SttWhisper, SttNemo
+from util_http_handlers import HttpHandlerState, HttpHandlerIntent, HttpHandlerStt
+from util_stt import SttNone, SttWhisper, SttNemo, SttHttp
 from util_wrt import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_com import CommandExecutor, CommandExecutorDoNothing, CommandExecutorAsIs, CommandExecutorDelegate
@@ -235,6 +235,7 @@ sttWhisperDevice = arg('stt-whisper-device', '')
 sttWhisperModel = arg('stt-whisper-model', 'base.en')
 sttNemoDevice = arg('stt-nemo-device', '')
 sttNemoModel = arg('stt-nemo-model', 'nvidia/parakeet-tdt-1.1b')
+sttHttpUrl = arg('stt-http-url', 'localhost:1235')
 
 ttsOn = arg('speech-on', "true") == "true"
 ttsEngineType = arg('speech-engine', 'os')
@@ -577,9 +578,13 @@ def install_exit_handler():
 stt = SttNone(micEnabled, write)
 if sttEngineType == 'whisper': stt = SttWhisper(callback, micEnabled, "cpu" if len(sttWhisperDevice)==0 else sttWhisperDevice, sttWhisperModel, write)
 elif sttEngineType == 'nemo': stt = SttNemo(callback, micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
+elif sttEngineType == 'http':
+    if ':' not in sttHttpUrl: raise AssertionError('stt-http-url must be in format host:port')
+    host, _, port = sttHttpUrl.partition(":")
+    stt = SttHttp(host, int(port), callback, micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
 else: pass
 
-mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, skip, stt.queue.put, speak, write, micEnergy, micEnergyDebug)
+mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, skip, lambda a: stt(a), speak, write, micEnergy, micEnergyDebug)
 
 # http
 http = None
@@ -588,6 +593,7 @@ host, _, port = httpUrl.partition(":")
 http = Http(host, int(port), write)
 http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tts, speak.tts.play if hasattr(speak.tts, 'play') else None]))))
 http.handlers.append(HttpHandlerIntent(llm))
+http.handlers.append(HttpHandlerStt(stt))
 if isinstance(speak.tts, TtsCoqui): http.handlers.append(speak.tts._httpHandler())
 
 # start actors

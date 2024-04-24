@@ -3,10 +3,12 @@ import json
 from typing import List
 from util_wrt import Writer
 from util_llm import Llm, ChatIntentDetect
+from util_stt import Stt
 from util_actor import Actor, Event
 from util_http import HttpHandler
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from dataclasses import dataclass
+from speech_recognition.audio import AudioData
 
 
 class HttpHandlerState(HttpHandler):
@@ -74,6 +76,33 @@ class HttpHandlerIntent(HttpHandler):
             req.send_header('Content-type', 'text/plain')
             req.end_headers()
             req.wfile.write(command)
+        except Exception as e:
+            req.send_error(500, f"{e}")
+
+
+class HttpHandlerStt(HttpHandler):
+    def __init__(self, stt: Stt):
+        super().__init__("POST", "/stt")
+        self.stt = stt
+
+    def __call__(self, req: BaseHTTPRequestHandler):
+        content_length = req.headers['Content-Length']
+        if content_length is None: req.send_error(400, 'Invalid input')
+        if content_length is None: return
+
+        try:
+            content_length = int(req.headers['Content-Length'])
+            body = req.rfile.read(content_length)
+            sample_rate = int.from_bytes(body[:4], 'little')
+            sample_width = int.from_bytes(body[4:6], 'little')
+            audio_data = body[6:]
+            f = self.stt(AudioData(audio_data, sample_rate, sample_width), False)
+            text = f.result()
+            text = text.encode('utf-8')
+            req.send_response(200)
+            req.send_header('Content-type', 'text/plain')
+            req.end_headers()
+            req.wfile.write(text)
         except Exception as e:
             req.send_error(500, f"{e}")
 

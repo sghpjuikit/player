@@ -276,6 +276,7 @@ elif ttsEngineType == 'speechbrain':
     speakEngine = TtsSpeechBrain("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
 elif ttsEngineType == 'http':
     if len(ttsHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')
+    ttsHttpUrl = ttsHttpUrl.removeprefix("http://").removeprefix("https://")
     if ':' not in ttsHttpUrl: raise AssertionError('speech-server must be in format host:port')
     host, _, port = ttsHttpUrl.partition(":")
     speakEngine = TtsHttp(host, int(port), SdActor(write), write)

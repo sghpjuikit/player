@@ -137,10 +137,10 @@ class SttNemo(Stt):
                         audio_array, sampling_rate = sf.read(wav_stream)
                         audio_array = audio_array.astype(np.float32)
                         # gather data as file
-                        f = join('cache', 'nemo', str(uuid.uuid4())) + '.wav'
-                        sf.write(f, audio_array, sampling_rate)
+                        file = join('cache', 'nemo', str(uuid.uuid4())) + '.wav'
+                        sf.write(file, audio_array, sampling_rate)
                         # sst
-                        hypotheses = model.transcribe([f], verbose=False)
+                        hypotheses = model.transcribe([file], verbose=False)
                         hypothese1 = hypotheses[0] if hypotheses else None
                         text = hypothese1[0] if hypothese1 else None
                         # complete
@@ -150,7 +150,7 @@ class SttNemo(Stt):
                         f.set_exception(e)
                         raise e
                     finally:
-                        remove(f)
+                        remove(file)
 
 
 class SttHttp(Stt):

@@ -35,14 +35,18 @@ import sp.it.util.ui.drag.set
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.text
+import sp.it.util.ui.textFlow
 
 fun FencedCodeBlock.toNode(): Node {
-   val text = getContentChars().normalizeEOL()
+   val text = getContentChars().normalizeEOL().trim()
 
    val vbox = stackPane {
       styleClass += "markdown-codeblock-box"
-      lay += label(text) {
-         styleClass += "markdown-codeblock"
+      lay += textFlow {
+         lay += text(text) {
+            styleClass += "markdown-codeblock"
+         }
       }
    }
 

@@ -64,21 +64,35 @@ class ChatWhatCanYouDo(ChatProceed):
         )
 
 class ChatIntentDetect(ChatProceed):
-    def __init__(self, assist_function_prompt: str, userPrompt: str, writeTokens: bool = True):
-        super().__init__(
+    def __init__(self, sysPrompt: str, userPrompt: str, outStart: str, speakTokens: bool, writeTokens: bool):
+        super().__init__(sysPrompt, userPrompt)
+        self.outStart = 'RAW: executing:\n```\n'
+        self.outEnd = '\n```'
+        self.speakTokens = False
+        self.writeTokens = True
+
+    @classmethod
+    def normal(cls, assist_function_prompt: str, userPrompt: str, writeTokens: bool = True):
+        return cls(
             "From now on, identify user intent by returning one of following commands. " +
             "Only respond with command in format: `COM-command-COM`. " +
             "? is optional, $ is command parameter, : is default value. " +
             "Use '-' as word separator in command. " +
             "Use '_' as word separator in $ parameter values. " +
             "Do not write $ after resolving parameter, e.g. `$number` -> `5`. " +
+            "You can respond with multiple commands, each on new line. " +
             "Command example: COM-command-prefix-parameter_value-command-suffix-COM. " +
             "Commands: \n" + assist_function_prompt,
-            userPrompt
+            userPrompt,
+            'COM-DET: ' if writeTokens else '',
+            False,
+            writeTokens
         )
-        self.outStart = 'COM-DET: ' if writeTokens else ''
-        self.speakTokens = False
-        self.writeTokens = writeTokens
+
+    @classmethod
+    def python(cls, sysPrompt: str, userPrompt: str):
+        return cls(sysPrompt, userPrompt, 'RAW: executing:\n```\n', False, True)
+
 
 class ChatReact(ChatProceed):
     def __init__(self, sys_prompt: str, event_to_react_to: str, fallback: str):
@@ -155,7 +169,6 @@ class LlmNone(Llm):
                     f.set_result(e.fallback)
                 elif isinstance(e, ChatIntentDetect):
                     f.set_result('COM-' + e.userPrompt + '-COM')
-                    self.commandExecutor(text)
                     if e.writeTokens: self.write('COM-DET: ' + e.userPrompt)
                 else:
                     f.set_exception(Exception("Illegal"))

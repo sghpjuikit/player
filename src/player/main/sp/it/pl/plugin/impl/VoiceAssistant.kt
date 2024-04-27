@@ -281,8 +281,8 @@ class VoiceAssistant: PluginBase() {
             SpeakHandler(       "Llm answer from clipboard", "generate|answer|write from? clipboard \$text") { voiceCommandGenerateClipboard(it) },
             SpeakHandler(                      "Llm answer", "generate|answer|write \$text")                 { voiceCommandGenerate(it) },
             SpeakHandler(            "Speak from clipboard", "speak|say from? clipboard")                    { voiceCommandSpeakClipboard(it) },
-            SpeakHandler(              "Describe clipboard", "describe clipboard")                           { voiceCommandDescribeClipboard(it) },
-            SpeakHandler(                   "Describe text", "describe \$text")                              { voiceCommandDescribeText(it) },
+            SpeakHandler(              "Describe clipboard", "describe|define clipboard")                    { voiceCommandDescribeClipboard(it) },
+            SpeakHandler(                   "Describe text", "describe|define \$text")                       { voiceCommandDescribeText(it) },
             SpeakHandler(                           "Speak", "speak|say \$text")                             { voiceCommandSpeakText(it) },
             SpeakHandler("Close window (${keys("ALT+F4")})", "close|hide window")                            { voiceCommandAltF4(it) },
             SpeakHandler(                     "Search text", "search for? \$text")                           { voiceSearch(it) },
@@ -575,6 +575,7 @@ class VoiceAssistant: PluginBase() {
    private val confirmers = mutableListOf<SpeakConfirmer>()
 
    private suspend fun confirm(text: String) {
+      if (!isRunning) return
       val h = confirmers.removeLastOrNull()
       if (h != null && h.regex.matches(text)) h.action(text).getAny().ifNotNull(::speak)
    }

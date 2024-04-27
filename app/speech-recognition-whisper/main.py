@@ -633,7 +633,7 @@ while not sysTerminating:
 
         if m.startswith("COM-DET: "):
             text = base64.b64decode(m[9:]).decode('utf-8')
-            llm(ChatIntentDetect(assist_function_prompt, text))
+            llm(ChatIntentDetect.normal(assist_function_prompt, text))
 
         if m.startswith("CALL: "):
             text = m[6:]

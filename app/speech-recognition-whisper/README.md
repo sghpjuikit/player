@@ -354,16 +354,17 @@ It is simply a service to intelligently convert input into output.
 1. Install python >= `3.11`
 2. Install python dependencies
     ```
-    pip install SpeechRecognition
-    pip install playsound
-    pip install sounddevice
-    pip install soundfile
-    pip install PyAudio
-    pip install pysilero-vad
-    pip install psutil
-    pip install pyperclip
-    pip install pyautogui
-    pip install pygetwindow
+    pip3 install SpeechRecognition
+    pip3 install playsound
+    pip3 install sounddevice
+    pip3 install soundfile
+    pip3 install PyAudio
+    pip3 install pysilero-vad
+    pip3 install psutil
+    pip3 install pyperclip
+    pip3 install pyautogui
+    pip3 install pygetwindow
+    pip3 install stream2sentence
     ```
 3. Install desired tts module:
     1. **TtsOs** requires https://github.com/Akul-AI/rlvoice-1

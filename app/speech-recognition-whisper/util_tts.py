@@ -45,16 +45,17 @@ class Tts:
     def skipWithoutSound(self):
         self.tts.skipWithoutSound()
 
-    def skippable(self, event: str) -> Future[object]:
+    def skippable(self, event: str) -> Future[str | None]:
         self.write('SYS: ' + event)
         self.queue.put((words(event), True, False, Future()))
 
     def repeatLast(self):
         if self.history:
             text, skippable = self.history[-1]
+            self.write('SYS: ' + event)
             self.queue.put((words(text), skippable, True, Future()))
 
-    def __call__(self, event: str | Iterator) -> Future[object]:
+    def __call__(self, event: str | Iterator) -> Future[str | None]:
         f = Future()
         if not self.speakOn:
             f.set_result(None)
@@ -78,7 +79,7 @@ class Tts:
                     if (len(sentence)>0): self.tts.speak(sentence, skippable=skippable)
                 self.tts.speak(None, skippable=False)
                 if not repeated: self.history.append((text, skippable))
-                f.set_result(e)
+                f.set_result(text)
             except Exception as e:
                 f.set_exception(e)
                 raise e

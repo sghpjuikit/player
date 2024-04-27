@@ -96,7 +96,7 @@ class HttpHandlerIntent(HttpHandler):
         body = HttpHandlerIntentData(**body)
 
         try:
-            f = self.llm(ChatIntentDetect(self.sysPrompt if len(body.functions)==0 else body.functions, body.userPrompt, False))
+            f = self.llm(ChatIntentDetect.normal(self.sysPrompt if len(body.functions)==0 else body.functions, body.userPrompt, False))
             (command, canceled, commandIterator) = f.result()
             command = command.strip().removeprefix("COM-").removesuffix("-COM").strip().replace('-', ' ')
             command = command.replace('unidentified', body.userPrompt)

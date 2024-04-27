@@ -19,8 +19,8 @@ from util_http_handlers import HttpHandlerState, HttpHandlerIntent, HttpHandlerS
 from util_stt import SttNone, SttWhisper, SttNemo, SttHttp
 from util_wrt import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
-from util_com import CommandExecutor, CommandExecutorDoNothing, CommandExecutorAsIs, CommandExecutorDelegate
-from util_str import remove_any_prefix, remove_any_suffix, starts_with_any, ends_with_any, wake_words, arg, prop
+from util_com import *
+from util_str import *
 
 # print engine actor, non-blocking
 write = Writer()
@@ -203,7 +203,7 @@ Args:
     quit()
 
 # args
-name, wake_words = wake_words(arg('wake-word', 'system'))
+(name, wake_words) = wake_words_and_name(arg('wake-word', 'system'))
 write(name + " booting up...")
 sysParentProcess = int(arg('parent-process', -1))
 sysTerminating = False
@@ -382,7 +382,7 @@ class CommandExecutorMain(CommandExecutor):
             llm(ChatPaste(text))
             return handled
         if text.startswith("do-describe "):
-            llm(ChatProceed(llmSysPrompt, "Describe the following content:\n" + text.removeprefix("do describe ")))
+            llm(ChatProceed(llmSysPrompt, "Describe the following content:\n" + text.removeprefix("do-describe ")))
             return handled
         elif text == 'what can you do':
             llm(ChatWhatCanYouDo(assist_function_prompt))
@@ -527,7 +527,7 @@ def callback(text):
         else: assist(text, textSanitized)
     except Exception as e:
         traceback.print_exc()
-        write_ex("ERR: ", e)
+        write("ERR: {e}")
         tts(name + " encountered an error. Please speak again.")
 
 def start_exit_invoker():
@@ -634,7 +634,7 @@ while not sysTerminating:
 
         # changing settings commands
         elif m.startswith("wake-word="):
-            name, wake_words = wake_words(prop(m, 'wake-word', 'system'))
+            (name, wake_words) = wake_words_and_name(prop(m, 'wake-word', 'system'))
 
         elif m.startswith("mic-enabled="):
             mic.enabled = prop(m, "mic-enabled", "true").lower() == "true"

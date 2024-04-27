@@ -1,4 +1,3 @@
-from typing import List
 
 class CommandExecutor:
     def execute(self, text: str) -> str:
@@ -19,6 +18,6 @@ class CommandExecutorDelegate(CommandExecutor):
     def execute(self, text: str) -> str:
         return self.commandExecutor.execute(text)
 
-def commands(text) -> List[str]:
+def commands(text) -> [str]:
     result = text.split(' and ')
     return result if len(result) > 1 else [text]

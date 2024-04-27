@@ -281,8 +281,8 @@ class VoiceAssistant: PluginBase() {
             SpeakHandler(       "Llm answer from clipboard", "generate|answer|write from? clipboard \$text") { voiceCommandGenerateClipboard(it) },
             SpeakHandler(                      "Llm answer", "generate|answer|write \$text")                 { voiceCommandGenerate(it) },
             SpeakHandler(            "Speak from clipboard", "speak|say from? clipboard")                    { voiceCommandSpeakClipboard(it) },
-            SpeakHandler(                   "Describe text", "describe clipboard")                           { voiceCommandDescribeClipboard(it) },
-            SpeakHandler(              "Describe clipboard", "describe \$text")                              { voiceCommandDescribeText(it) },
+            SpeakHandler(              "Describe clipboard", "describe clipboard")                           { voiceCommandDescribeClipboard(it) },
+            SpeakHandler(                   "Describe text", "describe \$text")                              { voiceCommandDescribeText(it) },
             SpeakHandler(                           "Speak", "speak|say \$text")                             { voiceCommandSpeakText(it) },
             SpeakHandler("Close window (${keys("ALT+F4")})", "close|hide window")                            { voiceCommandAltF4(it) },
             SpeakHandler(                     "Search text", "search for? \$text")                           { voiceSearch(it) },
@@ -509,7 +509,7 @@ class VoiceAssistant: PluginBase() {
       // runtime-changeable properties
       val p = 2.seconds
       // @formatter:off
-               wakeUpWord.chan().throttleToLast(p) subscribe { write("mic-on=$it") }
+               wakeUpWord.chan().throttleToLast(p) subscribe { write("wake-word=$it") }
                micEnabled.chan().throttleToLast(p) subscribe { write("mic-on=$it") }
                 micEnergy.chan().throttleToLast(p) subscribe { write("mic-energy=$it") }
            micEnergyDebug.chan().throttleToLast(p) subscribe { write("mic-energy-debug=$it") }

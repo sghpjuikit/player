@@ -359,7 +359,7 @@ class VoiceAssistant: PluginBase() {
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
    val wakeUpWord by cv("system")
-      .def(name = "Wake up word", info = "Words or phrase that activates voice recognition. Case-insensitive.")
+      .def(name = "Wake up word", info = "Optional wake words or phrases (separated by ',') that activate voice recognition. Case-insensitive.\nThe first wake word will be used as name for the system")
 
    /** Engine used to recognize speech. May require additional configuration */
    val sttEngine by cv(TtsEngine.WHISPER).uiNoOrder()
@@ -507,23 +507,26 @@ class VoiceAssistant: PluginBase() {
 
    override fun start() {
       // runtime-changeable properties
+      val p = 2.seconds
       // @formatter:off
-      ttsEngineCoquiVoice.chan().throttleToLast(2.seconds) subscribe { write("coqui-voice=$it") }
-               micEnabled.chan().throttleToLast(2.seconds) subscribe { write("mic-on=$it") }
-                micEnergy.chan().throttleToLast(2.seconds) subscribe { write("mic-energy=$it") }
-           micEnergyDebug.chan().throttleToLast(2.seconds) subscribe { write("mic-energy-debug=$it") }
-                    ttsOn.chan().throttleToLast(2.seconds) subscribe { write("speech-on=$it") }
-         llmChatSysPrompt.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-sys-prompt=$it") }
-         llmChatMaxTokens.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-max-tokens=$it") }
-              llmChatTemp.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-temp=$it") }
-              llmChatTopP.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-topp=$it") }
-              llmChatTopK.chan().throttleToLast(2.seconds) subscribe { write("llm-chat-topk=$it") }
+               wakeUpWord.chan().throttleToLast(p) subscribe { write("mic-on=$it") }
+               micEnabled.chan().throttleToLast(p) subscribe { write("mic-on=$it") }
+                micEnergy.chan().throttleToLast(p) subscribe { write("mic-energy=$it") }
+           micEnergyDebug.chan().throttleToLast(p) subscribe { write("mic-energy-debug=$it") }
+                    ttsOn.chan().throttleToLast(p) subscribe { write("speech-on=$it") }
+      ttsEngineCoquiVoice.chan().throttleToLast(p) subscribe { write("coqui-voice=$it") }
+         llmChatSysPrompt.chan().throttleToLast(p) subscribe { write("llm-chat-sys-prompt=$it") }
+         llmChatMaxTokens.chan().throttleToLast(p) subscribe { write("llm-chat-max-tokens=$it") }
+              llmChatTemp.chan().throttleToLast(p) subscribe { write("llm-chat-temp=$it") }
+              llmChatTopP.chan().throttleToLast(p) subscribe { write("llm-chat-topp=$it") }
+              llmChatTopK.chan().throttleToLast(p) subscribe { write("llm-chat-topk=$it") }
+      // @formatter:on
 
       startSpeechRecognition()
 
       // restart-requiring properties
       val processChangeVals = listOf<V<*>>(
-         wakeUpWord, micName,
+         micName,
          sttEngine, sttWhisperModel, sttWhisperDevice, sttNemoModel, sttNemoDevice, sttHttpUrl,
          ttsEngine, ttsEngineCharAiToken, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl, ttsServer, ttsServerUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
@@ -536,7 +539,6 @@ class VoiceAssistant: PluginBase() {
       installHibernationTermination()
 
       isRunning = true
-      // @formatter:on
    }
 
    override fun stop() {

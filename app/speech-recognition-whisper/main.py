@@ -20,6 +20,7 @@ from util_stt import SttNone, SttWhisper, SttNemo, SttHttp
 from util_wrt import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_com import CommandExecutor, CommandExecutorDoNothing, CommandExecutorAsIs, CommandExecutorDelegate
+from util_str import remove_any_prefix, remove_any_suffix, starts_with_any, ends_with_any, wake_words
 
 # util: print engine actor, non-blocking
 write = Writer()
@@ -91,7 +92,8 @@ Args:
     Default: None
 
   wake-word=$wake-word
-    Optional wake word to interact with this script
+    Optional wake words or phrases (separated by ',') that activate voice recognition. Case-insensitive.
+    The first wake word will be used as name for the system
     Default: system
 
   stt-engine=$engine
@@ -220,8 +222,7 @@ Args:
     quit()
 
 # args
-wake_word = arg('wake-word', 'system')
-name = wake_word[0].upper() + wake_word[1:]
+name, wake_words = wake_words(arg('wake-word', 'system'))
 write(name + " booting up...")
 sysParentProcess = int(arg('parent-process', -1))
 sysTerminating = False
@@ -484,7 +485,7 @@ class AssistStandard(Assist):
         # do help
         elif text == "help":
             speak.skippable(
-                f'I am an AI assistant. Talk to me by calling {wake_word}. ' +
+                f'I am an AI assistant. Talk to me by calling {name}. ' +
                 f'Start conversation by saying, start conversation. ' +
                 f'Ask for help by saying, help. ' +
                 f'Run command by saying the command.'
@@ -518,12 +519,12 @@ def callback(text):
 
     textSanitized = text.rstrip(".").strip()
     text = text.lower().rstrip(".").strip()
-
-    # log
-    if len(text) > 0: write('RAW: ' + text)
+    if len(text) == 0: return
 
     # ignore speech recognition noise
-    if not text.startswith(wake_word) and assist.needsWakeWord(): return
+    if assist.needsWakeWord() and not starts_with_any(text, wake_words):
+        write('RAW: ' + text)
+        return
 
     # monitor activity time
     global assist_last_at
@@ -531,8 +532,8 @@ def callback(text):
     assist_last_at = time.time()
 
     # sanitize
-    textSanitized = textSanitized.removeprefix(wake_word).strip().lstrip(",").lstrip(".").rstrip(".").strip()
-    text = text.removeprefix(wake_word).strip().lstrip(",").lstrip(".").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
+    textSanitized = remove_any_prefix(textSanitized, wake_words).strip().lstrip(",").lstrip(".").rstrip(".").strip()
+    text = remove_any_prefix(text, wake_words).strip().lstrip(",").lstrip(".").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
 
     # cancel any ongoing activity
     skipWithoutSound()
@@ -650,6 +651,9 @@ while not sysTerminating:
             commandExecutor.execute(text)
 
         # changing settings commands
+        elif m.startswith("wake-word="):
+            name, wake_words = wake_words(arg('wake-word', 'system'))
+
         elif m.startswith("mic-enabled="):
             mic.enabled = prop(m, "mic-enabled", "true").lower() == "true"
             stt.enabled = mic.enabled

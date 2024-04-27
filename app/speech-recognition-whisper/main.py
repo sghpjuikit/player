@@ -358,8 +358,9 @@ assist_function_prompt = f"""
 - list-light-scenes
 - set-reminder-on-$iso_datetime-$text
 - set-reminder-in-$time_period-$text // units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year
-- count-from-$from:1-to-$to
+- wait-$time_period // units: s
 - greeting-$user_greeting
+- count-from-$from:1-to-$to
 - unidentified // no other command probable
 """
 
@@ -381,8 +382,8 @@ class CommandExecutorMain(CommandExecutor):
         if text == "list available voices":
             speak("The available voices are: " + ', '.join(voices))
             return handled
-        if text.startswith("greeting "):
-            g = text.removeprefix("greeting ").replace('_', ' ').capitalize()
+        if text.startswith("greeting-"):
+            g = text.removeprefix("greeting-").replace('_', ' ').capitalize()
             llm(ChatReact(llmSysPrompt, "User greeted you with " + g, g))
             return handled
         if text.startswith("change voice "):
@@ -481,7 +482,7 @@ class AssistStandard(Assist):
             llm(ChatReact(llmSysPrompt, "Afk user prodded you - are you there?", "Yes"))
         # do greeting
         elif text == "hi" or text == "hello" or text == "greetings":
-            commandExecutor.execute(f"greeting {text}")
+            commandExecutor.execute(f"greeting-{text}")
         # do help
         elif text == "help":
             speak.skippable(

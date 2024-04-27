@@ -578,7 +578,7 @@ else:
     pass
 stt.onDone = callback
 
-mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, skip, lambda a: stt(a), tts, write, micEnergy, micEnergyDebug)
+mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, lambda: skip(), lambda a: stt(a), tts, write, micEnergy, micEnergyDebug)
 actors: [Actor] = list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.tts.play if hasattr(tts.tts, 'play') else None]))
 
 # http

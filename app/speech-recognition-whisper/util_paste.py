@@ -1,12 +1,16 @@
 from threading import Thread
+from queue import Queue
 from time import sleep
 import pyperclip
 import pyautogui
 import pygetwindow
 
+def get_clipboard_text() -> str:
+    return pyperclip.paste()
+
 def pasteTokens(tokens):
     original_window = pygetwindow.getActiveWindow()
-    tokensMissed = ''
+    tokens_queue = Queue()
     stop = False
 
     # end if no window active
@@ -16,34 +20,37 @@ def pasteTokens(tokens):
         pyperclip.copy(text)  # Set the clipboard contents
         pyautogui.hotkey('ctrl', 'v')  # Simulate pressing CTRL+V
 
+    def pasteAccumulated():
+        t = ''
+        while not tokens_queue.empty(): t = t + tokens_queue.get()
+        paste(t)
+
     def acc_tokens(tokens):
-        nonlocal tokensMissed
         nonlocal stop
-        for token in tokens: tokensMissed = tokensMissed + token
+        for token in tokens: tokens_queue.put(token)
         stop = True
             
     def process_token():
-        nonlocal tokensMissed
+        nonlocal stop
 
         while not stop:
-            sleep(1/3.0) # 3 FPS pasting
+            sleep(1/10.0) # 10 FPS pasting
             
             # paste if window active
-            if original_window==pygetwindow.getActiveWindow():
-                if len(tokensMissed)>0:
-                    paste(tokensMissed)
-                    tokensMissed = ''
+            if original_window.isActive:
+                pasteAccumulated()
+                continue
 
             # finish paste if window becomes active
-            if len(tokensMissed)>0:
+            if len(queue)>0:
                 for _ in range(10*10):
                     # wait 10 s
                     sleep(0.1)
                     # end if window was closed
                     if original_window.visible is False: break;
                     # paste and end if window is active again
-                    if original_window==pygetwindow.getActiveWindow():
-                        paste(tokensMissed)
+                    if original_window.isActive:
+                        pasteAccumulated()
                         break
 
     thread1 = Thread(name="paster-acc", daemon=True, target=acc_tokens, args=(tokens,))

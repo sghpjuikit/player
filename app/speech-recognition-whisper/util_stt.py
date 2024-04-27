@@ -18,7 +18,7 @@ import torch
 @dataclass
 class EventStt:
     event: AudioData
-    future: Future
+    future: Future[str]
 
     def __iter__(self):
         yield self.event

@@ -13,7 +13,7 @@ from dataclasses import dataclass
 @dataclass
 class EventLlm:
     event: object
-    future: Future
+    future: Future[str]
 
     def __iter__(self):
         yield self.event
@@ -31,6 +31,7 @@ class ChatStop:
 class Chat:
     def __init__(self, userPrompt: str):
         self.outStart = 'CHAT: '
+        self.outEnd = ''
         self.userPrompt = userPrompt
         self.speakTokens = True
         self.writeTokens = True
@@ -39,6 +40,7 @@ class Chat:
 class ChatProceed:
     def __init__(self, sysPrompt: str, userPrompt: str | None):
         self.outStart = 'CHAT: '
+        self.outEnd = ''
         self.sysPrompt = sysPrompt
         self.userPrompt = userPrompt
         self.messages = [ ]
@@ -46,7 +48,7 @@ class ChatProceed:
         self.speakTokens = True
         self.writeTokens = True
         self.processTokens = lambda tokens: None
-        if (userPrompt is not None): self.messages.append({ "role": "user", "content": self.userPrompt })
+        if (userPrompt is not None and len(userPrompt)>0): self.messages.append({ "role": "user", "content": self.userPrompt })
 
     @classmethod
     def start(cls, sysPrompt: str):
@@ -148,9 +150,7 @@ class LlmNone(Llm):
     def _loop(self):
         self._loaded = True
         while not self._stop:
-            with self._loopProcessEvent() as ef:
-                e, f = ef
-
+            with self._loopProcessEvent() as (e, f):
                 if isinstance(e, ChatReact):
                     f.set_result(e.fallback)
                 elif isinstance(e, ChatIntentDetect):
@@ -196,8 +196,8 @@ class LlmGpt4All(Llm):
                     ff.set_result(None)
                     with llm.chat_session(self.sysPrompt):
                         while not self._stop:
-                            with self._loopProcessEvent() as tf:
-                                t, f = tf
+                            with self._loopProcessEvent() as (t, f):
+
                                 if isinstance(t, ChatStart):
                                     f.set_result(None)
                                     pass
@@ -222,8 +222,8 @@ class LlmGpt4All(Llm):
                                             callback=process
                                         )
                                         consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(tokens, 4)
-                                        if not isCommand and t.writeTokens: self.write(chain([t.outStart], progress(consumer.hasStarted, tokensWrite)))
-                                        if isCommandWrite: self.write(chain([t.outStart], progress(commandIterator.hasStarted, commandIterator)))
+                                        if not isCommand and t.writeTokens: self.write(chain([t.outStart], progress(consumer.hasStarted, tokensWrite), [t.outEnd]))
+                                        if isCommandWrite: self.write(chain([t.outStart], progress(commandIterator.hasStarted, commandIterator), [t.outEnd]))
                                         if t.speakTokens: self.speak(tokensSpeech)
                                         t.processTokens(tokensAlt)
                                         consumer()
@@ -264,8 +264,7 @@ class LlmHttpOpenAi(Llm):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvent() as ef:
-                    e, f = ef
+                with self._loopProcessEvent() as (e, f):
 
                     if isinstance(e, ChatStart):
                         if chat is not None: chat = ChatProceed.start(self.sysPrompt)
@@ -283,8 +282,8 @@ class LlmHttpOpenAi(Llm):
                             self.generating = True
 
                             if isinstance(e, Chat):
-                                if (chat is None): chat = ChatProceed.start(self.sysPrompt)
-                                chat.messages.append({ "role": "user", "content": e.userPrompt })
+                                if chat is None: chat = ChatProceed.start(self.sysPrompt)
+                                if len(e.userPrompt)>0: chat.messages.append({ "role": "user", "content": e.userPrompt })
 
                             def process():
                                 messages = []
@@ -304,8 +303,8 @@ class LlmHttpOpenAi(Llm):
                                     stream.response.close()
 
                             consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(process(), 4)
-                            if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, tokensWrite)))
-                            if isCommandWrite: self.write(chain([e.outStart], progress(commandIterator.hasStarted, commandIterator)))
+                            if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, tokensWrite), [e.outEnd]))
+                            if isCommandWrite: self.write(chain([e.outStart], progress(commandIterator.hasStarted, commandIterator), [e.outEnd]))
                             if e.speakTokens: self.speak(tokensSpeech)
                             e.processTokens(tokensAlt)
                             consumer()

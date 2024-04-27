@@ -1,20 +1,23 @@
+import asyncio
 import os
 import time
-import asyncio
 import traceback
-import numpy
-import torch, torchaudio
-from threading import Thread
-from contextlib import contextmanager
-from util_itr import teeThreadSafe, teeThreadSafeEager, words
-from util_actor import Actor, ActorStoppedException
-from util_http import HttpHandler
-from util_dir_cache import cache_file
-from util_wrt import Writer
-from util_play_engine import SdActor
 from collections.abc import Iterator
-from typing import cast
+from concurrent.futures import Future
 from queue import Queue
+from threading import Thread
+from typing import cast
+
+import numpy
+import torch
+import torchaudio
+
+from util_actor import Actor, ActorStoppedException
+from util_dir_cache import cache_file
+from util_http import HttpHandler
+from util_itr import teeThreadSafeEager, words
+from util_play_engine import SdActor
+from util_wrt import Writer
 
 
 class Tts:
@@ -25,8 +28,6 @@ class Tts:
         self.write = write
         self._stop = False
         self._skip = False
-        self.ignored_chars = set(".,?!_-:#\n\r\t\\`'\"")
-        self.space_chars = set("_-\n\r ")
         self.queue = Queue()
         self.history = []
 
@@ -39,74 +40,48 @@ class Tts:
         self.tts.stop()
 
     def skip(self):
-        self._skip = True
         self.tts.skip()
 
     def skipWithoutSound(self):
-        self._skip = True
         self.tts.skipWithoutSound()
 
-    def skippable(self, event: str):
+    def skippable(self, event: str) -> Future[object]:
         self.write('SYS: ' + event)
-        self.queue.put((words(event), True, False))
+        self.queue.put((words(event), True, False, Future()))
 
     def repeatLast(self):
         if self.history:
             text, skippable = self.history[-1]
-            self.queue.put((words(text), skippable, True))
+            self.queue.put((words(text), skippable, True, Future()))
 
-    def __call__(self, event: str | Iterator):
+    def __call__(self, event: str | Iterator) -> Future[object]:
+        f = Future()
         if not self.speakOn:
-            return
-
+            f.set_result(None)
         if isinstance(event, str):
             self.write('SYS: ' + event)
-            self.queue.put((words(event), False, False))
-
+            self.queue.put((words(event), False, False, f))
         elif isinstance(event, Iterator):
-            self.queue.put((event, True, False))
+            self.queue.put((event, True, False, f))
+        return f
 
     def _loop(self):
+        from stream2sentence import generate_sentences
+
         while not self._stop and self.speakOn:
-            event, skippable, repeated = self.queue.get()
-            self._skip = False
-            sentence = ''
+            event, skippable, repeated, f = self.queue.get()
             text = ''
-
-            self.tts.speak(None, skippable=False)
-            for e in event:
-                # skip skippable
-                if self._skip and skippable: break
-                text = text + e
-                sentence = sentence + e
-                while len(sentence) >= self.sentence_min_length:
-                    index = -1
-                    c = ''
-                    if index==-1:
-                        index = sentence.rfind('. ')
-                        c = '. '
-                    if index==-1:
-                        index = sentence.rfind('\n')
-                        c = '\n'
-                    if index==-1:
-                        break
-                    else:
-                        s = sentence[:index]
-                        self.process(s+c, skippable, end=False)
-                        sentence = sentence[index+1:]
-
-            self.history.append((text, skippable))
-            if not self._skip or not skippable:
-                self.process(sentence, skippable, end=True)
-                sentence = ''
-
-    def process(self, s: str, skippable: bool, end: bool):
-        ss = ''.join(c if c not in self.space_chars else ' ' for c in s)
-        ss = ''.join(c for c in ss if c not in self.ignored_chars)
-        ss = ss.strip()
-
-        if (len(ss)>0): self.tts.speak(s, skippable=skippable)
-        if end: self.tts.speak(None, skippable=False)
+            try:
+                self.tts.speak(None, skippable=False)
+                for sentence in generate_sentences(event, cleanup_text_links=True, cleanup_text_emojis=True):
+                    text = text + sentence
+                    if (len(sentence)>0): self.tts.speak(sentence, skippable=skippable)
+                self.tts.speak(None, skippable=False)
+                if not repeated: self.history.append((text, skippable))
+                f.set_result(e)
+            except Exception as e:
+                f.set_exception(e)
+                raise e
 
 
 class TtsBase(Actor):
@@ -129,6 +104,10 @@ class TtsBase(Actor):
         Adds the text to queue
         """
         self.queue.put((text, skippable))
+
+    def _get_event_text(self, e: (str, bool)) -> str | None:
+        if e is None: return e
+        else: return e[0]
 
     def _get_next_event(self) -> (str, bool):
         e = self._get_next_event_impl()

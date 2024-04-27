@@ -68,6 +68,11 @@ def chain(iterator1, iterator2):
     yield from iterator1
     yield from iterator2
 
+def chain(iterator1, iterator2, iterator3):
+    """Returns iterator that iterates all elements of the 1st iterator and then all elements of the 2nd iterator"""
+    yield from iterator1
+    yield from iterator2
+    yield from iterator3
 
 class SingleLazyIterator:
     """Iterator that blocks iteration until single element is put into it and then iterates that single element"""

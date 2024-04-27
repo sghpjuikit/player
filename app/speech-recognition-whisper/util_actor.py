@@ -95,7 +95,7 @@ class Actor:
             self._clear_queue()
         except Exception as e:
             self._clear_queue()
-            # interrupting thread while in context manager while stopping thorws 'generator didn't yield'
+            # interrupting thread while in context manager while stopping throwa 'generator didn't yield'
             if isinstance(e, RuntimeError) and str(e) == "generator didn't yield" and self._stop: pass
             else: raise e
 

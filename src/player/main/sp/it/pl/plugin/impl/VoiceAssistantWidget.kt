@@ -53,6 +53,7 @@ import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.conf.noUi
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
 import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsFalse
 import sp.it.util.file.json.JsNull
@@ -60,6 +61,7 @@ import sp.it.util.file.json.JsNumber
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsTrue
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
@@ -291,7 +293,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       }
    }
 
-   private class ActorState(val type: String): VBox() {
+   private inner class ActorState(val type: String): VBox() {
       init {
          lay += stackPane {
             lay += label(type) { styleClass += listOf("h4", "h4p") }
@@ -299,22 +301,30 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       }
       fun labelOf(key: String) = label {
          id = key
-         onEventDown(MOUSE_CLICKED, PRIMARY) { if (userData!=null) APP.ui.actionPane.show(userData) }
+         onEventDown(MOUSE_CLICKED, PRIMARY) {
+            userData.ifNotNull { eType ->
+               launch(VT) {
+                  val url = plugin.value?.httpUrl?.value?.net { "$it/actor-events?actor=${type}&type=${eType}"} ?: fail { "Voice Assistant not running" }
+                  val events = APP.http.client.get(url).bodyAsJs()
+                  FX { APP.ui.actionPane.show(events) }
+               }
+            }
+         }
          lay += this
       }
       fun update(state: JsObject) {
          state.value.forEach { (key, value) ->
             val label = children.findIsInstanceAnd<Label> { it.id==key } ?: labelOf(key)
-            label.userData = value.takeIf { it is JsArray }
+            label.userData = when (key) { "events processing" -> "PROCESSING"; "events queued" -> "QUEUED"; "events processed" -> "PROCESSED"; else -> null }
             label.text = when (value) {
-               is JsArray -> key + ": " + value.value.size + " 🔍"
-               is JsObject -> key + ": " + value.value.size + " 🔍"
+               is JsArray -> key + ": " + value.value.size.toUi()
+               is JsObject -> key + ": " + value.value.size.toUi()
                is JsString -> key + ": " + value.value.toUi()
                is JsNumber -> key + ": " + value.value.toUi()
                is JsNull -> key + ": " + null.toUi()
                is JsTrue -> key + ": " + true.toUi()
                is JsFalse -> key + ": " + false.toUi()
-            }
+            } + (label.userData?.net { " 🔍" } ?: "")
          }
       }
    }

@@ -4,14 +4,14 @@ from gpt4all.gpt4all import empty_chat_session
 from typing import Callable, cast
 from util_tts import Tts
 from util_wrt import Writer
-from util_actor import Actor, Event
+from util_actor import Actor
 from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain, SingleLazyIterator
 from util_paste import pasteTokens
 from concurrent.futures import Future
 from dataclasses import dataclass
 
 @dataclass
-class EventLlm(Event):
+class EventLlm:
     event: object
     future: Future
 
@@ -19,7 +19,6 @@ class EventLlm(Event):
         yield self.event
         yield self.future
 
-    def str(self): return str(self.event)
 
 class ChatStart:
     def __init__(self):
@@ -136,6 +135,10 @@ class Llm(Actor):
         ef.future.add_done_callback(on_done)
         return ef.future
 
+    def _get_event_text(self, e: EventLlm) -> str:
+        if isinstance(e.event, Chat | ChatStart | ChatStop): return e.event.__class__.__name__
+        if isinstance(e.event, ChatProceed): return f"{e.event.__class__.__name__}({e.event.userPrompt})"
+        return str(e.event)
 
 class LlmNone(Llm):
     def __init__(self, speak: Tts, write: Writer, commandExecutor: Callable[[str], str]):
@@ -183,14 +186,14 @@ class LlmGpt4All(Llm):
         with (self._looping()):
             while not self._stop:
                 ef = self.queue.get()
-                x, f = ef
+                x, ff = ef
 
                 # load model lazily
                 if llm is None: llm = GPT4All(model_name=self.modelName, model_path=self.modelPath, device="cpu", allow_download=True)
                 self.enabled = True # delayed load
 
                 if isinstance(x, ChatStart):
-                    f.set_result(None)
+                    ff.set_result(None)
                     with llm.chat_session(self.sysPrompt):
                         while not self._stop:
                             with self._loopProcessEvent() as tf:
@@ -233,7 +236,7 @@ class LlmGpt4All(Llm):
                                     finally:
                                         self.generating = False
                 else:
-                    f.set_result(None)
+                    ff.set_result(None)
 
 # home https://github.com/openai/openai-python
 # howto https://cookbook.openai.com/examples/how_to_stream_completions

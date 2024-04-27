@@ -1,20 +1,17 @@
 import numpy as np
 import sounddevice as sd
 import soundfile as sf
-from util_actor import Actor, Event
+from util_actor import Actor
 from util_wrt import Writer
 from scipy import signal
 
 
-class SdEvent(Event):
+class SdEvent:
     def __init__(self, type: str, text: str, audio: None | str | np.ndarray, skippable: bool):
         self.type = type
         self.text = text
         self.audio = audio
         self.skippable = skippable
-
-    def str(self): return f'{self.type}:{self.text}'
-
 
 class SdActor(Actor):
     def __init__(self, write: Writer):
@@ -25,6 +22,9 @@ class SdActor(Actor):
 
     def skip(self):
         self._skip = True
+
+    def _get_event_text(self, e: SdEvent) -> str:
+        return f'{e.type}:{e.text}'
 
     def _loop(self):
         stream = sd.OutputStream(channels=1, samplerate=24000)

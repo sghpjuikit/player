@@ -9,9 +9,6 @@ import traceback
 class ActorStoppedException(Exception):
     pass
 
-class Event:
-    def str(self): return str(this)
-
 class Actor:
 
     def __init__(self, group: str, name: str, deviceName: str | None, write: Callable, enabled: bool):
@@ -21,7 +18,7 @@ class Actor:
         self.write = write
         if isinstance(self.write, Callable): self.write(f"RAW: {self.name} starting")
         self.queue = Queue()
-        self.events_processed: int = 0
+        self.events_processed: [object] = []
         self._stop: bool = False
         self._loaded: bool = False
         self.enabled: bool = enabled
@@ -57,6 +54,14 @@ class Actor:
         Stop processing all elements, stop the loop,, release all resources and end thread when done. Asynchronous
         """
         self._stop = True
+
+    def _get_next_event(self) -> object:
+        return self.queue.get()
+
+    def _get_event_text(self, e) -> str | None:
+        if e is None: return e
+        elif isinstance(e, str): return e
+        else: return "n/a"
 
     def _loop(self):
         """
@@ -107,10 +112,10 @@ class Actor:
             # if self._stop or not self.enabled: return
 
             if self._stop or not self.enabled: return
-            event = self.queue.get()
+            event = self._get_next_event()
             if self._stop or not self.enabled: return
 
-            self.events_processed += 1
+            self.events_processed.append(event)
             self.processing_event = event
             self.processing = True
 

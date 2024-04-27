@@ -15,7 +15,7 @@ from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatReact, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
 from util_http import Http, HttpHandler
-from util_http_handlers import HttpHandlerState, HttpHandlerIntent, HttpHandlerStt
+from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerIntent, HttpHandlerStt
 from util_stt import SttNone, SttWhisper, SttNemo, SttHttp
 from util_wrt import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
@@ -583,8 +583,9 @@ http = None
 if ':' not in httpUrl: raise AssertionError('http-url must be in format host:port')
 host, _, port = httpUrl.partition(":")
 http = Http(host, int(port), write)
-http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tts, speak.tts.play if hasattr(speak.tts, 'play') else None]))))
-http.handlers.append(HttpHandlerIntent(llm))
+http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.tts.play if hasattr(tts.tts, 'play') else None]))))
+http.handlers.append(HttpHandlerStateActorEvents(list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.tts.play if hasattr(tts.tts, 'play') else None]))))
+http.handlers.append(HttpHandlerIntent(llm, assist_function_prompt))
 http.handlers.append(HttpHandlerStt(stt))
 if isinstance(tts.tts, TtsCoqui): http.handlers.append(tts.tts._httpHandler())
 

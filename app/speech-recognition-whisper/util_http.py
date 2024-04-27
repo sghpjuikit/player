@@ -8,9 +8,9 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
 class HttpHandler:
-    def __init__(self, method: str, path: str):
+    def __init__(self, method: str, path_to_match: str):
         self.method = method
-        self.path = path
+        self.path_to_match = path_to_match
 
     def __call__(req: BaseHTTPRequestHandler):
         pass
@@ -36,11 +36,9 @@ class Http:
         class HttpRequestHandler(BaseHTTPRequestHandler):
 
             def do_XXX(self, method: str):
-                requested_path = urlparse(self.path)
-
                 # find handler by path and invoke it
                 for handler in http.handlers:
-                    if handler.method == method and handler.path == requested_path.path:
+                    if handler.method == method and handler.path_to_match == urlparse(self.path).path:
                         handler(self)
                         return
 

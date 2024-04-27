@@ -4,7 +4,7 @@ from typing import Callable
 
 import whisper.audio
 from speech_recognition.audio import AudioData
-from util_actor import Actor, Event
+from util_actor import Actor
 from util_wrt import Writer
 from os import makedirs, remove
 from os.path import dirname, abspath, exists, join
@@ -16,15 +16,13 @@ import numpy as np
 import torch
 
 @dataclass
-class EventStt(Event):
+class EventStt:
     event: AudioData
     future: Future
 
     def __iter__(self):
         yield self.event
         yield self.future
-
-    def str(self): return str(self.event)
 
 
 class Stt(Actor):
@@ -44,7 +42,10 @@ class Stt(Actor):
 
         if auto_handle: ef.future.add_done_callback(on_done)
         return ef.future
-    
+
+    def _get_event_text(self, e: EventStt) -> str | None:
+        return "AudioData"
+
     def _loopWaitTillReady(self):
         while not self.enabled:
             self._clear_queue()

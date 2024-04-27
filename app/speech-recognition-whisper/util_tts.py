@@ -130,40 +130,12 @@ class TtsBase(Actor):
         """
         self.queue.put((text, skippable))
 
-    @contextmanager
-    def _loopProcessEvenDecorator(self):
-        try:
-            if self._stop or not self.enabled: return
-            event = self.get_next_element()
-            if self._stop or not self.enabled: return
+    def _get_next_event(self) -> (str, bool):
+        e = self._get_next_event_impl()
+        if e is None: raise ActorStoppedException()
+        return e
 
-            self.events_processed += 1
-            self.processing_event = event
-            self.processing = True
-
-            self.processing_start = time.time()
-            yield event
-            self.processing_stop = time.time()
-
-            self.processing_time = self.processing_stop - self.processing_start
-            self.processing_times.append(self.processing_time)
-            self.processing_time_avg = sum(self.processing_times) / len(self.processing_times)
-
-            self.processing_stop = None
-            self.processing_start = None
-            self.processing = False
-            self.processing_event = None
-        except Exception as e:
-            self.processing_stop = None
-            self.processing_start = None
-            self.processing = False
-            self.processing_event = None
-            if isinstance(e, ActorStoppedException): pass # interrupting thread while waiting on element
-            else:
-                self.write("ERR: Error generating voice:" + str(e))
-                traceback.print_exc()
-
-    def _get_next_element(self) -> (str, bool):
+    def _get_next_event_impl(self) -> (str, bool):
         """
         :return: next element from queue, skipping over skippable elements if _skip=True, blocks until then
         """
@@ -197,11 +169,6 @@ class TtsBase(Actor):
                     self.queue.get_nowait()
 
             return (textRaw, skippable)
-
-    def get_next_element(self) -> (str, bool):
-        e = self._get_next_element()
-        if e is None: raise ActorStoppedException()
-        return e
 
     def _boundary(self):
         pass
@@ -287,7 +254,7 @@ class TtsOs(TtsWithModelBase):
 
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvenDecorator() as (text, skippable):
+                with self._loopProcessEvent() as (text, skippable):
                     audio_file, audio_file_exists = cache_file(text, cache_dir)
                     cache_used = len(text) < 100
                     if not cache_used or not audio_file_exists:
@@ -338,7 +305,7 @@ class TtsOs(TtsWithModelBase):
                         # tts = TextToSpeech()
                         # with self._looping():
                         #     while not self._stop:
-                        #         with self._loopProcessEvenDecorator() as (text, skippable):
+                        #         with self._loopProcessEvent() as (text, skippable):
                         #             audio = tts.say(text)
                         #             audio = numpy.array(audio, dtype=numpy.int32) # to numpty
                         #             audio = audio.astype(numpy.float32) / 32768.0 # normalize
@@ -375,7 +342,7 @@ class TtsCharAi(TtsWithModelBase):
         # loop
         with self.looping():
             while not self._stop:
-                with self._loopProcessEvenDecorator() as (text, skippable):
+                with self._loopProcessEvent() as (text, skippable):
                     audio_file, audio_file_exists = cache_file(text, cache_dir)
                     cache_used = len(text) < 100
 
@@ -537,7 +504,7 @@ class TtsCoqui(TtsWithModelBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvenDecorator() as (text, skippable):
+                with self._loopProcessEvent() as (text, skippable):
                     audio_file, audio_file_exists, cache_used = self._cache_file_try(os.path.join('coqui', self._voice), text)
 
                     # generate
@@ -580,7 +547,7 @@ class TtsHttp(TtsWithModelBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvenDecorator() as (text, skippable):
+                with self._loopProcessEvent() as (text, skippable):
 
                     text = text.encode('utf-8')
                     conn = http.client.HTTPConnection(self.url, self.port)
@@ -638,7 +605,7 @@ class TtsTacotron2(TtsWithModelBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvenDecorator() as (text, skippable):
+                with self._loopProcessEvent() as (text, skippable):
                     audio_file, audio_file_exists, cache_used = self._cache_file_try("tacotron2", text)
 
                     # generate
@@ -732,7 +699,7 @@ class TtsSpeechBrain(TtsWithModelBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvenDecorator() as (text, skippable):
+                with self._loopProcessEvent() as (text, skippable):
                     audio_file, audio_file_exists, cache_used = self._cache_file_try("speechbrain", text)
 
                     # generate
@@ -795,7 +762,7 @@ class TtsFastPitch(TtsWithModelBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvenDecorator() as (text, skippable):
+                with self._loopProcessEvent() as (text, skippable):
                     audio_file, audio_file_exists, cache_used = self._cache_file_try("fastpitch", text)
 
                     # generate

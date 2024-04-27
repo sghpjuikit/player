@@ -17,6 +17,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.ScheduledNote
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakContext
 import sp.it.pl.voice.toVoiceS
+import sp.it.util.async.coroutine.delay
 import sp.it.util.async.runVT
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
@@ -32,6 +33,8 @@ import sp.it.util.text.equalsNc
 import sp.it.util.text.words
 import sp.it.util.ui.pressReleaseShortcut
 import sp.it.util.ui.pressReleaseText
+import sp.it.util.units.millis
+import sp.it.util.units.seconds
 import sp.it.util.units.uuid
 
 typealias ComMatch = Try<String?, String?>?
@@ -48,7 +51,8 @@ fun SpeakContext.voiceCommandCurrentSong(text: String): ComMatch =
    if (matches(text))
       Ok(
          APP.audio.playingSong.value.takeIf { it!=Metadata.EMPTY }
-            ?.net { it.getTitle()?.net { "It is $it " }.orEmpty() + (it.getArtist() ?: it.getAlbumArtist())?.net { " by $it" }.orEmpty() }
+            ?.net { it.getTitle()?.net { "It is $it" }.orEmpty() + (it.getArtist() ?: it.getAlbumArtist())?.net { " by $it" }.orEmpty() }
+            ?.net { it.takeIf { it.isNotBlank() } ?: "There is not enough song tag metadata to tell" }
             ?: "There is no active playback"
       )
    else null
@@ -98,9 +102,10 @@ fun SpeakContext.voiceCommandAltF4(text: String): ComMatch =
 
 suspend fun SpeakContext.voiceSearch(text: String): ComMatch =
    if (matches(text)) {
+      delay(100.millis) // UI may not be ready
       Robot().apply {
          pressReleaseShortcut(KeyCode.CONTROL, KeyCode.F)
-         delay(100)
+         delay(100.millis)
          fun String.isSpelled() = words().all { it.length==1 }
          fun String.despell() = replace(" ", "")
          val t = args(text)[0].net { if (it.isSpelled()) it.despell() else it }
@@ -112,6 +117,7 @@ suspend fun SpeakContext.voiceSearch(text: String): ComMatch =
 
 suspend fun SpeakContext.voiceType(text: String): ComMatch =
    if (matches(text)) {
+      delay(100.millis) // UI may not be ready
       Robot().apply {
          fun String.isSpelled() = words().all { it.length==1 }
          fun String.despell() = replace(" ", "")
@@ -217,6 +223,18 @@ fun SpeakContext.voiceCommandSetReminder(text: String): ComMatch =
       }
    } else {
       null
+   }
+
+suspend fun SpeakContext.voiceCommandWait(text: String): ComMatch =
+   if (matches(text)) {
+      val nTime = text.removePrefix("wait ").removeSuffix("s").trim().toDoubleOrNull()
+      if (nTime!=null) delay(nTime.seconds)
+      if (nTime!=null) Ok(null)
+      else if (!intent) Error("Invalid time format.")
+      else intent(text, "- wait-\$time_period_in_seconds", text) { this(it) }
+   } else {
+      if (!intent) Error("Invalid time format.")
+      else null
    }
 
 fun SpeakContext.voiceCommandCountTo(text: String): ComMatch =

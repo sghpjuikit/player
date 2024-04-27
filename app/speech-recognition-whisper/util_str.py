@@ -29,3 +29,16 @@ def wake_words_and_name(s: str) -> (str, [str]):
     wake_words = list(filter(None, s.split(',')))
     name = wake_words[0][0].upper() + wake_words[0][1:]
     return (name, wake_words)
+
+def arg(arg_name: str, fallback: str) -> str:
+    a = next((x for x in sys.argv if x.startswith(arg_name + '=')), None)
+    if a is None:
+        return fallback
+    else:
+        return prop(a, arg_name, fallback)
+
+def prop(text: str, arg_name: str, fallback: str) -> str:
+    if text.startswith(arg_name + '='):
+        return text.split("=", 1)[-1]
+    else:
+        return fallback

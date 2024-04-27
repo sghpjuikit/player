@@ -20,30 +20,11 @@ from util_stt import SttNone, SttWhisper, SttNemo, SttHttp
 from util_wrt import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_com import CommandExecutor, CommandExecutorDoNothing, CommandExecutorAsIs, CommandExecutorDelegate
-from util_str import remove_any_prefix, remove_any_suffix, starts_with_any, ends_with_any, wake_words
+from util_str import remove_any_prefix, remove_any_suffix, starts_with_any, ends_with_any, wake_words, arg, prop
 
-# util: print engine actor, non-blocking
+# print engine actor, non-blocking
 write = Writer()
 write.start()
-
-# util: print ex with flush (avoids no console output)
-def write_ex(text: str, exception):
-    print(text, exception, flush=True)
-
-# util: arg parsing
-def arg(arg_name: str, fallback: str) -> str:
-    a = next((x for x in sys.argv if x.startswith(arg_name + '=')), None)
-    if a is None:
-        return fallback
-    else:
-        return prop(a, arg_name, fallback)
-
-# util: prop parsing
-def prop(text: str, arg_name: str, fallback: str) -> str:
-    if text.startswith(arg_name + '='):
-        return text.split("=", 1)[-1]
-    else:
-        return fallback
 
 # help
 showHelp = '--help' in sys.argv or '-h' in sys.argv
@@ -653,7 +634,7 @@ while not sysTerminating:
 
         # changing settings commands
         elif m.startswith("wake-word="):
-            name, wake_words = wake_words(arg('wake-word', 'system'))
+            name, wake_words = wake_words(prop(m, 'wake-word', 'system'))
 
         elif m.startswith("mic-enabled="):
             mic.enabled = prop(m, "mic-enabled", "true").lower() == "true"
@@ -672,7 +653,7 @@ while not sysTerminating:
             commandExecutor.execute("change voice " + prop(m, "coqui-voice", ttsCoquiVoice))
 
         elif m.startswith("llm-chat-sys-prompt="):
-            llmSysPrompt = arg('llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')
+            llmSysPrompt = prop(m, 'llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')
             llm.sysPrompt = llmSysPrompt
 
         elif m.startswith("llm-chat-max-tokens="):

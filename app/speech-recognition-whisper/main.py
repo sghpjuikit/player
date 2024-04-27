@@ -19,8 +19,10 @@ from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, Ht
 from util_stt import SttNone, SttWhisper, SttNemo, SttHttp
 from util_wrt import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
+from util_actor import Actor
 from util_com import *
 from util_str import *
+from util_paste import *
 
 # print engine actor, non-blocking
 write = Writer()
@@ -577,14 +579,15 @@ else:
 stt.onDone = callback
 
 mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, skip, lambda a: stt(a), tts, write, micEnergy, micEnergyDebug)
+actors: [Actor] = list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.tts.play if hasattr(tts.tts, 'play') else None]))
 
 # http
 http = None
 if ':' not in httpUrl: raise AssertionError('http-url must be in format host:port')
 host, _, port = httpUrl.partition(":")
 http = Http(host, int(port), write)
-http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.tts.play if hasattr(tts.tts, 'play') else None]))))
-http.handlers.append(HttpHandlerStateActorEvents(list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.tts.play if hasattr(tts.tts, 'play') else None]))))
+http.handlers.append(HttpHandlerState(actors))
+http.handlers.append(HttpHandlerStateActorEvents(actors))
 http.handlers.append(HttpHandlerIntent(llm, assist_function_prompt))
 http.handlers.append(HttpHandlerStt(stt))
 if isinstance(tts.tts, TtsCoqui): http.handlers.append(tts.tts._httpHandler())
@@ -597,7 +600,14 @@ mic.start()
 llm.start()
 install_exit_handler()
 start_exit_invoker()
-llm(ChatReact(llmSysPrompt, "You booted up", f"{name} online"))
+
+def onBootup():
+    while True:
+        if all(actor.state() == "ACTIVE" for actor in actors): break
+        else: sleep(0.1)
+    llm(ChatReact(llmSysPrompt, "You booted up", f"{name} online"))
+
+Thread(name='on-bootup', target=onBootup, daemon=True).start()
 
 while not sysTerminating:
     try:

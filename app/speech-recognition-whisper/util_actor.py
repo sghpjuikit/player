@@ -16,7 +16,7 @@ class Actor:
         self.name = name
         self.deviceName = deviceName
         self.write = write
-        if isinstance(self.write, Callable): self.write(f"RAW: {self.name} starting")
+        if isinstance(self.write, Callable): self.write(f"RAW: {self.name} starting...")
         self.queue = Queue()
         self.events_processed: [object] = []
         self._stop: bool = False

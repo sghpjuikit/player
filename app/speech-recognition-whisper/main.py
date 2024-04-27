@@ -288,25 +288,25 @@ elif ttsEngineType == 'fastpitch':
     speakEngine = TtsFastPitch("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
 else:
     speakEngine = TtsNone(write)
-speak = Tts(ttsOn, speakEngine, write)
+tts = Tts(ttsOn, speakEngine, write)
 
 # commands
 commandExecutor = CommandExecutorDelegate(CommandExecutorDoNothing)
 
 # llm actor, non-blocking
-llm = LlmNone(speak, write, commandExecutor.execute)
+llm = LlmNone(tts, write, commandExecutor.execute)
 if llmEngine == 'none':
     pass
 elif llmEngine == "gpt4all":
     llm = LlmGpt4All(
         llmGpt4AllModelName, "models-llm",
-        speak, write, commandExecutor.execute,
+        tts, write, commandExecutor.execute,
         llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
     )
 elif llmEngine == "openai":
     llm = LlmHttpOpenAi(
         llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModelName,
-        speak, write, commandExecutor.execute,
+        tts, write, commandExecutor.execute,
         llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
     )
 else:
@@ -372,15 +372,15 @@ class CommandExecutorMain(CommandExecutor):
         handled = "ignore"
 
         if text == "repeat":
-            speak.repeatLast()
+            tts.repeatLast()
             return handled
         if text.startswith("speak "):
             return text
         if text.startswith("do speak "):
-            speak(text.removeprefix("do speak "))
+            tts(text.removeprefix("do speak "))
             return handled
         if text == "list available voices":
-            speak("The available voices are: " + ', '.join(voices))
+            tts("The available voices are: " + ', '.join(voices))
             return handled
         if text.startswith("greeting-"):
             g = text.removeprefix("greeting-").replace('_', ' ').capitalize()
@@ -388,16 +388,16 @@ class CommandExecutorMain(CommandExecutor):
             return handled
         if text.startswith("change voice "):
             voice = text.removeprefix("change voice ")
-            if isinstance(speak.tts, TtsCoqui):
+            if isinstance(tts.tts, TtsCoqui):
                 if voice in voices:
-                    if speak.tts.voice != voice:
-                        speak.tts.voice = voice
-                        speak(name + " voice changed")
+                    if tts.tts.voice != voice:
+                        tts.tts.voice = voice
+                        tts(name + " voice changed")
                 else:
-                    speak(f"No voice {voice} available")
+                    tts(f"No voice {voice} available")
             return handled
         if text.startswith("generate "):
-            speak("Ok")
+            tts("Ok")
             llm(ChatPaste(text))
             return handled
         if text.startswith("do-describe "):
@@ -407,7 +407,7 @@ class CommandExecutorMain(CommandExecutor):
             llm(ChatWhatCanYouDo(assist_function_prompt))
             return handled
         elif text == 'start conversation':
-            if isinstance(llm, LlmNone): speak('No conversation model is loaded')
+            if isinstance(llm, LlmNone): tts('No conversation model is loaded')
             else: assist = AssistChat()
             return handled
         else:
@@ -436,7 +436,7 @@ class AssistChat(Assist):
             llm(ChatReact(llmSysPrompt, "Afk user prodded you - say you are still conversing", "Yes, we are talking"))
         # do help
         elif text == "help":
-            speak(
+            tts(
                 "Yes, we are in the middle of a conversation. Simply speak to me. "
                 "To end the conversation, say stop, or end conversation."
                 "To restart the conversation, say restart or reset conversation."
@@ -444,19 +444,19 @@ class AssistChat(Assist):
             )
         # cancel
         elif text == "ok" or text == "okey" or text == "whatever" or text == "stop":
-            speak.skip()
+            tts.skip()
             llm.generating = False
         # restart
         elif text == "restart" or text == "reset" or text == "restart conversation" or text == "reset conversation":
-            speak.skip()
+            tts.skip()
             llm.generating = False
             write("COM: restart conversation")
             llm(ChatStop())
             llm(ChatStart())
-            speak("Ok")
+            tts("Ok")
         # end
         elif text.startswith("stop") or text.startswith("end"):
-            speak.skip()
+            tts.skip()
             llm.generating = False
             write("COM: stop conversation")
             llm(ChatStop())
@@ -485,7 +485,7 @@ class AssistStandard(Assist):
             commandExecutor.execute(f"greeting-{text}")
         # do help
         elif text == "help":
-            speak.skippable(
+            tts.skippable(
                 f'I am an AI assistant. Talk to me by calling {name}. ' +
                 f'Start conversation by saying, start conversation. ' +
                 f'Ask for help by saying, help. ' +
@@ -509,11 +509,11 @@ assist = assistStand
 
 def skipWithoutSound():
     if llm.generating: llm.generating = False
-    speak.skipWithoutSound()
+    tts.skipWithoutSound()
 
 def skip():
     if llm.generating: llm.generating = False
-    speak.skip()
+    tts.skip()
 
 def callback(text):
     if sysTerminating: return
@@ -547,7 +547,7 @@ def callback(text):
     except Exception as e:
         traceback.print_exc()
         write_ex("ERR: ", e)
-        speak(name + " encountered an error. Please speak again.")
+        tts(name + " encountered an error. Please speak again.")
 
 def start_exit_invoker():
     if sysParentProcess==-1: return
@@ -563,12 +563,12 @@ def stop(*args):  # pylint: disable=unused-argument
     global sysTerminating
     if not sysTerminating:
         sysTerminating = True
-        speak(name + ' offline')
+        tts(name + ' offline')
 
         llm.stop()
         mic.stop()
         stt.stop()
-        speak.stop()
+        tts.stop()
         if http is not None: http.stop()
         write.stop()
 
@@ -595,7 +595,7 @@ else:
     pass
 stt.onDone = callback
 
-mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, skip, lambda a: stt(a), speak, write, micEnergy, micEnergyDebug)
+mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, skip, lambda a: stt(a), tts, write, micEnergy, micEnergyDebug)
 
 # http
 http = None
@@ -605,11 +605,11 @@ http = Http(host, int(port), write)
 http.handlers.append(HttpHandlerState(list(filter(lambda x: x is not None, [write, mic, stt, llm, speak.tts, speak.tts.play if hasattr(speak.tts, 'play') else None]))))
 http.handlers.append(HttpHandlerIntent(llm))
 http.handlers.append(HttpHandlerStt(stt))
-if isinstance(speak.tts, TtsCoqui): http.handlers.append(speak.tts._httpHandler())
+if isinstance(tts.tts, TtsCoqui): http.handlers.append(tts.tts._httpHandler())
 
 # start actors
 if http is not None: http.start()
-speak.start()
+tts.start()
 stt.start()
 mic.start()
 llm.start()
@@ -624,12 +624,12 @@ while not sysTerminating:
         # talk command
         if m.startswith("SAY-LINE: "):
             text = m[11:]
-            speak.skippable(text)
+            tts.skippable(text)
 
         # talk command
         if m.startswith("SAY: "):
             text = base64.b64decode(m[5:]).decode('utf-8')
-            speak.skippable(text)
+            tts.skippable(text)
 
         # chat command
         if m.startswith("CHAT: "):
@@ -666,9 +666,9 @@ while not sysTerminating:
             mic.energy_threshold = int(prop(m, "mic-energy", "120"))
 
         elif m.startswith("speech-on="):
-            speak.speakOn = prop(m, "speech-on", "true").lower() == "true"
+            tts.speakOn = prop(m, "speech-on", "true").lower() == "true"
 
-        elif m.startswith("coqui-voice=") and isinstance(speak.tts, TtsCoqui):
+        elif m.startswith("coqui-voice=") and isinstance(tts.tts, TtsCoqui):
             commandExecutor.execute("change voice " + prop(m, "coqui-voice", ttsCoquiVoice))
 
         elif m.startswith("llm-chat-sys-prompt="):

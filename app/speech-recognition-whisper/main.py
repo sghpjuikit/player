@@ -489,12 +489,15 @@ class AssistStandard(Assist):
 
 assistStand = AssistStandard()
 assist = assistStand
+executorPython = PythonExecutor(tts, write)
 
 def skipWithoutSound():
+    executorPython.skip()
     if llm.generating: llm.generating = False
     tts.skipWithoutSound()
 
 def skip():
+    executorPython.skip()
     if llm.generating: llm.generating = False
     tts.skip()
 
@@ -634,6 +637,10 @@ while not sysTerminating:
         if m.startswith("COM-DET: "):
             text = base64.b64decode(m[9:]).decode('utf-8')
             llm(ChatIntentDetect.normal(assist_function_prompt, text))
+
+        if m.startswith("COM-PYT: "):
+            text = base64.b64decode(m[9:]).decode('utf-8')
+            execute_command_python(text)
 
         if m.startswith("CALL: "):
             text = m[6:]

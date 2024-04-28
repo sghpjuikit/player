@@ -44,29 +44,6 @@ def prop(text: str, arg_name: str, fallback: str) -> str:
     else:
         return fallback
 
-def preprocess_command(text: str) -> str:
-    # Regular expression to match a method call without quotes around the method name or its arguments
-    pattern = r"(\w+)\((.+?)\)"
-    match = re.match(pattern, text)
-
-    if match:
-        method_name = match.group(1)
-        arguments = match.group(2)
-        # Check if arguments are already quoted
-        if arguments.startswith("'") or arguments.startswith('"'):
-            # If arguments are already correctly quoted, return the input as is
-            return text
-        else:
-            # Escape single quotes within arguments
-            arguments = arguments.replace('"', '\"')
-            # Add quotes around arguments
-            arguments = f'"{arguments}"'
-            # Reconstruct the method call with escaped and quoted arguments
-            return f"{method_name}({arguments})"
-    else:
-        # If the input does not match the pattern, return it as is
-        return text
-
 
 def int_to_words(num: int):
     units = ("", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen")

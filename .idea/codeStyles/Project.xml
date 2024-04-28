@@ -178,10 +178,6 @@
       <option name="SPACE_AROUND_EQUALITY_OPERATORS" value="false" />
       <option name="SPACE_AROUND_RELATIONAL_OPERATORS" value="false" />
       <option name="SPACE_AROUND_MULTIPLICATIVE_OPERATORS" value="false" />
-      <option name="CALL_PARAMETERS_LPAREN_ON_NEXT_LINE" value="true" />
-      <option name="CALL_PARAMETERS_RPAREN_ON_NEXT_LINE" value="true" />
-      <option name="METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE" value="true" />
-      <option name="METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE" value="true" />
       <option name="METHOD_ANNOTATION_WRAP" value="0" />
       <option name="FIELD_ANNOTATION_WRAP" value="0" />
       <indentOptions>

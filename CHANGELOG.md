@@ -14,14 +14,22 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** voice command voice confirmation
 - Implement **Voice assistant** voice command programmatic intent detection 
 - Implement **Voice assistant** voice command nesting 
-- Implement **Voice assistant** **Nvidia Nemo ASR** voice recognition support
 - Implement **Voice assistant** actor state http API & UI
 - Implement **Voice assistant** voice command for listing and changing voice
-- Implement **Voice assistant** tts using **Tacotron2**, **SpeechBrain**
+- Implement **Voice assistant** voice command `describe`
+- Implement **Voice assistant** voice command `wait` & optimize waits
+- Implement **Voice assistant** voice command `search $text` & `type $text`
+- Implement **Voice assistant** stt using **Nvidia Nemo ASR**
+- Implement **Voice assistant** tts using **Tacotron2**, **SpeechBrain**, **FastPitch**
 - Implement **Voice assistant** tts using OS voice to support all features and work reliably
 - Implement **Voice assistant** llm using Gpt4All to support all features
 - Implement **Voice assistant** separate outputs for RAW, SPEAK, CHAT
 - Implement **Voice assistant** wake delay action
+- Implement **Voice assistant** command argument value capture group parsing
+- Implement **Voice assistant** responses using llm
+- Implement **Voice assistant** line rewrite support (shows progress bars properly)
+- Implement **Voice assistant** multiple wake words support & better wake word handling
+- Implement VoiceAssistant multiple voice commands support
 - Implement current song voice command
 - Implement log level highlighting
 - Implement **GitProjects** faster and better file sorting
@@ -32,24 +40,29 @@ All notable changes to this project will be documented in this file. Format base
 - Implement better UI for widget features in widget management settings
 - Improve shortcut pane layout
 - Improve nullability inference for window properties in settings
-- Fix **VoiceAssistant** plugin not waking up from hibernate properly
-- Fix **VoiceAssistant** python process error logging twice
+- Fix **Voice assistant** plugin not waking up from hibernate properly
+- Fix **Voice assistant** python process error logging twice
+- Fix **Voice assistant** some settings not taking effect
+- Fix **Voice assistant** boot up message too soon
+- Fix **Hue** plugin `lights on` command not working as expected
+- Fix **Comet** widget not loading sometimes due to font loading
+- Fix **Weather Info** widget visibility null issue
+- Fix `OverlayPane` show stutter due to blur
+- Fix `MdNode` ui stutter due to Parser
+- Fix `MdNode` code block not showing entire text sometimes
+- Fix `Fut` & `CUR`/`VT` executor interop (no more virtual thread switching)
 - Fix Kotlin Actor not handling exceptions correctly (this caused some issues that are now fixed too)
 - Fix menu not showing F3 shortcut key
 - Fix playlist throwing selection index exception
-- Fix **Hue** plugin `lights on` command not working as expected
 - Fix not able to add video files to playlist sometimes
 - Fix incorrect mouse hover behavior/highlighting of some ui elements when some effects are used
 - Fix popup resize null pointer exception
 - Fix popup resize not working
 - Fix popup not respecting min size properly
-- Fix **Comet** widget not loading sometimes due to font loading
-- Fix `OverlayPane` show stutter due to blur
-- Fix `MdNode` ui stutter due to Parser
-- Fix `Fut` & `CUR`/`VT` executor interop (no more virtual thread switching)
-- Fix **Weather Info** widget visibility null issue
 - Fix app search autocompletion popup not centered correctly
 - Fix app search autocompletion popup cell text not rendered correctly
+- Fix hiding window running twice or skipping animation sometimes
+- Fix application opens with each window opened twice
 
 ### Voice Assistant
 Voice assistant has received a lot of updates to make it more usable and productive.
@@ -57,8 +70,9 @@ Voice assistant has received a lot of updates to make it more usable and product
 There is more comprehensive documentation, see [speech-recognition-whisper](app/speech-recognition-whisper/README.md).
 
 The assistant has new http endpoints:
-- one to enable monitoring state of its components, including queued events and so on
+- one to enable monitoring state of its components, including processed/processing/queued events and so on
 - another to do intent detection by 3rd parties (this allows more complex and usable voice commands, see below)
+- another to do stt (this allows clients to offload all AI computation to other system)
  
 The commands are now implicitly asynchronous, which makes it easy to call APIs or other complicated logic.
 The commands now have methods to allow multi-step commands or programmatic intent detection.
@@ -103,7 +117,7 @@ The headings now have visual GitHub-like anchors.
 Now, the `MdNode` can be used seamlessly to render text-based UIs.
 
 ### Known issues
-- VoiceAssistant llm actor LlmGpt4All does not process non chat event properly when chat is active 
+- **Voice assistant** llm actor `LlmGpt4All` does not process non chat event properly when chat is active 
 
 
 ## [8.0.0] 2023 10 27

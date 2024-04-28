@@ -427,18 +427,31 @@ For speech generation try offline `speech-engine=coqui`.
 For llm chat try `llm-engine=openai` with [LmStudio](https://lmstudio.ai) and run it simply as server (everything should work out of the box).
 
 #### Specialized setup
+It is possible to run only particular features, using `SttNone, LlmNone, TtsNone, mic-enabled=false`. For example:
 - Only stt: `python main.py  llm-engine=none speech-engine=none stt-engine=whisper stt-whisper-model=tiny.en`
 
-#### Performance
-Weak systems:
-It should be possible to run Whisper (and os voice) and be able to do voice commands.
+#### Network setup
+It is possible to offload or provide AI computation on different machine, using another instance of this application,
+and connecting to it using `SttHttp`, `LlmOpenAi`, `TtsHttp`.
+It is up to the user to choose proper setup and infrastructure.
+Anyway, this makes it possible to run parts of the application on different platforms, different systems,
+separate client and server, offload entirety of computation needed for inference elsewhere, and so on.
 
-Good system:
-Whisper small + Coqui + 8B (Q4) LLM model (CPU mode) work flawlessly on Nvidia 4070 + AMD 5800X3D.
+#### Performance
+Weak systems (no GPU):   
+`SttWhisper(tiny.en.pt) + TtsOs + Llm(8B_Q4_CPU)`   
+Alternatively, offload the computation tp another instance over http.
+
+Good system (12GB VRAM):   
+`SttWhisper(base|small.en.pt) + TtsCoqui + Llm(8B_Q4_GPU)`   
+LLM model (CPU mode) work well on `Nvidia 4070` + `AMD 5800X3D`.
+
+Powerful system (24GB VRAM):   
+`SttNemo(parakeet-ctc-1.1b) + TtsCoqui + Llm(8B_Q8_GPU).   
 
 ##### Multitasking
-Since voice generation is running simultaneously with chat LLM generation (and potentially whisper as well),
-the requirements on hw (particularly gpu) may scale up fast. Experiment and see what works for you.
+Since we have potentially multiple AIs running at once (stt, llm, tts, vad, etc.),
+the requirements on hw (particularly gpu) scale up fast. Experiment and see what works for you.
 It may be better to run LLM purely on CPU to free GPU for text-to-speech and speech-to-text. 
 
 #### Idle
@@ -446,9 +459,19 @@ To reduce GPU/CPU load, simply do not use any functionality.
 It is possible to disable microphone and avoid speech-recognition.
 It is currently not possible to unload any models from memory.
 
-### Online/Offline
-The goal of this project is to be offline and independent, but it is possible to use online llm and voice generation,
-reducing hw requirements substantially.
+#### Online/Offline
+The goal of this project is to be offline, private, independent and anonymous, but some parts (LlmOpenAi) can use
+online services. Consult the diagrams.
+
+## Privacy
+The application:
+- does not expose http API to the internet, unless user explicitly changes `localhost` to `0.0.0.0`.
+- does not connect to online services and log in anywhere
+- may download AI models once enabled features require them
+You may wish/need to block/unblock the application though firewall, depending on the desired effect.
+
+The communication between multiple instances of this application is unsecured and plainly readable.
+For privacy, stay offline, in local network or inside VPN.
 
 ## Integration
 

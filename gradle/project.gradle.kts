@@ -148,7 +148,7 @@ allprojects {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
          implementation("org.apache.pdfbox", "pdfbox", "3.0.2") // https://pdfbox.apache.org
-         implementation("com.ezylang", "EvalEx", "3.1.2")
+         implementation("com.ezylang", "EvalEx", "3.2.0")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
          implementation("ch.obermuhlner", "big-math", "2.3.2")
       }

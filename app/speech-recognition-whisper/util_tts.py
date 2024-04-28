@@ -1,22 +1,22 @@
-import asyncio
-import os
-import time
-import traceback
 from collections.abc import Iterator
 from concurrent.futures import Future
 from queue import Queue
 from threading import Thread
 from typing import cast
+import traceback
+import asyncio
+import time
+import os
 
-import numpy
-import torch
 import torchaudio
+import torch
+import numpy
 
 from util_actor import Actor, ActorStoppedException
-from util_dir_cache import cache_file
-from util_http import HttpHandler
 from util_itr import teeThreadSafeEager, words
+from util_dir_cache import cache_file
 from util_play_engine import SdActor
+from util_http import HttpHandler
 from util_wrt import Writer
 from util_str import *
 
@@ -361,6 +361,7 @@ class TtsCoqui(TtsWithModelBase):
 
     def _httpHandler(self) -> HttpHandler:
         import soundfile as sf
+        import re
         from http.server import BaseHTTPRequestHandler
         tts = self
 
@@ -371,6 +372,9 @@ class TtsCoqui(TtsWithModelBase):
 
         def gen(text):
             text_to_gen = replace_numbers_with_words(text)
+            text_to_gen = text_to_gen.strip()
+            text_to_gen = text_to_gen.replace("</s>", "").replace("```", "").replace("...", " ")
+            text_to_gen = re.sub(" +", " ", text_to_gen)
             return self.model.inference_stream(text_to_gen, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
 
         class MyRequestHandler(HttpHandler):
@@ -445,6 +449,7 @@ class TtsCoqui(TtsWithModelBase):
         # init
         from TTS.tts.configs.xtts_config import XttsConfig
         from TTS.tts.models.xtts import Xtts
+        import json
         # init voice
         voiceFile = os.path.join("voices-coqui", self.voice)
         if not os.path.exists(voiceFile):
@@ -453,11 +458,29 @@ class TtsCoqui(TtsWithModelBase):
 
         def loadVoice():
             voiceFile = os.path.join("voices-coqui", self.voice)
+            voiceFileJson = voiceFile+".json"
+            # voice unavailable, ignore
             if not os.path.exists(voiceFile):
                 self.write("ERR: Voice " + self.voice + "does not exist")
+                return
+            # latents exist, load
+            if os.path.exists(voiceFileJson):
+                with open(voiceFileJson, "r") as jf:
+                    latents = json.load(jf)
+                    self.speaker_embedding = (torch.tensor(latents["speaker_embedding"]).unsqueeze(0).unsqueeze(-1))
+                    self.gpt_cond_latent = (torch.tensor(latents["gpt_cond_latent"]).reshape((-1, 1024)).unsqueeze(0))
+            # latents !exist, generate & load
             else:
                 self.gpt_cond_latent, self.speaker_embedding = self.model.get_conditioning_latents(audio_path=[voiceFile])
                 self._voice = self.voice
+                latents = {
+                    "gpt_cond_latent": self.gpt_cond_latent.cpu().squeeze().half().tolist(),
+                    "speaker_embedding": self.speaker_embedding.cpu().squeeze().half().tolist(),
+                }
+                with open(voiceFileJson, "w") as jf:
+                    json.dump(latents, jf)
+
+
 
         def loadVoiceIfNew():
             if self._voice != self.voice:

@@ -173,12 +173,12 @@ class VoiceAssistant: PluginBase() {
                   if ("\n" in s) {
                      s.split("\n").dropLast(1).forEach { processSingle(it.un(), onS, onE) }
                      str.clear()
-                     str.append("".concatApplyBackspace(s.substringAfterLast("\n").un()))
+                     str.append(s.substringAfterLast("\n").un())
                      s.substringAfterLast("\n").un().onS(onS)
                   } else {
                      val strOld = str.toString()
                      str.clear()
-                     str.append(strOld.concatApplyBackspace(s.un()))
+                     str.append(strOld + s.un())
                      state = str.determineState()
                      s.un().onS(onS)
                   }
@@ -220,6 +220,7 @@ class VoiceAssistant: PluginBase() {
                .filter { it.isNotEmpty() }
                .map { it.ansi() }
                .map { it.applyBackspace() }
+               .filter { it.isNotBlank() }
                .onEach { runFX {
                   pythonOutStd.value = pythonOutStd.value + it
                   onLocalInput(it to null)

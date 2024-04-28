@@ -371,13 +371,24 @@ fun String.decapitalUpper() = uppercase().replaceFirstChar { it.lowercase(Locale
 /** @return this string with eny backspace characters applied (see [String.concatApplyBackspace]) */
 fun String.applyBackspace(): String = "".concatApplyBackspace(this)
 
-/** @return concatenation of the two stirngs with `\b` (backspace) characters in the 2nd applied */
+/** @return concatenation of the two stirngs with `\b` (backspace) and `\r` (remove line) characters in the 2nd applied */
 fun String.concatApplyBackspace(str: String): String {
    val result = StringBuilder(this)
    val b = "\b".codePointAt(0)
-   str.chars().forEach {
-      if (it == b && result.isNotEmpty()) result.deleteCharAt(result.length - 1)
-      if (it != b) result.appendCodePoint(it)
+   val r = "\r".codePointAt(0)
+   str.chars32().map { it.value }.forEach {
+      if (it == b) {
+         val e = result.isEmpty()
+         if (!e) result.deleteCharAt(result.length - 1)
+         else result.appendCodePoint(it)
+      }
+      if (it == r) {
+         val n = result.lastIndexOf('\n')
+         if (n>=0) result.deleteRange(n+1, result.length)
+         if (n<0) result.clear().appendCodePoint(it)
+      }
+      if (it!=b && it!=r)
+         result.appendCodePoint(it)
    }
    return result.toString()
 }

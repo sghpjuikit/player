@@ -103,6 +103,9 @@ class SttWhisper(Stt):
 
 
 # home https://github.com/NVIDIA/NeMo
+# comparisons https://huggingface.co/spaces/hf-audio/open_asr_leaderboard
+# https://huggingface.co/nvidia/parakeet-tdt-1.1b
+# https://huggingface.co/nvidia/parakeet-ctc-1.1b
 class SttNemo(Stt):
     def __init__(self, enabled: bool, device: str, model: str, write: Writer):
         super().__init__('SttNemo', device, write, enabled, 16000)
@@ -124,7 +127,9 @@ class SttNemo(Stt):
         cacheDir = join('cache', 'nemo')
         if not exists(cacheDir): makedirs(cacheDir)
         # load model
-        model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name=self.model)
+        if self.model=="nvidia/parakeet-tdt-1.1b": model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name="nvidia/parakeet-tdt-1.1b")
+        if self.model=="nvidia/parakeet-ctc-1.1b": model = nemo_asr.models.EncDecCTCModelBPE.from_pretrained(model_name="nvidia/parakeet-ctc-1.1b")
+
         model.to(torch.device(self.device))
         # loop
         with (self._looping()):
@@ -143,7 +148,8 @@ class SttNemo(Stt):
                         # sst
                         hypotheses = model.transcribe([file], verbose=False)
                         hypothese1 = hypotheses[0] if hypotheses else None
-                        text = hypothese1[0] if hypothese1 else None
+                        if self.model=="nvidia/parakeet-tdt-1.1b": text = hypothese1[0] if hypothese1 else None
+                        if self.model=="nvidia/parakeet-ctc-1.1b": text = hypothese1 if hypothese1 else None
                         # complete
                         if not self._stop and self.enabled: f.set_result(text if text is not None else '')
                         else: f.set_exception(Exception("Stopped or disabled"))

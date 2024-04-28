@@ -108,8 +108,8 @@ flowchart TD
   STTX     -.-> STTX1[/SttWhisper/]
   STTX     -.-> STTX2[/SttNemo/]
   STTX     -.-> STTX3[/SttHttp/]
-  STTX2    -.->|python| STTXX1[(Local AI Model)]
-  STTX1    -.->|python| STTXX2[(Local AI Model)]
+  STTX1    -.->|python local AI model| STTXX1[(\nbase.en.pt\nbase.pt\nmedium.en.pt\nsmall.en.pt\nsmall.pt\ntiny.en.pt\ntiny.pt)]
+  STTX2    -.->|python local AI model| STTXX2[(\nnvidia/parakeet-ctc-1.1b\nnvidia/parakeet-tdt-1.1b)]
   STTX3    -.->|http| STTXX4[(Other self instance)]
 ```
 

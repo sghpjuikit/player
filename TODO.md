@@ -1,6 +1,10 @@
 ## Potential future work
 
+- https://huggingface.co/nvidia/speakerverification_en_titanet_large speaker diarization yay  
+- Converter opens ObjectInfo in Actionpane
+- COnverter function picker add combobox for text/each/value
 - Load widget factories in bgr
+- Comet lock FPS to 60 or support 120
 - implement plus icon for custom widget custom inputs in layout mode
 - implement custom outputs for custom widgets
 - Improve **Tagger** widget
@@ -37,10 +41,6 @@
 - Implement `Window` & `Component` `Shower` using smart window resize algorithm expanding window to available screen area  
   It is not clear where exactly this would make the most impact. Potentially, custom action to reorganize windows.
 - Implement and update widget descriptions as markdown.
-- Implement multiple-screen support for `Dock`  
-  It is not clear how it should behave - be duplicated or displayed on screen with mouse?
-- Implement [virtual keyboard](https://github.com/comtel2000/fx-experience)  
-  Useful to control pc without mouse. This would be an interesting addition. But needs lots of work
 - Implement **playlists** table  
   Requires deeper integration with **Update library** action, playlist discovery, etc.
 - Support task hierarchy, i.e., task tree  
@@ -57,12 +57,8 @@
   `CheckIcon(sortAlphabetically).icons(IconFA.SORT_ALPHA_ASC, IconFA.SORT_AMOUNT_ASC)`
 - Implement application **ui-less** mode properly (no window needs to be open)  
   Requires rethinking how application would be closed
-- Implement **TabContainer** and **StackContainer**  
-  The challenge is the layout mode UI
 - Implement isolating song playback and song db to `MASTER`application  
   Right now multiple instances could get in the way of each other
-- Implement song fulltext search  
-  **Lucene**?
 - Improve I/O to support cross-window  
   Challenging. See [issue](/TODO-ISSUES.md#io-ui)
 
@@ -70,6 +66,7 @@
 - Popup unable to receive focus sometimes
 - Recompiling or manual widget loading does not rebind inputs properly
 - **Function Viewer** plotting steep functions clipped too soon
+- `LlmGpt4All` does not handle chat session simultaneously with commands properly
 
 ## External bugs
 - [ ] [jaudiotagger-65](https://bitbucket.org/ijabz/jaudiotagger/issues/65/add-support-for-ogg-opus-format) opus ogg support

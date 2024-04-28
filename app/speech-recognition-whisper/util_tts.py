@@ -18,6 +18,7 @@ from util_http import HttpHandler
 from util_itr import teeThreadSafeEager, words
 from util_play_engine import SdActor
 from util_wrt import Writer
+from util_str import *
 
 
 class Tts:
@@ -369,7 +370,8 @@ class TtsCoqui(TtsWithModelBase):
                 time.sleep(0.1)
 
         def gen(text):
-            return self.model.inference_stream(text, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
+            text_to_gen = replace_numbers_with_words(text)
+            return self.model.inference_stream(text_to_gen, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
 
         class MyRequestHandler(HttpHandler):
             def __init__(self, ):
@@ -619,55 +621,6 @@ class TtsSpeechBrain(TtsWithModelBase):
         self.deviceName = device
         self.device = device
 
-    @staticmethod
-    def float_to_words(num: float):
-
-        def int_to_words(num: int):
-            units = ("", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen")
-            tens = ("", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety")
-            if num < 0:
-                return "minus " + convert_to_words(-num)
-            if num < 20:
-                return units[num]
-            if num < 100:
-                return tens[num // 10] + (" " + units[num % 10] if num % 10 != 0 else "")
-            if num < 1000:
-                return units[num // 100] + " hundred" + (" and " + convert_to_words(num % 100) if num % 100 != 0 else "")
-            if num < 1000000:
-                return convert_to_words(num // 1000) + " thousand" + (" " + convert_to_words(num % 1000) if num % 1000 != 0 else "")
-            if num < 1000000000:
-                return convert_to_words(num // 1000000) + " million" + (" " + convert_to_words(num % 1000000) if num % 1000000 != 0 else "")
-            else:
-                return convert_to_words(num // 1000000000) + " billion" + (" " + convert_to_words(num % 1000000000) if num % 1000000000 != 0 else "")
-
-        def floating_to_words(num: float):
-            num_str = str(num)[2:]  # Remove "0." prefix
-            result = []
-            for digit in num_str: result.append(int_to_words(int(digit)))
-            return ' '.join(result)
-
-        integer_part = int(num)
-        decimal_part = abs(num - integer_part)
-        if decimal_part == 0: return int_to_words(integer_part)
-        else: return f"{int_to_words(integer_part)} point {floating_to_words(decimal_part)}"
-
-    @staticmethod
-    def num_to_words(num: str):
-        return TtsSpeechBrain.float_to_words(float(num))
-
-    @staticmethod
-    def replace_numbers_with_words(text):
-        import re
-        # Regular expression to find all numbers, including negative and fractions
-        pattern = r"[-+]?\d*\.\d+|[-+]?\d+"
-        matches = re.findall(pattern, text)
-
-        # Replace each match with its English word representation
-        for match in matches:
-            text = text.replace(match, TtsSpeechBrain.num_to_words(match))
-
-        return text
-
     def _loop(self):
         # init
         from speechbrain.inference.TTS import Tacotron2
@@ -684,7 +637,8 @@ class TtsSpeechBrain(TtsWithModelBase):
 
                     # generate
                     if not cache_used or not audio_file_exists:
-                        mel_output, mel_length, alignment = tacotron2.encode_text(TtsSpeechBrain.replace_numbers_with_words(text) + f"{'.' if text.endswith('.') else ''}")
+                        text_to_gen = replace_numbers_with_words(text) + f"{'.' if text.endswith('.') else ''}"
+                        mel_output, mel_length, alignment = tacotron2.encode_text(text_to_gen)
                         waveforms = hifi_gan.decode_batch(mel_output)
                         audio_numpy = waveforms.detach().cpu().squeeze()
 

@@ -43,3 +43,73 @@ def prop(text: str, arg_name: str, fallback: str) -> str:
         return text.split("=", 1)[-1]
     else:
         return fallback
+
+def preprocess_command(text: str) -> str:
+    # Regular expression to match a method call without quotes around the method name or its arguments
+    pattern = r"(\w+)\((.+?)\)"
+    match = re.match(pattern, text)
+
+    if match:
+        method_name = match.group(1)
+        arguments = match.group(2)
+        # Check if arguments are already quoted
+        if arguments.startswith("'") or arguments.startswith('"'):
+            # If arguments are already correctly quoted, return the input as is
+            return text
+        else:
+            # Escape single quotes within arguments
+            arguments = arguments.replace('"', '\"')
+            # Add quotes around arguments
+            arguments = f'"{arguments}"'
+            # Reconstruct the method call with escaped and quoted arguments
+            return f"{method_name}({arguments})"
+    else:
+        # If the input does not match the pattern, return it as is
+        return text
+
+
+def int_to_words(num: int):
+    units = ("", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen")
+    tens = ("", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety")
+    if num < 0:
+        return "minus " + convert_to_words(-num)
+    if num < 20:
+        return units[num]
+    if num < 100:
+        return tens[num // 10] + (" " + units[num % 10] if num % 10 != 0 else "")
+    if num < 1000:
+        return units[num // 100] + " hundred" + (" and " + convert_to_words(num % 100) if num % 100 != 0 else "")
+    if num < 1000000:
+        return convert_to_words(num // 1000) + " thousand" + (" " + convert_to_words(num % 1000) if num % 1000 != 0 else "")
+    if num < 1000000000:
+        return convert_to_words(num // 1000000) + " million" + (" " + convert_to_words(num % 1000000) if num % 1000000 != 0 else "")
+    else:
+        return convert_to_words(num // 1000000000) + " billion" + (" " + convert_to_words(num % 1000000000) if num % 1000000000 != 0 else "")
+
+def float_to_words(num: float):
+
+    def floating_to_words(num: float):
+        num_str = str(num)[2:]  # Remove "0." prefix
+        result = []
+        for digit in num_str: result.append(int_to_words(int(digit)))
+        return ' '.join(result)
+
+    integer_part = int(num)
+    decimal_part = abs(num - integer_part)
+    if decimal_part == 0: return int_to_words(integer_part)
+    else: return f"{int_to_words(integer_part)} point {floating_to_words(decimal_part)}"
+
+def num_to_words(num: str):
+    return float_to_words(float(num))
+
+def replace_numbers_with_words(text):
+    import re
+    # Regular expression to find all numbers, including negative and fractions
+    pattern = r"[-+]?\d*\.\d+|[-+]?\d+"
+    matches = re.findall(pattern, text)
+
+    # Replace each match with its English word representation
+    for match in matches:
+        text = text.replace(match, num_to_words(match))
+
+    return text

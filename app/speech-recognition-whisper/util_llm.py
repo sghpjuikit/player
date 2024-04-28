@@ -305,7 +305,7 @@ class LlmHttpOpenAi(Llm):
 
                                 stream = client.chat.completions.create(
                                     model=self.modelName, messages=messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
-                                    stream=True, timeout=Timeout(1.0),
+                                    stream=True, timeout=Timeout(5.0),
                                     stop = ["-COM", "<|eot_id|>"] if isCommand else ["<|eot_id|>"],
                                 )
                                 try:

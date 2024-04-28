@@ -521,6 +521,12 @@ pip install torch
 pip install TTS
 ```
 
+##### Voice cloning
+- Create a voice sample recording (cleanest possible))
+    - Make it into 3-20s wav, `ffmpeg -i <input_file>.extension -ss 00:00:00 -t 00:00:15 -c:a pcm_s16le <output_file>.wav`
+- Place it into coqui voices dirctory
+- Adjust voice in UI, through cli arg.
+
 #### character.ai
 Supports [character.ai](https://beta.character.ai) voice generation (requires free account and access token)
 using [PyCharacterAi](https://pypi.org/project/PyCharacterAI/), read details there.

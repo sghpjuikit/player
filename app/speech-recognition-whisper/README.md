@@ -85,19 +85,20 @@ flowchart TD
   V[Tts Actor]
   V  -.-> V0[/TtsNone/]
   V  -.-> V1[/TtsOs/]
-  V1 -.->|python native| V1X[(OS voice)]
   V  -.-> V3[/TtsCoqui/]
   V  -.-> V5[/TtsTacotron2/]
-  V5 -.->|pytorch| V5X[(torch lib)]
   V  -.-> V6[/TtsSpeechBrain/]
-  V6 -.->|pytorch| V6X[(speechbrain lib)]
   V  -.-> V7[/TtsFastPitch/]
-  V7 -.->|pytorch| V7X[(torch lib)]
-  V3 -.->|python lib| V3X[(Coqui TTS)]
-  V  -.-> V4[/TtsHttp/]
-  V4 -.->|http| V4X[(Other self instance)]
   V  -.-> V2[/TtsCharAi/]
+  V  -.-> V8[/TtsHttp/]
+  V1 -.->|python native| V1X[(OS voice)]
+  V3 -.->|python lib| V3X[(Coqui TTS)]
+  V3X-.-> V3XX[/Voice cloning/]
+  V5 -.->|pytorch| V5X[(torch lib)]
+  V6 -.->|pytorch| V6X[(speechbrain lib)]
+  V7 -.->|pytorch| V7X[(torch lib)]
   V2 -.->|http| V2X[(Character.AI Service)]
+  V8 -.->|http| V8X[(Other self instance)]
 ```
 
 ###### Stt
@@ -122,10 +123,12 @@ flowchart TD
   LLMX     -.->|python lib| LLMX2[/LlmGpt4All/]
   LLMX1    -.->|http| LLMX3[(ChatGPT)]
   LLMX1    -.->|http| LLMX4[(Local Server)]
-  LLMX2    -.->|python| LLMX5[(Gpt4All Executor)]
+  LLMX2    -.->|python| LLMX5[(Gpt4All)]
   LLMX4    -.-> LMSTUDIO[/LmStudio/]
   LLMX4    -.-> LAMMACPP[/Lamma.cpp/]
   LLMX4    -.-> LAMMAETC[/Etc./]
+  LLMX5    -.-> LLMX5MOD[/Various local models/]
+  LLMX3    -.-> LLMX3MOD[/Various cloud models/]
   LMSTUDIO -.-> LMSTUDIOHW2[/CPU / CPU+GPU Offloading / GPU / Multiple GPUs /]
 ```
 
@@ -133,10 +136,11 @@ flowchart TD
 ```mermaid
 flowchart LR
   HTTP[Http API]
-  HTTP -->|endpoint| HTTP1[path: speech \n returns generated audio \n requires Tts==TtsCoqui]
-  HTTP -->|endpoint| HTTP2[path: actor \n returns all actor states for monitoring]
-  HTTP -->|endpoint| HTTP3[path: intent \n returns result of intent detection \n requires Llm!=LlmNone]
-  HTTP -->|endpoint| HTTP4[path: stt \n returns text result of speech recognition \n requires Stt!=SttNone]
+  HTTP -->|endpoint| HTTP1[path: /speech \n returns generated audio \n requires Tts==TtsCoqui]
+  HTTP -->|endpoint| HTTP2[path: /actor \n returns all actor states for monitoring]
+  HTTP -->|endpoint| HTTP2[path: /actor-events?actor=...&type=... \n returns specified actor queued/processing/processed events]
+  HTTP -->|endpoint| HTTP3[path: /intent \n returns result of intent detection \n requires Llm!=LlmNone]
+  HTTP -->|endpoint| HTTP4[path: /stt \n returns text result of speech recognition \n requires Stt!=SttNone]
 ```
 
 ## Features

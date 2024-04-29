@@ -39,6 +39,7 @@ import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runOn
 import sp.it.util.collections.list.DestructuredList
+import sp.it.util.collections.observableList
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
@@ -262,8 +263,8 @@ class VoiceAssistant: PluginBase() {
       }
 
    /** Speech handlers called when user has spoken. Matched in order. */
-   val handlers by cList(
-         listOfNotNull(
+   val handlers = observableList(
+         *listOfNotNull(
             SpeakHandler(                            "Help", "help")                                         { if (matches(it)) Ok("List commands by saying, list commands") else null },
             SpeakHandler(                      "Do nothing", "ignore")                                       { if (matches(it)) Ok(null) else null },
             SpeakHandler(               "Restart Assistant", "restart assistant|yourself")                   { if (matches(it)) { speak("Ok"); restart(); Ok(null) } else null },
@@ -297,9 +298,16 @@ class VoiceAssistant: PluginBase() {
             SpeakHandler(                    "Set reminder", "set reminder in|on \$time \$text")             { voiceCommandSetReminder(it) },
             SpeakHandler(                            "Wait", "wait \$time")                                  { voiceCommandWait(it) },
             SpeakHandler(                     "Count to...", "count from \$from to \$to")                    { voiceCommandCountTo(it) },
-         )
+         ).toTypedArray()
       )
-      .noPersist().readOnly().butElement { uiConverter { "${it.name} -> ${it.commandUi}" } }
+
+   /** [handlers] help text */
+   private val handlersConf by cv("") {
+         val t = v(it)
+         handlers.onChangeAndNow { t.value = handlers.joinToString("\n") { "${it.name} -> ${it.commandUi}" } }
+         t
+      }
+      .noPersist().readOnly().multiline(20)
       .def(
          name = "Commands",
          info = "Shows active voice speech recognition commands.\n Matched in order.\n '?' means optional word. '|' means alternative word."
@@ -467,7 +475,7 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Llm engine > openai > model", info = "The llm model of the OpenAI or OpenAI-compatible server. Server may ignore this.")
 
    /** System prompt telling llm to assume role, or exhibit behavior */
-   val llmChatSysPrompt by cvn("You are helpful voice assistant. You are voiced by tts, be extremly short.").multiline(3)
+   val llmChatSysPrompt by cvn("You are helpful voice assistant. You are voiced by tts, be extremly short.").multiline(5)
       .def(name = "Llm chat > system prompt", info = "System prompt telling llm to assume role, or exhibit behavior")
 
    /** Maximum number of tokens in the reply. Further tokens will be cut off (by llm) */

@@ -1,8 +1,10 @@
 package sp.it.util.async.coroutine
 
+import javafx.util.Duration
 import java.util.concurrent.CompletionStage
 import javafx.application.Platform
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -117,3 +119,6 @@ fun <T> CoroutineScope.runSuspendingFx(block: suspend CoroutineScope.() -> T) : 
 
 /** Launch coroutine on [FX] and return it as [Fut]. Canceling the future cancels the coroutine (see [future]). */
 fun <T> CoroutineScope.runSuspendingFxLater(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(DEFAULT, block)
+
+/** [delay] with [Duration] */
+public suspend fun delay(duration: Duration): Unit = delay(duration.toMillis().milliseconds)

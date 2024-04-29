@@ -1,8 +1,8 @@
 package sp.it.util.async.coroutine
 
-import javafx.util.Duration
 import java.util.concurrent.CompletionStage
 import javafx.application.Platform
+import javafx.util.Duration
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineDispatcher
@@ -14,6 +14,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -26,9 +27,13 @@ import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.javafx.JavaFxDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.BlockingExecutor
 import sp.it.util.async.NewThreadExecutor
 import sp.it.util.async.future.Fut
+import sp.it.util.async.runOn
+import sp.it.util.functional.Try
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.Subscription
 
 /** Non-blocking dispatcher for JavaFX UI tasks. See [Dispatchers.JavaFx] */
@@ -120,5 +125,9 @@ fun <T> CoroutineScope.runSuspendingFx(block: suspend CoroutineScope.() -> T) : 
 /** Launch coroutine on [FX] and return it as [Fut]. Canceling the future cancels the coroutine (see [future]). */
 fun <T> CoroutineScope.runSuspendingFxLater(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(DEFAULT, block)
 
-/** [delay] with [Duration] */
-public suspend fun delay(duration: Duration): Unit = delay(duration.toMillis().milliseconds)
+/** [withContext] that uses [runTry] to never throw and return [Try] instead */
+public suspend inline infix fun <T> CoroutineDispatcher.invokeTry(noinline block: suspend CoroutineScope.() -> T): Try<T, Throwable> =
+   runTry { withContext(this, block) }
+
+/** [delay] that uses [Duration] */
+public suspend fun delay(duration: Duration) = delay(duration.toMillis().milliseconds)

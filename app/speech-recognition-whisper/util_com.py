@@ -25,7 +25,7 @@ def commands(text) -> [str]:
 def preprocess_command(text: str) -> str:
     import re
     # Regular expression to match a method call without quotes around the method name or its arguments
-    pattern = r"(\w+)\((.+?)\)"
+    pattern = r"(command|speak)\((.+?)\)"
     match = re.match(pattern, text)
 
     if match:

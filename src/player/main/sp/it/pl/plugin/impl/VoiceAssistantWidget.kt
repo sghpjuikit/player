@@ -39,6 +39,7 @@ import sp.it.pl.ui.ValueToggleButtonGroup
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ConfigPane
+import sp.it.pl.ui.pane.ConfigPane.Layout.MINI
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
 import sp.it.util.access.visible
@@ -283,7 +284,9 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                               ListConfigurable.Companion.heterogeneous(
                                  plugin.value?.net { m.configs(this@VoiceAssistantWidget, it).map { it.getDelegateConfig() } }.orEmpty()
                               )
-                           )
+                           ).apply {
+                              ui.value = MINI
+                           }
                         }
                      }
                   }

@@ -8,15 +8,17 @@ import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.TextArea
+import javafx.scene.input.MouseEvent.MOUSE_ENTERED
+import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
 import sp.it.pl.main.Css
+import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.item_node.ConfigurableCE
-import sp.it.pl.ui.item_node.GeneralCE
 import sp.it.pl.ui.item_node.ObservableListCE
 import sp.it.pl.ui.item_node.PaginatedObservableListCE
 import sp.it.pl.ui.labelForWithClick
@@ -43,16 +45,24 @@ import sp.it.util.functional.nullsFirst
 import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.map
+import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.propertyNullable
 import sp.it.util.type.raw
 import sp.it.util.ui.hBox
+import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.pseudoClassChanged
+import sp.it.util.ui.screenXy
 import sp.it.util.ui.width
+import sp.it.util.ui.x2
+import sp.it.util.ui.xy
+import sp.it.util.units.em
+import sp.it.util.units.millis
 
 class ConfigPane<T: Any?>: VBox {
    private var editors: List<ConfigEditor<*>> = listOf()
@@ -60,6 +70,7 @@ class ConfigPane<T: Any?>: VBox {
    private var needsLabel: Boolean = true
    private val onChangeRaw: () -> Unit = { onChange?.invoke() }
    private val onChangeOrConstraintRaw: () -> Unit = { onChangeOrConstraint?.invoke() }
+
    val editable = v(true)
    val ui: StyleableObjectProperty<Layout> by sv(UI)
    var onChange: (() -> Unit)? = null
@@ -69,6 +80,14 @@ class ConfigPane<T: Any?>: VBox {
          field = value
          children setTo children.materialize().sortedByConfigWith(value)
       }
+
+   private val configInfoTooltip = appTooltip("").apply {
+      showDelay = 0.millis
+      hideDelay = 0.millis
+      isWrapText = true
+      maxWidth = 350.emScaled
+      opacityProperty() syncFrom (ui map { if (it==MINI) 1.0 else 0.0 })
+   }
 
    constructor(): super(5.0) {
       styleClass += "form-config-pane"
@@ -83,6 +102,7 @@ class ConfigPane<T: Any?>: VBox {
    constructor(configs: Configurable<T>): this() {
       configure(configs)
    }
+
 
    fun configure(configurable: Configurable<*>?) {
       alignment = CENTER_LEFT
@@ -112,28 +132,45 @@ class ConfigPane<T: Any?>: VBox {
          }
          .associateBy { it.configEditor ?: it.parent?.configEditor!! }
 
+      fun ConfigEditor<*>.needsInfo() =
+         config.info.isNotEmpty() && config.nameUi!=config.info
       fun ConfigEditor<*>.isNested() =
          this is ObservableListCE<*> || this is PaginatedObservableListCE || this is ConfigurableCE || editor is TextArea
-      fun ConfigEditor<*>.buildNameLabel() = label(config.nameUi) {
-         styleClass += "form-config-pane-config-name"
-         isPickOnBounds = false
-         alignment = CENTER_LEFT
-         minWidth = USE_PREF_SIZE
-         labelForWithClick setTo editor
-      }
-      fun ConfigEditor<*>.buildNodeForThis() = editorNodesOld[this] ?: buildNode().apply {
-         properties[buildUiKey] = buildUiKey
-         isEditableAllowed syncFrom this@ConfigPane.editable
-      }
-      fun ConfigEditor<*>.buildDescriptionText() = when {
-         config.info.isEmpty() || config.nameUi==config.info -> null
-         else -> label(config.info) {
-            styleClass += Css.DESCRIPTION
-            styleClass += "form-config-pane-config-description"
-            isWrapText = true
-            prefWidth = computeContentWidth()
+      fun ConfigEditor<*>.buildNameLabel() =
+         label(config.nameUi) {
+            styleClass += "form-config-pane-config-name"
+            isPickOnBounds = false
+            alignment = CENTER_LEFT
+            minWidth = USE_PREF_SIZE
+            labelForWithClick setTo editor
+            if (needsInfo()) {
+               install(configInfoTooltip)
+               onEventUp(MOUSE_MOVED) {
+                  configInfoTooltip.xy = it.screenXy + 1.em.emScaled.x2
+               }
+               onEventUp(MOUSE_ENTERED) {
+                  if (ui.value!=MINI) it.consume()
+                  configInfoTooltip.hide()
+                  configInfoTooltip.text = config.info
+                  configInfoTooltip.xy = it.screenXy + 1.em.emScaled.x2
+               }
+            }
          }
-      }
+      fun ConfigEditor<*>.buildNodeForThis() =
+         editorNodesOld[this] ?: buildNode().apply {
+            properties[buildUiKey] = buildUiKey
+            isEditableAllowed syncFrom this@ConfigPane.editable
+         }
+      fun ConfigEditor<*>.buildDescriptionText() =
+         if (!needsInfo())
+            null
+         else
+            label(config.info) {
+               styleClass += Css.DESCRIPTION
+               styleClass += "form-config-pane-config-description"
+               isWrapText = true
+               prefWidth = computeContentWidth()
+            }
 
       if (!soft)
          editorNodes.forEach { it.onNodeDispose() }

@@ -143,14 +143,9 @@ Args:
     If speaking-engine=coqui is used, optionally cuda device index or empty string for auto.
     Default: ''
   
-  coqui-server=$host:$port
-    If specified, enables speech generation http API on the specified address.
-    Use localhost:port or 127.0.0.1:port or 0.0.0.0:port (if accessible from outside).
-    Default: ''
-    
   speech-server=$host:$port
     If speaking-engine=http is used, host:port of the speech generation API of the other instance of this application
-    Default: 'localhost:1235'
+    Default: 'localhost:1236'
 
   llm-engine=$engine
     Llm engine for chat. Use 'none', 'gpt4all', 'openai'
@@ -230,9 +225,8 @@ ttsCharAiToken = arg('character-ai-token', '')
 ttsCharAiVoice = int(arg('character-ai-voice', '22'))
 ttsCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
 ttsCoquiCudaDevice = arg('coqui-cuda-device', '')
-ttsCoquiServer = arg('coqui-server', '')
 ttsTacotron2Device = arg('tacotron2-cuda-device', '')
-ttsHttpUrl = arg('speech-server', 'localhost:1235')
+ttsHttpUrl = arg('speech-server', 'localhost:1236')
 
 llmEngine = arg('llm-engine', 'none')
 llmGpt4AllModelName = arg('llm-gpt4all-model', 'none')

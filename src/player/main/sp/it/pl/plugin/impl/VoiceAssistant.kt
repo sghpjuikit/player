@@ -122,7 +122,6 @@ class VoiceAssistant: PluginBase() {
             "character-ai-voice=22",
             "coqui-voice=${ttsEngineCoquiVoice.value}",
             "coqui-cuda-device=${ttsEngineCoquiCudaDevice.value}",
-            "coqui-server=${if (ttsServer.value) ttsServerUrl.value else ""}",
             "speech-server=${ttsEngineHttpUrl.value}",
             "llm-engine=${llmEngine.value.code}",
             "llm-gpt4all-model=${llmGpt4AllModel.value}",
@@ -436,21 +435,11 @@ class VoiceAssistant: PluginBase() {
       )
 
    /** Speech server address and port to connect to. */
-   val ttsEngineHttpUrl by cv("localhost:1235")
+   val ttsEngineHttpUrl by cv("localhost:1236")
       .def(
          name = "Speech engine > http > url",
          info = "Speech server address and port to connect to when using ${SpeechEngine.HTTP.nameUi} speech engine."
       )
-
-   /** Whether http server providing speech generation should be started. The server will use coqui speech engine. */
-   val ttsServer by cv(false)
-      .def(name = "Speech server",
-         info = "Whether http server providing speech generation should be started. The server will use coqui speech engine")
-
-   /** Speech server address and port. */
-   val ttsServerUrl by cv("0.0.0.0:1235")
-      .def(name = "Speech server > url", info = "Speech server address and port.")
-
 
    /** Whether [llmEngine] conversation is active */
    var llmOn by atomic(false)
@@ -529,7 +518,7 @@ class VoiceAssistant: PluginBase() {
       val processChangeVals = listOf<V<*>>(
          micName,
          sttEngine, sttWhisperModel, sttWhisperDevice, sttNemoModel, sttNemoDevice, sttHttpUrl,
-         ttsEngine, ttsEngineCharAiToken, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl, ttsServer, ttsServerUrl,
+         ttsEngine, ttsEngineCharAiToken, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
          httpUrl
       )

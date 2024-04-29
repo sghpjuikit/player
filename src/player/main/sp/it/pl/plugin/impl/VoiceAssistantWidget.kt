@@ -365,9 +365,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                it::ttsEngineCharAiToken,
                it::ttsEngineCoquiVoice,
                it::ttsEngineCoquiCudaDevice,
-               it::ttsEngineHttpUrl,
-               it::ttsServer,
-               it::ttsServerUrl,
+               it::ttsEngineHttpUrl
             )
          }
       ),

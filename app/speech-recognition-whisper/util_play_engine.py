@@ -6,8 +6,8 @@ from util_wrt import Writer
 from scipy import signal
 
 
-class SdEvent:
-    def __init__(self, type: str, text: str, audio: None | str | np.ndarray, skippable: bool):
+class SdEvent(Event):
+    def __init__(self, type: str, text: str, audio: None | str | np.ndarray | int, skippable: bool):
         self.type = type
         self.text = text
         self.audio = audio
@@ -50,6 +50,11 @@ class SdActor(Actor):
                             samples = np.zeros(samples_count)
                             stream.write(np.zeros(samples_count, dtype=np.float32))
 
+                        if event.type == 'p':
+                            samples_count = int(int(event.audio)/1000.0 * self.sample_rate)
+                            samples = np.zeros(samples_count)
+                            stream.write(np.zeros(samples_count, dtype=np.float32))
+                            
                         # play file
                         if event.type == 'f':
                             audio_data, fs = sf.read(event.audio, dtype='float32')
@@ -79,6 +84,9 @@ class SdActor(Actor):
     def boundary(self):
         self.queue.put(SdEvent('boundary', '', None, False))
 
+    def playPause(self, millis: int, skippable: bool):
+        self.queue.put(SdEvent('p', '', millis, True))
+        
     def playFile(self, text: str, audio: str, skippable: bool):
         self.queue.put(SdEvent('f', text, audio, skippable))
 

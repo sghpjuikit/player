@@ -6,7 +6,7 @@ from util_wrt import Writer
 from scipy import signal
 
 
-class SdEvent(Event):
+class SdEvent:
     def __init__(self, type: str, text: str, audio: None | str | np.ndarray | int, skippable: bool):
         self.type = type
         self.text = text

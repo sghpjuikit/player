@@ -18,7 +18,7 @@ class Actor:
         self.write = write
         if isinstance(self.write, Callable): self.write(f"RAW: {self.name} starting...")
         self.queue = Queue()
-        self.events_processed: [object] = []
+        self.events_processed: [str] = []
         self._stop: bool = False
         self._loaded: bool = False
         self.enabled: bool = enabled
@@ -115,7 +115,7 @@ class Actor:
             event = self._get_next_event()
             if self._stop or not self.enabled: return
 
-            self.events_processed.append(event)
+            self.events_processed.append(self._get_event_text(event))
             self.processing_event = event
             self.processing = True
 

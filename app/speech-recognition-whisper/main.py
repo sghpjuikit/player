@@ -659,7 +659,7 @@ while not sysTerminating:
             mic.energy_threshold = int(prop(m, "mic-energy", "120"))
 
         elif m.startswith("speech-on="):
-            tts.speakOn = prop(m, "speech-on", "true").lower() == "true"
+            tts.enabled = prop(m, "speech-on", "true").lower() == "true"
 
         elif m.startswith("coqui-voice=") and isinstance(tts.tts, TtsCoqui):
             commandExecutor.execute("change voice " + prop(m, "coqui-voice", ttsCoquiVoice))

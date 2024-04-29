@@ -1,43 +1,39 @@
+import asyncio
+import numpy
+import os
+import time
+import torch
+import torchaudio
+import traceback
 from collections.abc import Iterator
 from concurrent.futures import Future
 from queue import Queue
 from threading import Thread
 from typing import cast
-import traceback
-import asyncio
-import time
-import os
-
-import torchaudio
-import torch
-import numpy
 
 from util_actor import Actor, ActorStoppedException
-from util_itr import teeThreadSafeEager, words
 from util_dir_cache import cache_file
-from util_play_engine import SdActor
 from util_http import HttpHandler
-from util_wrt import Writer
+from util_itr import teeThreadSafeEager, words
+from util_play_engine import SdActor
 from util_str import *
+from util_wrt import Writer
 
 
-class Tts:
+class Tts(Actor):
     def __init__(self, speakOn: bool, tts, write: Writer):
-        self.sentence_min_length = 40 # shorter == faster feedback, longer == less audio hallucinations in short audio
+        super().__init__("tts-preprocessor", 'tts-preprocessor', None, write, True)
         self.tts = tts
         self.speakOn = speakOn
-        self.write = write
-        self._stop = False
         self._skip = False
-        self.queue = Queue()
         self.history = []
 
     def start(self):
-        Thread(name='Tts', target=self._loop, daemon=True).start()
+        super().start()
         self.tts.start()
 
     def stop(self):
-        self._stop = True
+        super().stop()
         self.tts.stop()
 
     def skip(self):
@@ -69,21 +65,22 @@ class Tts:
 
     def _loop(self):
         from stream2sentence import generate_sentences
-
-        while not self._stop and self.speakOn:
-            event, skippable, repeated, f = self.queue.get()
-            text = ''
-            try:
-                self.tts.speak(None, skippable=False)
-                for sentence in generate_sentences(event, cleanup_text_links=True, cleanup_text_emojis=True):
-                    text = text + sentence
-                    if (len(sentence)>0): self.tts.speak(sentence, skippable=skippable)
-                self.tts.speak(None, skippable=False)
-                if not repeated: self.history.append((text, skippable))
-                f.set_result(text)
-            except Exception as e:
-                f.set_exception(e)
-                raise e
+            
+        with self._looping():
+            while not self._stop:
+                with self._loopProcessEvent() as (event, skippable, repeated, f):
+                    text = ''
+                    try:
+                        self.tts.speak(None, skippable=False)
+                        for sentence in generate_sentences(event, cleanup_text_links=True, cleanup_text_emojis=True):
+                            text = text + sentence
+                            if (len(sentence)>0): self.tts.speak(sentence, skippable=skippable)
+                        self.tts.speak(None, skippable=False)
+                        if not repeated: self.history.append((text, skippable))
+                        f.set_result(text)
+                    except Exception as e:
+                        f.set_exception(e)
+                        raise e
 
 
 class TtsBase(Actor):

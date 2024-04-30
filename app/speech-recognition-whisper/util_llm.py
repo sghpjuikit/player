@@ -31,6 +31,7 @@ class ChatStop:
 class Chat:
     def __init__(self, userPrompt: str):
         self.outStart = 'CHAT: '
+        self.outCont = ''
         self.outEnd = ''
         self.userPrompt = userPrompt
         self.speakTokens = True
@@ -40,6 +41,7 @@ class Chat:
 class ChatProceed:
     def __init__(self, sysPrompt: str, userPrompt: str | None):
         self.outStart = 'CHAT: '
+        self.outCont = ''
         self.outEnd = ''
         self.sysPrompt = sysPrompt
         self.userPrompt = userPrompt
@@ -64,12 +66,13 @@ class ChatWhatCanYouDo(ChatProceed):
         )
 
 class ChatIntentDetect(ChatProceed):
-    def __init__(self, sysPrompt: str, userPrompt: str, outStart: str, speakTokens: bool, writeTokens: bool):
+    def __init__(self, sysPrompt: str, userPrompt: str, outStart: str, outCont: str, outEnd: str, speakTokens: bool, writeTokens: bool):
         super().__init__(sysPrompt, userPrompt)
-        self.outStart = 'RAW: executing:\n```\n'
-        self.outEnd = '\n```'
-        self.speakTokens = False
-        self.writeTokens = True
+        self.outStart = outStart
+        self.outCont = outCont
+        self.outEnd = outEnd
+        self.speakTokens = speakTokens
+        self.writeTokens = writeTokens
 
     @classmethod
     def normal(cls, assist_function_prompt: str, userPrompt: str, writeTokens: bool = True):
@@ -85,13 +88,17 @@ class ChatIntentDetect(ChatProceed):
             "Commands: \n" + assist_function_prompt,
             userPrompt,
             'COM-DET: ' if writeTokens else '',
+            '',
+            '',
             False,
             writeTokens
         )
 
     @classmethod
     def python(cls, sysPrompt: str, userPrompt: str):
-        return cls(sysPrompt, userPrompt, 'RAW: executing:\n```\n', False, True)
+        return cls(
+            sysPrompt, userPrompt, 'RAW: ', 'executing:\n```\n', '\n```', False, True
+        )
 
 
 class ChatReact(ChatProceed):
@@ -235,8 +242,8 @@ class LlmGpt4All(Llm):
                                             callback=process
                                         )
                                         consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(tokens, 4)
-                                        if not isCommand and t.writeTokens: self.write(chain([t.outStart], progress(consumer.hasStarted, tokensWrite), [t.outEnd]))
-                                        if isCommandWrite: self.write(chain([t.outStart], progress(commandIterator.hasStarted, commandIterator), [t.outEnd]))
+                                        if not isCommand and t.writeTokens: self.write(chain([t.outStart], progress(consumer.hasStarted, chain([t.outCont], tokensWrite)), [t.outEnd]))
+                                        if isCommandWrite: self.write(chain([t.outStart], progress(commandIterator.hasStarted, chain([t.outCont], commandIterator)), [t.outEnd]))
                                         if t.speakTokens: self.speak(tokensSpeech)
                                         t.processTokens(tokensAlt)
                                         consumer()
@@ -316,8 +323,8 @@ class LlmHttpOpenAi(Llm):
                                     stream.response.close()
 
                             consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(process(), 4)
-                            if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, tokensWrite), [e.outEnd]))
-                            if isCommandWrite: self.write(chain([e.outStart], progress(commandIterator.hasStarted, commandIterator), [e.outEnd]))
+                            if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
+                            if isCommandWrite: self.write(chain([e.outStart], progress(commandIterator.hasStarted, chain([e.outCont], commandIterator)), [e.outEnd]))
                             if e.speakTokens: self.speak(tokensSpeech)
                             e.processTokens(tokensAlt)
                             consumer()

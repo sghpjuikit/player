@@ -1,6 +1,6 @@
 from threading import Lock
 from queue import Queue
-from itertools import tee
+from itertools import tee, chain as ichain
 from typing import Callable
 from time import sleep
 
@@ -63,16 +63,9 @@ def teeThreadSafe(iterable, n=2):
     return tuple(safeteeobject(teeobj, lock) for teeobj in tee(iterable, n))
 
 
-def chain(iterator1, iterator2):
-    """Returns iterator that iterates all elements of the 1st iterator and then all elements of the 2nd iterator"""
-    yield from iterator1
-    yield from iterator2
-
-def chain(iterator1, iterator2, iterator3):
-    """Returns iterator that iterates all elements of the 1st iterator and then all elements of the 2nd iterator"""
-    yield from iterator1
-    yield from iterator2
-    yield from iterator3
+def chain(*iterators):
+    """Returns an iterator that iterates all elements of all iterators in order"""
+    return ichain(*iterators)
 
 class SingleLazyIterator:
     """Iterator that blocks iteration until single element is put into it and then iterates that single element"""

@@ -33,7 +33,7 @@ import sp.it.util.ui.image.toFxAndFlush
  * http://stackoverflow.com/questions/28034432/javafx-file-listview-with-icon-and-file-name
  * http://stackoverflow.com/questions/26192832/java-javafx-set-swing-icon-for-javafx-label
  */
-object IconExtractorK: KLogging() {
+object IconExtractor: KLogging() {
 
    private val dirTmp = File(System.getProperty("java.io.tmpdir"))
    private val helperFileSystemView by lazy { FileSystemView.getFileSystemView() }

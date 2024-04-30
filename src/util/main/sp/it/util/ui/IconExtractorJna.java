@@ -40,11 +40,12 @@ import org.jetbrains.annotations.Nullable;
 import static com.sun.jna.platform.win32.WinGDI.DIB_RGB_COLORS;
 import static sp.it.util.system.Os.WINDOWS;
 
-public class IconExtractorJNA {
+public class IconExtractorJna {
 
 	/** @return image of the specified icon (not that the underlying API only supports up to 32x32 pixels) */
 	public static @Nullable BufferedImage getWindowIcon(HICON hIcon) {
 		if (!WINDOWS.isCurrent()) return null;
+
 		final Dimension iconSize = getIconSize(hIcon);
 		if (iconSize.width == 0 || iconSize.height == 0) return null;
 

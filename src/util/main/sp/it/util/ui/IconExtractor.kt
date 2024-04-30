@@ -8,14 +8,18 @@ import com.sun.jna.platform.win32.WinDef
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
+import mu.KLogging
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.div
 import sp.it.util.file.type.MimeExt.Companion.exe
 import sp.it.util.file.type.MimeExt.Companion.lnk
 import sp.it.util.file.writeTextTry
+import sp.it.util.functional.asIs
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runIf
+import sp.it.util.functional.runTry
 import sp.it.util.system.Os
 import sp.it.util.system.Os.OSX
 import sp.it.util.system.Os.WINDOWS
@@ -29,7 +33,8 @@ import sp.it.util.ui.image.toFxAndFlush
  * http://stackoverflow.com/questions/28034432/javafx-file-listview-with-icon-and-file-name
  * http://stackoverflow.com/questions/26192832/java-javafx-set-swing-icon-for-javafx-label
  */
-object IconExtractor {
+object IconExtractorK: KLogging() {
+
    private val dirTmp = File(System.getProperty("java.io.tmpdir"))
    private val helperFileSystemView by lazy { FileSystemView.getFileSystemView() }
    private val icons = ConcurrentHashMap<String, ImageFx?>()
@@ -46,22 +51,27 @@ object IconExtractor {
       val key = if (hasUniqueIcon) file.absolutePath else ext
 
       return icons.computeIfAbsent(key) {
-         null
-            ?: run {
-               if (file.extension in setOf("dll", "ico", "exe"))
-                  file.iconOfExecutable()?.toFxAndFlush()
-               else
-                  null
-            }
-            ?: run {
-               val iconFile = null
-                  ?: file.takeIf { it.exists() }
-                  ?: runIf(!hasUniqueIcon) {
-                     val f = dirTmp/"iconCache"/"iconForExtension.$ext"
-                     f.takeIf { it.exists() || it.writeTextTry("").isOk }
-                  }
-               iconFile?.getSwingIconFromFileSystem()?.toImage()
-            }
+         runTry {
+            null
+               ?: run {
+                  if (file.extension in setOf("dll", "ico", "exe"))
+                     file.iconOfExecutable()?.toFxAndFlush()
+                  else
+                     null
+               }
+               ?: run {
+                  val iconFile = null
+                     ?: file.takeIf { it.exists() }
+                     ?: runIf(!hasUniqueIcon) {
+                        val f = dirTmp/"iconCache"/"iconForExtension.$ext"
+                        f.takeIf { it.exists() || it.writeTextTry("").isOk }
+                     }
+                  iconFile?.getSwingIconFromFileSystem()?.toImage()
+               }
+         }.orNull {
+            // https://bugs.openjdk.org/browse/JDK-8293862
+            logger.error { "Error obtaining icon for file=${file}" }
+         }
       }
    }
 
@@ -85,8 +95,8 @@ object IconExtractor {
 
             iconHandles.asSequence()
                .filterNotNull()
-               .maxByOrNull { IconExtractorJNA.getIconSize(it).width }
-               ?.let(IconExtractorJNA::getWindowIcon)
+               .maxByOrNull { IconExtractorJna.getIconSize(it).width }
+               ?.let(IconExtractorJna::getWindowIcon)
          } else {
             null
          }
@@ -95,9 +105,14 @@ object IconExtractor {
    }
 
    private fun ImageSw.toImage(): ImageFx {
-      val image = ImageBf(this.iconWidth, this.iconHeight, TYPE_INT_ARGB)
-      paintIcon(null, image.graphics, 0, 0)
-      return image.toFxAndFlush()
+      return when {
+         this is ImageIcon && image is ImageBf -> image.asIs<ImageBf>().toFxAndFlush()
+         else -> {
+            val image = ImageBf(this.iconWidth, this.iconHeight, TYPE_INT_ARGB)
+            paintIcon(null, image.graphics, 0, 0)
+            return image.toFxAndFlush()
+         }
+      }
    }
 
 }

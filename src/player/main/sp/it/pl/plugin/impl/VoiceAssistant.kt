@@ -119,8 +119,6 @@ class VoiceAssistant: PluginBase() {
             "parent-process=${ProcessHandle.current().pid()}",
             "speech-on=${ttsOn.value}",
             "speech-engine=${ttsEngine.value.code}",
-            "character-ai-token=${ttsEngineCharAiToken.value}",
-            "character-ai-voice=22",
             "coqui-voice=${ttsEngineCoquiVoice.value}",
             "coqui-cuda-device=${ttsEngineCoquiCudaDevice.value}",
             "speech-server=${ttsEngineHttpUrl.value}",
@@ -418,13 +416,6 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Speech engine", info = "Engine used to generate voice. May require additional configuration")
 
    /** Access token for character.ai account used when speech engine is Character.ai */
-   val ttsEngineCharAiToken by cvn<String>(null).password()
-      .def(
-         name = "Speech engine > character.ai > token",
-         info = "Access token for character.ai account used when using ${SpeechEngine.CHARACTER_AI.nameUi} speech engine"
-      )
-
-   /** Access token for character.ai account used when speech engine is Character.ai */
    val ttsEngineCoquiVoice by cv("Ann_Daniels.flac")
       .valuesUnsealed { (dir / "voices-coqui").children().filter { it.isAudio() }.map { it.name }.toList() }
       .def(
@@ -526,7 +517,7 @@ class VoiceAssistant: PluginBase() {
       val processChangeVals = listOf<V<*>>(
          micName,
          sttEngine, sttWhisperModel, sttWhisperDevice, sttNemoModel, sttNemoDevice, sttHttpUrl,
-         ttsEngine, ttsEngineCharAiToken, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl,
+         ttsEngine, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
          httpUrl
       )
@@ -642,7 +633,6 @@ class VoiceAssistant: PluginBase() {
    enum class SpeechEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
       NONE("none", "None", "No voice"),
       SYSTEM("os", "System", "System voice. Fully offline"),
-      CHARACTER_AI("character-ai", "Character.ai", "Voice using www.character.ai service. Requires free account and access token"),
       COQUI("coqui", "Coqui", "Voice using huggingface.co/coqui/XTTS-v2 model. Fully offline"),
       TACOTRON2("tacotron2", "Tacotron2", "Voice using pytorch.org/hub/nvidia_deeplearningexamples_tacotron2 model. Fully offline"),
       SPEECHBRAIN("speechbrain", "Speechbrain", "Voice using speechbrain/tts-tacotron2-ljspeech + speechbrain/tts-hifigan-ljspeech model. Fully offline"),

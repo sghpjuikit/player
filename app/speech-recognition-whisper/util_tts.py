@@ -299,51 +299,6 @@ class TtsOs(TtsWithModelBase):
                         self.play.playFile(text, audio_file, skippable)
 
 
-# https://github.com/Xtr4F/PyCharacterAI
-class TtsCharAi(TtsWithModelBase):
-    def __init__(self, token: str, voice: int, play: SdActor, write: Writer):
-        super().__init__('TtsCharAi', play, write)
-        self.token = token
-        self.voice = voice
-
-    def _loop(self):
-        asyncio.run(self._loopasync())
-
-    async def _loopasync(self):
-        # init
-        if len(self.token)==0: raise Exception("Auth token missing")
-        from PyCharacterAI import Client
-        # init dir
-        cache_dir = self._cache_dir("charai", str(self.voice))
-        # init client
-        client = None
-        # loop
-        with self.looping():
-            while not self._stop:
-                with self._loopProcessEvent() as (text, skippable):
-                    audio_file, audio_file_exists = cache_file(text, cache_dir)
-                    cache_used = len(text) < 100
-
-                    # generate audio
-                    if not cache_used or not audio_file_exists:
-                        # login once lazily
-                        if client is None:
-                            client = Client()
-                            await client.authenticate_with_token(self.token)
-
-                        # generate
-                        audio_data = await client.generate_voice(self.voice, text[:4094])
-
-                        # play
-                        self.play.playWavChunk(text, audio_data, skippable)
-
-                        # update cache
-                        if cache_used:
-                            sf.write(audio_file, audio_data, 24000)
-                    else:
-                        self.play.playFile(text, audio_file, skippable)
-
-
 # https://pypi.org/project/TTS/
 class TtsCoqui(TtsWithModelBase):
     def __init__(self, voice: str, device: str, play: SdActor, write: Writer):

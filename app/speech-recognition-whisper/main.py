@@ -10,7 +10,7 @@ from itertools import chain
 from threading import Thread, Timer
 from typing import cast
 from util_play_engine import SdActor
-from util_tts import Tts, TtsNone, TtsOs, TtsCharAi, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
+from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatReact, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
@@ -115,8 +115,6 @@ Args:
     Engine for speaking.
     - Use 'none' for no text to speech
     - Use 'os' to use built-in OS text-to-speech (offline, high performance, low quality)
-    - Use 'character-ai' to use character.ai online service client (requires login)
-      requires specifying character-ai-token, optionally character-ai-voice
     - Use 'coqui' to use xttsv2 model (offline, low performance, realistic quality)
       optionally specify coqui-voice
     - Use 'tacotron2' to use tacotron2 (offline, realistic quality)
@@ -126,14 +124,6 @@ Args:
       requires the other instance to use coqui
       requires specifying the speech-server as the url of the other instance
     Default: os
-
-  character-ai-token=$token
-    If speaking-engine=character-ai is used, authentication token for character.ai is required
-    Default: None
-
-  character-ai-voice=$voice
-    If speaking-engine=character-ai is used, optional voice id can be supplied
-    Default: 22 (Anime Girl en-US)
 
   coqui-voice=$voice
     If speaking-engine=coqui is used, required name of voice file must be specified and exist in ./coqui-voices dir
@@ -221,8 +211,6 @@ sttHttpUrl = arg('stt-http-url', 'localhost:1235')
 
 ttsOn = arg('speech-on', "true") == "true"
 ttsEngineType = arg('speech-engine', 'os')
-ttsCharAiToken = arg('character-ai-token', '')
-ttsCharAiVoice = int(arg('character-ai-voice', '22'))
 ttsCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
 ttsCoquiCudaDevice = arg('coqui-cuda-device', '')
 ttsTacotron2Device = arg('tacotron2-cuda-device', '')
@@ -247,8 +235,6 @@ if ttsEngineType == 'none':
     speakEngine = TtsNone(write)
 elif ttsEngineType == 'os':
     speakEngine = TtsOs(SdActor(write), write)
-elif ttsEngineType == 'character-ai':
-    speakEngine = TtsCharAi(ttsCharAiToken, ttsCharAiVoice, SdActor(write), write)
 elif ttsEngineType == 'coqui':
     speakEngine = TtsCoqui(ttsCoquiVoice, "cuda" if len(ttsCoquiCudaDevice)==0 else ttsCoquiCudaDevice, SdActor(write), write)
 elif ttsEngineType == 'tacotron2':

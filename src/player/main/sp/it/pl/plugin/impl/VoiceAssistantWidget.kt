@@ -365,7 +365,6 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             listOf(
                it::ttsOn,
                it::ttsEngine,
-               it::ttsEngineCharAiToken,
                it::ttsEngineCoquiVoice,
                it::ttsEngineCoquiCudaDevice,
                it::ttsEngineHttpUrl

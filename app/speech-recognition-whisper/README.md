@@ -89,7 +89,6 @@ flowchart TD
   V  -.-> V5[/TtsTacotron2/]
   V  -.-> V6[/TtsSpeechBrain/]
   V  -.-> V7[/TtsFastPitch/]
-  V  -.-> V2[/TtsCharAi/]
   V  -.-> V8[/TtsHttp/]
   V1 -.->|python native| V1X[(OS voice)]
   V3 -.->|python lib| V3X[(Coqui TTS)]
@@ -97,7 +96,6 @@ flowchart TD
   V5 -.->|pytorch| V5X[(torch lib)]
   V6 -.->|pytorch| V6X[(speechbrain lib)]
   V7 -.->|pytorch| V7X[(torch lib)]
-  V2 -.->|http| V2X[(Character.AI Service)]
   V8 -.->|http| V8X[(Other self instance)]
 ```
 

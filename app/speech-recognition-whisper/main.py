@@ -15,7 +15,7 @@ from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatReact, ChatWhatCanYouDo, ChatPaste, ChatStop
 from util_mic import Mic
 from util_http import Http, HttpHandler
-from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerIntent, HttpHandlerStt
+from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerIntent, HttpHandlerStt, HttpHandlerSttReact
 from util_stt import SttNone, SttWhisper, SttNemo, SttHttp
 from util_wrt import Writer
 from util_itr import teeThreadSafe, teeThreadSafeEager
@@ -573,6 +573,7 @@ http.handlers.append(HttpHandlerState(actors))
 http.handlers.append(HttpHandlerStateActorEvents(actors))
 http.handlers.append(HttpHandlerIntent(llm, assist_function_prompt))
 http.handlers.append(HttpHandlerStt(stt))
+http.handlers.append(HttpHandlerSttReact(llm, llmSysPrompt))
 if isinstance(tts.tts, TtsCoqui): http.handlers.append(tts.tts._httpHandler())
 
 # start actors

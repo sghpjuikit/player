@@ -136,9 +136,10 @@ flowchart LR
   HTTP[Http API]
   HTTP -->|endpoint| HTTP1[path: /speech \n returns generated audio \n requires Tts==TtsCoqui]
   HTTP -->|endpoint| HTTP2[path: /actor \n returns all actor states for monitoring]
-  HTTP -->|endpoint| HTTP2[path: /actor-events?actor=...&type=... \n returns specified actor queued/processing/processed events]
+  HTTP -->|endpoint| HTTP2[path: /actor-events?actor=STDOUT/MIC/STT/LLM/TTS/PLAY&type=QUEUED/PROCESSING/PROCESSED \n returns specified actor events]
   HTTP -->|endpoint| HTTP3[path: /intent \n returns result of intent detection \n requires Llm!=LlmNone]
   HTTP -->|endpoint| HTTP4[path: /stt \n returns text result of speech recognition \n requires Stt!=SttNone]
+  HTTP -->|endpoint| HTTP4[path: //tts-event \n speak text generated with llm with specified input or fallback text, it requires Stt!=LlmNone, Stt!=SttNone]
 ```
 
 ## Features

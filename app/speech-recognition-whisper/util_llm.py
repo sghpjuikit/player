@@ -104,8 +104,8 @@ class ChatIntentDetect(ChatProceed):
 class ChatReact(ChatProceed):
     def __init__(self, sys_prompt: str, event_to_react_to: str, fallback: str):
         super().__init__(
-            f"{sys_prompt}. You are a friend. You are terse and concise. You only react to provided events with single word or sentence.",
-            f"{event_to_react_to}."
+            f"{sys_prompt}",
+            f"React to provided event with single short sentence. Event:\n {event_to_react_to}."
         )
         self.outStart = 'CHAT: '
         self.speakTokens = False

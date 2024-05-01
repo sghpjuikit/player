@@ -2,7 +2,7 @@
 import json
 from typing import List
 from util_wrt import Writer
-from util_llm import Llm, ChatIntentDetect
+from util_llm import Llm, ChatIntentDetect, ChatReact
 from util_stt import Stt
 from util_actor import Actor
 from util_http import HttpHandler
@@ -139,3 +139,36 @@ class HttpHandlerStt(HttpHandler):
             traceback.print_exc()
             req.send_error(500, f"{e}")
 
+
+@dataclass
+class HttpHandlerSttReactData:
+    event_to_react_to: str
+    fallback: str
+
+class HttpHandlerSttReact(HttpHandler):
+    def __init__(self, llm: Llm, sysPrompt: str):
+        super().__init__("POST", "/tts-event")
+        self.llm = llm
+        self.sysPrompt = sysPrompt
+
+    def __call__(self, req: BaseHTTPRequestHandler):
+        content_length = req.headers['Content-Length']
+        if content_length is None: req.send_error(400, 'Invalid input')
+        if content_length is None: return
+
+        content_length = int(req.headers['Content-Length'])
+        body = req.rfile.read(content_length)
+        body = body.decode('utf-8')
+        body = json.loads(body)
+        body = HttpHandlerSttReactData(**body)
+
+        try:
+            f = self.llm(ChatReact(self.sysPrompt, body.event_to_react_to, body.fallback))
+            _ = f.result()
+            req.send_response(200)
+            req.send_header('Content-type', 'text/plain')
+            req.end_headers()
+            req.wfile.write(command)
+        except Exception as e:
+            traceback.print_exc()
+            req.send_error(500, f"{e}")

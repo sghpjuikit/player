@@ -46,6 +46,7 @@ import sp.it.util.access.visible
 import sp.it.util.access.vn
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.VT
+import sp.it.util.async.coroutine.invokeTry
 import sp.it.util.async.coroutine.launch
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.ListConfigurable
@@ -62,9 +63,12 @@ import sp.it.util.file.json.JsNumber
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsTrue
+import sp.it.util.functional.Try
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.Subscription
@@ -306,10 +310,9 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
          id = key
          onEventDown(MOUSE_CLICKED, PRIMARY) {
             userData.ifNotNull { eType ->
-               launch(VT) {
-                  val url = plugin.value?.httpUrl?.value?.net { "$it/actor-events?actor=${type}&type=${eType}"} ?: fail { "Voice Assistant not running" }
-                  val events = APP.http.client.get(url).bodyAsJs()
-                  FX { APP.ui.actionPane.show(events) }
+               launch(FX) {
+                  val events = VT.invokeTry { plugin.value?.state(type, eType as String) ?: fail { "Voice Assistant not running" } }
+                  APP.ui.actionPane.show(events)
                }
             }
          }

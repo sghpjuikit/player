@@ -1,8 +1,11 @@
 package sp.it.pl.plugin.impl
 
 import com.sun.jna.platform.win32.Kernel32
+import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import java.io.IOException
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.lang.StringBuilder
@@ -10,10 +13,14 @@ import java.util.regex.Pattern
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Line
 import javax.sound.sampled.TargetDataLine
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.invoke
+import kotlinx.coroutines.withContext
 import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
+import sp.it.pl.core.bodyAsJs
 import sp.it.pl.core.bodyJs
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetUse.ANY
@@ -34,6 +41,7 @@ import sp.it.util.async.NEW
 import sp.it.util.async.actor.ActorVt
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.VT
+import sp.it.util.async.coroutine.invokeTry
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
@@ -61,10 +69,14 @@ import sp.it.util.conf.uiNoCustomUnsealedValue
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
+import sp.it.util.dev.doNothing
+import sp.it.util.dev.fail
 import sp.it.util.file.children
 import sp.it.util.file.div
+import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
+import sp.it.util.file.json.JsValue
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
@@ -622,6 +634,17 @@ class VoiceAssistant: PluginBase() {
    fun chat(text: String) = write("CHAT: ${text.encodeBase64()}")
 
    fun raw(text: String) = write(text)
+
+   @Throws(Throwable::class)
+   suspend fun speakEvent(eventToReactTo: String, fallback: String): Unit =
+      VT {
+         APP.http.client.post("${httpUrl.value}/tts-event") { bodyJs("event_to_react_to" to eventToReactTo, "fallback" to fallback) }
+      }
+
+   suspend fun state(actorType: String, eventType: String): JsValue =
+      VT {
+         APP.http.client.get("${httpUrl.value}/actor-events?actor=${actorType}&type=${eventType}").bodyAsJs()
+      }
 
    enum class TtsEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
       NONE("none", "None", "No speech recognition"),

@@ -3,25 +3,25 @@ import sys
 
 def starts_with_any(t: str, prefixes: [str]) -> bool:
     for prefix in prefixes:
-        if t.startswith(prefix):
+        if t.lower().startswith(prefix):
             return True
     return False
 
 def ends_with_any(t: str, suffixes: [str]) -> bool:
     for prefix in suffixes:
-        if t.endswith(prefix):
+        if t.lower().endswith(prefix):
             return True
     return False
 
 def remove_any_prefix(t: str, prefixes: [str]) -> str:
     for prefix in prefixes:
-        if t.startswith(prefix):
+        if t.lower().startswith(prefix):
             t = t[len(prefix):]
     return t
 
 def remove_any_suffix(t, suffixes: [str]) -> str:
     for suffix in suffixes:
-        if t.endswith(suffix):
+        if t.lower.endswith(suffix):
             t = t[:len(t) - len(suffix)]
     return t
 

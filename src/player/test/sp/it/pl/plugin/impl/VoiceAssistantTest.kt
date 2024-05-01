@@ -5,7 +5,6 @@ import io.kotest.matchers.regex.shouldMatch
 import io.kotest.matchers.shouldBe
 import sp.it.pl.plugin.impl.VoiceAssistant.Companion.sanitize
 import sp.it.util.functional.net
-import sp.it.util.text.Char32
 import sp.it.util.text.chars32
 
 class VoiceAssistantTest: FreeSpec({
@@ -14,11 +13,10 @@ class VoiceAssistantTest: FreeSpec({
    fun MatchResult?.arg() = this!!.groupValues.drop(1).first()
    fun MatchResult?.args() = this!!.groupValues.drop(1)
 
-
    "sanitize" {
-       "Scene, yellow, blue.".sanitize(setOf()) shouldBe "scene yellow blue"
-       "...".sanitize(setOf()) shouldBe ""
-       "hey-hey\nhello".sanitize(setOf()) shouldBe "hey-hey hello"
+       "Scene, yellow, blue.".sanitize(setOf()) shouldBe "scene, yellow, blue."
+       "...".sanitize(setOf()) shouldBe "..."
+       "hey-hey\nhello".sanitize(setOf()) shouldBe "hey-hey\nhello"
    }
 
    "regex quirks" - {

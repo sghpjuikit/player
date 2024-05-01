@@ -8,17 +8,15 @@ import java.time.Period
 import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyCode
 import javafx.scene.robot.Robot
-import kotlin.math.max
-import kotlin.math.min
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.invoke
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.main.APP
 import sp.it.pl.main.ScheduledNote
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakContext
 import sp.it.pl.voice.toVoiceS
+import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.delay
-import sp.it.util.async.runVT
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
@@ -184,7 +182,8 @@ fun SpeakContext.voiceCommandOsLock(text: String): ComMatch =
    else null
 
 fun SpeakContext.voiceCommandSetReminder(text: String): ComMatch =
-   if (matches(text)) {
+   if (handler.regex.matches(text)) {
+   // if (matches(text)) {  // this command is not matched properly with this function due to non-greedy groups
       text.removePrefix("set reminder ").net {
          when {
             it.startsWith("in ") -> {
@@ -211,13 +210,13 @@ fun SpeakContext.voiceCommandSetReminder(text: String): ComMatch =
             }
             it.startsWith("at ") -> {
                var nText = it.removePrefix("at ").substringAfter(" ")
-               var nTime = it.removePrefix("in ").substringBefore(" ").let { runTry { Instant.parse(it) }.orNull() }
+               var nTime = it.removePrefix("at ").substringBefore(" ").uppercase().let { runTry { Instant.parse(it) }.orNull() }
                if (nTime==null) Error("Invalid time format")
                else Ok(ScheduledNote(uuid(), nTime, nText))
             }
             else -> Error("Invalid time format")
          }.map {
-            APP.scheduler.jobs += it
+            APP.scheduler schedule it
             Ok("Reminder scheduled")
          }.flatten()
       }
@@ -237,16 +236,21 @@ suspend fun SpeakContext.voiceCommandWait(text: String): ComMatch =
       else null
    }
 
-fun SpeakContext.voiceCommandCountTo(text: String): ComMatch =
+suspend fun SpeakContext.voiceCommandCountTo(text: String): ComMatch =
    if (matches(text)) {
       val pattern = Regex("""count from (.*) to (.*)""")
       val (from, to) = pattern.find(text)!!.destructured.net { (a,b) -> (a.toIntOrNull() ?: 1) to (b.toIntOrNull() ?: 10) }
-      runVT {
-         repeat(max(from, to) - min(from, to) + 1) {
-            APP.plugins.get<VoiceAssistant>()?.speak("${(from + it)}...")
-         }
+      VT {
+         APP.plugins.get<VoiceAssistant>()?.writeComPyt(
+            """
+            for i in range($from, $to):
+               wait(0.5)
+               speak("Ok")
+               speak(str(i))
+            """.trimIndent()
+         )
       }
-      Ok("Ok")
+      Ok(null)
    } else {
       null
    }

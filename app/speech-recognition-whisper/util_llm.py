@@ -78,13 +78,12 @@ class ChatIntentDetect(ChatProceed):
     def normal(cls, assist_function_prompt: str, userPrompt: str, writeTokens: bool = True):
         return cls(
             "From now on, identify user intent by returning one of following commands. " +
-            "Only respond with command in format: `COM-command-COM`. " +
+            "Only respond with command in format: `COM command COM`. " +
             "? is optional, $ is command parameter, : is default value. " +
-            "Use '-' as word separator in command. " +
             "Use '_' as word separator in $ parameter values. " +
             "Do not write $ after resolving parameter, e.g. `$number` -> `5`. " +
             "You can respond with multiple commands, each on new line. " +
-            "Command example: COM-command-prefix-parameter_value-command-suffix-COM. " +
+            "Command example: COM command prefix parameter_value command suffix COM. " +
             "Commands: \n" + assist_function_prompt,
             userPrompt,
             'COM-DET: ' if writeTokens else '',
@@ -148,7 +147,7 @@ class Llm(Actor):
                 if text is None:
                     commandIterator.put('unidentified')
                 else:
-                    command = text.strip().removeprefix("COM-").removesuffix("-COM").strip().replace('-', ' ')
+                    command = text.strip().removeprefix("COM ").removesuffix(" COM").strip()
                     command = command.replace('unidentified', e.userPrompt)
                     command = 'unidentified' if len(command.strip())==0 else command
                     command = 'unidentified' if canceled else command
@@ -175,7 +174,7 @@ class LlmNone(Llm):
                 if isinstance(e, ChatReact):
                     f.set_result(e.fallback)
                 elif isinstance(e, ChatIntentDetect):
-                    f.set_result('COM-' + e.userPrompt + '-COM')
+                    f.set_result('COM ' + e.userPrompt + ' COM')
                     if e.writeTokens: self.write('COM-DET: ' + e.userPrompt)
                 else:
                     f.set_exception(Exception("Illegal"))
@@ -231,7 +230,7 @@ class LlmGpt4All(Llm):
                                     try:
                                         self.generating = True
 
-                                        stop = "-COM" if isCommand else None,
+                                        stop = " COM" if isCommand else None,
                                         text = ''
                                         def process(token_id, token_string):
                                             text = text + token_string
@@ -313,7 +312,7 @@ class LlmHttpOpenAi(Llm):
                                 stream = client.chat.completions.create(
                                     model=self.modelName, messages=messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
                                     stream=True, timeout=Timeout(5.0),
-                                    stop = ["-COM", "<|eot_id|>"] if isCommand else ["<|eot_id|>"],
+                                    stop = [" COM", "<|eot_id|>"] if isCommand else ["<|eot_id|>"],
                                 )
                                 try:
                                     for chunk in stream:

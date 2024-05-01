@@ -185,6 +185,10 @@ Args:
   http-url=$host:port
     Url of the http API of the locally running AI executor
     Default: localhost:1236
+    
+  use-python-commands=bool
+    Experimental flag to allow llm to repond with python commands. Much more powerful, but also somewhat unpredictable.
+    Default: false
 """
     )
     quit()
@@ -228,6 +232,7 @@ llmChatTopp = float(arg('llm-chat-topp', '0.95'))
 llmChatTopk = int(arg('llm-chat-topk', '40'))
 
 httpUrl = arg('http-url', 'localhost:1236')
+usePythonCommands = arg('use-python-commands', 'false')=="true"
 
 
 # speak engine actor, non-blocking
@@ -290,41 +295,41 @@ assist_last_at = time.time()
 assist_last_diff = 0
 assist = Assist()
 assist_function_prompt = f"""
-- repeat // last speech
-- list-commands
-- what-can-you-do
-- restart-assistant|yourself
-- start|restart|stop-conversation
-- shut_down|restart|hibernate|sleep|lock|log_off-system|pc|computer|os
-- list-available-voices
-- change-voice-$voice // resolve to one from {', '.join(voices)}
-- open-$widget_name  // various tasks can be acomplished using appropriate widget
-- open-weather
-- play-music
-- stop-music
-- play-previous-song
-- play-next-song
-- what-song-is-active
-- what-time-is-it
-- what-date-is-it
-- describe-clipboard
-- describe-$text
-- generate-from?-clipboard
-- speak|say-from?-clipboard
-- speak|say-$text
-- lights-on|off // turns all lights on/off
-- lights-group-$group_name-on|off?  // room is usually a group
-- list-light-groups
-- light-bulb-$bulb_name-on|off?
-- list-light-bulbs
-- lights-scene-$scene_name  // sets light scene, scene is usually a mood, user must say 'scene' word
-- list-light-scenes
-- set-reminder-on-$iso_datetime-$text
-- set-reminder-in-$time_period-$text // units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year
-- wait-$time_period // units: s
-- greeting-$user_greeting
-- count-from-$from:1-to-$to
-- unidentified // no other command probable
+* repeat // last speech
+* list commands
+* what can you do
+* restart assistant|yourself
+* start|restart|stop conversation
+* shut_down|restart|hibernate|sleep|lock|log_off system|pc|computer|os
+* list available voices
+* change voice $voice // resolve to one from {', '.join(voices)}
+* open $widget_name  // various tasks can be acomplished using appropriate widget
+* open weather
+* play music
+* stop music
+* play previous song
+* play next song
+* what song is active
+* what time is it
+* what date is it
+* describe clipboard
+* describe $text
+* generate from? clipboard
+* speak|say from? clipboard
+* speak|say $text
+* lights on|off // turns all lights on/off
+* lights group $group_name on|off?  // room is usually a group
+* list light groups
+* light bulb $bulb_name on|off?
+* list light bulbs
+* lights scene $scene_name  // sets light scene, scene is usually a mood, user must say 'scene' word
+* list light scenes
+* set reminder in $time_period $text_to_remind // units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year, e.g.: 'set reminder in 15min text to remind'
+* set reminder at $iso_datetime $text_to_remind // always use iso format '%Y-%m-%dT%H:%M:%SZ' e.g.: 'set reminder at 2024-05-01T06:45:00Z text to remind'
+* wait $time_period // units: s
+* greeting $user_greeting
+* count from $from:1 to $to
+* unidentified // no other command probable
 """
 
 # commands
@@ -339,14 +344,14 @@ class CommandExecutorMain(CommandExecutor):
             return handled
         if text.startswith("speak "):
             return text
-        if text.startswith("do speak "):
+        if text.startswith("do-speak "):
             tts(text.removeprefix("do speak "))
             return handled
         if text == "list available voices":
             tts("The available voices are: " + ', '.join(voices))
             return handled
-        if text.startswith("greeting-"):
-            g = text.removeprefix("greeting-").replace('_', ' ').capitalize()
+        if text.startswith("greeting "):
+            g = text.removeprefix("greeting ").capitalize()
             llm(ChatReact(llmSysPrompt, "User greeted you with " + g, g))
             return handled
         if text.startswith("change voice "):
@@ -445,7 +450,7 @@ class AssistStandard(Assist):
             llm(ChatReact(llmSysPrompt, "Afk user prodded you - are you there?", "Yes"))
         # do greeting
         elif text == "hi" or text == "hello" or text == "greetings":
-            commandExecutor.execute(f"greeting-{text}")
+            commandExecutor.execute(f"greeting {text}")
         # do help
         elif text == "help":
             tts.skippable(
@@ -460,16 +465,22 @@ class AssistStandard(Assist):
             commandExecutor.execute("start conversation")
         # do command
         else:
-            from util_com import commands
-            for c in commands(text):
-                c = commandExecutor.execute(c)
-                write('COM: ' + c)
-                time.sleep(0.1) # simulate user
+            if not usePythonCommands:
+                # command handling
+                write('COM: ' + text)
+            else:
+                # this command is too difficult for LLM right now
+                if text.startswith("generate "): commandExecutor.execute(text)
+                # this command is too difficult for LLM right now
+                if text.startswith("count "): commandExecutor.execute(text)
+                # this command is too difficult for LLM right now
+                else: executorPython.generatePythonAndExecute(text)
 
 
 assistStand = AssistStandard()
 assist = assistStand
-executorPython = PythonExecutor(tts, write)
+def xxx(sp, up): return llm(ChatIntentDetect.python(sp, up))
+executorPython = PythonExecutor(tts, xxx, write, llmSysPrompt, ', '.join(voices))
 
 def skipWithoutSound():
     executorPython.skip()
@@ -621,7 +632,7 @@ while not sysTerminating:
 
         if m.startswith("COM-PYT: "):
             text = base64.b64decode(m[9:]).decode('utf-8')
-            execute_command_python(text)
+            executorPython.generatePythonAndExecute(text)
 
         if m.startswith("CALL: "):
             text = m[6:]
@@ -668,6 +679,9 @@ while not sysTerminating:
 
         elif m.startswith("llm-chat-topk="):
             llm.topk = int(prop(m, "llm-chat-topk", "40"))
+
+        elif m.startswith("use-python-commands="):
+            usePythonCommands = prop(m, "use-python-commands", "false")=="true"
 
         # exit command
         elif m == "EXIT":

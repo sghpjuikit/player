@@ -151,6 +151,7 @@ class VoiceAssistant: PluginBase() {
             "stt-nemo-device=${sttNemoDevice.value}",
             "stt-http-url=${sttHttpUrl.value}",
             "http-url=${httpUrl.value.net { it.substringAfterLast("/") }}",
+            "use-python-commands=${usePythonCommands.value}",
          )
          val command = EnvironmentContext.runAsProgramArgsTransformer(commandRaw)
          val process = ProcessBuilder(command)
@@ -305,7 +306,7 @@ class VoiceAssistant: PluginBase() {
             SpeakHandler(                        "Sleep OS", "sleep system|pc|computer|os")                  { voiceCommandOsSleep(it) }.takeIf { WINDOWS.isCurrent },
             SpeakHandler(                         "Lock OS", "lock system|pc|computer|os")                   { voiceCommandOsLock(it) }.takeIf { WINDOWS.isCurrent },
             SpeakHandler(                      "Log off OS", "log off system|pc|computer|os")                { voiceCommandOsLogOff(it) }.takeIf { WINDOWS.isCurrent },
-            SpeakHandler(                    "Set reminder", "set reminder in|on \$time \$text")             { voiceCommandSetReminder(it) },
+            SpeakHandler(                    "Set reminder", "set reminder in|at \$time \$text")             { voiceCommandSetReminder(it) },
             SpeakHandler(                            "Wait", "wait \$time")                                  { voiceCommandWait(it) },
             SpeakHandler(                     "Count to...", "count from \$from to \$to")                    { voiceCommandCountTo(it) },
          ).toTypedArray()
@@ -504,6 +505,13 @@ class VoiceAssistant: PluginBase() {
          info = "Url of the http API of the locally running AI executor"
       )
 
+   /** Experimental flag to allow llm to repond with python commands. Much more powerful, but also somewhat unpredictable. Default false. */
+   val usePythonCommands by cv(false)
+      .def(
+         name = "Use python commands",
+         info = "Experimental flag to allow llm to repond with python commands. Much more powerful, but also somewhat unpredictable. Default false."
+      )
+
    private var isRunning = false
 
    override fun start() {
@@ -521,6 +529,7 @@ class VoiceAssistant: PluginBase() {
               llmChatTemp.chan().throttleToLast(p) subscribe { write("llm-chat-temp=$it") }
               llmChatTopP.chan().throttleToLast(p) subscribe { write("llm-chat-topp=$it") }
               llmChatTopK.chan().throttleToLast(p) subscribe { write("llm-chat-topk=$it") }
+        usePythonCommands.chan().throttleToLast(p) subscribe { write("use-python-commands=$it") }
       // @formatter:on
 
       startSpeechRecognition()
@@ -599,22 +608,42 @@ class VoiceAssistant: PluginBase() {
       if (user) speakingTextW.value = text
       if (!command) return
 
-      var textSanitized = text.orEmpty().sanitize(sttBlacklistWords_)
+      var textSanitized = text.removePrefix("COM ").removeSuffix(" COM").replace("_", " ").sanitize(sttBlacklistWords_)
       var result = handlers.firstNotNullOfOrNull { SpeakContext(it, this@VoiceAssistant)(textSanitized) }
       if (result==null) {
-         if (orDetectIntent) write("COM-DET: ${text.encodeBase64()}")
-         else speak("Unrecognized command: $text")
+         if (!orDetectIntent) speak("Unrecognized command: $textSanitized")
+         else {
+            intent("", textSanitized).ifError {
+               logger.error(it) { "Failed to understand command $textSanitized" }
+               speak("Recognized command failed with error: ${it.message ?: ""}")
+            }.ifOk {
+               handleSpeech(it, command = true, orDetectIntent = false)
+            }
+         }
       } else
          result.getAny().ifNotNull(::speak)
    }
 
    private val writing = ActorVt<Pair<Fut<Process>?, String>>("SpeechRecognition-writer") { (setup, it) ->
-      setup?.blockAndGetOrThrow()?.outputStream?.apply { write("$it\n".toByteArray()); flush() }
+      try {
+         setup?.blockAndGetOrThrow()?.outputStream?.apply { write("$it\n".toByteArray()); flush() }
+      } catch (e: IOException) {
+         if (e.message=="The pipe is being closed") doNothing("Stream may be closed mid write")
+         else throw e
+      }
    }
+
+   suspend fun intent(functions: String?, userPrompt: String) =
+      VT.invokeTry {
+         val url = httpUrl.value.net { "$it/intent"}
+         APP.http.client.post(url) { bodyJs("functions" to (functions ?: ""), "userPrompt" to userPrompt) }.bodyAsText()
+      }
 
    fun write(text: String): Unit = writing(setup to text)
    
    fun writeCom(command: String): Unit = writing(setup to "COM: ${command.encodeBase64()}")
+
+   fun writeComPyt(command: String): Unit = writing(setup to "COM-PYT: ${command.encodeBase64()}")
 
    @IsAction(name = "Speak text", info = "Identical to \"Narrate text\"")
    fun synthesize() = speak()
@@ -761,9 +790,12 @@ class VoiceAssistant: PluginBase() {
          runOn(NEW(name)) { useStrings(1024*1024, block = block) }
 
       /** @return speech text adjusted to make it more versatile and more likely to match command */
-      internal fun String.sanitize(blacklistWordsSet: Set<String>): String =
-         trim().removeSuffix(".").lowercase().words().filterNot(blacklistWordsSet::contains).joinToString(" ")
-
+      internal fun String.sanitize(blacklistWordsSet: Set<String>): String {
+         var s = " " + trim().lowercase() + " "
+         blacklistWordsSet.forEach { it -> s = s.replace(" " + it + " ", "") }
+         s = s.replace("  ", " ").trim()
+         return s
+      }
    }
 
 }

@@ -512,7 +512,7 @@ def callback(text):
         else: assist(text, textSanitized)
     except Exception as e:
         traceback.print_exc()
-        write("ERR: {e}")
+        write(f"ERR: {e}")
         tts(name + " encountered an error. Please speak again.")
 
 def start_exit_invoker():
@@ -599,7 +599,7 @@ while not sysTerminating:
 
         # talk command
         if m.startswith("SAY-LINE: "):
-            text = m[11:]
+            text = m[10:]
             tts.skippable(text)
 
         # talk command
@@ -625,6 +625,8 @@ while not sysTerminating:
 
         if m.startswith("CALL: "):
             text = m[6:]
+            text = remove_any_prefix(text, wake_words)
+            text = name + ' ' + text
             callback(text)
 
         if m.startswith("COM: "):

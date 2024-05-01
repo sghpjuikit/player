@@ -96,7 +96,7 @@ class PluginManager: GlobalConfigDelegator {
    inline fun <P: PluginBase> use(type: KClass<P>, action: (P) -> Unit): Unit = get(type).ifNotNull(action).toUnit()
 
    /** Invokes the action with the running plugin of the type specified by the generic type argument or does nothing if no such instance. */
-   inline fun <reified P: PluginBase> use(noinline action: (P) -> Unit) = use(P::class, action)
+   inline fun <reified P: PluginBase> use(action: (P) -> Unit) = use(P::class, action)
 
    inline fun <reified P: PluginBase> plugin(): PluginRef<P> = PluginRef(P::class)
 

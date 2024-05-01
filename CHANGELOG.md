@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+- Update Kotlin to 2.0.0-Beta2
+- Update dependencies
 - Implement **Weather** widget forecast reactive layout
 - Implement **Voice assistant** widget info to display voice commands
 - Implement **Node/Custom** widget to show Node specific info
@@ -9,7 +11,9 @@ All notable changes to this project will be documented in this file. Format base
 - Implement discovery of properties for ui types that do not extend ui types
 - Implement function editor help icon with popup showing available functions
 - Implement black screen action that hides screen
+- Implement settings UX
 - Implement **Voice assistant** http APIs
+- Implement **Voice assistant** UX
 - Implement **Voice assistant** asynchronous voice command support 
 - Implement **Voice assistant** voice command voice confirmation
 - Implement **Voice assistant** voice command programmatic intent detection 
@@ -29,7 +33,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** responses using llm
 - Implement **Voice assistant** line rewrite support (shows progress bars properly)
 - Implement **Voice assistant** multiple wake words support & better wake word handling
-- Implement VoiceAssistant multiple voice commands support
+- Implement **Voice assistant** `TtsCoqui` better text cleanup & voice loading speed
+- Implement **Voice assistant** multiple voice commands support
 - Implement current song voice command
 - Implement log level highlighting
 - Implement **GitProjects** faster and better file sorting
@@ -38,8 +43,10 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `MdNode` mark-down heading anchor & simpler layout
 - Implement markdown support for widget/plugin descriptions
 - Implement better UI for widget features in widget management settings
+- Implement better reminder UX
 - Improve shortcut pane layout
 - Improve nullability inference for window properties in settings
+- Improve notification & song info padding
 - Fix **Voice assistant** plugin not waking up from hibernate properly
 - Fix **Voice assistant** python process error logging twice
 - Fix **Voice assistant** some settings not taking effect
@@ -63,16 +70,17 @@ All notable changes to this project will be documented in this file. Format base
 - Fix app search autocompletion popup cell text not rendered correctly
 - Fix hiding window running twice or skipping animation sometimes
 - Fix application opens with each window opened twice
+- Fix file icon extractor causing ui crashes
 
 ### Voice Assistant
 Voice assistant has received a lot of updates to make it more usable and productive.
 
-There is more comprehensive documentation, see [speech-recognition-whisper](app/speech-recognition-whisper/README.md).
+Documentation has been updated, see [speech-recognition-whisper](app/speech-recognition-whisper/README.md).
 
 The assistant has new http endpoints:
-- one to enable monitoring state of its components, including processed/processing/queued events and so on
-- another to do intent detection by 3rd parties (this allows more complex and usable voice commands, see below)
-- another to do stt (this allows clients to offload all AI computation to other system)
+- to monitor state of actors, including processed/processing/queued events and so on
+- to do intent detection by 3rd parties (this allows more complex and usable voice commands, see below)
+- to do stt (this allows clients to offload all AI computation to other system)
  
 The commands are now implicitly asynchronous, which makes it easy to call APIs or other complicated logic.
 The commands now have methods to allow multi-step commands or programmatic intent detection.

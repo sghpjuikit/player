@@ -12,6 +12,8 @@ import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
+import javafx.scene.layout.Priority
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
 import kotlin.math.sign
 import sp.it.util.access.v
@@ -63,7 +65,7 @@ class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
             onEventDown(SCROLL) { e -> if (editable.value) yearMonth.setValueOf { it.plusMonths(-e.deltaY.sign.toLong()) } }
          }
       }
-      lay += tilePane {
+      lay(ALWAYS) += tilePane {
          styleClass += "date-picker-content-cells"
          orientation = HORIZONTAL
          prefColumns = 7

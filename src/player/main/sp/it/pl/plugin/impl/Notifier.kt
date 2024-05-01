@@ -156,7 +156,7 @@ class Notifier: PluginBase() {
    }
 
    /** Show notification for custom content. */
-   fun showNotification(title: String, content: Node, isPermanent: Boolean = false): Notification {
+   fun showNotification(title: String, content: Node, isPermanent: Boolean = false, pos: Pos = notificationPos): Notification {
       val n = ns.find { it.content.value === content } ?: Notification()
       val isReused = n in ns
       val nss = ns - n
@@ -169,9 +169,14 @@ class Notifier: PluginBase() {
       n.onShown attach1 { ns += n }
       n.onHidden attach1 { ns -= n }
       n.show(
-         notificationScr(notificationPos).map {
+         notificationScr(pos).map {
+            // no other notification shown, dont adjust xy
             if (nss.isEmpty()) it
+            // custom notification, ignore xy adjustment
+            else if (pos!=notificationPos) it
+            // same content shown, adjust to previous xy
             else if (isReused) it.x x y
+            // otherwise adjust xy vertically
             else when(notificationPos.vpos!!) {
                VPos.BOTTOM, VPos.CENTER -> it.x x ((nss.minOfOrNull { it.root.localToScreen(0.0, 0.0).y } ?: 0.0) - n.root.height)
                VPos.BASELINE, VPos.TOP -> it.x x (nss.maxOfOrNull { it.root.localToScreen(0.0, it.root.height).y } ?: notificationScr.bounds().second.maxY)
@@ -183,7 +188,7 @@ class Notifier: PluginBase() {
    }
 
    /** Show notification displaying given text. */
-   fun showTextNotification(error: AppError, isPermanent: Boolean = false): Notification {
+   fun showTextNotification(error: AppError, isPermanent: Boolean = false, pos: Pos = notificationPos): Notification {
       val root = vBox(10.0, CENTER_LEFT) {
          lay += SpitText(error.textShort).apply {
             wrappingWithNatural.subscribe()
@@ -198,18 +203,18 @@ class Notifier: PluginBase() {
          }
       }
 
-      return showNotification("Error", root, isPermanent)
+      return showNotification("Error", root, isPermanent, pos)
    }
 
    /** Show notification displaying given text. */
-   fun showTextNotification(title: String, contentText: String, isPermanent: Boolean = false): Notification {
+   fun showTextNotification(title: String, contentText: String, isPermanent: Boolean = false, pos: Pos = notificationPos): Notification {
       val root = stackPane {
          lay += SpitText(contentText).apply {
             wrappingWithNatural.subscribe()
          }
       }
 
-      return showNotification(title, root, isPermanent)
+      return showNotification(title, root, isPermanent, pos)
    }
 
    /** Hides hovered notification or last shown notification or does nothing if no showing. */

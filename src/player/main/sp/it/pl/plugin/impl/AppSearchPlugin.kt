@@ -22,7 +22,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
-import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.installDrag
@@ -218,14 +217,6 @@ class AppSearchPlugin: PluginBase() {
       op.makeResizableByUser()
    }
 
-   @Widget.Info(
-      author = "Martin Polakovic",
-      name = "App launcher",
-      description = "Application menu and launcher",
-      version = "0.8.0",
-      year = "2016",
-      tags = [ LIBRARY ]
-   )
    @ExperimentalController(reason = "DirView widget could be improved to be fulfill this widget's purpose. Also needs better UX.")
    class AppLauncher(widget: Widget): SimpleController(widget) {
 

@@ -12,7 +12,6 @@ import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
-import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
 import kotlin.math.sign
@@ -29,6 +28,8 @@ import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.pseudoClassToggle
+import sp.it.util.ui.text
+import sp.it.util.ui.textFlow
 import sp.it.util.ui.tilePane
 
 /** Content for picking [LocalDate] */
@@ -54,15 +55,19 @@ class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
 
       lay += flowPane {
          styleClass += "date-picker-content-header"
-         lay += label {
-            styleClass += "date-picker-content-header-year-label"
-            yearMonth sync { text = it.year.toString() }
-            onEventDown(SCROLL) { e -> if (editable.value) yearMonth.setValueOf { it.plusYears(-e.deltaY.sign.toLong()) } }
+         lay += textFlow {
+            lay += text("") {
+               styleClass += "date-picker-content-header-year-label"
+               yearMonth sync { text = it.year.toString() }
+               onEventDown(SCROLL) { e -> if (editable.value) yearMonth.setValueOf { it.plusYears(-e.deltaY.sign.toLong()) } }
+            }
          }
-         lay += label {
-            styleClass += "date-picker-content-header-month-label"
-            yearMonth sync { text = it.month.getDisplayName(FULL_STANDALONE, locale) }
-            onEventDown(SCROLL) { e -> if (editable.value) yearMonth.setValueOf { it.plusMonths(-e.deltaY.sign.toLong()) } }
+         lay += textFlow {
+            lay += text("") {
+               styleClass += "date-picker-content-header-month-label"
+               yearMonth sync { text = it.month.getDisplayName(FULL_STANDALONE, locale) }
+               onEventDown(SCROLL) { e -> if (editable.value) yearMonth.setValueOf { it.plusMonths(-e.deltaY.sign.toLong()) } }
+            }
          }
       }
       lay(ALWAYS) += tilePane {

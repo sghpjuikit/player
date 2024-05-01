@@ -3052,6 +3052,7 @@ TextFlow > * {
     -fx-alignment: CENTER;
 }
 .time-picker-content .time-clock-digital {
+    -fx-padding: 1em;
     -fx-background-color: -skin-focus-bgr-color;
 }
 .time-picker-content .time-clock-analog {

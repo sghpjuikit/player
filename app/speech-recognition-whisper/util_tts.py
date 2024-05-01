@@ -22,7 +22,7 @@ from util_wrt import Writer
 
 class Tts(Actor):
     def __init__(self, speakOn: bool, tts, write: Writer):
-        super().__init__("tts-preprocessor", 'tts-preprocessor', None, write, True)
+        super().__init__("tts-preprocessor", 'Tts-preprocessor', None, write, True)
         self.tts = tts
         self.speakOn = speakOn
         self._skip = False

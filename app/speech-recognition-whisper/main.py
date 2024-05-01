@@ -364,6 +364,10 @@ class CommandExecutorMain(CommandExecutor):
                 else:
                     tts(f"No voice {voice} available")
             return handled
+        if text.startswith("generate from clipboard "):
+            tts("Ok")
+            llm(ChatPaste("generate " + text.removeprefix("generate from clipboard ") + "\nClipboard:\n```" + get_clipboard_text() + "\n```"))
+            return handled
         if text.startswith("generate "):
             tts("Ok")
             llm(ChatPaste(text))
@@ -465,16 +469,16 @@ class AssistStandard(Assist):
             commandExecutor.execute("start conversation")
         # do command
         else:
-            if not usePythonCommands:
-                # command handling
-                write('COM: ' + text)
-            else:
+            if usePythonCommands:
                 # this command is too difficult for LLM right now
                 if text.startswith("generate "): commandExecutor.execute(text)
                 # this command is too difficult for LLM right now
-                if text.startswith("count "): commandExecutor.execute(text)
+                elif text.startswith("count "): commandExecutor.execute(text)
                 # this command is too difficult for LLM right now
                 else: executorPython.generatePythonAndExecute(text)
+            else:
+                # command handling
+                write('COM: ' + text)
 
 
 assistStand = AssistStandard()

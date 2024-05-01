@@ -119,7 +119,7 @@ class ChatPaste(ChatProceed):
             "If user asks to write code, only provide the code",
             userPrompt
         )
-        self.outStart = 'CHAT: '
+        self.outStart = 'SYS: '
         self.speakTokens = False
         self.processTokens = pasteTokens
 

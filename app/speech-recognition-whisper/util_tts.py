@@ -43,8 +43,10 @@ class Tts(Actor):
         self.tts.skipWithoutSound()
 
     def skippable(self, event: str) -> Future[str | None]:
+        f = Future()
         self.write('SYS: ' + event)
-        self.queue.put((words(event), True, False, Future()))
+        self.queue.put((words(event), True, False, f))
+        return f
 
     def repeatLast(self):
         if self.history:

@@ -45,6 +45,8 @@ import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppError
+import sp.it.pl.main.AppScheduler
+import sp.it.pl.main.AppScheduler.scheduleWidgetFactory
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.thenWithAppProgress
@@ -174,6 +176,7 @@ class WidgetManager {
       registerFactory(introWidgetFactory)
       registerFactory(initialTemplateFactory)
       registerFactory(speechRecognitionWidgetFactory)
+      registerFactory(scheduleWidgetFactory)
 
       // external factories
       val dirW = APP.location.widgets

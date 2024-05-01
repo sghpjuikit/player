@@ -636,7 +636,7 @@ class VoiceAssistant: PluginBase() {
    fun raw(text: String) = write(text)
 
    @Throws(Throwable::class)
-   suspend fun speakEvent(eventToReactTo: String, fallback: String): Unit =
+   suspend fun speakEvent(eventToReactTo: LlmString, fallback: String): Unit =
       VT {
          APP.http.client.post("${httpUrl.value}/tts-event") { bodyJs("event_to_react_to" to eventToReactTo, "fallback" to fallback) }
       }
@@ -767,3 +767,6 @@ class VoiceAssistant: PluginBase() {
    }
 
 }
+
+@JvmInline
+value class LlmString(val value: String)

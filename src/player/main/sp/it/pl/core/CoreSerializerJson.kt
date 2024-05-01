@@ -8,6 +8,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.content.OutgoingContent
+import io.ktor.http.contentType
 import java.io.File
 import java.io.FileNotFoundException
 import java.net.URI
@@ -217,9 +218,15 @@ public suspend fun HttpResponse.bodyAsJs(): JsValue =
 public fun HttpExchange.requestBodyAsJs(): JsValue =
    Config.json.ast(requestBody).orThrow
 
-/** Converts object to json (includes type witness) and sets as body */
-public inline infix fun <reified T> HttpRequestBuilder.bodyJs(body: T) =
-   apply { setBody(JsContent(body)) }
+/** Converts object to json (includes type witness) and sets as body with json content type */
+public fun HttpRequestBuilder.bodyJs(vararg bodyFields: Pair<String, *>) = bodyJs(mapOf(*bodyFields))
+
+/** Converts object to json (includes type witness) and sets as body with json content type */
+public infix fun HttpRequestBuilder.bodyJs(body: Any?) =
+   apply {
+      contentType(ContentType.Application.Json)
+      setBody(JsContent(body))
+   }
 
 class JsContent(o: Any?): OutgoingContent.ByteArrayContent() {
    private val bytes = Config.json.toJsonValue(o).toCompactS().toByteArray()

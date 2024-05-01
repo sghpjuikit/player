@@ -93,6 +93,7 @@ class SongAlbumInfo(showCover: Boolean = true): HBox(15.0), SongReader {
       lay += vBox {
          alignmentProperty() syncFrom this@SongAlbumInfo.alignmentProperty()
          prefSize = -1 x -1
+         styleClass += "h4p-bottom"
          lay += nameL
          lay += artistL
          lay += hBox {

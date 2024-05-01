@@ -2327,7 +2327,7 @@ TextFlow > * {
  * inherits: BorderPane
  */
 .pop-window-content {
-    -fx-padding: 1em 1.5em 1.5em 1.5em; /* 12 18 18 18 */
+    -fx-padding: 1.5em 1.5em 1.5em 1.5em; /* 12 18 18 18 */
 }
 
 /* Popover header - rectangular area at the top of the content. */

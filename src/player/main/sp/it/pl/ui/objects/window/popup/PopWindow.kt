@@ -172,7 +172,7 @@ open class PopWindow {
    val content = vn<Node>(null)
    /** Whether header is visible. Header contains title and icons. Default true. */
    val headerVisible = v(true)
-   /** Whether header icons are visible. Header icons. Default true. */
+   /** Whether header icons are visible. Default true. */
    val headerIconsVisible = v(true)
    /** Whether this popup can be resized by dragging the resize icon. Default true. */
    val userResizable = v(true)

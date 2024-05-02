@@ -287,8 +287,12 @@ class Assist:
         pass
 
 
-voices_dir = 'voices-coqui'
-voices = [f for f in os.listdir(voices_dir) if os.path.isfile(os.path.join(voices_dir, f)) and not f.endswith('.txt')]
+if isinstance(tts.tts, TtsCoqui):
+    voices_dir = 'voices-coqui'
+    voices = [f for f in os.listdir(voices_dir) if os.path.isfile(os.path.join(voices_dir, f)) and not f.endswith('.txt')]
+else:
+    voices = []
+
 
 # LLM considers the functions in order
 assist_last_at = time.time()
@@ -359,8 +363,10 @@ class CommandExecutorMain(CommandExecutor):
             if isinstance(tts.tts, TtsCoqui):
                 if voice in voices:
                     if tts.tts.voice != voice:
+                        voiceOld = ttsCoquiVoice
                         tts.tts.voice = voice
-                        tts(name + " voice changed")
+                        voiceNew = ttsCoquiVoice
+                        llm(ChatReact(llmSysPrompt, f"User changed your voice from:\n```\n{voiceOld}\n```\n\nto:\n```\n{voiceNew}\n```", name + " voice changed"))
                 else:
                     tts(f"No voice {voice} available")
             return handled
@@ -669,9 +675,12 @@ while not sysTerminating:
             commandExecutor.execute("change voice " + prop(m, "coqui-voice", ttsCoquiVoice))
 
         elif m.startswith("llm-chat-sys-prompt="):
+            promptOld = llmSysPrompt
             llmSysPrompt = prop(m, 'llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')
+            promptNew = llmSysPrompt
             llm.sysPrompt = llmSysPrompt
-
+            llm(ChatReact(llmSysPrompt, f"User changed your system prompt from:\n```\n{promptOld}\n```\n\nto:\n```\n{promptNew}\n```", name + " prompt changed"))
+            
         elif m.startswith("llm-chat-max-tokens="):
             llm.maxTokens = int(prop(m, "llm-chat-max-tokens", "300"))
 

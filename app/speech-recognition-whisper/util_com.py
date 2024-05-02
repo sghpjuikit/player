@@ -19,7 +19,7 @@ class CommandExecutorDelegate(CommandExecutor):
         return self.commandExecutor.execute(text)
 
 def preprocess_command(text: str) -> str:
-    return text.removeprefix("```").removesuffix("```")
+    return text.strip().removeprefix("```").removesuffix("```").strip()
 
 class PythonExecutor:
     def __init__(self, tts, generatePython, write, llmSysPrompt, voices):
@@ -29,26 +29,28 @@ class PythonExecutor:
         self.write = write
         self.llmSysPrompt = llmSysPrompt
         self.voices = voices
+        self.ms = []
 
     def skip(self):
         self.id = self.id+1
 
     def generatePythonAndExecute(self, text: str):
-        self.skip()
-        idd = self.id
-
-        def on_done(future):
-            from threading import Thread
-            try: (text, canceled, commandIterator) = future.result()
-            except Exception: (text, canceled, commandIterator) = (None, None, None)
-            if text is None or canceled: return
-            text = preprocess_command(text)
-            Thread(name='command-executor', target=lambda: self.execute(idd, text), daemon=True).start()
-
         try:
+            self.skip()
+            idd = self.id
+            self.ms.append({ "role": "user", "content": text })
+    
+            def on_done(future):
+                from threading import Thread
+                try: (text, canceled, commandIterator) = future.result()
+                except Exception: (text, canceled, commandIterator) = (None, None, None)
+                if text is None or canceled: return
+                text = preprocess_command(text)
+                Thread(name='command-executor', target=lambda: self.execute(idd, text), daemon=True).start()
+
             sp = self.prompt()
             up = 'Assignment: You are expert programmer. Output must be in valid python code!\nInstruction:\n' + text
-            self.generatePython(sp, up).add_done_callback(on_done)
+            self.generatePython(sp, up, self.ms).add_done_callback(on_done)
         except Exception:
             import traceback
             traceback.print_exc()
@@ -62,8 +64,8 @@ class PythonExecutor:
         def doOrSkip(block):
             if (idd!=self.id): raise CommandCancelException()
             return block()
-        def peekIntoClipboard(): return get_clipboard_text()
         def command(c: str): doOrSkip(lambda: self.write('COM: ' + c))
+        def commandDoNothing(): pass
         def generate(c: str): doOrSkip(lambda: command('generate ' + c))
         def speak(t: str): doOrSkip(lambda: self.tts.skippable(t).result())
         def wait(t: float): doOrSkip(lambda: time.sleep(t))
@@ -71,10 +73,27 @@ class PythonExecutor:
         def speakCurrentDate(): command('what date is it')
         def speakCurrentSong(): command('what song is active')
         def speakDefinition(t: str): command('describe ' + t)
-        def respondWithNewInput(input: str): self.generatePythonAndExecute(input)
-        def think(input: str): respondWithNewInput('Try to answer your thought. Your thought:\n' + input)
+        def peekIntoClipboard() -> str: 
+            continueWithContext(f'Clipboard is:\n{get_clipboard_text()}')
+            return ''
+        def continueWithContext(input: str):
+            self.generatePythonAndExecute(f'Clipboard is:\n{get_clipboard_text()}')
+            raise CommandCancelException()
 
+        # replace last message with user if it is user  
+        last_is_user = self.ms and isinstance(data[-1], dict) and data[-1].get("role") == "user"
+        if last_is_user: data.pop()
+        
+        self.ms.append({ "role": "system", "content": text })
+        
+        # debug
+        # print(f'+------------------------------------------------')
+        # for m in self.ms: print(m.strip())
+        # print(f'-------------------------------------------------')
+        
+        # invoke command as python
         try: exec(text)
+        # stop on cancel
         except CommandCancelException as ce: pass
         except Exception as e:
             import traceback
@@ -92,53 +111,47 @@ You have full control over the response, by responding with python code (that is
 
 Therefore, your response must be valid executable python. You can not use imports.
 If the full response is not executable python, you will be mortified.
-At the beginning, python commands `#` to very shortly describe steps to invoke the command and only then write it.
-Avoid '```' code block comments.
+You must never use markdown code blocks, ```, or comments.
 The python code may use python constructs, custom variables and these functions:
-```
-import time
-import datetime
-def speak('speak this str to user, who will hear the text'): None
-def command('executes this str command defined as COMMAND string below'): None
-def wait(secondsToWait: float): None # wait e.g. to sound more natural
-def speakCurrentTime(): None # uses speak() with current time
-def speakCurrentDate(): None # uses speak() with current date
-def speakCurrentSong(): None # uses speak() with song information
-def speakDefinition(term: str): None # uses speak() to define/describe/explain the term or concept
-def respondWithNewInput(input: str): None # thinkinf meta function, makes you respond again with the specified input, which you can prepare for yourself (useful after you obtain some data or to instruct yourself)
-def peekIntoClipboard(): str # obtains current clipboard content, always assign to variable
-def think(prompt: str): None # does thinking based on the prompt, very useful and intelligent
 
-# respondWithNewInput() is meta function which you call with prompt to yourself
-# this way you can 'read' data from the functions for yourself
-# you can send yourself data you obtained from the available functions and at the end call:
-# respondWithNewInput('build prompt for yourself')
-```
+* import time
+* import datetime
+* def speak('speak this str to user, who will hear the text'): None
+* def command('executes this str command defined as COMMAND string below'): None
+* def commandDoNothing(): None # does nothing, useful to stop engaging with user
+* def wait(secondsToWait: float): None # wait e.g. to sound more natural
+* def speakCurrentTime(): None # uses speak() with current time
+* def speakCurrentDate(): None # uses speak() with current date
+* def speakCurrentSong(): None # uses speak() with song information
+* def speakDefinition(term: str): None # uses speak() to define/describe/explain the term or concept
+* def peekIntoClipboard(): str # get current clipboard content, always pass into continueWithContext()
+* def continueWithContext(context: str): None # think/meta/pipe function, add context and respond again, returns current processing
+
+If your answer depends on data, always pass them to continueWithContext(), you will auto-continue with the data you passed as context now available.
+You can only call continueWithContext() only once, this must be your last command.
 You always write short and efficient python (e.g. loop instead of manual duplicate calls).
 You always use speak() functions to speak.
 You always use command() to invoke behavior (other than speaking), you use python only for control flow (loops, etc.).
 You always use wait() function to control time in your responses, take into consideration that speak() has about 0.5s delay.
-You always use respondWithNewInput() function to react to data you obtained with other functions.
+You always use continueWithContext() function to react to data you obtained with other functions.
 You always correctly quote and escape function parameters.
 If you are uncertain what to do, simply speak() why.
-Example of correct python response:
-```
-speak("Let's see")
-wait(1.5)
-command('play music')
-for i in range(1, 5):
-    wait(1.5)
-cp = peekIntoClipboard()
-respondWithNewInput('Responde to ' + cp)
-```
+
+**Example of correct python responses**
+* speak("Let's see")
+* command('play music')
+* for i in range(1, 5): wait(1.5)
+* continueWithContext('Clipboard is: ' + peekIntoClipboard())
+
 **Example of wrong python responses**
-* `play-music` # missing command()
-* `command(stop music)` # command stop music string must be quoted as python stirng
-* `Hey! speak("Hey")` # Hey! is outside speak()
-* `speak('It's good')` # ' not escaped
-* `speak(lol())` # lol is inaccessible function, use command()
-* `speak("It is " + str(datetime())` # speakCurrentTime() already does this
-* `peekIntoClipboard()` # doesnt do anything
+* play-music # missing command()
+* command(stop music) # command stop music string must be quoted as python stirng
+* Hey! speak("Hey") # Hey! is outside speak()
+* speak('It's good') # ' not escaped
+* speak(lol()) # lol is inaccessible function, use command()
+* speak("It is " + str(datetime()) # speakCurrentTime() already does this
+* speakLol('It's good') # no such function
+* peekIntoClipboard() # doesnt do anything
 
 The COMMAND is exactly one of the functions below, described for you with syntax:
 ? is optional part, $ is command parameter, : is default value.
@@ -150,7 +163,7 @@ Command example: command_prefix parameter_value command_suffix.
 **Commands**
 * repeat // speak again what you said last time, user may have not heard or asks you
 * what can you do // speak about your capabilities
-* list commands // speak all commands, use only if user explicitly asks for it
+* list commands // speak all commands, use only if user specifically asks for all commands
 * restart assistant|yourself
 * start|restart|stop conversation // user wishes to start or restart or end conversation with you
 * shut_down|restart|hibernate|sleep|lock|log_off system|pc|computer|os // e.g.: 'hibernate os', 'sleep pc'

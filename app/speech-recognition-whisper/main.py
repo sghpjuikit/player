@@ -489,8 +489,7 @@ class AssistStandard(Assist):
 
 assistStand = AssistStandard()
 assist = assistStand
-def xxx(sp, up): return llm(ChatIntentDetect.python(sp, up))
-executorPython = PythonExecutor(tts, xxx, write, llmSysPrompt, ', '.join(voices))
+executorPython = PythonExecutor(tts, lambda sp, up, ms: llm(ChatIntentDetect.python(sp, up, ms)), write, llmSysPrompt, ', '.join(voices))
 
 def skipWithoutSound():
     executorPython.skip()

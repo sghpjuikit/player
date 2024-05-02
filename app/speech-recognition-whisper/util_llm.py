@@ -94,10 +94,12 @@ class ChatIntentDetect(ChatProceed):
         )
 
     @classmethod
-    def python(cls, sysPrompt: str, userPrompt: str):
-        return cls(
+    def python(cls, sysPrompt: str, userPrompt: str, messages: []):
+        a = cls(
             sysPrompt, userPrompt, 'RAW: ', 'executing:\n```\n', '\n```', False, True
         )
+        for m in messages: a.messages.insert(len(a.messages)-1, m)
+        return a
 
 
 class ChatReact(ChatProceed):

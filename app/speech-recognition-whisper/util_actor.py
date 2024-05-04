@@ -81,6 +81,7 @@ class Actor:
             self.write(f'ERR: {self.name} failed to load due to import error {e}')
         except Exception as e:
             self.write(f'ERR: {self.name} failed to run due error {e}')
+            traceback.print_exc()
 
     @contextmanager
     def _looping(self, set_loading: bool = True):

@@ -519,7 +519,7 @@ class VoiceAssistant: PluginBase() {
       val p = 2.seconds
       // @formatter:off
                wakeUpWord.chan().throttleToLast(p) subscribe { write("wake-word=$it") }
-               micEnabled.chan().throttleToLast(p) subscribe { write("mic-on=$it") }
+               micEnabled.chan().throttleToLast(p) subscribe { write("mic-enabled=$it") }
                 micEnergy.chan().throttleToLast(p) subscribe { write("mic-energy=$it") }
            micEnergyDebug.chan().throttleToLast(p) subscribe { write("mic-energy-debug=$it") }
                     ttsOn.chan().throttleToLast(p) subscribe { write("speech-on=$it") }

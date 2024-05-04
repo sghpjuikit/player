@@ -172,57 +172,49 @@ class LlmGpt4All(Llm):
         self.temp = temp
         self.topp = topp
         self.topk = topk
-        self.enabled = False # delayed load
 
     def _loop(self):
         # init
-        llm = None
+        llm = GPT4All(model_name=self.modelName, model_path=self.modelPath, device="cpu", allow_download=True, verbose=False)
         # loop
         with (self._looping()):
             while not self._stop:
                 ef = self.queue.get()
                 x, ff = ef
 
-                # load model lazily
-                if llm is None: llm = GPT4All(model_name=self.modelName, model_path=self.modelPath, device="cpu", allow_download=True)
-                llm._is_chat_session_activated = True
-                llm._current_prompt_template = llm.config["promptTemplate"]
-                self.enabled = True # delayed load
-
-                with llm.chat_session(self.sysPrompt):
-                    while not self._stop:
-                        with self._loopProcessEvent() as (e, f):
-                            isCommand = isinstance(e, ChatIntentDetect)
-                            isCommandWrite = isCommand and cast(ChatIntentDetect, e).writeTokens
-                            commandIterator = SingleLazyIterator(lambda: not self.generating)
-                            try:
-                                self.generating = True
-
-                                llm.current_chat_session = e.messages
-                                stop = [" COM", "<|eot_id|>"] if isCommand else ["<|eot_id|>"]
-                                text = ''
-                                def process(token_id, token_string):
-                                    text = text + token_string
-                                    return not self._stop and self.generating and contains_any(text, stop)
-                                tokens = llm.generate(
-                                    e.userPrompt, streaming=True,
-                                    max_tokens=self.maxTokens, top_p=self.topp, top_k=self.topk, temp=self.temp,
-                                    callback=process
-                                )
-                                consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(tokens, 4)
-                                if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
-                                if isCommandWrite: self.write(chain([e.outStart], progress(commandIterator.hasStarted, chain([e.outCont], commandIterator)), [e.outEnd]))
-                                if e.speakTokens: self.speak(tokensSpeech)
-                                e.processTokens(tokensAlt)
-                                consumer()
-                                canceled = self.generating is False
-                                text = ''.join(tokensText)
-                                f.set_result((text, canceled, commandIterator))
-                            except Exception as x:
-                                f.set_exception(x)
-                                raise x
-                            finally:
-                                self.generating = False
+                while not self._stop:
+                    with self._loopProcessEvent() as (e, f):
+                        isCommand = isinstance(e, ChatIntentDetect)
+                        isCommandWrite = isCommand and cast(ChatIntentDetect, e).writeTokens
+                        commandIterator = SingleLazyIterator(lambda: not self.generating)
+                        try:
+                            self.generating = True
+                            llm._current_prompt_template = llm.config["promptTemplate"]
+                            llm._history = e.messages
+                            stop = [" COM", "<|eot_id|>"] if isCommand else ["<|eot_id|>"]
+                            text = ''
+                            def process(token_id, token_string):
+                                text = text + token_string
+                                return not self._stop and self.generating and not contains_any(text, stop)
+                            tokens = llm.generate(
+                                e.userPrompt, streaming=True,
+                                max_tokens=self.maxTokens, top_p=self.topp, top_k=self.topk, temp=self.temp,
+                                callback=process
+                            )
+                            consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(tokens, 4)
+                            if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
+                            if isCommandWrite: self.write(chain([e.outStart], progress(commandIterator.hasStarted, chain([e.outCont], commandIterator)), [e.outEnd]))
+                            if e.speakTokens: self.speak(tokensSpeech)
+                            e.processTokens(tokensAlt)
+                            consumer()
+                            canceled = self.generating is False
+                            text = ''.join(tokensText)
+                            f.set_result((text, canceled, commandIterator))
+                        except Exception as x:
+                            f.set_exception(x)
+                            raise x
+                        finally:
+                            self.generating = False
 
 
 # home https://github.com/openai/openai-python

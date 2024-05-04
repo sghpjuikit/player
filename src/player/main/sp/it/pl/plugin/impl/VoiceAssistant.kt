@@ -458,10 +458,10 @@ class VoiceAssistant: PluginBase() {
    val llmEngine by cv(LlmEngine.NONE).uiNoOrder()
       .def(name = "Llm engine", info = "LLM engine for chat")
 
-   /** Model for gpt4all. Must be in models-llm. */
+   /** Model for gpt4all. Must be in models-gpt4all. */
    val llmGpt4AllModel by cv("none")
-      .valuesUnsealed { dir.div("models-llm").children().map { it.name }.filter { it.endsWith("gguf") }.toList() + "none" }
-      .def(name = "Llm engine > gpt4all > model", info = "Model for gpt4all. Must be in ${(dir / "models-llm").absolutePath}")
+      .valuesUnsealed { dir.div("models-gpt4all").children().map { it.name }.filter { it.endsWith("gguf") }.toList() + "none" }
+      .def(name = "Llm engine > gpt4all > model", info = "Model for gpt4all. Must be in ${(dir / "models-gpt4all").absolutePath}")
 
    /** Url of the OpenAI or OpenAI-compatible server */
    val llmOpenAiUrl by cv("http://localhost:1234/v1")

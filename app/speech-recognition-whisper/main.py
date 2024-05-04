@@ -147,7 +147,7 @@ Args:
     Default: none
 
   llm-gpt4all-model=$model
-    Name of the model in ./models-llm compatible with Gpt4All
+    Name of the model in ./models-gpt4all compatible with Gpt4All
     Default: none
 
   llm-openai-url=$url
@@ -267,7 +267,7 @@ if llmEngine == 'none':
     pass
 elif llmEngine == "gpt4all":
     llm = LlmGpt4All(
-        llmGpt4AllModelName, "models-llm",
+        llmGpt4AllModelName, "models-gpt4all",
         tts, write, commandExecutor.execute,
         llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
     )

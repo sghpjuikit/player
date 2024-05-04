@@ -408,7 +408,7 @@ It is simply a service to intelligently convert input into output.
         - `pip install gpt4all==2.0.2` 
         - Download LLM model for [GPT4All](https://gpt4all.io/index.html) (optional)
             - model is required only for conversation feature 
-                - into the [models-llm](models-llm) directory
+                - into the [models-gpt4all](models-gpt4all) directory
                 - for example from [official source](https://gpt4all.io/models/models.json)
 
 ## Running

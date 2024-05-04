@@ -27,7 +27,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** tts using **Tacotron2**, **SpeechBrain**, **FastPitch**
 - Implement **Voice assistant** tts using OS voice to support all features and work reliably
 - Implement **Voice assistant** llm using Gpt4All to support all features
-- Implement **Voice assistant** separate outputs for RAW, SPEAK, CHAT
+- Implement **Voice assistant** separate outputs for RAW, SPEAK
 - Implement **Voice assistant** wake delay action
 - Implement **Voice assistant** command argument value capture group parsing
 - Implement **Voice assistant** responses using llm

@@ -12,7 +12,7 @@ from typing import cast
 from util_play_engine import SdActor
 from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
-from util_llm import ChatStart, Chat, ChatProceed, ChatIntentDetect, ChatReact, ChatWhatCanYouDo, ChatPaste, ChatStop
+from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatWhatCanYouDo, ChatPaste
 from util_mic import Mic
 from util_http import Http, HttpHandler
 from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerIntent, HttpHandlerStt, HttpHandlerSttReact
@@ -57,7 +57,7 @@ Args:
   mic-enabled=$bool
     Optional bool whether microphone listening should be allowed.
     When false, speech recognition will receive no input and will not do anything.
-    Interacting with the program is still fully possible through stdin `CHAT: ` command.
+    Interacting with the program is still fully possible through stdin `CALL: $command`.
     Default: True
     
   mic-energy=$int(0,inf)
@@ -385,94 +385,67 @@ class CommandExecutorMain(CommandExecutor):
             llm(ChatWhatCanYouDo(assist_function_prompt))
             return handled
         elif text == 'start conversation':
-            if isinstance(llm, LlmNone): tts('No conversation model is loaded')
-            else: assist = AssistChat()
+            assist.startChat()
+            return handled
+        elif text == 'restart conversation':
+            assist.restartChat()
+            return handled
+        elif text == 'stop conversation':
+            assist.stopChat()
             return handled
         else:
             return text
 
 commandExecutor.commandExecutor = CommandExecutorMain()
-
-
+executorPython = PythonExecutor(tts, lambda sp, up, ms: llm(ChatIntentDetect.python(sp, up, ms)), write, llmSysPrompt, ', '.join(voices))
 
 class Assist:
-    def needsWakeWord(self) -> bool: return True
-    def __call__(self, text: str, textSanitized: str): pass
-
-
-class AssistChat(Assist):
-    def __init__(self):
-        # start
-        write("COM: start conversation")
-        llm(ChatStart())
-        llm(ChatReact(llmSysPrompt, "User started conversing with you. Greet him", "Conversing"))
-        mic.set_pause_threshold_talk()
-    def needsWakeWord(self): False
-    def __call__(self, text: str, textSanitized: str):
-        # announcement
-        if len(text) == 0:
-            llm(ChatReact(llmSysPrompt, "Afk user prodded you - say you are still conversing", "Yes, we are talking"))
-        # do help
-        elif text == "help":
-            tts(
-                "Yes, we are in the middle of a conversation. Simply speak to me. "
-                "To end the conversation, say stop, or end conversation."
-                "To restart the conversation, say restart or reset conversation."
-                "To cancel ongoing reply, say okey, whatever or stop."
-            )
-        # cancel
-        elif text == "ok" or text == "okey" or text == "whatever" or text == "stop":
-            tts.skip()
-            llm.generating = False
-        # restart
-        elif text == "restart" or text == "reset" or text == "restart conversation" or text == "reset conversation":
-            tts.skip()
-            llm.generating = False
-            write("COM: restart conversation")
-            llm(ChatStop())
-            llm(ChatStart())
-            tts("Ok")
-        # end
-        elif text.startswith("stop") or text.startswith("end"):
-            tts.skip()
-            llm.generating = False
-            write("COM: stop conversation")
-            llm(ChatStop())
-            llm(ChatReact(llmSysPrompt, "User stopped conversing with you", "Ok"))
-            mic.set_pause_threshold_normal()
-            global assist
-            assist = assistStand
-        # normal
-        else: llm(Chat(textSanitized))
-
-
-class AssistStandard(Assist):
     def __init__(self):
         self.last_announcement_at = 0.0
         self.wake_word_delay = 5.0
+        self.isChat = False
 
-    def needsWakeWord(self): return time.time() - self.last_announcement_at > self.wake_word_delay
+    def needsWakeWord(self) -> bool:
+        return self.isChat is False and time.time() - self.last_announcement_at > self.wake_word_delay
+
     def __call__(self, text: str, textSanitized: str):
         global assist
         # announcement
         if len(text) == 0:
             self.last_announcement_at = time.time()
-            llm(ChatReact(llmSysPrompt, "Afk user prodded you - are you there?", "Yes"))
+            if self.isChat: llm(ChatReact(llmSysPrompt, "Afk user prodded you - say you are still conversing", "Yes, we are talking"))
+            else: llm(ChatReact(llmSysPrompt, "Afk user prodded you - are you there?", "Yes"))
         # do greeting
         elif text == "hi" or text == "hello" or text == "greetings":
             commandExecutor.execute(f"greeting {text}")
+        # cancel
+        elif text == "ok" or text == "okey" or text == "whatever" or text == "stop":
+            tts.skip()
+            llm.generating = False
         # do help
         elif text == "help":
-            tts.skippable(
-                f'I am an AI assistant. Talk to me by calling {name}. ' +
-                f'Start conversation by saying, start conversation. ' +
-                f'Ask for help by saying, help. ' +
-                f'Run command by saying the command.'
-            )
-            write('COM: help')  # allows application to customize the help output
+            if self.isChat:
+                tts(
+                    "Yes, we are in the middle of a conversation. Simply speak to me. "
+                    "To end the conversation, say stop, or end conversation."
+                    "To restart the conversation, say restart or reset conversation."
+                    "To cancel ongoing reply, say okey, whatever or stop."
+                )
+            else:
+                tts.skippable(
+                    f'I am an AI assistant. Talk to me by calling {name}. ' +
+                    f'Start conversation by saying, start conversation. ' +
+                    f'Ask for help by saying, help. ' +
+                    f'Run command by saying the command.'
+                )
+                write('COM: help')  # allows application to customize the help output
         # start LLM conversation
-        elif "start conversation" in text:
+        elif text == "start conversation":
             commandExecutor.execute("start conversation")
+        elif text == "restart conversation" or text == "reset conversation":
+            commandExecutor.execute("restart conversation")
+        elif text == "stop conversation":
+            commandExecutor.execute("stop conversation")
         # do command
         else:
             if usePythonCommands:
@@ -486,10 +459,33 @@ class AssistStandard(Assist):
                 # command handling
                 write('COM: ' + text)
 
+    def startChat(self):
+        if isinstance(llm, LlmNone): tts('No conversation model is loaded')
+        if isinstance(llm, LlmNone): return
+        self.isChat = True
+        write("COM: start conversation")
+        llm(ChatReact(llmSysPrompt, "User started conversation with you. Greet him", "Conversing"))
+        mic.set_pause_threshold_talk()
 
-assistStand = AssistStandard()
-assist = assistStand
-executorPython = PythonExecutor(tts, lambda sp, up, ms: llm(ChatIntentDetect.python(sp, up, ms)), write, llmSysPrompt, ', '.join(voices))
+    def restartChat(self):
+        if isinstance(llm, LlmNone): return
+        tts.skip()
+        llm.generating = False
+        write("COM: restart conversation")
+        llm(ChatReact(llmSysPrompt, "User erased his conversation with you from your memory.", "Ok"))
+        executorPython.ms = []
+
+    def stopChat(self):
+        if isinstance(llm, LlmNone): return
+        self.isChat = False
+        tts.skip()
+        llm.generating = False
+        write("COM: stop conversation")
+        llm(ChatReact(llmSysPrompt, "User stopped conversation with you", "Ok"))
+        mic.set_pause_threshold_normal()
+
+
+assist = Assist()
 
 def skipWithoutSound():
     executorPython.skip()
@@ -630,10 +626,9 @@ while not sysTerminating:
         # chat command
         if m.startswith("CHAT: "):
             text = base64.b64decode(m[6:]).decode('utf-8')
-            write(f'USER: {name}, ' + text)
-            write("COM: start conversation")
-            llm(ChatStart())
-            llm(Chat(text))
+            text = remove_any_prefix(text, wake_words)
+            text = name + ' ' + text
+            callback(text)
 
         if m.startswith("COM-DET: "):
             text = base64.b64decode(m[9:]).decode('utf-8')

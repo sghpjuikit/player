@@ -172,7 +172,6 @@ class VoiceAssistant: PluginBase() {
                      startsWith("RAW: ") -> "RAW"
                      startsWith("USER: ") -> "USER"
                      startsWith("SYS: ") -> "SYS"
-                     startsWith("CHAT: ") -> "CHAT"
                      startsWith("COM: ") -> "COM"
                      startsWith("COM-DET: ") -> "COM-DET"
                      startsWith("ERR: ") -> "ERR"
@@ -213,8 +212,7 @@ class VoiceAssistant: PluginBase() {
                      { e, state ->
                         pythonOutStd.value = pythonOutStd.value.concatApplyBackspace(e)
                         if (state!=null && state!="") pythonOutEvent.value = pythonOutEvent.value.concatApplyBackspace(e)
-                        if (state=="CHAT" || state=="USER") pythonOutChat.value = pythonOutChat.value.concatApplyBackspace(e)
-                        if (state=="CHAT" || state=="USER" || state=="SYS") pythonOutSpeak.value = pythonOutSpeak.value.concatApplyBackspace(e)
+                        if (state=="USER" || state=="SYS") pythonOutSpeak.value = pythonOutSpeak.value.concatApplyBackspace(e)
                         onLocalInput(e to state)
                      },
                      { e, state ->
@@ -365,9 +363,6 @@ class VoiceAssistant: PluginBase() {
 
    /** Console output - speaking only */
    val pythonOutSpeak = v<String>("")
-
-   /** Console output - chat only */
-   val pythonOutChat = v<String>("")
 
    /** Opens console output */
    val pythonStdOutOpen by cr { APP.widgetManager.widgets.find(speechRecognitionWidgetFactory, ANY) }
@@ -597,7 +592,6 @@ class VoiceAssistant: PluginBase() {
          "RAW" -> launch(FX) { confirm(text) }
          "USER" -> launch(FX) { handleSpeech(text, user = true) }
          "SYS" -> Unit
-         "CHAT" -> launch(FX) { handleSpeech(text) }
          "COM" -> launch(FX) { handleSpeech(text, command = true, orDetectIntent = true) }
          "COM-DET" -> launch(FX) { handleSpeech(text, command = true, orDetectIntent = false) }
       }
@@ -670,6 +664,7 @@ class VoiceAssistant: PluginBase() {
          APP.http.client.post("${httpUrl.value}/tts-event") { bodyJs("event_to_react_to" to eventToReactTo, "fallback" to fallback) }
       }
 
+   @Throws(Throwable::class)
    suspend fun state(actorType: String, eventType: String): JsValue =
       VT {
          APP.http.client.get("${httpUrl.value}/actor-events?actor=${actorType}&type=${eventType}").bodyAsJs()

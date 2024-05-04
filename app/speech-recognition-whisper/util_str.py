@@ -1,6 +1,12 @@
 import re
 import sys
 
+def contains_any(t: str, texts: [str]) -> bool:
+    for text in texts:
+        if text in t.lower():
+            return True
+    return False
+
 def starts_with_any(t: str, prefixes: [str]) -> bool:
     for prefix in prefixes:
         if t.lower().startswith(prefix):

@@ -232,8 +232,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                                     INFO -> if (state!=null && state!="") appendTextSmart(it)
                                     DEBUG -> appendTextSmart(it)
                                  }
-                                 Out.SPEAK -> if (state=="SYS" || state=="USER" || state=="CHAT") appendTextSmart(it)
-                                 Out.CHAT -> if (state=="USER" || state=="CHAT") appendTextSmart(it)
+                                 Out.SPEAK -> if (state=="SYS" || state=="USER") appendTextSmart(it)
                                  Out.HW -> Unit
                               }
                            }
@@ -257,7 +256,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                               when (mode.value) {
                                  Out.RAW -> plugin.value?.raw(text)
                                  Out.SPEAK -> { plugin.value?.speak(text); clear() }
-                                 Out.CHAT -> { plugin.value?.chat(text); clear() }
+                                 // Out.CHAT -> { plugin.value?.chat(text); clear() } // TODO
                                  else -> Unit
                               }
                            }
@@ -371,26 +370,6 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                it::ttsEngineCoquiVoice,
                it::ttsEngineCoquiCudaDevice,
                it::ttsEngineHttpUrl
-            )
-         }
-      ),
-      CHAT(
-         "Chat",
-         { it.pythonOutChat.value },
-         "Converse with the system",
-         "Reply to system",
-         {
-            listOf(
-               it::llmEngine,
-               it::llmOpenAiUrl,
-               it::llmOpenAiBearer,
-               it::llmOpenAiModel,
-               it::llmGpt4AllModel,
-               it::llmChatSysPrompt,
-               it::llmChatMaxTokens,
-               it::llmChatTemp,
-               it::llmChatTopP,
-               it::llmChatTopK,
             )
          }
       ),

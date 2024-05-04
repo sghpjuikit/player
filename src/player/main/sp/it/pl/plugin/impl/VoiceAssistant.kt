@@ -62,6 +62,8 @@ import sp.it.util.conf.def
 import sp.it.util.conf.min
 import sp.it.util.conf.multiline
 import sp.it.util.conf.noPersist
+import sp.it.util.conf.nonBlank
+import sp.it.util.conf.nonEmpty
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
@@ -474,7 +476,7 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Llm engine > openai > model", info = "The llm model of the OpenAI or OpenAI-compatible server. Server may ignore this.")
 
    /** System prompt telling llm to assume role, or exhibit behavior */
-   val llmChatSysPrompt by cvn("You are helpful voice assistant. You are voiced by tts, be extremly short.").multiline(5)
+   val llmChatSysPrompt by cv("You are helpful voice assistant. You are voiced by tts, be extremly short.").multiline(5).nonBlank()
       .def(name = "Llm chat > system prompt", info = "System prompt telling llm to assume role, or exhibit behavior")
 
    /** Maximum number of tokens in the reply. Further tokens will be cut off (by llm) */

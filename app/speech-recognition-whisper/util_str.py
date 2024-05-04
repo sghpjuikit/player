@@ -70,6 +70,8 @@ def int_to_words(num: int):
         return convert_to_words(num // 1000000000) + " billion" + (" " + convert_to_words(num % 1000000000) if num % 1000000000 != 0 else "")
 
 def float_to_words(num: float):
+    if num < 0:
+        return "minus " + float_to_words(-num)
 
     def floating_to_words(num: float):
         num_str = str(num)[2:]  # Remove "0." prefix

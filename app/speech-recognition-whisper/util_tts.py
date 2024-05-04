@@ -44,12 +44,15 @@ class Tts(Actor):
 
     def skippable(self, event: str) -> Future[str | None]:
         f = Future()
-        self.write('SYS: ' + event)
-        self.queue.put((words(event), True, False, f))
+        if not self.speakOn:
+            f.set_result(None)
+        else:
+            self.write('SYS: ' + event)
+            self.queue.put((words(event), True, False, f))
         return f
 
     def repeatLast(self):
-        if self.history:
+        if self.history and self.speakOn:
             text, skippable = self.history[-1]
             self.write('SYS: ' + event)
             self.queue.put((words(text), skippable, True, Future()))
@@ -58,7 +61,7 @@ class Tts(Actor):
         f = Future()
         if not self.speakOn:
             f.set_result(None)
-        if isinstance(event, str):
+        elif isinstance(event, str):
             self.write('SYS: ' + event)
             self.queue.put((words(event), False, False, f))
         elif isinstance(event, Iterator):

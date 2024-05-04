@@ -219,7 +219,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                      id = "output"
                      isEditable = false
                      isFocusTraversable = false
-                     isWrapText = true
+                     isWrapText = false
                      prefColumnCount = 100
 
                      onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }

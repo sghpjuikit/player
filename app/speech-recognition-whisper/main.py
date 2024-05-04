@@ -658,8 +658,9 @@ while not sysTerminating:
             (name, wake_words) = wake_words_and_name(prop(m, 'wake-word', 'system'))
 
         elif m.startswith("mic-enabled="):
-            mic.enabled = prop(m, "mic-enabled", "true").lower() == "true"
-            stt.enabled = mic.enabled
+            e = prop(m, "mic-enabled", "true").lower() == "true"
+            mic.enabled = e
+            stt.enabled = e
 
         elif m.startswith("mic-energy-debug="):
             mic.energy_debug = prop(m, "mic-energy-debug", "false").lower() == "true"

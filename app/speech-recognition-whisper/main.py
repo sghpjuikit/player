@@ -479,16 +479,13 @@ class Assist:
                 write('COM: ' + text)
 
     def startChat(self):
-        if isinstance(llm, LlmNone): tts('No conversation model is loaded')
-        if isinstance(llm, LlmNone): return
+        if self.isChat: return
         self.isChat = True
         write("COM: start conversation")
         llm(ChatReact(llmSysPrompt, "User started conversation with you. Greet him", "Conversing"))
         mic.set_pause_threshold_talk()
 
     def restartChat(self):
-        if self.isChat is False: return
-        if isinstance(llm, LlmNone): return
         tts.skip()
         llm.generating = False
         write("COM: restart conversation")
@@ -497,7 +494,6 @@ class Assist:
 
     def stopChat(self):
         if self.isChat is False: return
-        if isinstance(llm, LlmNone): return
         self.isChat = False
         tts.skip()
         llm.generating = False

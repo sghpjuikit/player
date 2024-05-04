@@ -5,7 +5,6 @@ plugins {
 
 idea {
    module {
-      contentRoot = null
       sourceDirs.add(projectDir / "src")
       testSources.setFrom(projectDir / "tsc")
       resourceDirs.add(projectDir / "rsc")

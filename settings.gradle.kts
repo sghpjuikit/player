@@ -34,11 +34,11 @@ rootProject.apply {
       projectDir = file("app/widgets")
 
       projectDir.listFiles().orEmpty().forEach {
-         include(":widgets:${it.name}")
-         project(":widgets:${it.name}").apply {
-            name = "widget-${it.name}"
-            projectDir = it
-            buildFileName = "../../../gradle/widgets.gradle.kts"
+      include(":widgets:${it.name}")
+      project(":widgets:${it.name}").apply {
+         name = "widget-${it.name}"
+         projectDir = it
+         buildFileName = "../../../gradle/widgets.gradle.kts"
          }
       }
    }

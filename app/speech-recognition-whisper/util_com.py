@@ -56,43 +56,44 @@ class PythonExecutor:
             traceback.print_exc()
 
     def execute(self, idd, text: str):
-        import datetime
-        import time
-        from util_paste import get_clipboard_text
+        try:
+            import datetime
+            import time
+            from util_paste import get_clipboard_text
 
-        class CommandCancelException(Exception): pass
-        def doOrSkip(block):
-            if (idd!=self.id): raise CommandCancelException()
-            return block()
-        def command(c: str): doOrSkip(lambda: self.write('COM: ' + c))
-        def commandDoNothing(): pass
-        def generate(c: str): doOrSkip(lambda: command('generate ' + c))
-        def speak(t: str): doOrSkip(lambda: self.tts.skippable(t).result())
-        def wait(t: float): doOrSkip(lambda: time.sleep(t))
-        def speakCurrentTime(): command('what time is it')
-        def speakCurrentDate(): command('what date is it')
-        def speakCurrentSong(): command('what song is active')
-        def speakDefinition(t: str): command('describe ' + t)
-        def peekIntoClipboard() -> str: 
-            continueWithContext(f'Clipboard is:\n{get_clipboard_text()}')
-            return ''
-        def continueWithContext(input: str):
-            self.generatePythonAndExecute(f'Clipboard is:\n{get_clipboard_text()}')
-            raise CommandCancelException()
+            class CommandCancelException(Exception): pass
+            def doOrSkip(block):
+                if (idd!=self.id): raise CommandCancelException()
+                return block()
+            def command(c: str): doOrSkip(lambda: self.write('COM: ' + c))
+            def commandDoNothing(): pass
+            def generate(c: str): doOrSkip(lambda: command('generate ' + c))
+            def speak(t: str): doOrSkip(lambda: self.tts.skippable(t).result())
+            def wait(t: float): doOrSkip(lambda: time.sleep(t))
+            def speakCurrentTime(): command('what time is it')
+            def speakCurrentDate(): command('what date is it')
+            def speakCurrentSong(): command('what song is active')
+            def speakDefinition(t: str): command('describe ' + t)
+            def peekIntoClipboard() -> str:
+                continueWithContext(f'You read clipboard content and it is:\n```{get_clipboard_text()}```')
+                return ''
+            def continueWithContext(input: str):
+                self.generatePythonAndExecute(f'{input}')
+                raise CommandCancelException()
 
-        # replace last message with user if it is user  
-        last_is_user = self.ms and isinstance(data[-1], dict) and data[-1].get("role") == "user"
-        if last_is_user: data.pop()
-        
-        self.ms.append({ "role": "system", "content": text })
-        
-        # debug
-        # print(f'+------------------------------------------------')
-        # for m in self.ms: print(m.strip())
-        # print(f'-------------------------------------------------')
-        
-        # invoke command as python
-        try: exec(text)
+            # replace last message with user if it is user
+            # last_is_user = self.ms and isinstance(self.ms[-1], dict) and isinstance(self.ms[-1].get("role"), str) and self.ms[-1].get("role") == "user"
+            # if last_is_user: self.ms.pop()
+
+            self.ms.append({ "role": "system", "content": text })
+
+            # debug
+            # print(f'+------------------------------------------------')
+            # for m in self.ms: print(str(m).strip())
+            # print(f'-------------------------------------------------')
+
+            # invoke command as python
+            exec(text)
         # stop on cancel
         except CommandCancelException as ce: pass
         except Exception as e:
@@ -124,7 +125,7 @@ The python code may use python constructs, custom variables and these functions:
 * def speakCurrentDate(): None # uses speak() with current date
 * def speakCurrentSong(): None # uses speak() with song information
 * def speakDefinition(term: str): None # uses speak() to define/describe/explain the term or concept
-* def peekIntoClipboard(): str # get current clipboard content, always pass into continueWithContext()
+* def peekIntoClipboard(): str # get current clipboard content which user set, always pass into continueWithContext()
 * def continueWithContext(context: str): None # think/meta/pipe function, add context and respond again, returns current processing
 
 If your answer depends on data, always pass them to continueWithContext(), you will auto-continue with the data you passed as context now available.

@@ -143,6 +143,7 @@ If you are uncertain what to do, simply speak() why.
 * command('play music')
 * for i in range(1, 5): wait(1.5)
 * continueWithContext('Clipboard is: ' + peekIntoClipboard())
+* speak(f'20 times 20 is {20 * 20}')
 
 **Example of wrong python responses**
 * play-music # missing command()

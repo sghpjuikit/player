@@ -51,7 +51,6 @@ class Stt(Actor):
             self._clear_queue()
             if self._stop: return
             sleep(0.1)
-            continue
 
 
 class SttNone(Stt):

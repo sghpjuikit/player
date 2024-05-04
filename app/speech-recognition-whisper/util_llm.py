@@ -1,7 +1,5 @@
-from concurrent.futures import Future
+from imports import *
 from util_paste import pasteTokens
-from typing import Callable, cast
-from dataclasses import dataclass
 from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
 import gpt4all.gpt4all
 from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain, SingleLazyIterator

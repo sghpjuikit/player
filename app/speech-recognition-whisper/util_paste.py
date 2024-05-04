@@ -1,5 +1,3 @@
-from threading import Thread
-from queue import Queue
 from time import sleep
 import pyperclip
 import pyautogui

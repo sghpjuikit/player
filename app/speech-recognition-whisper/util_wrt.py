@@ -1,8 +1,7 @@
-from threading import Thread
-from queue import Queue
 from collections.abc import Iterator
 from util_actor import Actor
 from typing import TextIO, AnyStr, List
+from imports import *
 import sys
 
 class Writer(Actor):

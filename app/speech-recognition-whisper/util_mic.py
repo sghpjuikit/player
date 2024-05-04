@@ -5,22 +5,23 @@ from util_tts import Tts
 from util_wrt import Writer
 from itertools import chain
 from pysilero_vad import SileroVoiceActivityDetector
-
-from util_actor import Actor
-from typing import Callable
-from collections import deque
-import speech_recognition
 from speech_recognition.audio import AudioData
 from speech_recognition import AudioSource
+from collections import deque
+from util_actor import Actor
+from imports import *
+import nemo.collections.asr as nemo_asr
+import speech_recognition
+import soundfile as sf
+import numpy as np
 import collections
+import pyaudio
+import librosa
 import audioop
+import torch
+import math
 import os
 import io
-import numpy as np
-import soundfile as sf
-import traceback
-import pyaudio
-import math
 
 def get_microphone_index_by_name(name):
     p = pyaudio.PyAudio()
@@ -37,7 +38,7 @@ def get_microphone_index_by_name(name):
 
 
 class Mic(Actor):
-    def __init__(self, micName: str | None, enabled: bool, sample_rate: int, onSpeechStart: Callable[[], None], onSpeechEnd: Callable[[AudioData], None], speak: Tts, write: Writer, micEnergy: int, micEnergyDebug: bool):
+    def __init__(self, micName: str | None, enabled: bool, sample_rate: int, onSpeechStart: Callable[[], None], onSpeechEnd: Callable[[AudioData], None], speak: Tts, write: Writer, micEnergy: int, verbose: bool, speakerDiarLoader):
         super().__init__("mic", "Mic", "cpu", write, enabled)
         self.listening = None
         self.sample_rate: int = sample_rate
@@ -47,7 +48,7 @@ class Mic(Actor):
         self.micName = micName
 
         # recognizer fields
-        self.energy_debug = micEnergyDebug
+        self.energy_debug = verbose
         self.energy_threshold = micEnergy  # minimum audio energy to consider for recording
         self.pause_threshold = 0.7  # seconds of non-speaking audio before a phrase is considered complete
         self.phrase_threshold = 0.3  # minimum seconds of speaking audio before we consider the speaking audio a phrase - values below this are ignored (for filtering out clicks and pops)
@@ -55,8 +56,12 @@ class Mic(Actor):
 
         # voice activity detection
         self.vad_treshold = 0.5
-        self.vad = SileroVoiceActivityDetector()
+        self.vad_detector = SileroVoiceActivityDetector()
         if self.sample_rate != 16000: raise Exception("Sample rate for voice activity detection must be 16000")
+
+        # speaker detection
+        self.speakerDiarLoader = speakerDiarLoader
+        self.speaker_diar = MicVoiceDetectNone()
 
     def set_pause_threshold_normal(self):
         self.pause_threshold = 0.7
@@ -65,6 +70,7 @@ class Mic(Actor):
         self.pause_threshold = 2.0
 
     def _loop(self):
+        self.speaker_diar = self.speakerDiarLoader()
         self._loaded = True
         while not self._stop:
 
@@ -184,8 +190,13 @@ class Mic(Actor):
         elapsed_time = 0  # number of seconds of audio read
         buffer = b""  # an empty buffer means that the stream has ended and there is no data left to read
         energy_debug_last = time()
+        isEnoughEnergyAndSpeech = False
+        isEnoughEnergyAndCorrectSpeech = False
         while True:
             frames = deque()
+            isEnoughEnergyAndSpeech = False
+            isEnoughEnergyAndCorrectSpeech = False
+
 
             # store audio input until the phrase starts
             while True:
@@ -198,17 +209,21 @@ class Mic(Actor):
                 frames.append(buffer)
                 if len(frames) > non_speaking_buffer_count: frames.popleft()  # ensure we only keep the needed amount of non-speaking buffers
 
-                # detect whether speaking has started on audio input
+                # energy
                 energy = audioop.rms(buffer, source.SAMPLE_WIDTH)  # energy of the audio signal
-                if self.energy_debug and time()-energy_debug_last>0.5:
-                    energy_debug_last = time()
-                    self.write(f"RAW: Mic energy={energy}/{self.energy_threshold}")
-                if energy > self.energy_threshold: break
+                energyDebugNeeded = self.energy_debug and time()-energy_debug_last>0.5
+                if energyDebugNeeded: energy_debug_last = time()
+                if energyDebugNeeded: self.write(f"RAW: Mic energy={energy}/{self.energy_threshold}")
+
+                # detect whether speaking has started
+                isEnoughEnergy = energy > self.energy_threshold
+                isEnoughEnergyAndSpeech = isEnoughEnergy and self.vad(buffer)
+                if isEnoughEnergyAndSpeech: break
 
             # read audio input until the phrase ends
             pause_count, phrase_count = 0, 0
             phrase_start_time = elapsed_time
-            has_speech = False
+            isEnoughEnergyAndCorrectSpeechEvaluated = False
             while True:
                 # handle phrase being too long by cutting off the audio
                 elapsed_time += seconds_per_buffer
@@ -219,31 +234,147 @@ class Mic(Actor):
                 frames.append(buffer)
                 phrase_count += 1
 
-                # vad
-                is_speech = self.vad(buffer) >= self.vad_treshold
-                if not has_speech and is_speech:
-                    has_speech = True
-                    # invoke speech start handler
-                    self.onSpeechStart()
+                # energy
+                energy = audioop.rms(buffer, source.SAMPLE_WIDTH)  # unit energy of the audio signal within the buffer
+                energyDebugNeeded = self.energy_debug and time()-energy_debug_last>0.5
+                if energyDebugNeeded: energy_debug_last = time()
+                if energyDebugNeeded: self.write(f"RAW: Mic energy={energy}/{self.energy_threshold}")
+
+                # detect whether correct speaking has started
+                isEnoughEnergy = energy > self.energy_threshold
+                isEnoughEnergyAndSpeech_buffer = isEnoughEnergy and self.vad(buffer)
+                if isEnoughEnergyAndSpeech_buffer and phrase_count >= phrase_buffer_count:
+                    if not isEnoughEnergyAndCorrectSpeechEvaluated:
+                        isEnoughEnergyAndCorrectSpeechEvaluated = True
+                        isEnoughEnergyAndCorrectSpeech = self.speaker_diar.isCorrectSpeaker(AudioData(b"".join(frames), self.sample_rate, source.SAMPLE_WIDTH))
+                        if isEnoughEnergyAndCorrectSpeech: self.onSpeechStart() # invoke speech start handler
 
                 # check if speaking has stopped for longer than the pause threshold on the audio input
-                energy = audioop.rms(buffer, source.SAMPLE_WIDTH)  # unit energy of the audio signal within the buffer
-                if self.energy_debug and time()-energy_debug_last>0.5:
-                    energy_debug_last = time()
-                    self.write(f"RAW: Mic energy={energy}/{self.energy_threshold}")
-                if energy > self.energy_threshold: pause_count = 0
+                if isEnoughEnergyAndSpeech_buffer: pause_count = 1
                 else: pause_count += 1
                 if pause_count > pause_buffer_count: break  # end of the phrase
 
             # check how long the detected phrase is, and retry listening if the phrase is too short
             phrase_count -= pause_count  # exclude the buffers for the pause before the phrase
-            if phrase_count >= phrase_buffer_count or len(buffer) == 0: break  # phrase is long enough or we've reached the end of the stream, so stop listening
+            if phrase_count >= phrase_buffer_count: break  # phrase is long enough
 
         # obtain frame data
         for i in range(pause_count - non_speaking_buffer_count): frames.pop()  # remove extra non-speaking frames at the end
         frame_data = b"".join(frames)
 
-        if has_speech:
-            return AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH)
-        else:
+        if isEnoughEnergyAndCorrectSpeech: return AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH)
+        else: return None
+
+    def vad(self, buffer) -> bool:
+        return self.vad_detector(buffer) >= self.vad_treshold
+
+@dataclass
+class MicVoice:
+    name: str
+    data: object | None
+    def __str__(self): return f'{self.name}'
+    def __repr__(self): return f'{self.name}'
+
+class MicVoiceDetectNone:
+    def isCorrectSpeaker(self, audio_data) -> bool:
+        return True
+
+class MicVoiceDetectNvidia:
+    def __init__(self, speaker_treshold: float, verbose: bool):
+        self.speaker_treshold = speaker_treshold # cosine similarity score used as a threshold to distinguish two embeddings (default = 0.7)
+        self.speaker_model = self.loadSpeakerModel()
+        self.speakers_correct = self.loadSpeakersCorrect()
+        self.verbose = verbose
+        self.sample_rate = 16000
+        if self.sample_rate != 16000: raise Exception("Sample rate for voice activity detection must be 16000")
+
+    def loadSpeakerModel(self):
+        try:
+            m = nemo_asr.models.EncDecSpeakerLabelModel.from_pretrained("nvidia/speakerverification_en_titanet_large")
+            m.to(torch.device("cuda:1"))
+            return m
+        except Exception as r:
+            print(f"ERR: failed to load speaker detector model {e}", end='')
+            traceback.print_exc()
             return None
+
+    def loadSpeakersCorrect(self) -> list[MicVoice] | None:
+        try:
+            dir = 'voices-verified'
+            voices = []
+            for f in os.listdir(dir):
+                if f.endswith('.wav'):
+                    voices.append(MicVoice(f, self.loadSpeakerFromFile(os.path.join(dir, f))))
+            print(f"RAW: loaded verified voices: {voices}", end='')
+            return voices
+        except Exception as e:
+            print(f"ERR: failed to load verified voices {e}", end='')
+            traceback.print_exc()
+            return None
+
+    def loadSpeakerFromFile(self, file: str) -> object:
+        embs = self.speaker_model.get_embedding(file).squeeze()
+        return embs / torch.linalg.norm(embs)
+
+    def loadSpeakerFromAudio(self, buffer) -> bool:
+        embs = self.infer_audio(buffer).squeeze()
+        return embs / torch.linalg.norm(embs)
+
+    @torch.no_grad()
+    def infer_audio(self, audio):
+        """
+        Args:
+            path2audio_file: path to an audio wav file
+
+        Returns:
+            emb: speaker embeddings (Audio representations)
+            logits: logits corresponding of final layer
+        """
+        audio, sr = audio, self.sample_rate
+        target_sr = self.speaker_model._cfg.train_ds.get('sample_rate', 16000)
+        if sr != target_sr: audio = librosa.core.resample(audio, orig_sr=sr, target_sr=target_sr)
+        audio_length = audio.shape[0]
+        device = self.speaker_model.device
+        audio = np.array([audio])
+        audio_signal, audio_signal_len = (
+            torch.tensor(audio, device=device),
+            torch.tensor([audio_length], device=device),
+        )
+        mode = self.speaker_model.training
+        self.speaker_model.freeze()
+
+        _, emb = self.speaker_model.forward(input_signal=audio_signal, input_signal_length=audio_signal_len)
+
+        self.speaker_model.train(mode=mode)
+        if mode is True:
+            self.speaker_model.unfreeze()
+        del audio_signal, audio_signal_len
+        return emb
+
+    def isCorrectSpeaker(self, audio_data) -> bool:
+        # no model loaded
+        if self.speaker_model is None: return True
+        # no verified speakers set
+        if self.speakers_correct is None: return True
+
+        try:
+            # impl from check nemo_asr.models.EncDecSpeakerLabelModel.verify_speakers method
+            from io import BytesIO
+            import soundfile as sf
+            wav_bytes = audio_data.get_wav_data()
+            audio_array, sampling_rate = sf.read(BytesIO(wav_bytes))
+            audio_array = audio_array.astype(np.float32)
+
+            for voice in self.speakers_correct:
+                X = voice.data
+                Y = self.loadSpeakerFromAudio(audio_array)
+                similarity_score = torch.dot(X, Y) / ((torch.dot(X, X) * torch.dot(Y, Y)) ** 0.5)
+                similarity_score = (similarity_score + 1) / 2
+                verified = similarity_score >= self.speaker_treshold
+                if self.verbose: print(f'RAW: {voice.name} is-verified:{verified} {similarity_score}{">=" if verified else "<"}{self.speaker_treshold}', end='')
+                if verified: return verified
+            return False
+        except Exception as e:
+            print(f'ERR: failed to determine speaker: {e}')
+            traceback.print_exc()
+            return False

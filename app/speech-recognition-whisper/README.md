@@ -170,8 +170,8 @@ USE: command without repeating system name
 ```
 
 ###### Voice chat
-Use can speak without calling the assistant's name completely in `CHAT` mode.
-In this mode user is conversing with LLM, which requires LlmActor enabled and running.
+Use can speak without calling the assistant's name completely in chat mode.
+In this mode user is conversing with LLM, which requires `LlmActor` enabled and running.
 ```
 USR: System start covnersation
 SYS: Conversing...
@@ -183,6 +183,18 @@ USR: Tell a joke
 If LlmActor is enabled, user will try to avoid common hardcoded responses and
 instead use Lllm to generate dynamic ones based on the (customizable) system prompt.
 This can give the assistant more personality.
+
+###### Voice detection
+The assistant listens to microphone and obtains chunks of speech in real time.
+Minimum volume treshold and VAD (voice activity detection) is being aplied to filter out non-speech.
+
+###### Voice detection - speaker detection
+The assistant can use speech diarization to detect whether speech is spoken by a verified voice.
+User can add multiple verified vices, [see](./voices-verified/README.md).
+This
+- prevents assistant reacting to its own speech
+- allows usage in noisy environment
+- allows others using voice control
 
 ###### Voice commands
 User may speak commands for assistent to execute.
@@ -420,7 +432,7 @@ For help invoke `-h` or `--help`
 #### First run & recommended setup
 First run the raw script with no arguments.
 Setup microphone sensitivity settings and speech recognition model (`base.en` should be absolutely enough.
-Or skip audio setup and control program though CLI `SAY`/`CHAT` commands.
+Or skip audio setup and control program though CLI `SAY`/`CALL` commands.
 Then try couple of commands.
 For speech generation try offline `speech-engine=coqui`.
 For llm chat try `llm-engine=openai` with [LmStudio](https://lmstudio.ai) and run it simply as server (everything should work out of the box).

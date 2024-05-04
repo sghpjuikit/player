@@ -1,19 +1,16 @@
-import uuid
+from imports import *
 from time import sleep
-from typing import Callable
-
-import whisper.audio
 from speech_recognition.audio import AudioData
 from util_actor import Actor
 from util_wrt import Writer
 from os import makedirs, remove
 from os.path import dirname, abspath, exists, join
-from dataclasses import dataclass
-from concurrent.futures import Future
 from io import BytesIO
+import whisper.audio
 import soundfile as sf
 import numpy as np
 import torch
+import uuid
 
 @dataclass
 class EventStt:
@@ -105,6 +102,7 @@ class SttWhisper(Stt):
 # comparisons https://huggingface.co/spaces/hf-audio/open_asr_leaderboard
 # https://huggingface.co/nvidia/parakeet-tdt-1.1b
 # https://huggingface.co/nvidia/parakeet-ctc-1.1b
+# https://huggingface.co/nvidia/parakeet-ctc-0.6b
 class SttNemo(Stt):
     def __init__(self, enabled: bool, device: str, model: str, write: Writer):
         super().__init__('SttNemo', device, write, enabled, 16000)

@@ -7,13 +7,12 @@ import psutil
 import base64
 import traceback
 from itertools import chain
-from threading import Thread, Timer
-from typing import cast
+from threading import Timer
 from util_play_engine import SdActor
 from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatWhatCanYouDo, ChatPaste
-from util_mic import Mic
+from util_mic import Mic, MicVoiceDetectNone, MicVoiceDetectNvidia
 from util_http import Http, HttpHandler
 from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerIntent, HttpHandlerStt, HttpHandlerSttReact
 from util_stt import SttNone, SttWhisper, SttNemo, SttHttp
@@ -66,8 +65,25 @@ Args:
     Default: 120
     
   mic-energy-debug=$bool
-    Optional bool whether microphone should be printing energy level.
-    When true, microphone listening is not active. Use only to determine optimal energy treshold for voice detection.
+    Optional bool whether microphone should be printing real-time `mic-energy`.
+    Use only to determine optimal `mic-energy`.
+    Default: False
+
+  mic-voice-detect=$bool
+    Microphone voice detection.
+    If true, detects voice from verified voices and ignores others.
+    Verified voices must be 16000Hz wav in `voices-verified` directory.
+    Use `mic-voice-detect-prop` to set up sensitivity.
+    Default: False
+    
+  mic-voice-detect-prop=$int<0,1>
+    Microphone voice detection treshold. Anything above this value is considered matched voice.
+    Use `mic-voice-detect-debug` to determine optimal value.
+    Default: 0.6
+    
+  mic-voice-detect-debug=$bool
+    Optional bool whether microphone should be printing real-time `mic-voice-detect-prop`.
+    Use only to determine optimal `mic-voice-detect-prop`.
     Default: False
 
   parent-process=$pid
@@ -204,7 +220,10 @@ if not os.path.exists(sysCacheDir): os.makedirs(sysCacheDir)
 micEnabled = arg('mic-enabled', "true")=="true"
 micName = arg('mic-name', '')
 micEnergy = int(arg('mic-energy', "120"))
-micEnergyDebug = arg('mic-energy-debug', "false")=="true"
+micVerbose = arg('mic-energy-debug', "false")=="true"
+micVoiceDetect = arg('mic-voice-detect', "false")=="true"
+micVoiceDetectTreshold = float(arg('mic-voice-detect-prop', "0.6"))
+micVoiceDetectVerbose = arg('mic-voice-detect-debug', "false")=="true"
 
 sttEngineType = arg('stt-engine', 'whisper')
 sttWhisperDevice = arg('stt-whisper-device', '')
@@ -468,6 +487,7 @@ class Assist:
         mic.set_pause_threshold_talk()
 
     def restartChat(self):
+        if self.isChat is False: return
         if isinstance(llm, LlmNone): return
         tts.skip()
         llm.generating = False
@@ -476,6 +496,7 @@ class Assist:
         executorPython.ms = []
 
     def stopChat(self):
+        if self.isChat is False: return
         if isinstance(llm, LlmNone): return
         self.isChat = False
         tts.skip()
@@ -577,7 +598,10 @@ else:
     pass
 stt.onDone = callback
 
-mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, lambda: skip(), lambda a: stt(a), tts, write, micEnergy, micEnergyDebug)
+def micSpeakerDiarLoader():
+    if not micVoiceDetect: return MicVoiceDetectNone()
+    else: return MicVoiceDetectNvidia(micVoiceDetectTreshold, micVoiceDetectVerbose)
+mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, lambda: skip(), lambda a: stt(a), tts, write, micEnergy, micVerbose, micSpeakerDiarLoader)
 actors: [Actor] = list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.tts.play if hasattr(tts.tts, 'play') else None]))
 
 # http
@@ -657,11 +681,21 @@ while not sysTerminating:
             mic.enabled = e
             stt.enabled = e
 
-        elif m.startswith("mic-energy-debug="):
-            mic.energy_debug = prop(m, "mic-energy-debug", "false").lower() == "true"
-
         elif m.startswith("mic-energy="):
-            mic.energy_threshold = int(prop(m, "mic-energy", "120"))
+            micEnergy = int(prop(m, "mic-energy", "120"))
+            mic.energy_threshold = micEnergy
+
+        elif m.startswith("mic-energy-debug="):
+            micVerbose = prop(m, "mic-energy-debug", "false").lower() == "true"
+            mic.energy_debug = micVerbose
+
+        elif m.startswith("mic-voice-detect-prop="):
+            micVoiceDetectTreshold = float(prop(m, "mic-voice-detect-prop", "0.6"))
+            if micVoiceDetect: mic.speaker_diar.speaker_treshold = micVoiceDetectTreshold
+
+        elif m.startswith("mic-voice-detect-debug="):
+            micVoiceDetectVerbose = prop(m, "mic-voice-detect-debug", "false").lower() == "true"
+            if micVoiceDetect: mic.speaker_diar.verbose = micVoiceDetectVerbose
 
         elif m.startswith("speech-on="):
             tts.enabled = prop(m, "speech-on", "true").lower() == "true"
@@ -672,10 +706,10 @@ while not sysTerminating:
         elif m.startswith("llm-chat-sys-prompt="):
             promptOld = llmSysPrompt
             llmSysPrompt = prop(m, 'llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')
-            promptNew = llmSysPrompt
             llm.sysPrompt = llmSysPrompt
-            llm(ChatReact(llmSysPrompt, f"User changed your system prompt from:\n```\n{promptOld}\n```\n\nto:\n```\n{promptNew}\n```", name + " prompt changed"))
-            
+            if promptOld!=llmSysPrompt:
+                llm(ChatReact(llmSysPrompt, f"User changed your system prompt from:\n```\n{promptOld}\n```\n\nto:\n```\n{llmSysPrompt}\n```", name + " prompt changed"))
+
         elif m.startswith("llm-chat-max-tokens="):
             llm.maxTokens = int(prop(m, "llm-chat-max-tokens", "300"))
 
@@ -689,7 +723,11 @@ while not sysTerminating:
             llm.topk = int(prop(m, "llm-chat-topk", "40"))
 
         elif m.startswith("use-python-commands="):
+            usePythonCommandsOld = usePythonCommands
             usePythonCommands = prop(m, "use-python-commands", "false")=="true"
+            if usePythonCommandsOld!=usePythonCommands:
+                llm(ChatReact(llmSysPrompt, f"User {'increased' if usePythonCommands else 'decreased'} your output expressivity", name + " prompt changed"))
+
 
         # exit command
         elif m == "EXIT":

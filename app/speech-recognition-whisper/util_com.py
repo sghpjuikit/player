@@ -1,3 +1,4 @@
+from imports import *
 
 class CommandExecutor:
     def execute(self, text: str) -> str:
@@ -41,7 +42,6 @@ class PythonExecutor:
             self.ms.append({ "role": "user", "content": text })
     
             def on_done(future):
-                from threading import Thread
                 try: (text, canceled, commandIterator) = future.result()
                 except Exception: (text, canceled, commandIterator) = (None, None, None)
                 if text is None or canceled: return

@@ -130,6 +130,9 @@ class VoiceAssistant: PluginBase() {
             "mic-name=${micName.value ?: ""}",
             "mic-energy=${micEnergy.value}",
             "mic-energy-debug=${micEnergyDebug.value}",
+            "mic-voice-detect=${micVoiceDetect.value}",
+            "mic-voice-detect-prop=${micVoiceDetectProb.value}",
+            "mic-voice-detect-debug=${micVoiceDetectProbDebug.value}",
             "parent-process=${ProcessHandle.current().pid()}",
             "speech-on=${ttsOn.value}",
             "speech-engine=${ttsEngine.value.code}",
@@ -357,6 +360,24 @@ class VoiceAssistant: PluginBase() {
    val micEnergyDebug by cv(false)
       .def(name = "Microphone energy > debug", info = "Whether current microphone energy lvl is active. Use to setup microphone energy voice treshold.")
 
+   val micVoiceDetect by cv(false)
+      .def(
+         name = "Microphone > voice detect",
+         info = "Microphone voice detection. If true, detects voice from verified voices and ignores others. Verified voices must be 16000Hz wav in `voices-verified` directory. Use `Microphone > voice detect treshold` to set up sensitivity."
+      )
+
+   val micVoiceDetectProb by cv(0.6).between(0.0, 1.0)
+      .def(
+         name = "Microphone > voice detect treshold",
+         info = "Microphone voice detection treshold. Anything above this value is considered matched voice. Use `Microphone > voice detect treshold > debug` to determine optimal value."
+      )
+
+   val micVoiceDetectProbDebug by cv(false)
+      .def(
+         name = "Microphone > voice detect treshold > debug",
+         info = "Optional bool whether microphone should be printing real-time `Microphone > voice detect treshold`. Use only to determine optimal `Microphone > voice detect treshold`."
+      )
+
    /** Console output - all */
    val pythonOutStd = v<String>("")
 
@@ -519,6 +540,8 @@ class VoiceAssistant: PluginBase() {
                micEnabled.chan().throttleToLast(p) subscribe { write("mic-enabled=$it") }
                 micEnergy.chan().throttleToLast(p) subscribe { write("mic-energy=$it") }
            micEnergyDebug.chan().throttleToLast(p) subscribe { write("mic-energy-debug=$it") }
+       micVoiceDetectProb.chan().throttleToLast(p) subscribe { write("mic-voice-detect-prop=$it") }
+  micVoiceDetectProbDebug.chan().throttleToLast(p) subscribe { write("mic-voice-detect-debug=$it") }
                     ttsOn.chan().throttleToLast(p) subscribe { write("speech-on=$it") }
       ttsEngineCoquiVoice.chan().throttleToLast(p) subscribe { write("coqui-voice=$it") }
          llmChatSysPrompt.chan().throttleToLast(p) subscribe { write("llm-chat-sys-prompt=$it") }
@@ -533,7 +556,7 @@ class VoiceAssistant: PluginBase() {
 
       // restart-requiring properties
       val processChangeVals = listOf<V<*>>(
-         micName,
+         micName, micVoiceDetect,
          sttEngine, sttWhisperModel, sttWhisperDevice, sttNemoModel, sttNemoDevice, sttHttpUrl,
          ttsEngine, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,

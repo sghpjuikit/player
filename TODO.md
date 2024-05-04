@@ -1,6 +1,5 @@
 ## Potential future work
 
-- https://huggingface.co/nvidia/speakerverification_en_titanet_large speaker diarization yay  
 - Converter opens ObjectInfo in Actionpane
 - COnverter function picker add combobox for text/each/value
 - Load widget factories in bgr

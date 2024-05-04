@@ -392,8 +392,8 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Speech recognition > Whisper device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
 
    /** [TtsEngine.NEMO] AI model used to transcribe voice to text */
-   val sttNemoModel by cv("nvidia/parakeet-tdt-1.1b")
-      .values { listOf("nvidia/parakeet-tdt-1.1b", "nvidia/parakeet-ctc-1.1b") }
+   val sttNemoModel by cv("nvidia/parakeet-ctc-1.1b")
+      .values { listOf("nvidia/parakeet-tdt-1.1b", "nvidia/parakeet-ctc-1.1b", "nvidia/parakeet-ctc-0.6b") }
       .uiNoOrder()
       .def(name = "Speech recognition > Nemo model", info = "Nemo model for speech recognition.")
 

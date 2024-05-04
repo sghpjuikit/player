@@ -128,6 +128,7 @@ class SttNemo(Stt):
         # load model
         if self.model=="nvidia/parakeet-tdt-1.1b": model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name="nvidia/parakeet-tdt-1.1b")
         if self.model=="nvidia/parakeet-ctc-1.1b": model = nemo_asr.models.EncDecCTCModelBPE.from_pretrained(model_name="nvidia/parakeet-ctc-1.1b")
+        if self.model=="nvidia/parakeet-ctc-0.6b": model = nemo_asr.models.EncDecCTCModelBPE.from_pretrained(model_name="nvidia/parakeet-ctc-0.6b")
 
         model.to(torch.device(self.device))
         # loop
@@ -149,6 +150,7 @@ class SttNemo(Stt):
                         hypothese1 = hypotheses[0] if hypotheses else None
                         if self.model=="nvidia/parakeet-tdt-1.1b": text = hypothese1[0] if hypothese1 else None
                         if self.model=="nvidia/parakeet-ctc-1.1b": text = hypothese1 if hypothese1 else None
+                        if self.model=="nvidia/parakeet-ctc-0.6b": text = hypothese1 if hypothese1 else None
                         # complete
                         if not self._stop and self.enabled: f.set_result(text if text is not None else '')
                         else: f.set_exception(Exception("Stopped or disabled"))

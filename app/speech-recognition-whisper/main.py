@@ -99,8 +99,8 @@ Args:
 
   stt-nemo-model=$model
     Nemo model for speech recognition
-    Values: nvidia/parakeet-tdt-1.1b
-    Default: nvidia/parakeet-tdt-1.1b
+    Values: nvidia/parakeet-tdt-1.1b, nvidia/parakeet-ctc-1.1b, nvidia/parakeet-ctc-0.6b
+    Default: nvidia/parakeet-ctc-1.1b
     
   stt-nemo-device
     Nemo torch device, e.g., cpu, cuda:0, cuda:1.
@@ -210,7 +210,7 @@ sttEngineType = arg('stt-engine', 'whisper')
 sttWhisperDevice = arg('stt-whisper-device', '')
 sttWhisperModel = arg('stt-whisper-model', 'base.en')
 sttNemoDevice = arg('stt-nemo-device', '')
-sttNemoModel = arg('stt-nemo-model', 'nvidia/parakeet-tdt-1.1b')
+sttNemoModel = arg('stt-nemo-model', 'nvidia/parakeet-ctc-1.1b')
 sttHttpUrl = arg('stt-http-url', 'localhost:1235')
 
 ttsOn = arg('speech-on', "true") == "true"

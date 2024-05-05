@@ -1,27 +1,29 @@
-import sys
-import atexit
-import signal
-import time
-import os
-import psutil
-import base64
 import traceback
-from itertools import chain
+import base64
+import psutil
+import signal
+import atexit
+import time
+import sys
+import os
+from datetime import datetime
 from threading import Timer
-from util_play_engine import SdActor
-from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
-from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
-from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatWhatCanYouDo, ChatPaste
-from util_mic import Mic, MicVoiceDetectNone, MicVoiceDetectNvidia
-from util_http import Http, HttpHandler
+from itertools import chain
 from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerIntent, HttpHandlerStt, HttpHandlerSttReact
-from util_stt import SttNone, SttWhisper, SttNemo, SttHttp
-from util_wrt import Writer
+from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
+from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatWhatCanYouDo, ChatPaste
+from util_stt import SttNone, SttWhisper, SttNemo, SttHttp, SpeechText
+from util_mic import Mic, MicVoiceDetectNone, MicVoiceDetectNvidia
+from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_itr import teeThreadSafe, teeThreadSafeEager
+from util_http import Http, HttpHandler
+from util_play_engine import SdActor
+from util_wrt import Writer
 from util_actor import Actor
+from util_paste import *
 from util_com import *
 from util_str import *
-from util_paste import *
+
 
 # print engine actor, non-blocking
 write = Writer()
@@ -418,20 +420,20 @@ class CommandExecutorMain(CommandExecutor):
 commandExecutor.commandExecutor = CommandExecutorMain()
 executorPython = PythonExecutor(tts, lambda sp, up, ms: llm(ChatIntentDetect.python(sp, up, ms)), write, llmSysPrompt, ', '.join(voices))
 
-class Assist:
+class AssistBasic:
     def __init__(self):
-        self.last_announcement_at = 0.0
+        self.last_announcement_at = datetime.now()
         self.wake_word_delay = 5.0
         self.isChat = False
 
-    def needsWakeWord(self) -> bool:
-        return self.isChat is False and time.time() - self.last_announcement_at > self.wake_word_delay
+    def needsWakeWord(self, speech_start: datetime) -> bool:
+        return self.isChat is False and (speech_start - self.last_announcement_at).total_seconds() > self.wake_word_delay
 
     def __call__(self, text: str, textSanitized: str):
         global assist
         # announcement
         if len(text) == 0:
-            self.last_announcement_at = time.time()
+            self.last_announcement_at = datetime.now()
             if self.isChat: llm(ChatReact(llmSysPrompt, "Afk user prodded you - say you are still conversing", "Yes, we are talking"))
             else: llm(ChatReact(llmSysPrompt, "Afk user prodded you - are you there?", "Yes"))
         # do greeting
@@ -502,7 +504,7 @@ class Assist:
         mic.set_pause_threshold_normal()
 
 
-assist = Assist()
+assist = AssistBasic()
 
 def skipWithoutSound():
     executorPython.skip()
@@ -514,17 +516,18 @@ def skip():
     if llm.generating: llm.generating = False
     tts.skip()
 
-def callback(text):
+def callback(st: SpeechText):
     if sysTerminating: return
 
+    text = st.text
     textSanitized = text.rstrip(".").strip()
     text = text.lower().rstrip(".").strip()
+
+    # ignore no input
     if len(text) == 0: return
 
     # ignore speech recognition noise
-    if assist.needsWakeWord() and not starts_with_any(text, wake_words):
-        write('RAW: ' + text)
-        return
+    if assist.needsWakeWord(st.start) and not starts_with_any(text, wake_words): return
 
     # monitor activity time
     global assist_last_at
@@ -544,9 +547,9 @@ def callback(text):
         if text == "repeat": commandExecutor.execute(text)
         else: assist(text, textSanitized)
     except Exception as e:
-        traceback.print_exc()
         write(f"ERR: {e}")
-        tts(name + " encountered an error. Please speak again.")
+        traceback.print_exc()
+        tts(name + " encountered an error. Please speak again or check logs for details.")
 
 def start_exit_invoker():
     if sysParentProcess==-1: return
@@ -597,7 +600,7 @@ stt.onDone = callback
 def micSpeakerDiarLoader():
     if not micVoiceDetect: return MicVoiceDetectNone()
     else: return MicVoiceDetectNvidia(micVoiceDetectTreshold, micVoiceDetectVerbose)
-mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, lambda: skip(), lambda a: stt(a), tts, write, micEnergy, micVerbose, micSpeakerDiarLoader)
+mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, lambda e: skip(), lambda e: stt(e), tts, write, micEnergy, micVerbose, micSpeakerDiarLoader)
 actors: [Actor] = list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.tts.play if hasattr(tts.tts, 'play') else None]))
 
 # http
@@ -648,7 +651,8 @@ while not sysTerminating:
             text = base64.b64decode(m[6:]).decode('utf-8')
             text = remove_any_prefix(text, wake_words)
             text = name + ' ' + text
-            callback(text)
+            now = datetime.now()
+            callback(SpeechText(now, None, now, text))
 
         if m.startswith("COM-DET: "):
             text = base64.b64decode(m[9:]).decode('utf-8')
@@ -662,7 +666,8 @@ while not sysTerminating:
             text = m[6:]
             text = remove_any_prefix(text, wake_words)
             text = name + ' ' + text
-            callback(text)
+            now = datetime.now()
+            callback(SpeechText(now, None, now, text))
 
         if m.startswith("COM: "):
             text = base64.b64decode(m[5:]).decode('utf-8')

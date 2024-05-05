@@ -20,7 +20,7 @@ class CommandExecutorDelegate(CommandExecutor):
         return self.commandExecutor.execute(text)
 
 def preprocess_command(text: str) -> str:
-    return text.strip().removeprefix("```").removesuffix("```").strip()
+    return text.strip().removeprefix("```python").removeprefix("```").removesuffix("```").strip()
 
 class PythonExecutor:
     def __init__(self, tts, generatePython, write, llmSysPrompt, voices):
@@ -68,7 +68,7 @@ class PythonExecutor:
             def command(c: str): doOrSkip(lambda: self.write('COM: ' + c))
             def commandDoNothing(): pass
             def generate(c: str): doOrSkip(lambda: command('generate ' + c))
-            def speak(t: str): doOrSkip(lambda: self.tts.skippable(t).result())
+            def speak(t: str): doOrSkip(lambda: self.tts.skippable(t.removeprefix('"').removeprefix('"')).result())
             def wait(t: float): doOrSkip(lambda: time.sleep(t))
             def speakCurrentTime(): command('what time is it')
             def speakCurrentDate(): command('what date is it')
@@ -80,6 +80,7 @@ class PythonExecutor:
             def continueWithContext(input: str):
                 self.generatePythonAndExecute(f'{input}')
                 raise CommandCancelException()
+            def writeCode(code: str): self.write(f'```\n{code}\n```')
 
             # replace last message with user if it is user
             # last_is_user = self.ms and isinstance(self.ms[-1], dict) and isinstance(self.ms[-1].get("role"), str) and self.ms[-1].get("role") == "user"
@@ -127,10 +128,12 @@ The python code may use python constructs, custom variables and these functions:
 * def speakDefinition(term: str): None # uses speak() to define/describe/explain the term or concept
 * def peekIntoClipboard(): str # get current clipboard content which user set, always pass into continueWithContext()
 * def continueWithContext(context: str): None # think/meta/pipe function, add context and respond again, returns current processing
+* def writeCode(code: str): None # use when user asks you to write code
 
 If your answer depends on data, always pass them to continueWithContext(), you will auto-continue with the data you passed as context now available.
 You can only call continueWithContext() only once, this must be your last command.
 You always write short and efficient python (e.g. loop instead of manual duplicate calls).
+You always use write() functions to write.
 You always use speak() functions to speak.
 You always use command() to invoke behavior (other than speaking), you use python only for control flow (loops, etc.).
 You always use wait() function to control time in your responses, take into consideration that speak() has about 0.5s delay.

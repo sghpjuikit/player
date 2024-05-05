@@ -8,6 +8,7 @@ from pysilero_vad import SileroVoiceActivityDetector
 from speech_recognition.audio import AudioData
 from speech_recognition import AudioSource
 from collections import deque
+from datetime import datetime
 from util_actor import Actor
 from imports import *
 import nemo.collections.asr as nemo_asr
@@ -36,14 +37,23 @@ def get_microphone_index_by_name(name):
     p.terminate()
     return device_index
 
+OnSpeechStart = Callable[[datetime], None]
+
+@dataclass
+class Speech:
+    start: datetime
+    audio: AudioData
+    stop: datetime
+
+OnSpeechEnd = Callable[[Speech], None]
 
 class Mic(Actor):
-    def __init__(self, micName: str | None, enabled: bool, sample_rate: int, onSpeechStart: Callable[[], None], onSpeechEnd: Callable[[AudioData], None], speak: Tts, write: Writer, micEnergy: int, verbose: bool, speakerDiarLoader):
+    def __init__(self, micName: str | None, enabled: bool, sample_rate: int, onSpeechStart: OnSpeechStart, onSpeechEnd: OnSpeechEnd, speak: Tts, write: Writer, micEnergy: int, verbose: bool, speakerDiarLoader):
         super().__init__("mic", "Mic", "cpu", write, enabled)
         self.listening = None
         self.sample_rate: int = sample_rate
-        self.onSpeechStart: Callable[[], None] = onSpeechStart
-        self.onSpeechEnd: Callable[[AudioData], None] = onSpeechEnd
+        self.onSpeechStart: OnSpeechStart = onSpeechStart
+        self.onSpeechEnd: OnSpeechEnd = onSpeechEnd
         self.speak = speak
         self.micName = micName
 
@@ -131,10 +141,8 @@ class Mic(Actor):
 
                         # listen to mic
                         try:
-                            audio_data = self.listen(source, timeout=1)
-
-                            # speech recognition
-                            if not self._stop and self.enabled and audio_data is not None: self.onSpeechEnd(audio_data)
+                            speech = self.listen(source, timeout=1)
+                            if not self._stop and self.enabled and speech is not None: self.onSpeechEnd(speech)
 
                         # ignore silence
                         except WaitTimeoutError:
@@ -165,7 +173,7 @@ class Mic(Actor):
     # 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
     # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
     # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-    def listen(self, source: Microphone, timeout=None, phrase_time_limit=None) -> AudioData | None:
+    def listen(self, source: Microphone, timeout=None, phrase_time_limit=None) -> Speech | None:
         """
         Records a single phrase from ``source`` (an ``AudioSource`` instance) into an ``AudioData`` instance, which it returns.
 
@@ -192,6 +200,7 @@ class Mic(Actor):
         energy_debug_last = time()
         isEnoughEnergyAndSpeech = False
         isEnoughEnergyAndCorrectSpeech = False
+        speechStart = None
         while True:
             frames = deque()
             isEnoughEnergyAndSpeech = False
@@ -247,7 +256,9 @@ class Mic(Actor):
                     if not isEnoughEnergyAndCorrectSpeechEvaluated:
                         isEnoughEnergyAndCorrectSpeechEvaluated = True
                         isEnoughEnergyAndCorrectSpeech = self.speaker_diar.isCorrectSpeaker(AudioData(b"".join(frames), self.sample_rate, source.SAMPLE_WIDTH))
-                        if isEnoughEnergyAndCorrectSpeech: self.onSpeechStart() # invoke speech start handler
+                        if isEnoughEnergyAndCorrectSpeech:
+                            speechStart = datetime.now()
+                            self.onSpeechStart(speechStart) # invoke speech start handler
 
                 # check if speaking has stopped for longer than the pause threshold on the audio input
                 if isEnoughEnergyAndSpeech_buffer: pause_count = 1
@@ -262,7 +273,7 @@ class Mic(Actor):
         for i in range(pause_count - non_speaking_buffer_count): frames.pop()  # remove extra non-speaking frames at the end
         frame_data = b"".join(frames)
 
-        if isEnoughEnergyAndCorrectSpeech: return AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH)
+        if isEnoughEnergyAndCorrectSpeech: return Speech(speechStart, AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH), datetime.now())
         else: return None
 
     def vad(self, buffer) -> bool:

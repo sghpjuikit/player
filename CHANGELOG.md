@@ -134,14 +134,15 @@ SYS: Yes
 USE: command without repeating system name
 ```
 
+#### Speaker diarization
+Assistant can now identify speaker and only react to one of the verified voices.
+Registering verified voices has no UI right, now. [See](/app/speech-recognition-whisper/README.md#voice-detection---speaker-detection)
+
 ### Markdown
 Markdown renderer has been optimized.
 The markdown styling has been improved as well, particularly to be consistent in vertical layout.
 The headings now have visual GitHub-like anchors.
 Now, the `MdNode` can be used seamlessly to render text-based UIs.
-
-### Known issues
-- **Voice assistant** llm actor `LlmGpt4All` does not process non chat event properly when chat is active 
 
 
 ## [8.0.0] 2023 10 27

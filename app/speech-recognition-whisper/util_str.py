@@ -1,11 +1,10 @@
 import re
 import sys
 
-def contains_any(t: str, texts: [str]) -> bool:
-    for text in texts:
-        if text in t.lower():
-            return True
-    return False
+def contains_any(text: str, fragments: [str], ignore_case: bool = False) -> bool:
+    def sanitize(s): return s.lower() if ignore_case else s
+    text = sanitize(text)
+    return any(sanitize(fragment) in text for fragment in fragments)
 
 def starts_with_any(t: str, prefixes: [str]) -> bool:
     for prefix in prefixes:

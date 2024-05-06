@@ -65,7 +65,6 @@
 - Popup unable to receive focus sometimes
 - Recompiling or manual widget loading does not rebind inputs properly
 - **Function Viewer** plotting steep functions clipped too soon
-- `LlmGpt4All` does not handle chat session simultaneously with commands properly
 
 ## External bugs
 - [ ] [jaudiotagger-65](https://bitbucket.org/ijabz/jaudiotagger/issues/65/add-support-for-ogg-opus-format) opus ogg support

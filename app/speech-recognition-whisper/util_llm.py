@@ -1,3 +1,6 @@
+import os.path
+import traceback
+
 from imports import *
 from util_paste import pasteTokens
 from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
@@ -164,7 +167,6 @@ class LlmGpt4All(Llm):
         self.commandExecutor = commandExecutor
         self.modelName = modelName
         self.modelPath = modelPath
-        # gpt4all.gpt4all.DEFAULT_MODEL_DIRECTORY = chatDir
         self.sysPrompt = sysPrompt
         self.maxTokens = maxTokens
         self.temp = temp
@@ -172,28 +174,32 @@ class LlmGpt4All(Llm):
         self.topk = topk
 
     def _loop(self):
-        # init
-        llm = GPT4All(model_name=self.modelName, model_path=self.modelPath, device="cpu", allow_download=True, verbose=False)
+        # init model
+        llm = GPT4All(model_name=self.modelName, model_path=self.modelPath, device="gpu", allow_download=True, verbose=False)
+        # init prompt format
+        llm_prompt_template_file = os.path.join(self.modelPath, self.modelName + '.prompt.txt')
+        llm_prompt_template = None
+        if os.path.exists(llm_prompt_template_file):
+            with open(llm_prompt_template_file) as f:
+                llm_prompt_template = f.read()
+
         # loop
         with (self._looping()):
             while not self._stop:
-                ef = self.queue.get()
-                x, ff = ef
-
-                while not self._stop:
-                    with self._loopProcessEvent() as (e, f):
-                        isCommand = isinstance(e, ChatIntentDetect)
-                        isCommandWrite = isCommand and cast(ChatIntentDetect, e).writeTokens
-                        commandIterator = SingleLazyIterator(lambda: not self.generating)
-                        try:
+                with self._loopProcessEvent() as (e, f):
+                    isCommand = isinstance(e, ChatIntentDetect)
+                    isCommandWrite = isCommand and cast(ChatIntentDetect, e).writeTokens
+                    commandIterator = SingleLazyIterator(lambda: not self.generating)
+                    try:
+                        with llm.chat_session():
+                            llm._history = e.messages   # overwrite system prompt & history
                             self.generating = True
-                            llm._current_prompt_template = llm.config["promptTemplate"]
-                            llm._history = e.messages
                             stop = [" COM", "<|eot_id|>"] if isCommand else ["<|eot_id|>"]
                             text = ''
                             def process(token_id, token_string):
+                                nonlocal text
                                 text = text + token_string
-                                return not self._stop and self.generating and not contains_any(text, stop)
+                                return not self._stop and self.generating and not contains_any(text, stop, False)
                             tokens = llm.generate(
                                 e.userPrompt, streaming=True,
                                 max_tokens=self.maxTokens, top_p=self.topp, top_k=self.topk, temp=self.temp,
@@ -208,11 +214,11 @@ class LlmGpt4All(Llm):
                             canceled = self.generating is False
                             text = ''.join(tokensText)
                             f.set_result((text, canceled, commandIterator))
-                        except Exception as x:
-                            f.set_exception(x)
-                            raise x
-                        finally:
-                            self.generating = False
+                    except Exception as x:
+                        f.set_exception(x)
+                        raise x
+                    finally:
+                        self.generating = False
 
 
 # home https://github.com/openai/openai-python

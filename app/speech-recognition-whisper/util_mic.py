@@ -382,7 +382,7 @@ class MicVoiceDetectNvidia:
                 similarity_score = torch.dot(X, Y) / ((torch.dot(X, X) * torch.dot(Y, Y)) ** 0.5)
                 similarity_score = (similarity_score + 1) / 2
                 verified = similarity_score >= self.speaker_treshold
-                if self.verbose: print(f'RAW: {voice.name} is-verified:{verified} {similarity_score}{">=" if verified else "<"}{self.speaker_treshold}', end='')
+                if self.verbose: print(f'RAW: {voice.name}:{verified} {similarity_score}{">=" if verified else "<"}{self.speaker_treshold}', end='')
                 if verified: return verified
             return False
         except Exception as e:

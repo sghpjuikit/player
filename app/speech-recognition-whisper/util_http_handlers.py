@@ -129,7 +129,7 @@ class HttpHandlerStt(HttpHandler):
             sample_width = int.from_bytes(body[4:6], 'little')
             audio_data = body[6:]
             f = self.stt(Speech(datetime.now(), AudioData(audio_data, sample_rate, sample_width), datetime.now()), False)
-            text = f.result()
+            text = f.result().text
             text = text.encode('utf-8')
             req.send_response(200)
             req.send_header('Content-type', 'text/plain')

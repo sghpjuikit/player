@@ -410,6 +410,7 @@ It is simply a service to intelligently convert input into output.
             - into the [models-whisper](models-whisper) directory
             - from [official source](https://github.com/openai/whisper/blob/f296bcd3fac41525f1c5ab467062776f8e13e4d0/whisper/__init__.py)
     2. **SttNemo**
+        - `pip install nemo_toolkit[asr]`
         - TODO
     2. **SttHttp**
         - TODO

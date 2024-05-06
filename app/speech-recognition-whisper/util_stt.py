@@ -193,7 +193,9 @@ class SttHttp(Stt):
                         conn.set_debuglevel(0)
                         conn.request('POST', '/stt', byte_array, {})
                         # read response
-                        text = conn.getresponse().read().decode('utf-8')
+                        res = conn.getresponse()
+                        text = res.read().decode('utf-8')
+                        if res.status != 200: raise Exception(text)
                         # complete
                         if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, text))
                         else: a.future.set_exception(Exception("Stopped or disabled"))

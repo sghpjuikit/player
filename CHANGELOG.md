@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement function editor help icon with popup showing available functions
 - Implement black screen action that hides screen
 - Implement settings UX
+- Implement **App Scheduler** widget - UI for scheduled tasks
 - Implement **Voice assistant** http APIs
 - Implement **Voice assistant** UX
 - Implement **Voice assistant** asynchronous voice command support 
@@ -34,7 +35,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** line rewrite support (shows progress bars properly)
 - Implement **Voice assistant** multiple wake words support & better wake word handling
 - Implement **Voice assistant** `TtsCoqui` better text cleanup & voice loading speed
-- Implement **Voice assistant** multiple voice commands support
+- Implement **Voice assistant** speaker diarization
+- Implement **Voice assistant** python commands
 - Implement current song voice command
 - Implement log level highlighting
 - Implement **GitProjects** faster and better file sorting
@@ -71,6 +73,9 @@ All notable changes to this project will be documented in this file. Format base
 - Fix hiding window running twice or skipping animation sometimes
 - Fix application opens with each window opened twice
 - Fix file icon extractor causing ui crashes
+- Fix `DatePickerContent` layout
+- Fix `DatePickerContent` layout alignment with `TimePickerContent`
+- Fix flowPane, tilePane, gridPane vGap, hGap from css not respected
 
 ### Voice Assistant
 Voice assistant has received a lot of updates to make it more usable and productive.
@@ -109,6 +114,17 @@ ASSISTANT: which value do you want to set
 USER value1
 ASSISTANT: Done
 ```
+
+#### Python commands
+It is possible to make LLM respond in python, which makes it use commands on its own.
+This makes it a lot more powerful.
+More work needs to go into this feature, to make simple command matching avoid python responses and increase chance of match.
+
+#### Chat
+Chat mode has been reduced to assistant reacting to user without speaking assistant's name.
+The history has been enabled to entire user-assistant interaction.
+The chat however only works if python commands are enabled.
+More work needs to go into this feature, to work without python commands.
 
 #### Delay Action 
 User can now avoid speaking assistant name during short period after the name was already spoken.

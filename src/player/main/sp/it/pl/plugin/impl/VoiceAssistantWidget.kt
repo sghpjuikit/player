@@ -299,6 +299,8 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       }
    }
 
+   override fun focus() = textArea.requestFocus()
+
    private inner class ActorState(val type: String): VBox() {
       init {
          lay += stackPane {

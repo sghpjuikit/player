@@ -175,9 +175,11 @@ class LlmGpt4All(Llm):
 
     def _loop(self):
         # init model
-        llm = GPT4All(model_name=self.modelName, model_path=self.modelPath, device="gpu", allow_download=True, verbose=False)
+        model_file = os.path.join(self.modelPath, self.modelName)
+        if os.path.exists(model_file) is False: raise Exception(f"Model= {model_file} not found")
+        llm = GPT4All(model_name=self.modelName, model_path=self.modelPath, device="cpu", allow_download=True, verbose=False)
         # init prompt format
-        llm_prompt_template_file = os.path.join(self.modelPath, self.modelName + '.prompt.txt')
+        llm_prompt_template_file = model_file + '.prompt.txt'
         llm_prompt_template = None
         if os.path.exists(llm_prompt_template_file):
             with open(llm_prompt_template_file) as f:
@@ -197,7 +199,7 @@ class LlmGpt4All(Llm):
                             stop = [" COM", "<|eot_id|>"] if isCommand else ["<|eot_id|>"]
                             text = ''
                             def process(token_id, token_string):
-                                nonlocal text
+                                nonlocal text, stop
                                 text = text + token_string
                                 return not self._stop and self.generating and not contains_any(text, stop, False)
                             tokens = llm.generate(

@@ -4,6 +4,7 @@ from speech_recognition import Recognizer, Microphone, WaitTimeoutError # https:
 from util_tts import Tts
 from util_wrt import Writer
 from itertools import chain
+import nemo.collections.asr as nemo_asr
 from pysilero_vad import SileroVoiceActivityDetector
 from speech_recognition.audio import AudioData
 from speech_recognition import AudioSource
@@ -300,7 +301,6 @@ class MicVoiceDetectNvidia:
 
     def loadSpeakerModel(self):
         try:
-            import nemo.collections.asr as nemo_asr
             m = nemo_asr.models.EncDecSpeakerLabelModel.from_pretrained("nvidia/speakerverification_en_titanet_large")
             m.to(torch.device("cuda:1"))
             return m

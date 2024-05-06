@@ -33,9 +33,8 @@ import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
-import sp.it.pl.plugin.impl.VoiceAssistantWidget.OutRaw.DEBUG
-import sp.it.pl.plugin.impl.VoiceAssistantWidget.OutRaw.INFO
 import sp.it.pl.ui.ValueToggleButtonGroup
+import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ConfigPane
@@ -49,6 +48,7 @@ import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.invokeTry
 import sp.it.util.async.coroutine.launch
 import sp.it.util.collections.mapset.MapSet
+import sp.it.util.collections.setTo
 import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
@@ -64,6 +64,7 @@ import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsTrue
 import sp.it.util.functional.Try
+import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
@@ -95,6 +96,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
+import sp.it.util.ui.setTextSmart
 import sp.it.util.ui.singLineProperty
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.styleclassToggle
@@ -107,15 +109,11 @@ import sp.it.util.units.year
 
 class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
    private val textArea = textArea("")
-   private val textAreaWrapText by cv(textArea.wrapTextProperty())
    private var run = {}
    private val chatSettings = v(false)
    private val plugin = APP.plugins.plugin<VoiceAssistant>().asValue(onClose)
 
-   private val consoleLevel by cv(DEBUG)
-      .def(name = "Console level", info = "Level of console output.")
-
-   private val mode by cv(Out.RAW).noUi()
+   private val mode by cv(Out.DEBUG).noUi()
       .def(name = "Tab", info = "Level of console output.")
 
    init {
@@ -150,9 +148,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                plugin.sync { text = if (it!=null) "Active" else "Inactive" }
             }
             lay += label("   ")
-            lay += ValueToggleButtonGroup.ofObservableValue(mode, Out.entries) {
-               tooltip = appTooltip(it.desc)
-            }.apply {
+            lay += ValueToggleButtonGroup.ofObservableValue(mode, Out.entries).apply {
                alignment = CENTER
             }
          }
@@ -219,19 +215,17 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                      id = "output"
                      isEditable = false
                      isFocusTraversable = false
-                     isWrapText = false
+                     wrapTextProperty() syncFrom mode.map { it==Out.SPEAK }
                      prefColumnCount = 100
 
                      onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
-                     mode zip consoleLevel syncWhile { (m, lvl) ->
-                        text = plugin.value?.net(m.initText(this@VoiceAssistantWidget)) ?: ""
+                     mode syncWhile { m ->
+                        setTextSmart(plugin.value?.net(m.initText(this@VoiceAssistantWidget)) ?: "")
                         plugin.syncNonNullWhile { p ->
                            p.onLocalInput attach { (it, state) ->
                               when (m!!) {
-                                 Out.RAW -> when (lvl!!) {
-                                    INFO -> if (state!=null && state!="") appendTextSmart(it)
-                                    DEBUG -> appendTextSmart(it)
-                                 }
+                                 Out.DEBUG -> appendTextSmart(it)
+                                 Out.INFO -> if (state!=null && state!="") appendTextSmart(it)
                                  Out.SPEAK -> if (state=="SYS" || state=="USER") appendTextSmart(it)
                                  Out.HW -> Unit
                               }
@@ -253,20 +247,19 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            }
 
                            run = {
-                              when (mode.value) {
-                                 Out.RAW -> plugin.value?.raw(text)
-                                 Out.SPEAK -> { plugin.value?.speak(text); clear() }
-                                 // Out.CHAT -> { plugin.value?.chat(text); clear() } // TODO
-                                 else -> Unit
-                              }
+                              plugin.value.ifNotNull { this@hBox.children[2].asIs<SpitComboBox<Submit>>().value.run.invoke(it, text) }
                            }
                            onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) insertNewline() else run() }
                         }
-                        lay(NEVER) += CheckIcon(chatSettings).icons(IconFA.COG, IconFA.COG).apply {
-                           mode sync { tooltip("${it.nameUi} settings") }
-                        }
                         lay(NEVER) += Icon(IconFA.SEND).onClickDo { run() }.apply {
                            mode sync { tooltip(it.runDesc) }
+                        }
+                        lay(NEVER) += SpitComboBox<Submit>({ it.text }).apply {
+                           items setTo Submit.entries
+                           value = Submit.CHAT
+                        }
+                        lay(NEVER) += CheckIcon(chatSettings).icons(IconFA.COG, IconFA.COG).apply {
+                           mode sync { tooltip("${it.nameUi} settings") }
                         }
                      }
                   }
@@ -336,35 +329,38 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       }
    }
 
-   enum class OutRaw(
-      val initText: VoiceAssistantWidget.(VoiceAssistant) -> String
+   enum class Submit(
+      val text: String,
+      val desc: String,
+      val run: VoiceAssistant.(String) -> Unit,
    ) {
-      DEBUG({ it.pythonOutStd.value }),
-      INFO({ it.pythonOutEvent.value }),
+      CHAT("Chat", "Send the text to the Voice Assestant as if user spoke it", { raw("CALL: " + it) }),
+      SPEAK("Speak", "Narrates the specified text using synthesized voice", { speak(it) }),
+      COM("Command", "Send command and execute it", { writeCom(it) }),
+      COM_PYT("Python command", "Send python command and execute it", { writeComPyt(it) }),
    }
    enum class Out(
       override val nameUi: String,
       val initText: VoiceAssistantWidget.(VoiceAssistant) -> String,
-      val desc: String,
       val runDesc: String,
       val configs: VoiceAssistantWidget.(VoiceAssistant) -> List<KProperty0<*>>,
    ): NameUi {
-      RAW(
-         "Raw",
-         { consoleLevel.value.initText(this, it) },
-         "Show console output",
-         "Send the text to the Voice Assestant as if user wrote it in console",
-         {
-            listOf(
-               this::consoleLevel
-            )
-         }
+      DEBUG(
+         "Trace",
+         { it.pythonOutStd.value },
+         "Show debug console output",
+         { listOf() }
+      ),
+      INFO(
+         "Info",
+         { it.pythonOutEvent.value },
+         "Show info console output",
+         { listOf() }
       ),
       SPEAK(
          "Speak",
          { it.pythonOutSpeak.value },
          "Show user & system speech",
-         "Narrates the specified text using synthesized voice",
          {
             listOf(
                it::ttsOn,
@@ -379,7 +375,6 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
          "Hw",
          { "" },
          "Show system state",
-         "",
          { listOf() }
       ),
    }

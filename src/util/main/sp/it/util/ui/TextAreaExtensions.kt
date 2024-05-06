@@ -57,6 +57,33 @@ fun TextArea.appendTextSmart(t: String) {
    else if (!isBottom) selectRange(c, c)
 }
 
+/**
+ * [TextArea.setText] that
+ * * preserves scroll position if user is not at the bottom or selection not empty
+ */
+fun TextArea.setTextSmart(t: String) {
+   if (t.isEmpty()) return
+
+   // install monitoring lazily
+   val skKey = "isScrolledToBottom-skin-observer"
+   val scKey = "isScrolledToBottom-scrollbar"
+   if (scKey !in properties) properties[scKey] = skin?.node?.lookup(".scroll-bar:vertical")?.asIs<ScrollBar>()
+   if (skKey !in properties) properties[skKey] = skinProperty() attach { properties[scKey] = null }
+
+   val sb = properties[scKey]?.asIs<ScrollBar>()
+   var isBottom = sb?.net { it.value == it.max } ?: true
+   if (isBottom) {
+      val ot = text.orEmpty()
+      val nt = "".concatApplyBackspace(t)
+      replaceText(0, ot.length, nt)
+      sb.ifNotNull { it.value = it.max }
+   } else {
+      val sbValue = sb?.value
+      text = "".concatApplyBackspace(t)
+      sb?.value = sbValue!!
+   }
+}
+
 /** Inserts newline character into the text at the caret position. Clears selection. Moves caret by 1. */
 fun TextArea.insertNewline() {
    if (selection.length>0) replaceText(selection, "\n")

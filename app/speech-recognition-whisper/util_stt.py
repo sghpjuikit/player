@@ -185,8 +185,8 @@ class SttHttp(Stt):
                     try:
                         # gather data
                         audio_data = a.audio.frame_data
-                        audio_sample_rate = audio.sample_rate.to_bytes(4, 'little')
-                        audio_sample_width = audio.sample_width.to_bytes(2, 'little')
+                        audio_sample_rate = a.audio.sample_rate.to_bytes(4, 'little')
+                        audio_sample_width = a.audio.sample_width.to_bytes(2, 'little')
                         byte_array = audio_sample_rate + audio_sample_width + audio_data
                         # send request
                         conn = http.client.HTTPConnection(self.url, self.port, timeout=5)

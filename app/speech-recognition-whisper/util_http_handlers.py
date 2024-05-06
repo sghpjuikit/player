@@ -1,9 +1,11 @@
 from imports import *
 import json
+from datetime import datetime
 from typing import List
 from util_wrt import Writer
 from util_llm import Llm, ChatIntentDetect, ChatReact
 from util_stt import Stt
+from util_mic import Speech
 from util_actor import Actor
 from util_http import HttpHandler
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -126,7 +128,7 @@ class HttpHandlerStt(HttpHandler):
             sample_rate = int.from_bytes(body[:4], 'little')
             sample_width = int.from_bytes(body[4:6], 'little')
             audio_data = body[6:]
-            f = self.stt(AudioData(audio_data, sample_rate, sample_width), False)
+            f = self.stt(Speech(datetime.now(), AudioData(audio_data, sample_rate, sample_width), datetime.now()), False)
             text = f.result()
             text = text.encode('utf-8')
             req.send_response(200)

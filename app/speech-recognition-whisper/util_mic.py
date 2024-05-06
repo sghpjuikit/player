@@ -11,7 +11,6 @@ from collections import deque
 from datetime import datetime
 from util_actor import Actor
 from imports import *
-import nemo.collections.asr as nemo_asr
 import speech_recognition
 import soundfile as sf
 import numpy as np
@@ -301,6 +300,7 @@ class MicVoiceDetectNvidia:
 
     def loadSpeakerModel(self):
         try:
+            import nemo.collections.asr as nemo_asr
             m = nemo_asr.models.EncDecSpeakerLabelModel.from_pretrained("nvidia/speakerverification_en_titanet_large")
             m.to(torch.device("cuda:1"))
             return m

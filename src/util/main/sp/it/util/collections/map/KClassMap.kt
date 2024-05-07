@@ -23,8 +23,4 @@ class KClassMap<E>(private val map: MutableMap<KClass<*>, E> = HashMap()): Mutab
             yield(get(c) as E)
    }
 
-   // TODO: remove fix for Kotlin compiler 2.0
-   override fun computeIfAbsent(key: KClass<*>, mappingFunction: Function<in KClass<*>, out E>): E {
-      return map.computeIfAbsent(key, mappingFunction)
-   }
 }

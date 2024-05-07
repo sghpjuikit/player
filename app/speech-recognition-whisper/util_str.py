@@ -50,50 +50,59 @@ def prop(text: str, arg_name: str, fallback: str) -> str:
         return fallback
 
 
-def int_to_words(num: int):
+def int_to_words(num: int) -> str:
     units = ("", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen")
     tens = ("", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety")
     if num < 0:
-        return "minus " + convert_to_words(-num)
+        return "minus " + int_to_words(-num)
+    if num == 0:
+        return "zero"
     if num < 20:
         return units[num]
     if num < 100:
-        return tens[num // 10] + (" " + units[num % 10] if num % 10 != 0 else "")
+        return tens[num // 10] + ("-" + units[num % 10] if num % 10 != 0 else "")
     if num < 1000:
-        return units[num // 100] + " hundred" + (" and " + convert_to_words(num % 100) if num % 100 != 0 else "")
+        return units[num // 100] + " hundred" + (" and " + int_to_words(num % 100) if num % 100 != 0 else "")
     if num < 1000000:
-        return convert_to_words(num // 1000) + " thousand" + (" " + convert_to_words(num % 1000) if num % 1000 != 0 else "")
+        return int_to_words(num // 1000) + " thousand" + (" " + int_to_words(num % 1000) if num % 1000 != 0 else "")
     if num < 1000000000:
-        return convert_to_words(num // 1000000) + " million" + (" " + convert_to_words(num % 1000000) if num % 1000000 != 0 else "")
+        return int_to_words(num // 1000000) + " million" + (" " + int_to_words(num % 1000000) if num % 1000000 != 0 else "")
+    if num < 1000000000000:
+        return int_to_words(num // 1000000000) + " billion" + (" " + int_to_words(num % 1000000000) if num % 1000000000 != 0 else "")
     else:
-        return convert_to_words(num // 1000000000) + " billion" + (" " + convert_to_words(num % 1000000000) if num % 1000000000 != 0 else "")
+        return int_to_words(num // 1000000000000) + " trillion" + (" " + int_to_words(num % 1000000000000) if num % 1000000000000 != 0 else "")
 
 def float_to_words(num: float):
-    if num < 0:
-        return "minus " + float_to_words(-num)
+    return floatstr_to_words(str(num))
 
-    def floating_to_words(num: float):
-        num_str = str(num)[2:]  # Remove "0." prefix
+def floatstr_to_words(numstr: str):
+    numstr = numstr.strip()
+
+    if numstr.startswith('+'):
+        return "plus " + floatstr_to_words(numstr.removeprefix('+'))
+    if numstr.startswith('-'):
+        return "minus " + floatstr_to_words(numstr.removeprefix('-'))
+
+    def floating_to_words(num_str: float):
         result = []
         for digit in num_str: result.append(int_to_words(int(digit)))
         return ' '.join(result)
 
+    num = float(numstr)
     integer_part = int(num)
-    decimal_part = abs(num - integer_part)
-    if decimal_part == 0: return int_to_words(integer_part)
-    else: return f"{int_to_words(integer_part)} point {floating_to_words(decimal_part)}"
+    if '.' not in numstr: return int_to_words(integer_part)
+    else: return f"{int_to_words(integer_part)} point {floating_to_words(numstr.split('.')[1])}"
 
-def num_to_words(num: str):
-    return float_to_words(float(num))
+def num_to_words(num: int | float) -> str:
+    if isinstance(num, float):
+        return float_to_words(num)
+    else:
+        return int_to_words(int(num))
 
-def replace_numbers_with_words(text):
+def replace_numbers_with_words(text) -> str:
     import re
-    # Regular expression to find all numbers, including negative and fractions
-    pattern = r"[-+]?\d*\.\d+|[-+]?\d+"
+    pattern = r"[-+]?\d*\.\d+|[-+]?\d+" # find all numbers, including negative and fractions
     matches = re.findall(pattern, text)
-
-    # Replace each match with its English word representation
-    for match in matches:
-        text = text.replace(match, num_to_words(match))
-
-    return text
+    t = text
+    for match in matches: t = t.replace(match, floatstr_to_words(match)) # Replace each match with its English words
+    return t

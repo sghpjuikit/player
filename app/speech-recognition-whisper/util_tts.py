@@ -311,6 +311,13 @@ class TtsCoqui(TtsWithModelBase):
         self.model: Xtts | None = None
         self.http_handler: HttpHandler | None = None
 
+    def gen(self, text: str):
+        text_to_gen = replace_numbers_with_words(text)
+        text_to_gen = text_to_gen.strip()
+        text_to_gen = text_to_gen.replace("</s>", "").replace("```", "").replace("...", " ")
+        text_to_gen = re.sub(" +", " ", text_to_gen)
+        return self.model.inference_stream(text_to_gen, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
+
     def _httpHandler(self) -> HttpHandler:
         import soundfile as sf
         import re
@@ -321,13 +328,6 @@ class TtsCoqui(TtsWithModelBase):
             while self._loaded is False:
                 if self._stop: return
                 time.sleep(0.1)
-
-        def gen(text):
-            text_to_gen = replace_numbers_with_words(text)
-            text_to_gen = text_to_gen.strip()
-            text_to_gen = text_to_gen.replace("</s>", "").replace("```", "").replace("...", " ")
-            text_to_gen = re.sub(" +", " ", text_to_gen)
-            return self.model.inference_stream(text_to_gen, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
 
         class MyRequestHandler(HttpHandler):
             def __init__(self, ):
@@ -351,7 +351,7 @@ class TtsCoqui(TtsWithModelBase):
 
                         # generate
                         audio_chunks = []
-                        for audio_chunk in gen(text):
+                        for audio_chunk in tts.gen(text):
                             audio_chunks.append(audio_chunk)
 
                             if req.wfile.closed: return
@@ -472,7 +472,7 @@ class TtsCoqui(TtsWithModelBase):
                         loadVoiceIfNew()
 
                         # generate
-                        audio_chunks = self.model.inference_stream(text, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
+                        audio_chunks = self.gen(text)
                         consumer, audio_chunks_play, audio_chunks_cache = teeThreadSafeEager(audio_chunks, 2)
 
                         # play

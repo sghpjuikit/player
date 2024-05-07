@@ -22,6 +22,7 @@ import sp.it.pl.audio.playlist.readM3uPlaylist
 import sp.it.pl.audio.tagging.AddSongsToLibResult
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.addToLibTask
+import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.WidgetUse.NO_LAYOUT
@@ -30,6 +31,7 @@ import sp.it.pl.layout.feature.ImagesDisplayFeature
 import sp.it.pl.layout.feature.Opener
 import sp.it.pl.layout.feature.PlaylistFeature
 import sp.it.pl.layout.feature.SongReader
+import sp.it.pl.layout.hasFeature
 import sp.it.pl.layout.loadComponentFxwlJson
 import sp.it.pl.layout.orNone
 import sp.it.pl.main.FileExtensions.fxwl
@@ -41,6 +43,7 @@ import sp.it.pl.ui.pane.ActionData
 import sp.it.pl.ui.pane.ActionData.GroupApply.FOR_ALL
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.ActionData.Threading.UI
+import sp.it.pl.ui.pane.ActionData.UiInput
 import sp.it.pl.ui.pane.ActionPane
 import sp.it.pl.ui.pane.ComplexActionData
 import sp.it.pl.ui.pane.ConfigPane
@@ -145,11 +148,25 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          constriction = { it!=null && it !is App && !it::class.isObject }
       ) { apOrApp.show(it) }.preventClosing(),
       action(
-         "Open in Converter",
-         "Open data in Converter.",
+         "Open in...",
+         "Open in widget that can open this data",
          IconMD.SWAP_HORIZONTAL,
          constriction = { it!=null && it !is App && !it::class.isObject }
-      ) { f -> APP.widgetManager.widgets.use<Opener>(ANY) { it.open(f) } }   // TODO: make sure it opens Converter or support multiple Opener types
+      ) { f ->
+         UiInput(
+            null,
+            true,
+            APP.widgetManager.factories.getFactories().filter { it.hasFeature<Opener>() }.toList().map { wf ->
+               action<WidgetFactory<*>>(
+                  "Open with ${wf.name}",
+                  wf.description,
+                  wf.icon ?: IconFA.COPY,
+                  BLOCK,
+                  { APP.widgetManager.widgets.use({ it.id==wf.id }, ANY) { it.asIs<Opener>().open(f) } }
+               )
+            }
+         )
+      }
    )
    ap.register<SongToAdd>(
       actionAll<SongToAdd>(

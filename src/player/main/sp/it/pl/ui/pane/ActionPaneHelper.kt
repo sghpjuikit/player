@@ -235,7 +235,12 @@ class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, descri
       UI, BLOCK
    }
 
+   /** Action may return this value to show ui after it completes */
    data class UiResult(val info: String, val ui: Node)
+
+   /** Action may return this value to show standard overlay with icons after it completes */
+   data class UiInput(val value: Any?, val exclusive: Boolean, val actionDatas: List<ActionData<*,*>>)
+
 }
 
 /** [ActionData] that executes synchronously - simply consumes the input. */

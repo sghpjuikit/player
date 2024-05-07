@@ -32,6 +32,7 @@ import sp.it.pl.main.AppSettings.ui.overlay.actionViewer;
 import sp.it.pl.ui.objects.icon.CheckIcon;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.table.FilteredTable;
+import sp.it.pl.ui.pane.ActionData.UiInput;
 import sp.it.pl.ui.pane.ActionData.UiResult;
 import sp.it.util.access.V;
 import sp.it.util.async.future.Fut;
@@ -225,9 +226,8 @@ public class ActionPane extends OverlayPane<Object> {
 
 /* ---------- DATA -------------------------------------------------------------------------------------------------- */
 
-	private boolean use_registered_actions = true;
 	private Object data;
-	private List<ActionData<?,?>> actionsIcons;
+	private ActionData.UiInput uiInput = new UiInput(null, false, List.of());
 	private final List<ActionData<?,?>> actionsData = new ArrayList<>();
 	private static final double CONTENT_SIZE_SCALE = 0.65;
 
@@ -247,32 +247,10 @@ public class ActionPane extends OverlayPane<Object> {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public final void show(Object data) {
 		failIfNotFxThread();
-
-		data = collectionUnwrap(data);
-		var c = data==null ? Void.class : data.getClass();
-		show((Class<Object>) c, data);
-	}
-
-	public final <T> void show(Class<T> type, T value) {
-		show(type, value, false);
-	}
-
-	@SuppressWarnings("unused")
-	public final <T> void show(Class<T> type, T value, boolean exclusive, ActionData<?,?>... actions) {
-		data = value;
-		actionsIcons = list(actions);
-		use_registered_actions = !exclusive;
-		show();
-	}
-
-	@SuppressWarnings("unused")
-	public final <T> void show(Class<T> type, Fut<T> value, boolean exclusive, ActionData<?,?>... actions) {
-		data = value;
-		actionsIcons = list(actions);
-		use_registered_actions = !exclusive;
+		this.data = collectionUnwrap(data);
+		uiInput = this.data instanceof ActionData.UiInput ui ? ui : new UiInput(null, false, List.of());
 		show();
 	}
 
@@ -439,8 +417,8 @@ public class ActionPane extends OverlayPane<Object> {
 		var dataType = getUnwrappedType(d);
 		// get suitable actions
 		actionsData.clear();
-		actionsData.addAll(actionsIcons);
-		if (use_registered_actions) actions.getElementsOfSuper(dataType).iterator().forEachRemaining(actionsData::add);
+		actionsData.addAll(uiInput.getActionDatas());
+		if (!uiInput.getExclusive()) actions.getElementsOfSuper(dataType).iterator().forEachRemaining(actionsData::add);
 		actionsData.removeIf(a -> !a.invokeIsDoable(d));
 
 		if (!showIcons || data instanceof UiResult) {

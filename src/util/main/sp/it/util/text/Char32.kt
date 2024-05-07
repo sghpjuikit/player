@@ -4,7 +4,8 @@ import sp.it.util.dev.failIf
 
 /** 32-bit Unicode character, [Int]. See [Character] and [Char16]. Has full Unicode code-unit range support. See e.g. [String.char32At]. */
 data class Char32(val value: Int) {
-
+   constructor(c: Char16): this(c.code)
+   
    init {
       failIf(value !in 0..0x10FFFF) { "Invalid Char32 value: $value" }
    }
@@ -28,22 +29,25 @@ data class Char32(val value: Int) {
    }
 }
 
-fun Char16.toChar32(): Char32 = code.toChar32()
+fun Char16.toChar32(): Char32 = Char32(this)
 
 fun Int.toChar32(): Char32 = Char32(this)
 
-fun Char32.toPrintableNonWhitespace() = when {
+fun Char32.toPrintableNonWhitespace(): Char32 = when {
+   // U+0008 (BACKSPACE)
+   value == 8 -> Char32(8592) // Backspace Unicode icon
+   // U+0002 (SPACE)
    Character.isSpaceChar(value) -> '·'.toChar32()
    // U+0000—U+001F (C0)
    value in 0..32 -> Char32(2*16*16 + 4*16 + value) // \u2400..\u241F
-   // U+0008 (BACKSPACE)
-   value == 8 -> Char32(8592) // Backspace Unicode icon
    // U+007F (DELETE)
    value==127 -> Char32(2421)
    // U+0080—U+009F (C1 controls).
    value in 128..159 -> "·".char32At(0)
    // whitespace
    Character.isWhitespace(value) -> "·".char32At(0)
+   // UTF16 BOM
+   value==0xFEFF -> Char32('␣')
    // printable
-   else -> value.toChar32() // TODO: handle unicode non-printable characters like \u0FEFF
+   else -> value.toChar32()
 }

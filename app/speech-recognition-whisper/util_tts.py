@@ -49,7 +49,7 @@ class Tts(Actor):
     def repeatLast(self):
         if self.history and self.speakOn:
             text, skippable = self.history[-1]
-            self.write('SYS: ' + event)
+            self.write('SYS: ' + text)
             self.queue.put((words(text), skippable, True, Future()))
 
     def __call__(self, event: str | Iterator) -> Future[str | None]:

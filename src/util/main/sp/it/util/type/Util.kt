@@ -95,6 +95,7 @@ import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
+import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
 import mu.KotlinLogging
 import sp.it.util.dev.fail
@@ -600,9 +601,13 @@ fun KType.withPlatformTypeNullability(nullable: Boolean): KType {
 }
 
 /**
+ * Return [KTypeProjection] of the [i]th argument of [argType] superclass of this type.
+ * I.e., `type<ArrayList<Int>>().argOf(List.class, 0) == KTypeProjection(OUT, type<Int>)`
  * Because `in Nothing` and `out Any?` and `*` are equal, the result is normalized to `*`, i.e [KTypeProjection.STAR].
  */
 fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection {
+   fun KType.isMutableCollection() = 
+      (listOf(this) + jvmErasure.allSupertypes).any { it.toString().startsWith("kotlin.collections.Mutable") }
    val c = classifier
    return when {
       argType.java.isArray -> {
@@ -618,14 +623,14 @@ fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection {
                      IN, OUT, null -> it
                      INVARIANT -> when {
                         argType.isSubclassOf<Iterable<*>>() -> {
-                           if (this.toString().startsWith("kotlin.collections.Mutable")) it
+                           if (this.isMutableCollection()) it
                            else it.copy(variance = OUT)
                         }
                         argType.isSubclassOf<Map<*, *>>() && i==1 -> {
-                           if (this.toString().startsWith("kotlin.collections.Mutable")) it
+                           if (this.isMutableCollection()) it
                            else it.copy(variance = OUT)
                         }
-                        else -> it
+                        else -> KTypeProjection(argType.typeParameters[i].variance, it.type)
                      }
                   }
                }
@@ -637,7 +642,17 @@ fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection {
                   ?.let {
                      when (it.variance) {
                         IN, OUT, null -> it
-                        INVARIANT -> it //KTypeProjection(c.typeParameters.get().variance, it.type)
+                        INVARIANT -> when {
+                           argType.isSubclassOf<Iterable<*>>() -> {
+                              if (this.isMutableCollection()) it
+                              else it.copy(variance = OUT)
+                           }
+                           argType.isSubclassOf<Map<*, *>>() && i==1 -> {
+                              if (this.isMutableCollection()) it
+                              else it.copy(variance = OUT)
+                           }
+                           else -> KTypeProjection(argType.typeParameters[i].variance, it.type)
+                        }
                      }
                   }
                   ?.let {
@@ -645,7 +660,7 @@ fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection {
                         is KTypeParameter -> {
                            val argumentI = raw.typeParameters.indexOfFirst { it.name==at.name }
                            val argument = arguments[argumentI]
-                           argument
+                           KTypeProjection(it.variance, argument.type)
                         }
                         else -> it
                      }

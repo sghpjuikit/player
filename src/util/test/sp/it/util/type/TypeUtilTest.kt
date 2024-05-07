@@ -399,7 +399,7 @@ class TypeUtilTest: FreeSpec({
          ArrayList::class.allSupertypes.toString() shouldBe "[java.util.AbstractList<E!>, java.util.AbstractCollection<E!>, kotlin.collections.MutableCollection<E!>, kotlin.collections.Iterable<E>, kotlin.Any, kotlin.collections.MutableList<E!>, kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, java.util.RandomAccess, kotlin.Cloneable, java.io.Serializable, kotlin.collections.MutableList<E>]"
       }
 
-      "!${KType::argOf.name}" {
+      "${KType::argOf.name}" {
          open class Covariant<out T>
          open class Invariant<T>
          open class Contravariant<in T>
@@ -481,13 +481,14 @@ class TypeUtilTest: FreeSpec({
             xxx<Contravariant<Int>, Contravariant<*>, Int>(0, IN),
 
             // borderline star projection should not be star projection
-            // xxx<Invariant<in Nothing?>, Invariant<*>, Nothing?>(0, IN), // TODO: enable (does not compile in 1.3.70)
+            // xxx<Invariant<in Nothing?>, Invariant<*>, Nothing?>(0, IN), // nothing can not be used as reified type
+            row(Triple(type<Invariant<in Nothing?>>(), type<Invariant<*>>(), 0), typeNothingNullable() to IN),
             xxx<Invariant<out Any>, Invariant<*>, Any>(0, OUT),
 
             // variance is preserved in simple subclassing
             xxx<SubInvariant, Invariant<*>, Int>(0, INVARIANT),
-            xxx<SubCovariant, Covariant<*>, Int>(0, IN),
-            xxx<SubContravariant, Contravariant<*>, Int>(0, OUT),
+            xxx<SubCovariant, Covariant<*>, Int>(0, OUT),
+            xxx<SubContravariant, Contravariant<*>, Int>(0, IN),
 
             // lists are read-only => covariant
             xxx<List<Int>, List<*>, Int>(0, OUT),
@@ -509,11 +510,11 @@ class TypeUtilTest: FreeSpec({
             xxx<ObservableList<Int?>, ObservableList<*>, Int?>(0, INVARIANT),
             xxx<ObservableList<Int>, ObservableList<*>, Int>(0, INVARIANT),
             xxx<FilteredList<Int?>, ObservableList<*>, Int?>(0, INVARIANT),
-            xxx<FilteredList<Int>, ObservableList<*>, Int?>(0, INVARIANT),
+            xxx<FilteredList<Int>, ObservableList<*>, Int>(0, INVARIANT),
 
             // read only observable lists are read only => covariant
             xxx<ObservableListRO<Int?>, List<*>, Int?>(0, OUT),
-            xxx<ObservableListRO<Int>, List<*>, Int?>(0, OUT)
+            xxx<ObservableListRO<Int>, List<*>, Int>(0, OUT),
 
             // test map read/write
          ) { i, o ->

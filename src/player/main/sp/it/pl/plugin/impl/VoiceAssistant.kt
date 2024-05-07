@@ -508,11 +508,11 @@ class VoiceAssistant: PluginBase() {
    val llmChatTemp by cvn(0.5).between(0.0, 1.0)
       .def(name = "Llm chat > temperature", info = "The llm model of the OpenAI or OpenAI-compatible server")
 
-   /** TODO */
+   /** top P */
    val llmChatTopP by cvn(0.95).between(0.1, 1.0)
       .def(name = "Llm chat > top P", info = "")
 
-   /** TODO */
+   /** top K */
    val llmChatTopK by cvn(40).min(1)
       .def(name = "Llm chat > top K", info = "")
 

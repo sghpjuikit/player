@@ -1,8 +1,8 @@
 package sp.it.pl.core
 
-import io.fury.Fury
-import io.fury.config.CompatibleMode.SCHEMA_CONSISTENT
-import io.fury.config.Language.JAVA
+import org.apache.fury.Fury
+import org.apache.fury.config.CompatibleMode.SCHEMA_CONSISTENT
+import org.apache.fury.config.Language.JAVA
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.ObjectInputStream
@@ -11,7 +11,11 @@ import java.io.Serializable
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
 import kotlin.reflect.jvm.jvmName
+import kotlin.time.measureTime
+import kotlin.time.measureTimedValue
 import mu.KotlinLogging
+import org.apache.fury.io.FuryInputStream
+import org.apache.fury.logging.LoggerFactory
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.MetadatasDB
 import sp.it.pl.audio.PlaybackStateDB
@@ -23,6 +27,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.util.async.actor.ActorSe
 import sp.it.util.dev.ThreadSafe
+import sp.it.util.dev.printExecutionTime
 import sp.it.util.file.div
 import sp.it.util.file.writeSafely
 import sp.it.util.functional.Try
@@ -38,16 +43,20 @@ object CoreSerializer: Core {
    private val serializerActor = ActorSe<CoreSerializer.() -> Unit>("Serializator") { this.it() }
 
    private val fury by lazy {
+      // configure logging
+      LoggerFactory.useSlf4jLogging(true)
+      // build fury
       Fury.builder()
          // set java only
          // gives performance for no loss
          .withLanguage(JAVA)
-         // disable codegen
-         // codegen causes large (6ms -> 200ms) startup cost for little effect
-         .withCodegen(false)
+         // codegen causes large startup cost, but with async=true we get the benefits and little cost
+         .withCodegen(true)
+         .withAsyncCompilation(true)
          // allow unknown types
          // but may be insecure if the classes contains malicious code
          .requireClassRegistration(false)
+         .suppressClassRegistrationWarnings(true)
          // disable reference tracking for shared/circular reference
          // gives performance for no loss
          .withRefTracking(false)
@@ -66,7 +75,7 @@ object CoreSerializer: Core {
    }
 
    class SerializerFury {
-      fun read(f: File): Any? = f.inputStream().use { fury.deserialize(it) }
+      fun read(f: File): Any? = f.inputStream().use { fury.deserialize(FuryInputStream(it)) }
       fun write(f: File, o: Any?): Unit = f.outputStream().use { fury.serialize(it, o) }
    }
 
@@ -97,7 +106,11 @@ object CoreSerializer: Core {
    fun <T: Serializable> readSingleStorage(c: KClass<T>): Try<T?, Throwable> {
       val f = APP.location.user.library/(c.simpleName ?: c.jvmName)
       return runTry {
-         serializer.read(f)?.net(c::cast)
+         var (value, time) = measureTimedValue {
+            serializer.read(f)?.net(c::cast)
+         }
+         logger.info { "Read $c in $time" }
+         value
       }.orAlso {
          if (it is FileNotFoundException) Try.ok(null)
          else Try.error(it)
@@ -110,7 +123,8 @@ object CoreSerializer: Core {
     * * any previously stored object is overwritten
     */
    @Blocking
-   inline fun <reified T: Serializable> writeSingleStorage(o: T): Try<Nothing?, Throwable> = writeSingleStorage(o, T::class)
+   inline fun <reified T: Serializable> writeSingleStorage(o: T): Try<Nothing?, Throwable> =
+      writeSingleStorage(o, T::class)
 
    /** [writeSingleStorage] */
    @Blocking
@@ -121,10 +135,13 @@ object CoreSerializer: Core {
 
       return f.writeSafely {
          runTry {
-            serializer.write(it, o)
+            var time = measureTime {
+               serializer.write(it, o)
+            }
+            logger.info { "Written $c in $time" }
          }
       }.ifError {
-         logger.error(it) { "Failed to serialize object=${o::class} to file=$f" }
+         logger.error(it) { "Failed to write object=${o::class} to file=$f" }
       }
    }
 

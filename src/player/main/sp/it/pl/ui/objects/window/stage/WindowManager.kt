@@ -1,5 +1,7 @@
 package sp.it.pl.ui.objects.window.stage
 
+import sp.it.util.ui.screenXy
+import sp.it.pl.core.CoreMouse.onMouseMoveStop
 import javafx.stage.Window as WindowFx
 import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
 import sp.it.pl.main.AppSettings.ui.window as confWindow
@@ -21,6 +23,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
@@ -441,7 +444,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             fun showing() = showValue
             fun hide() = if (showValue==1.0) hider() else Unit
             fun show() = if (showValue==0.0 && windowsFx.none { it.isOverlayWindow() } && osHasWindowExclusiveFullScreen()!=TRUE) shower() else Unit
-            fun showWithDelay() = if (showValue==0.0) runFX(dockHoverDelay.value) { if (mw.window.stage.scene.root.isHover) show() }.toUnit() else Unit
+            fun showWithDelay(e: MouseEvent) = if (showValue==0.0) onMouseMoveStop(150.millis, dockHoverDelay.value) { if (!it) show() } else Unit
             fun showInitially() = showAnim.applyAt(0.0).toUnit()
 
             init {
@@ -459,7 +462,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!it.isPrimaryButtonDown && !APP.ui.isLayoutMode) mwShower.hide() }
          mw.window.stage.scene.root.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!it.isPrimaryButtonDown && !APP.ui.isLayoutMode) mwShower.hide() }
          mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, PRIMARY) { mwShower.show() }
-         mw.window.stage.scene.root.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay() }
+         mw.window.stage.scene.root.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay(it) }
          mw.window.stage.scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
             if (it.isMetaDown) {
                mwAutohide.toggle()
@@ -505,7 +508,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    @ThreadSafe
    fun deserialize(): Fut<*> =
-      runVT {
+      runVT<List<WindowDb>> {
          logger.info { "Deserializing windows..." }
          val dir = APP.location.user.layouts.current
          if (isValidatedDirectory(dir)) {
@@ -517,7 +520,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             logger.error { "Deserializing windows failed: $dir not accessible" }
             listOf()
          }
-      } ui {
+      }.ui { it ->
          if (it.isEmpty()) {
             createWindow(true)
          } else {

@@ -227,7 +227,7 @@ public class ActionPane extends OverlayPane<Object> {
 /* ---------- DATA -------------------------------------------------------------------------------------------------- */
 
 	private Object data;
-	private ActionData.UiInput uiInput = new UiInput(null, false, List.of());
+	private UiInput uiInput = new UiInput(null, false, List.of());
 	private final List<ActionData<?,?>> actionsData = new ArrayList<>();
 	private static final double CONTENT_SIZE_SCALE = 0.65;
 
@@ -249,8 +249,8 @@ public class ActionPane extends OverlayPane<Object> {
 	@Override
 	public final void show(Object data) {
 		failIfNotFxThread();
-		this.data = collectionUnwrap(data);
-		uiInput = this.data instanceof ActionData.UiInput ui ? ui : new UiInput(null, false, List.of());
+		this.uiInput = data instanceof UiInput ui ? ui : new UiInput(null, false, List.of());
+		this.data = data instanceof UiInput ui ? collectionUnwrap(ui.getValue()) : collectionUnwrap(data);
 		show();
 	}
 
@@ -302,8 +302,8 @@ public class ActionPane extends OverlayPane<Object> {
 	public Object getData() {
 		failIfNotFxThread();
 
-		Object d = futureUnwrapOrThrow(data);
-		if (d instanceof Collection) {
+		var d = futureUnwrapOrThrow(data);
+		if (d instanceof Collection<?>) {
 			if (dataTable!=null) {
 				return dataTable.getItems()==null || dataTable.getItems().isEmpty() ? d : dataTable.getSelectedOrAllItemsCopy();
 			} else {

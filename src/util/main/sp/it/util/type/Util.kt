@@ -656,11 +656,13 @@ fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection {
                      }
                   }
                   ?.let {
+                     // resolve declaration site variance from supertype
+                     // resolve star projection to upper bounds
                      when (val at = it.type?.classifier) {
                         is KTypeParameter -> {
                            val argumentI = raw.typeParameters.indexOfFirst { it.name==at.name }
                            val argument = arguments[argumentI]
-                           KTypeProjection(it.variance, argument.type)
+                           KTypeProjection(it.variance, argument.type ?: at.upperBounds[0])
                         }
                         else -> it
                      }

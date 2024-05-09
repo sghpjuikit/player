@@ -421,6 +421,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                mw.isShowing = it!=0.0
                mw.window.stage.opacity = mw.window.opacity.value min 0.1 + 0.9*sqrt(sqrt(it))
                mw.window.setY(computeY(), false)
+               mw.window.resizable.value = it!=0.0
             }
             private val shower = {
                showAnim.intpl { sqrt(sqrt(it)) }
@@ -578,6 +579,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                  else screen.bounds.minX-mw.W.value*(1-it)
 
          mw.stage.opacity = mw.opacity.value min 0.1 + 0.9*sqrt(sqrt(it))
+         mw.resizable.value = it!=0.0
          mw.setX(x, false)
 
          // clip window to screen (helps with 3 monitor setup)

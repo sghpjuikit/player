@@ -663,10 +663,6 @@ while not sysTerminating:
             now = datetime.now()
             callback(SpeechText(now, None, now, text))
 
-        if m.startswith("COM-DET: "):
-            text = base64.b64decode(m[9:]).decode('utf-8')
-            llm(ChatIntentDetect.normal(assist_function_prompt, text))
-
         if m.startswith("COM-PYT: "):
             text = base64.b64decode(m[9:]).decode('utf-8')
             executorPython.generatePythonAndExecute(text)

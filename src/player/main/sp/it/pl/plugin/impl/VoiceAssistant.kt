@@ -178,7 +178,6 @@ class VoiceAssistant: PluginBase() {
                      startsWith("USER: ") -> "USER"
                      startsWith("SYS: ") -> "SYS"
                      startsWith("COM: ") -> "COM"
-                     startsWith("COM-DET: ") -> "COM-DET"
                      startsWith("ERR: ") -> "ERR"
                      else -> ""
                   }
@@ -618,7 +617,6 @@ class VoiceAssistant: PluginBase() {
          "USER" -> launch(FX) { handleSpeech(text, user = true) }
          "SYS" -> Unit
          "COM" -> launch(FX) { handleSpeech(text, command = true, orDetectIntent = true) }
-         "COM-DET" -> launch(FX) { handleSpeech(text, command = true, orDetectIntent = false) }
       }
    }
 
@@ -630,7 +628,8 @@ class VoiceAssistant: PluginBase() {
       var textSanitized = text.removePrefix("COM ").removeSuffix(" COM").replace("_", " ").sanitize(sttBlacklistWords_)
       var result = handlers.firstNotNullOfOrNull { SpeakContext(it, this@VoiceAssistant)(textSanitized) }
       if (result==null) {
-         if (!orDetectIntent) speak("Unrecognized command: $textSanitized")
+         if (!orDetectIntent)
+            speak("Unrecognized command: $textSanitized")
          else {
             intent("", textSanitized).ifError {
                logger.error(it) { "Failed to understand command $textSanitized" }

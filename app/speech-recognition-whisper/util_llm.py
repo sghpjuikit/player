@@ -55,7 +55,7 @@ class ChatIntentDetect(ChatProceed):
             "Command example: COM command prefix parameter_value command suffix COM. " +
             "Commands: \n" + assist_function_prompt,
             userPrompt,
-            'COM-DET: ' if writeTokens else '',
+            'RAW: ' if writeTokens else '',
             '',
             '',
             False,
@@ -148,13 +148,7 @@ class LlmNone(Llm):
         self._loaded = True
         while not self._stop:
             with self._loopProcessEvent() as (e, f):
-                if isinstance(e, ChatReact):
-                    f.set_result(e.fallback)
-                elif isinstance(e, ChatIntentDetect):
-                    f.set_result('COM ' + e.userPrompt + ' COM')
-                    if e.writeTokens: self.write('COM-DET: ' + e.userPrompt)
-                else:
-                    f.set_exception(Exception("Illegal"))
+                f.set_exception(Exception("Illegal"))
         self._clear_queue()
 
 

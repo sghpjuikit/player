@@ -1,8 +1,8 @@
-import asyncio
-import numpy
 import os
 import time
 import torch
+import numpy
+import asyncio
 import torchaudio
 from collections.abc import Iterator
 from imports import *
@@ -677,6 +677,7 @@ class TtsFastPitch(TtsWithModelBase):
                     # generate
                     if not cache_used or not audio_file_exists:
 
+                        # Format the input using utility methods
                         batches = tp.prepare_input_sequence([text], batch_size=1)
                         gen_kw = {'pace': 1.0, 'speaker': 0, 'pitch_tgt': None, 'pitch_transform': None}
                         denoising_strength = 0.005

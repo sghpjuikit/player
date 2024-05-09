@@ -1,6 +1,5 @@
 ## Potential future work
 
-- Converter opens ObjectInfo in Actionpane
 - COnverter function picker add combobox for text/each/value
 - Load widget factories in bgr
 - Comet lock FPS to 60 or support 120

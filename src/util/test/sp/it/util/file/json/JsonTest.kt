@@ -693,10 +693,14 @@ private      class GenCls<out T>(val value: T) {
 @JvmInline value class InlineInt(val value: Int)
 @JvmInline value class InlineComplex(val value: Complex)
 
-private infix  fun Try<*,Throwable>.shouldBeTry(o: Try<*,String>) { if (this::class!=o::class) this shouldBe o; mapError { it.message }.getAny() shouldBe o.getAny() }
 private inline fun <reified T: Any> Any?.shouldBeInstance() = T::class.isInstance(this) shouldBe true
 private infix  fun                  Any?.shouldBeInstance(type: KClass<*>) = type.isInstance(this) shouldBe true
 private infix  fun                  Any?.shouldBeInstance(type: KType) = type.raw.isInstance(this) shouldBe true
+private infix  fun Try<*,Throwable>.shouldBeTry(o: Try<*,String>) {
+   if (o.isOk) ifError { throw it }
+   if (this::class!=o::class) this shouldBe o;
+   mapError { it.message }.getAny() shouldBe o.getAny()
+}
 
 private inline fun <reified T: Any> arg()          = row(kType<T>())
 private inline fun <reified T: Any> argIns(arg: T) = row(type<T>(), arg)

@@ -43,6 +43,7 @@ import sp.it.util.Util.splitJoin
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.IconConstraint
 import sp.it.util.conf.Constraint.NumberMinMax
+import sp.it.util.conf.Constraint.NumberMinMax.Between
 import sp.it.util.dev.failIf
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.json.JsValue
@@ -148,7 +149,7 @@ object CoreFunctors: Core {
       // parameters
       val pNoCase = p("Ignore case", "Ignore case", true, IconConstraint(IconMA.FORMAT_SIZE))
       val pRegex = p("Regex", "Regular expression", Pattern.compile(""))
-      var pRadix = p<Int>("Radix", "Numeral system", 10, NumberMinMax(Character.MIN_RADIX.toDouble(), Character.MAX_RADIX.toDouble()))
+      var pRadix = p<Int>("Radix", "Numeral system", 10, Between(Character.MIN_RADIX.toDouble(), Character.MAX_RADIX.toDouble()))
 
       add("Is null", type<Any?>(), B, IS0)
       add("Is type (Kotlin Class)", type<KClass<*>>(), B, p<KClass<*>>(Unit::class)) { it, c -> it===c }

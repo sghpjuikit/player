@@ -41,6 +41,7 @@ import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.NumberMinMax
+import sp.it.util.conf.Constraint.NumberMinMax.Min
 import sp.it.util.conf.EditMode
 import sp.it.util.dev.fail
 import sp.it.util.functional.FunctorPool
@@ -322,7 +323,7 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
             this += TransformationRaw.By1(type<Any?>(), type<Any?>(), PF0("Type (of last function)", type<List<Any?>>(), type<List<VType<Any>>>()) { listOf(typeFunctionOut) })
             this += TransformationRaw.By1(
                type, type,
-               PF1("Repeat elements", type<List<Any?>>(), type<List<Any?>>(), Parameter("Times", null, type<Int>(), 1, setOf(NumberMinMax(0.0, null)))) { it, times ->
+               PF1("Repeat elements", type<List<Any?>>(), type<List<Any?>>(), Parameter("Times", null, type<Int>(), 1, setOf(Min(0.0)))) { it, times ->
                   it.flatMap { tabulate0(times) { _ -> it } }
                }
             )

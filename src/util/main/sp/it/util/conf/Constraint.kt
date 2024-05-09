@@ -4,6 +4,8 @@ package sp.it.util.conf
 
 import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.singletonObservableList
@@ -48,25 +50,78 @@ interface Constraint<in T> {
 
    class FileRelative(val to: File): MarkerConstraint()
 
-   // TODO: support BigDecimal & BigInteger
-   class NumberMinMax(val min: Double?, val max: Double?): Constraint<Number?> {
+   sealed class NumberMinMax(open val min: Double?, open val max: Double?): Constraint<Number?> {
 
       init {
          failIf(min==null && max==null) { "Min and max can not both be null" }
-         failIf(min!=null && max!=null && max<min) { "Max value must be greater than or equal to min value" }
-         failIf(min!=null && min.isNaN()) { "Min can not be NaN" }
-         failIf(max!=null && max.isNaN()) { "Max can not be NaN" }
+         failIf(min!=null && max!=null && max!!<min!!) { "Max value must be greater than or equal to min value" }
+         failIf(min!=null && min!!.isNaN()) { "Min can not be NaN" }
+         failIf(max!=null && max!!.isNaN()) { "Max can not be NaN" }
       }
 
       fun isClosed() = min!=null && max!=null
 
-      override fun isValid(value: Number?) = value==null || ((min==null || value.toDouble()>=min) && (max==null || value.toDouble()<=max))
+      override fun isValid(value: Number?) =
+         value==null || ((min==null || value.toDouble()>=min!!) && (max==null || value.toDouble()<=max!!))
+      
       override fun message() = when {
-         isClosed() -> "Number must be in range $min - $max"
+         isClosed() -> "Number must be in range ${toUiConverter.toS(min)} - ${toUiConverter.toS(max)}"
          min!=null -> "Number must be at least ${toUiConverter.toS(min)}"
          max!=null -> "Number must be at most ${toUiConverter.toS(max)}"
          else -> fail()
       }
+
+      class Min(override val min: Double) : NumberMinMax(min, null) { override val max: Nothing? = null }
+      class Max(override val max: Double) : NumberMinMax(null, max) { override val min: Nothing? = null }
+      class Between(override val min: Double, override val max: Double): NumberMinMax(min, max)
+   }
+
+   sealed class BigIntegerMinMax(open val min: BigInteger?, open val max: BigInteger?): Constraint<BigInteger?> {
+
+      init {
+         failIf(min==null && max==null) { "Min and max can not both be null" }
+         failIf(min!=null && max!=null && max!!<min!!) { "Max value must be greater than or equal to min value" }
+      }
+
+      fun isClosed() = min!=null && max!=null
+
+      override fun isValid(value: BigInteger?) =
+         value==null || ((min==null || value>=min!!) && (max==null || value<=max!!))
+
+      override fun message() = when {
+         isClosed() -> "Number must be in range ${toUiConverter.toS(min)} - ${toUiConverter.toS(max)}"
+         min!=null -> "Number must be at least ${toUiConverter.toS(min)}"
+         max!=null -> "Number must be at most ${toUiConverter.toS(max)}"
+         else -> fail()
+      }
+
+      class Min(override val min: BigInteger) : BigIntegerMinMax(min, null) { override val max: Nothing? = null }
+      class Max(override val max: BigInteger) : BigIntegerMinMax(null, max) { override val min: Nothing? = null }
+      class Between(override val min: BigInteger, override val max: BigInteger): BigIntegerMinMax(min, max)
+   }
+   
+   sealed class BigDecimalMinMax(open val min: BigDecimal?, open val max: BigDecimal?): Constraint<BigDecimal?> {
+
+      init {
+         failIf(min==null && max==null) { "Min and max can not both be null" }
+         failIf(min!=null && max!=null && max!!<min!!) { "Max value must be greater than or equal to min value" }
+      }
+
+      fun isClosed() = min!=null && max!=null
+
+      override fun isValid(value: BigDecimal?) =
+         value==null || ((min==null || value>=min!!) && (max==null || value<=max!!))
+
+      override fun message() = when {
+         isClosed() -> "Number must be in range ${toUiConverter.toS(min)} - ${toUiConverter.toS(max)}"
+         min!=null -> "Number must be at least ${toUiConverter.toS(min)}"
+         max!=null -> "Number must be at most ${toUiConverter.toS(max)}"
+         else -> fail()
+      }
+
+      class Min(override val min: BigDecimal) : BigDecimalMinMax(min, null) { override val max: Nothing? = null }
+      class Max(override val max: BigDecimal) : BigDecimalMinMax(null, max) { override val min: Nothing? = null }
+      class Between(override val min: BigDecimal, override val max: BigDecimal): BigDecimalMinMax(min, max)
    }
 
    class StringNonEmpty: Constraint<String?> {

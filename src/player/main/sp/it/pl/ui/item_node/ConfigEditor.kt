@@ -58,6 +58,7 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigurationContext
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.NumberMinMax
+import sp.it.util.conf.Constraint.NumberMinMax.Between
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.ValueSealedRadio
 import sp.it.util.conf.Constraint.ValueSealedSet
@@ -450,8 +451,8 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
 
       @JvmStatic
       fun <T> create(config: Config<T>): ConfigEditor<T> {
-         fun Config<*>.isMinMax() = !type.isNullable && type.raw in listOf<KClass<*>>(Int::class, Double::class, Float::class, Long::class, Short::class) && constraints.any { it is NumberMinMax && it.isClosed() }
-         fun Config<*>.isComplex() = constraints.any { it is UiStringHelper<*> }
+         fun Config<*>.isMinMax() = !type.isNullable && type.raw.net { it==Int::class || it==Double::class || it==Float::class || it==Long::class || it== Short::class } && hasConstraint<Between>()
+         fun Config<*>.isComplex() = hasConstraint<UiStringHelper<*>>()
          fun Config<*>.isConfigurable() = type.raw.isSubclassOf<Configurable<*>>()
 
          return when {

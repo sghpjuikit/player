@@ -3,6 +3,8 @@
 package sp.it.util.conf
 
 import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
 import javafx.beans.value.ObservableValue
 import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.Constraint.FileOut
@@ -14,6 +16,8 @@ import sp.it.util.conf.Constraint.NoPersist
 import sp.it.util.conf.Constraint.NoUi
 import sp.it.util.conf.Constraint.NoUiDefaultButton
 import sp.it.util.conf.Constraint.NumberMinMax
+import sp.it.util.conf.Constraint.BigDecimalMinMax
+import sp.it.util.conf.Constraint.BigIntegerMinMax
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.Password
 import sp.it.util.conf.Constraint.PreserveOrder
@@ -83,11 +87,23 @@ fun <T: String?, TN: T?, C: ConstrainedDsl<TN>> C.lengthMax(max: Int) = but(Stri
 /** Adds [StringLength] with min and max filled */
 fun <T: String?, TN: T?, C: ConstrainedDsl<TN>> C.lengthBetween(min: Int, max: Int) = but(StringLength(min, max))
 /** Adds [NumberMinMax] with min filled */
-fun <T: Number, TN: T?, C: ConstrainedDsl<TN>> C.min(min: T) = but(NumberMinMax(min.toDouble(), null))
+fun <T: Number, TN: T?, C: ConstrainedDsl<TN>> C.min(min: T) = but(NumberMinMax.Min(min.toDouble()))
 /** Adds [NumberMinMax] with max filled */
-fun <T: Number, TN: T?, C: ConstrainedDsl<TN>> C.max(max: T) = but(NumberMinMax(null, max.toDouble()))
+fun <T: Number, TN: T?, C: ConstrainedDsl<TN>> C.max(max: T) = but(NumberMinMax.Max(max.toDouble()))
 /** Adds [NumberMinMax] with min and max filled */
-fun <T: Number, TN: T?, C: ConstrainedDsl<TN>> C.between(min: T, max: T) = but(NumberMinMax(min.toDouble(), max.toDouble()))
+fun <T: Number, TN: T?, C: ConstrainedDsl<TN>> C.between(min: T, max: T) = but(NumberMinMax.Between(min.toDouble(), max.toDouble()))
+/** Adds [BigIntegerMinMax] with min filled */
+fun <T: BigInteger, TN: T?, C: ConstrainedDsl<TN>> C.min(min: T) = but(BigIntegerMinMax.Min(min))
+/** Adds [BigIntegerMinMax] with max filled */
+fun <T: BigInteger, TN: T?, C: ConstrainedDsl<TN>> C.max(max: T) = but(BigIntegerMinMax.Max(max))
+/** Adds [BigIntegerMinMax] with min and max filled */
+fun <T: BigInteger, TN: T?, C: ConstrainedDsl<TN>> C.between(min: T, max: T) = but(BigIntegerMinMax.Between(min, max))
+/** Adds [BigDecimalMinMax] with min filled */
+fun <T: BigDecimal, TN: T?, C: ConstrainedDsl<TN>> C.min(min: T) = but(BigDecimalMinMax.Min(min))
+/** Adds [BigDecimalMinMax] with max filled */
+fun <T: BigDecimal, TN: T?, C: ConstrainedDsl<TN>> C.max(max: T) = but(BigDecimalMinMax.Max(max))
+/** Adds [BigDecimalMinMax] with min and max filled */
+fun <T: BigDecimal, TN: T?, C: ConstrainedDsl<TN>> C.between(min: T, max: T) = but(BigDecimalMinMax.Between(min, max))
 /** Adds [FileOut] */
 fun <T: File?, C: ConstrainedDsl<T>> C.uiOut() = but(FileOut)
 /** Adds [FileActor] with specified type */

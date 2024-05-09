@@ -143,6 +143,7 @@ import sp.it.util.conf.Constraint.FileOut
 import sp.it.util.conf.Constraint.FileRelative
 import sp.it.util.conf.Constraint.IconConstraint
 import sp.it.util.conf.Constraint.NumberMinMax
+import sp.it.util.conf.Constraint.NumberMinMax.Between
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.PreserveOrder
 import sp.it.util.conf.Constraint.ReadOnlyIf
@@ -332,19 +333,19 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
    private val v = getObservableValue(c)
    private val isObservable = v!=null
    private val isInteger = config.type.raw in setOf<Any>(Byte::class, Short::class, Int::class, Long::class)
-   private val range = c.findConstraint<NumberMinMax>()!!
-   private val labelFormatter = SpitSliderSkin.labelFormatter(isInteger, range.min!!, range.max!!)
-   private val min = Label(labelFormatter.toString(range.min!!))
-   private val max = Label(labelFormatter.toString(range.max!!))
-   private val slider = Slider(range.min!!, range.max!!, config.value.toDouble())
+   private val range = c.findConstraint<Between>()!!
+   private val labelFormatter = SpitSliderSkin.labelFormatter(isInteger, range.min, range.max)
+   private val min = Label(labelFormatter.toString(range.min))
+   private val max = Label(labelFormatter.toString(range.max))
+   private val slider = Slider(range.min, range.max, config.value.toDouble())
    override val editor = HBox(min, slider, max)
 
    init {
       slider.styleClass += "slider-config-editor"
       slider.setOnMouseReleased { apply() }
-      slider.min = range.min!!
-      slider.max = range.max!!
-      slider.blockIncrement = (range.max!! - range.min!!)/20
+      slider.min = range.min
+      slider.max = range.max
+      slider.blockIncrement = (range.max - range.min)/20
       slider.minPrefMaxWidth = -1.0
 
       editor.alignment = CENTER_LEFT

@@ -1,23 +1,15 @@
 package sp.it.pl.plugin.impl
 
-import com.sun.jna.platform.win32.Kernel32
 import io.ktor.client.request.get
 import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
-import java.lang.StringBuilder
 import java.util.regex.Pattern
-import javax.sound.sampled.AudioSystem
-import javax.sound.sampled.Line
-import javax.sound.sampled.TargetDataLine
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.invoke
-import kotlinx.coroutines.withContext
 import mu.KLogging
+import sp.it.pl.audio.microphoneNames
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.core.bodyAsJs
@@ -53,7 +45,6 @@ import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
 import sp.it.util.conf.Constraint.RepeatableAction
 import sp.it.util.conf.between
-import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
@@ -63,19 +54,15 @@ import sp.it.util.conf.min
 import sp.it.util.conf.multiline
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.nonBlank
-import sp.it.util.conf.nonEmpty
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
-import sp.it.util.conf.uiConverter
 import sp.it.util.conf.uiNoCustomUnsealedValue
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
-import sp.it.util.dev.fail
 import sp.it.util.file.children
 import sp.it.util.file.div
-import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsValue
@@ -98,19 +85,15 @@ import sp.it.util.reactive.plus
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
 import sp.it.util.system.Os.WINDOWS
-import sp.it.util.text.Char32
 import sp.it.util.text.applyBackspace
 import sp.it.util.text.camelToSpaceCase
-import sp.it.util.text.chars32
 import sp.it.util.text.concatApplyBackspace
 import sp.it.util.text.encodeBase64
 import sp.it.util.text.keys
 import sp.it.util.text.lines
 import sp.it.util.text.split2
 import sp.it.util.text.splitTrimmed
-import sp.it.util.text.toPrintableNonWhitespace
 import sp.it.util.text.useStrings
-import sp.it.util.text.words
 import sp.it.util.type.atomic
 import sp.it.util.units.seconds
 
@@ -344,11 +327,7 @@ class VoiceAssistant: PluginBase() {
 
    /** Microphone to be used. Null if auto. */
    val micName by cvn<String>(null)
-      .valuesUnsealed {
-         AudioSystem.getMixerInfo()
-            .filter { AudioSystem.getMixer(it).net { m -> m.targetLineInfo.isNotEmpty() && m.isLineSupported(Line.Info(TargetDataLine::class.java)) } }
-            .map { it.name }
-      }
+      .valuesUnsealed { microphoneNames() }
       .uiNoCustomUnsealedValue()
       .def(name = "Microphone name", info = "Microphone to be used. Null causes automatic microphone selection.")
 

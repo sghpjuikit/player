@@ -22,7 +22,7 @@ import sp.it.util.type.type
 import sp.it.util.type.typeNothingNonNull
 import sp.it.util.type.typeNothingNullable
 
-@Suppress("RemoveExplicitTypeArguments")
+@Suppress("RemoveExplicitTypeArguments", "REDUNDANT_PROJECTION")
 class CollectionsUtilTest: FreeSpec({
 
    Collection<*>::getElementType.name - {
@@ -109,7 +109,7 @@ class CollectionsUtilTest: FreeSpec({
 
          // generic types (same class, same element class)
          listOf(Optional.of(""), Optional.empty()) estimateRuntimeTypeShouldHaveElementType type<Optional<Any>>()
-         listOf(Option(""), Option.None) estimateRuntimeTypeShouldHaveElementType type<Option<String>>()
+         listOf(Option(""), Option.None) estimateRuntimeTypeShouldHaveElementType type<Option<out String>>()
 
          // generic types (same class, same element class)
          listOf(listOf<Int>(1), listOf<Int>(1)) estimateRuntimeTypeShouldHaveElementType type<AbstractList<Int>>()

@@ -78,7 +78,10 @@ public class WindowBase {
 	public WindowBase(Stage owner, StageStyle style) {
 		if (owner!=null) s.initOwner(owner);
 		if (style!=null) s.initStyle(style);
-
+		
+		s.setMinWidth(1.0);
+		s.setMinHeight(1.0);
+		
 		// window properties may change externally so let us take notice
 		syncC(s.xProperty(), v -> {
 			if (!fullscreen.getValue() && maximized.getValue()==NONE) {

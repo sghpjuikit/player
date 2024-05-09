@@ -150,51 +150,13 @@ class VoiceAssistant: PluginBase() {
          var stdout = ""
          var stderr = ""
          val stdoutListener = process.inputStream.consume("SpeechRecognition-stdout") {
-
-            val p = object {
-               var state = ""
-               var str = StringBuilder("")
-               fun String.onS(onS: (String, String?) -> Unit) = if (isNotEmpty()) onS(this, state) else Unit
-               fun StringBuilder.determineState(): String {
-                  return when {
-                     startsWith("RAW: ") -> "RAW"
-                     startsWith("USER: ") -> "USER"
-                     startsWith("SYS: ") -> "SYS"
-                     startsWith("COM: ") -> "COM"
-                     startsWith("ERR: ") -> "ERR"
-                     else -> ""
-                  }
-               }
-               fun process(t: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
-                  var s = t.replace("\r\n", "\n")
-                  if ("\n" in s) {
-                     s.split("\n").dropLast(1).forEach { processSingle(it.un(), onS, onE) }
-                     str.clear()
-                     str.append(s.substringAfterLast("\n").un())
-                     s.substringAfterLast("\n").un().onS(onS)
-                  } else {
-                     val strOld = str.toString()
-                     str.clear()
-                     str.append(strOld + s.un())
-                     state = str.determineState()
-                     s.un().onS(onS)
-                  }
-               }
-
-               fun processSingle(s: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
-                  str.append(s)
-                  state = str.determineState()
-                  if (state.isNotEmpty()) onE(str.toString().substringAfter(": "), state)
-                  str.clear()
-                  (s + "\n").onS(onS)
-               }
-            }
-
+            val reader = VoiceAssistentCliReader()
+            // capture stdout
             stdout = it
                .map { it.ansi() }
                .filter { it.isNotEmpty() }
                .onEach { runFX {
-                  p.process(
+                  reader.process(
                      it,
                      { e, state ->
                         pythonOutStd.value = pythonOutStd.value.concatApplyBackspace(e)
@@ -212,6 +174,7 @@ class VoiceAssistant: PluginBase() {
                .joinToString("")
          }
          val stderrListener = process.errorStream.consume("SpeechRecognition-stderr") {
+            // capture stderr
             stderr = it
                .filter { it.isNotEmpty() }
                .map { it.ansi() }
@@ -779,9 +742,6 @@ class VoiceAssistant: PluginBase() {
 
       /** @return this string with newline prepended or empty string if blank */
       private fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"
-
-      /** @return this string with unicode newline `\u2028` replaced to `\n` */
-      private fun String.un() = replace("\u2028", "\n")
 
       /** @return consumes this input stream on virtual thread with the specified name by the block taking sequence of strings as written to the stream */
       private fun InputStream.consume(name: String, block: (Sequence<String>) -> Unit) =

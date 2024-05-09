@@ -316,8 +316,7 @@ else:
 
 
 # LLM considers the functions in order
-assist_last_at = time.time()
-assist_last_diff = 0
+
 assist = Assist()
 assist_function_prompt = f"""
 * repeat // last speech
@@ -425,12 +424,22 @@ class AssistBasic:
         self.last_announcement_at = datetime.now()
         self.wake_word_delay = 5.0
         self.isChat = False
+        self.activity_last_at = time.time()
+        self.activity_last_diff = 0
+        self.restartChatDelay = 5*60
+        
+        Thread(name='Assist-Idle-Monitor', target=lambda: self.assistUpdateIdle(), daemon=True).start()
 
+    def assistUpdateIdle(self):
+        while True:
+            time.sleep(1.0)
+            if self.restartChatDelay > (time.time() - self.activity_last_at) and len(executorPython.ms)>0:
+                self.restartChat()
+            
     def needsWakeWord(self, speech_start: datetime) -> bool:
         return self.isChat is False and (speech_start - self.last_announcement_at).total_seconds() > self.wake_word_delay
 
     def __call__(self, text: str, textSanitized: str):
-        global assist
         # announcement
         if len(text) == 0:
             self.last_announcement_at = datetime.now()
@@ -519,6 +528,7 @@ def skip():
 def callback(st: SpeechText):
     if sysTerminating: return
 
+    # sanitize
     text = st.text
     textSanitized = text.rstrip(".").strip()
     text = text.lower().rstrip(".").strip()
@@ -530,9 +540,8 @@ def callback(st: SpeechText):
     if assist.needsWakeWord(st.start) and not starts_with_any(text, wake_words): return
 
     # monitor activity time
-    global assist_last_at
-    assist_last_diff = time.time() - assist_last_at
-    assist_last_at = time.time()
+    assist.activity_last_diff = time.time() - assist.activity_last_at
+    assist.activity_last_at = time.time()
 
     # sanitize
     textSanitized = remove_any_prefix(textSanitized, wake_words).strip().lstrip(",").lstrip(".").rstrip(".").strip()

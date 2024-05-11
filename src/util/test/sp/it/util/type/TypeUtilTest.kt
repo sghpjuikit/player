@@ -426,10 +426,9 @@ class TypeUtilTest: FreeSpec({
             override fun getViewIndex(index: Int) = fail()
             override fun sourceChanged(c: ListChangeListener.Change<out W>?) = fail()
          }
-         type<MyList<Int>>().type.raw.traverseToSuper(List::class).printIt()
-         type<MyList<Int>>().type.let { listOf(it) + it.raw.allSupertypes }.printIt()
-         type<MyList<Int>>().type.argOf(List::class, 0).printIt()
-         println("--")
+         type<MyList<Int>>().type.raw.traverseToSuper(List::class).toString() shouldBe "[class sp.it.util.type.TypeUtilTest\$1\$1\$12\$MyList, class javafx.collections.transformation.TransformationList, class javafx.collections.ObservableListBase, class java.util.AbstractList, class kotlin.collections.List]"
+         type<MyList<Int>>().type.let { listOf(it) + it.raw.allSupertypes }.toString() shouldBe "[sp.it.util.type.`TypeUtilTest\$1\$1\$12\$MyList`<kotlin.Int>, javafx.collections.transformation.TransformationList<W, W>, javafx.collections.ObservableListBase<W!>, java.util.AbstractList<W!>, java.util.AbstractCollection<W!>, kotlin.collections.MutableCollection<W!>, kotlin.collections.Iterable<E>, kotlin.Any, kotlin.collections.MutableList<W!>, kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, javafx.collections.ObservableList<W!>, javafx.beans.Observable]"
+         type<MyList<Int>>().type.argOf(List::class, 0).toString() shouldBe "kotlin.Int"
 
          @Suppress("UNREACHABLE_CODE")
          class MyListInt: TransformationList<Int, Int>(null) {
@@ -439,19 +438,18 @@ class TypeUtilTest: FreeSpec({
             override fun getViewIndex(index: Int) = fail()
             override fun sourceChanged(c: ListChangeListener.Change<out Int>?) = fail()
          }
-         type<MyListInt>().type.raw.traverseToSuper(List::class).printIt()
-         type<MyListInt>().type.let { listOf(it) + it.raw.allSupertypes }.printIt()
-         type<MyListInt>().type.argOf(List::class, 0).printIt()
+         type<MyListInt>().type.raw.traverseToSuper(List::class).toString() shouldBe "[class sp.it.util.type.TypeUtilTest\$1\$1\$12\$MyListInt, class javafx.collections.transformation.TransformationList, class javafx.collections.ObservableListBase, class java.util.AbstractList, class kotlin.collections.List]"
+         type<MyListInt>().type.let { listOf(it) + it.raw.allSupertypes }.toString() shouldBe "[sp.it.util.type.`TypeUtilTest\$1\$1\$12\$MyListInt`, javafx.collections.transformation.TransformationList<kotlin.Int, kotlin.Int>, javafx.collections.ObservableListBase<kotlin.Int!>, java.util.AbstractList<kotlin.Int!>, java.util.AbstractCollection<kotlin.Int!>, kotlin.collections.MutableCollection<kotlin.Int!>, kotlin.collections.Iterable<E>, kotlin.Any, kotlin.collections.MutableList<kotlin.Int!>, kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, javafx.collections.ObservableList<kotlin.Int!>, javafx.beans.Observable]"
+         type<MyListInt>().type.argOf(List::class, 0).toString() shouldBe "kotlin.Int!"
 
-         println("--")
-         ::mmm.returnType.printIt()
-         ::mmm.returnType.classifier.printIt()
-         ::mmm.returnType.classifier.asIs<KClass<*>>().printIt()
-         ::mmm.returnType.classifier.asIs<KClass<*>>().supertypes.printIt()
-         ::mmm.returnType.classifier.asIs<KClass<*>>().allSupertypes.printIt()
-         ::mmm.returnType.classifier.asIs<KClass<*>>().superclasses.printIt()
-         ::mmm.returnType.classifier.asIs<KClass<*>>().allSuperclasses.printIt()
-         ::mmm.returnType.classifier.asIs<KClass<*>>().typeParameters.printIt()
+         ::mmm.returnType.toString() shouldBe "kotlin.collections.MutableList<kotlin.Int>?"
+         ::mmm.returnType.classifier.toString() shouldBe "class kotlin.collections.List"
+         ::mmm.returnType.classifier.asIs<KClass<*>>().toString() shouldBe "class kotlin.collections.List"
+         ::mmm.returnType.classifier.asIs<KClass<*>>().supertypes.toString() shouldBe "[kotlin.collections.Collection<E>, kotlin.Any]"
+         ::mmm.returnType.classifier.asIs<KClass<*>>().allSupertypes.toString() shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
+         ::mmm.returnType.classifier.asIs<KClass<*>>().superclasses.toString() shouldBe "[class kotlin.collections.Collection, class kotlin.Any]"
+         ::mmm.returnType.classifier.asIs<KClass<*>>().allSuperclasses.toString() shouldBe "[class kotlin.collections.Collection, class kotlin.collections.Iterable, class kotlin.Any]"
+         ::mmm.returnType.classifier.asIs<KClass<*>>().typeParameters.toString() shouldBe "[out E]"
 
          forAll(
             // supertypes argument lookup

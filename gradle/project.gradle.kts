@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "2.0.0-RC2"
+   kotlin("jvm") version "2.0.0-RC3"
    application
    id("com.github.ben-manes.versions") version "0.51.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    // id("com.jaredsburrows.license") version "0.9.7"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin // incompatible with latest gradle
@@ -95,8 +95,8 @@ allprojects {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
          implementation(kotlin("compiler-embeddable"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.8.1-Beta")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.8.1-Beta")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.8.1")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.8.1")
          implementation("org.jetbrains", "annotations", "24.1.0")
       }
 
@@ -184,8 +184,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.8.0")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.8.0")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.9.0")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.9.0")
       }
 
       "Db" group {

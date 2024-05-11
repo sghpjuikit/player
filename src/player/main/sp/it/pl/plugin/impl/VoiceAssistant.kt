@@ -61,6 +61,7 @@ import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
+import sp.it.util.dev.printIt
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.json.JsObject
@@ -139,7 +140,7 @@ class VoiceAssistant: PluginBase() {
             "stt-nemo-device=${sttNemoDevice.value}",
             "stt-http-url=${sttHttpUrl.value}",
             "http-url=${httpUrl.value.net { it.substringAfterLast("/") }}",
-            "use-python-commands=${usePythonCommands.value}",
+            "use-python-commands=${false}",
          )
          val command = EnvironmentContext.runAsProgramArgsTransformer(commandRaw)
          val process = ProcessBuilder(command)
@@ -221,44 +222,15 @@ class VoiceAssistant: PluginBase() {
             .toMap()
       }
 
-   /** Speech handlers called when user has spoken. Matched in order. */
-   val handlers = observableList(
-         *listOfNotNull(
-            SpeakHandler(                            "Help", "help")                                         { if (matches(it)) Ok("List commands by saying, list commands") else null },
-            SpeakHandler(                      "Do nothing", "ignore")                                       { if (matches(it)) Ok(null) else null },
-            SpeakHandler(               "Restart Assistant", "restart assistant|yourself")                   { if (matches(it)) { speak("Ok"); restart(); Ok(null) } else null },
-            SpeakHandler(                   "Help Commands", "list commands")                                { if (matches(it)) Ok(handlersHelpText()) else null },
-            SpeakHandler(              "Start conversation", "start conversation")                           { if (matches(it)) { llmOn = true; Ok(null) } else null },
-            SpeakHandler(            "Restart conversation", "restart conversation")                         { if (matches(it)) { llmOn = true; Ok(null) } else null },
-            SpeakHandler(               "Stop conversation", "stop conversation")                            { if (matches(it)) { llmOn = false; Ok(null) } else null },
-            SpeakHandler(                    "Current time", "what time is it")                              { voiceCommandCurrentTime(it) },
-            SpeakHandler(                    "Current date", "what date is it")                              { voiceCommandCurrentDate(it) },
-            SpeakHandler(                    "Current song", "what song|playback is active")                 { voiceCommandCurrentSong(it) },
-            SpeakHandler(                 "Resume playback", "play|start|resume|continue music|playback")    { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
-            SpeakHandler(                  "Pause playback", "stop|end|pause music|playback")                { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
-            SpeakHandler(              "Play previous song", "play previous song")                           { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
-            SpeakHandler(                  "Play next song", "play next song")                               { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
-            SpeakHandler(       "Llm answer from clipboard", "generate|answer|write from? clipboard \$text") { voiceCommandGenerateClipboard(it) },
-            SpeakHandler(                      "Llm answer", "generate|answer|write \$text")                 { voiceCommandGenerate(it) },
-            SpeakHandler(            "Speak from clipboard", "speak|say from? clipboard")                    { voiceCommandSpeakClipboard(it) },
-            SpeakHandler(              "Describe clipboard", "describe|define clipboard")                    { voiceCommandDescribeClipboard(it) },
-            SpeakHandler(                   "Describe text", "describe|define \$text")                       { voiceCommandDescribeText(it) },
-            SpeakHandler(                           "Speak", "speak|say \$text")                             { voiceCommandSpeakText(it) },
-            SpeakHandler("Close window (${keys("ALT+F4")})", "close|hide window")                            { voiceCommandAltF4(it) },
-            SpeakHandler(                     "Search text", "search for? \$text")                           { voiceSearch(it) },
-            SpeakHandler(                       "Type text", "type \$text")                                  { voiceType(it) },
-            SpeakHandler(             "Open widget by name", "open|show widget? \$widget_name widget?")      { voiceCommandOpenWidget(it) },
-            SpeakHandler(                     "Shutdown OS", "shut down system|pc|computer|os")              { voiceCommandOsShutdown(it) }.takeIf { WINDOWS.isCurrent },
-            SpeakHandler(                      "Restart OS", "restart system|pc|computer|os")                { voiceCommandOsRestart(it) }.takeIf { WINDOWS.isCurrent },
-            SpeakHandler(                    "Hibernate OS", "hibernate system|pc|computer|os")              { voiceCommandOsHibernate(it) }.takeIf { WINDOWS.isCurrent },
-            SpeakHandler(                        "Sleep OS", "sleep system|pc|computer|os")                  { voiceCommandOsSleep(it) }.takeIf { WINDOWS.isCurrent },
-            SpeakHandler(                         "Lock OS", "lock system|pc|computer|os")                   { voiceCommandOsLock(it) }.takeIf { WINDOWS.isCurrent },
-            SpeakHandler(                      "Log off OS", "log off system|pc|computer|os")                { voiceCommandOsLogOff(it) }.takeIf { WINDOWS.isCurrent },
-            SpeakHandler(                    "Set reminder", "set reminder in|at \$time \$text")             { voiceCommandSetReminder(it) },
-            SpeakHandler(                            "Wait", "wait \$time")                                  { voiceCommandWait(it) },
-            SpeakHandler(                     "Count to...", "count from \$from to \$to")                    { voiceCommandCountTo(it) },
-         ).toTypedArray()
+   /** Allow llm to repond with python commands. Much more powerful assistant, but also somewhat unpredictable. Default false. */
+   val usePythonCommands by cv(false)
+      .def(
+         name = "Use python commands",
+         info = "Allow llm to repond with python commands. Much more powerful assistant, but also somewhat unpredictable. Default false."
       )
+
+   /** Speech handlers called when user has spoken. Matched in order. */
+   val handlers = observableList(*voiceCommands().toTypedArray())
 
    /** [handlers] help text */
    private val handlersConf by cv("") {
@@ -273,7 +245,7 @@ class VoiceAssistant: PluginBase() {
       )
 
    /** [handlers] help text */
-   private fun handlersHelpText(): String =
+   internal fun handlersHelpText(): String =
       handlers
          .mapIndexed { i, h -> "\n$i. ${h.name}, activate by saying ${h.commandUi}" }
          .joinToString("", prefix = "Here is list of currently active commands:")
@@ -414,7 +386,7 @@ class VoiceAssistant: PluginBase() {
 
    /** Whether [llmEngine] conversation is active */
    var llmOn by atomic(false)
-      private set
+      internal set
 
    /** Engine used to generate voice. May require additional configuration */
    val llmEngine by cv(LlmEngine.NONE).uiNoOrder()
@@ -464,13 +436,6 @@ class VoiceAssistant: PluginBase() {
          info = "Url of the http API of the locally running AI executor"
       )
 
-   /** Experimental flag to allow llm to repond with python commands. Much more powerful, but also somewhat unpredictable. Default false. */
-   val usePythonCommands by cv(false)
-      .def(
-         name = "Use python commands",
-         info = "Experimental flag to allow llm to repond with python commands. Much more powerful, but also somewhat unpredictable. Default false."
-      )
-
    private var isRunning = false
 
    override fun start() {
@@ -490,9 +455,7 @@ class VoiceAssistant: PluginBase() {
               llmChatTemp.chan().throttleToLast(p) subscribe { write("llm-chat-temp=$it") }
               llmChatTopP.chan().throttleToLast(p) subscribe { write("llm-chat-topp=$it") }
               llmChatTopK.chan().throttleToLast(p) subscribe { write("llm-chat-topk=$it") }
-        usePythonCommands.chan().throttleToLast(p) subscribe { write("use-python-commands=$it") }
       // @formatter:on
-
       startSpeechRecognition()
 
       // restart-requiring properties
@@ -562,22 +525,24 @@ class VoiceAssistant: PluginBase() {
       }
    }
 
-   private suspend fun handleSpeech(text: String, user: Boolean = false, command: Boolean = false, orDetectIntent: Boolean = false) {
+   private suspend fun handleSpeech(text: String, user: Boolean = false, command: Boolean = false, orDetectIntent: Boolean = false, textOriginal: String = "") {
       if (!isRunning) return
       if (user) speakingTextW.value = text
       if (!command) return
 
       var textSanitized = text.removePrefix("COM ").removeSuffix(" COM").replace("_", " ").sanitize(sttBlacklistWords_)
-      var result = handlers.firstNotNullOfOrNull { SpeakContext(it, this@VoiceAssistant)(textSanitized) }
+      var (c, result) = handlers.firstNotNullOfOrNull { SpeakContext(it, this@VoiceAssistant)(textSanitized)?.let { r -> it to r } } ?: (null to null)
+      logger.info { "Speech ${if (orDetectIntent) "event" else "intent"} handled by command `${c?.name}`, request=`${textSanitized}`" }
       if (result==null) {
          if (!orDetectIntent)
-            speak("Unrecognized command: $textSanitized")
+            if (usePythonCommands.value) writeComPytInt(textOriginal)
+            else speak("Unrecognized command: $textSanitized")
          else {
-            intent("", textSanitized).ifError {
+            intent(voiceCommandsPrompt(), textSanitized).ifError {
                logger.error(it) { "Failed to understand command $textSanitized" }
                speak("Recognized command failed with error: ${it.message ?: ""}")
             }.ifOk {
-               handleSpeech(it, command = true, orDetectIntent = false)
+               handleSpeech(it, command = true, orDetectIntent = false, textOriginal = text)
             }
          }
       } else
@@ -593,10 +558,10 @@ class VoiceAssistant: PluginBase() {
       }
    }
 
-   suspend fun intent(functions: String?, userPrompt: String) =
+   suspend fun intent(functions: String, userPrompt: String) =
       VT.invokeTry {
          val url = httpUrl.value.net { "$it/intent"}
-         APP.http.client.post(url) { bodyJs("functions" to (functions ?: ""), "userPrompt" to userPrompt) }.bodyAsText()
+         APP.http.client.post(url) { bodyJs("functions" to functions, "userPrompt" to userPrompt) }.bodyAsText()
       }
 
    fun write(text: String): Unit = writing(setup to text)
@@ -604,6 +569,8 @@ class VoiceAssistant: PluginBase() {
    fun writeCom(command: String): Unit = writing(setup to "COM: ${command.encodeBase64()}")
 
    fun writeComPyt(command: String): Unit = writing(setup to "COM-PYT: ${command.encodeBase64()}")
+
+   fun writeComPytInt(command: String): Unit = writing(setup to "COM-PYT-INT: ${command.encodeBase64()}")
 
    @IsAction(name = "Speak text", info = "Identical to \"Narrate text\"")
    fun synthesize() = speak()
@@ -712,9 +679,11 @@ class VoiceAssistant: PluginBase() {
    /**
     * Speech event handler. In ui shown as `"$name -> $commandUi"`.
     * @param action action that runs on FX thread, takes command, returns Try (with text to speak or null if none) or null if no match. */
-   data class SpeakHandler(val name: String, val commandUi: String, val action: suspend SpeakContext.(String) -> Try<String?, String?>?) {
+   data class SpeakHandler(val type: Type, val name: String, val commandUi: String, val action: suspend SpeakContext.(String) -> Try<String?, String?>?) {
       /** [commandUi] turned into regex */
       val regex by lazy { voiceCommandRegex(commandUi) }
+
+      enum class Type { PYTHN, KOTLN, DEFER, ALIAS }
    }
 
    /**

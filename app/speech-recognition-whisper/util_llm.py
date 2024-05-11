@@ -25,15 +25,6 @@ class ChatProceed:
         self.processTokens = lambda tokens: None
         if (userPrompt is not None and len(userPrompt)>0): self.messages.append({ "role": "user", "content": self.userPrompt })
 
-class ChatWhatCanYouDo(ChatProceed):
-    def __init__(self, assist_function_prompt):
-        super().__init__(
-            "You are voice assistant capable of these functions. "
-            "If user askes you about what you can do, you give him overview of your functions. "
-            "Funs: \n" + assist_function_prompt,
-            "Give me summary of your capabilities"
-        )
-
 class ChatIntentDetect(ChatProceed):
     def __init__(self, sysPrompt: str, userPrompt: str, outStart: str, outCont: str, outEnd: str, speakTokens: bool, writeTokens: bool):
         super().__init__(sysPrompt, userPrompt)
@@ -46,13 +37,13 @@ class ChatIntentDetect(ChatProceed):
     @classmethod
     def normal(cls, assist_function_prompt: str, userPrompt: str, writeTokens: bool = True):
         return cls(
-            "From now on, identify user intent by returning one of following commands. " +
-            "Only respond with command in format: `COM command COM`. " +
+            "From now on, identify user intent by returning exactly one of the following commands. " +
+            "Only respond with exactly one command in format: `command`. " +
             "? is optional, $ is command parameter, : is default value. " +
             "Use '_' as word separator in $ parameter values. " +
             "Do not write $ after resolving parameter, e.g. `$number` -> `5`. " +
-            "You can respond with multiple commands, each on new line. " +
-            "Command example: COM command prefix parameter_value command suffix COM. " +
+            "Do not respond in any other way, do not answer except with a command if appropriate. " +
+            "Command example: `my command parameter1_value` " +
             "Commands: \n" + assist_function_prompt,
             userPrompt,
             'RAW: ' if writeTokens else '',
@@ -68,6 +59,25 @@ class ChatIntentDetect(ChatProceed):
             sysPrompt, userPrompt, 'RAW: ', 'executing:\n```\n', '\n```', False, True
         )
         for m in messages: a.messages.insert(len(a.messages)-1, m)
+        return a
+
+    @classmethod
+    def pythonFix(cls, code: str):
+        a = cls(
+            'You are expert python programmer.\n' +
+            'You fix code formatting, remove comments, remove markdown code blocks and your response is always executable python code.\n' +
+            'You never use comments.',
+            userPrompt='Respond only with the executable code ad avoid any descriptions! The code to fix is below:\n' + code,
+            outStart='', outCont='', outEnd='', speakTokens=False, writeTokens=False
+        )
+        # few-shot promting
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "Here is the python code\nprint('')" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "print('')" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "```\npython\nfunctionCall()\n```" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "functionCall()" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "for i in range(1,5):\n  f('I'm here)" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "for i in range(1,5):\n  f('I\'m here')" })
+
         return a
 
 
@@ -190,7 +200,7 @@ class LlmGpt4All(Llm):
                         with llm.chat_session():
                             llm._history = e.messages   # overwrite system prompt & history
                             self.generating = True
-                            stop = [" COM", "<|eot_id|>"] if isCommand else ["<|eot_id|>"]
+                            stop = [" COM"] if isCommand else []
                             text = ''
                             def process(token_id, token_string):
                                 nonlocal text, stop
@@ -253,7 +263,7 @@ class LlmHttpOpenAi(Llm):
                             stream = client.chat.completions.create(
                                 model=self.modelName, messages=e.messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
                                 stream=True, timeout=Timeout(5.0),
-                                stop = [" COM", "<|eot_id|>"] if isCommand else ["<|eot_id|>"],
+                                stop = [" COM"] if isCommand else [],
                             )
                             try:
                                 for chunk in stream:

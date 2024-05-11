@@ -11,7 +11,7 @@ from threading import Timer
 from itertools import chain
 from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerIntent, HttpHandlerStt, HttpHandlerSttReact
 from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
-from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatWhatCanYouDo, ChatPaste
+from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatPaste
 from util_stt import SttNone, SttWhisper, SttNemo, SttHttp, SpeechText
 from util_mic import Mic, MicVoiceDetectNone, MicVoiceDetectNvidia
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
@@ -315,46 +315,7 @@ else:
     voices = []
 
 
-# LLM considers the functions in order
-
 assist = Assist()
-assist_function_prompt = f"""
-* repeat // last speech
-* list commands
-* what can you do
-* restart assistant|yourself
-* start|restart|stop conversation
-* shut_down|restart|hibernate|sleep|lock|log_off system|pc|computer|os
-* list available voices
-* change voice $voice // resolve to one from {', '.join(voices)}
-* open $widget_name  // various tasks can be acomplished using appropriate widget
-* open weather
-* play music
-* stop music
-* play previous song
-* play next song
-* what song is active
-* what time is it
-* what date is it
-* describe clipboard
-* describe $text
-* generate from? clipboard
-* speak|say from? clipboard
-* speak|say $text
-* lights on|off // turns all lights on/off
-* lights group $group_name on|off?  // room is usually a group
-* list light groups
-* light bulb $bulb_name on|off?
-* list light bulbs
-* lights scene $scene_name  // sets light scene, scene is usually a mood, user must say 'scene' word
-* list light scenes
-* set reminder in $time_period $text_to_remind // units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year, e.g.: 'set reminder in 15min text to remind'
-* set reminder at $iso_datetime $text_to_remind // always use iso format '%Y-%m-%dT%H:%M:%SZ' e.g.: 'set reminder at 2024-05-01T06:45:00Z text to remind'
-* wait $time_period // units: s
-* greeting $user_greeting
-* count from $from:1 to $to
-* unidentified // no other command probable
-"""
 
 # commands
 class CommandExecutorMain(CommandExecutor):
@@ -363,7 +324,7 @@ class CommandExecutorMain(CommandExecutor):
         global assist
         handled = "ignore"
 
-        if text == "repeat":
+        if text == "repeat last speech":
             tts.repeatLast()
             return handled
         if text.startswith("speak "):
@@ -383,7 +344,9 @@ class CommandExecutorMain(CommandExecutor):
             if isinstance(tts.tts, TtsCoqui):
                 if voice in voices:
                     if tts.tts.voice != voice:
+                        global ttsCoquiVoice
                         voiceOld = ttsCoquiVoice
+                        ttsCoquiVoice = voice
                         tts.tts.voice = voice
                         voiceNew = ttsCoquiVoice
                         llm(ChatReact(llmSysPrompt, f"User changed your voice from:\n```\n{voiceOld}\n```\n\nto:\n```\n{voiceNew}\n```", name + " voice changed"))
@@ -401,9 +364,6 @@ class CommandExecutorMain(CommandExecutor):
         if text.startswith("do-describe "):
             llm(ChatProceed(llmSysPrompt, "Describe the following content:\n" + text.removeprefix("do-describe ")))
             return handled
-        elif text == 'what can you do':
-            llm(ChatWhatCanYouDo(assist_function_prompt))
-            return handled
         elif text == 'start conversation':
             assist.startChat()
             return handled
@@ -417,7 +377,12 @@ class CommandExecutorMain(CommandExecutor):
             return text
 
 commandExecutor.commandExecutor = CommandExecutorMain()
-executorPython = PythonExecutor(tts, lambda sp, up, ms: llm(ChatIntentDetect.python(sp, up, ms)), write, llmSysPrompt, ', '.join(voices))
+executorPython = PythonExecutor(
+    tts,
+    lambda sp, up, ms: llm(ChatIntentDetect.python(sp, up, ms)),
+    lambda code: llm(ChatIntentDetect.pythonFix(code)),
+    write, llmSysPrompt, ', '.join(voices)
+)
 
 class AssistBasic:
     def __init__(self):
@@ -468,26 +433,23 @@ class AssistBasic:
                     f'Ask for help by saying, help. ' +
                     f'Run command by saying the command.'
                 )
-                write('COM: help')  # allows application to customize the help output
-        # start LLM conversation
+                commandExecutor.execute("help") # allows application to customize the help output
         elif text == "start conversation":
             commandExecutor.execute("start conversation")
         elif text == "restart conversation" or text == "reset conversation":
             commandExecutor.execute("restart conversation")
         elif text == "stop conversation":
             commandExecutor.execute("stop conversation")
+        elif text.startswith("generate "):
+            write('COM: ' + commandExecutor.execute(text))
+        elif text.startswith("count "):
+            write('COM: ' + commandExecutor.execute(text))
+        # do command - python
+        elif usePythonCommands:
+            executorPython.generatePythonAndExecute(text)
         # do command
         else:
-            if usePythonCommands:
-                # this command is too difficult for LLM right now
-                if text.startswith("generate "): commandExecutor.execute(text)
-                # this command is too difficult for LLM right now
-                elif text.startswith("count "): commandExecutor.execute(text)
-                # this command is too difficult for LLM right now
-                else: executorPython.generatePythonAndExecute(text)
-            else:
-                # command handling
-                write('COM: ' + text)
+            write('COM: ' + commandExecutor.execute(text))
 
     def startChat(self, react: bool = True):
         if self.isChat: return
@@ -619,7 +581,7 @@ host, _, port = httpUrl.partition(":")
 http = Http(host, int(port), write)
 http.handlers.append(HttpHandlerState(actors))
 http.handlers.append(HttpHandlerStateActorEvents(actors))
-http.handlers.append(HttpHandlerIntent(llm, assist_function_prompt))
+http.handlers.append(HttpHandlerIntent(llm))
 http.handlers.append(HttpHandlerStt(stt))
 http.handlers.append(HttpHandlerSttReact(llm, llmSysPrompt))
 if isinstance(tts.tts, TtsCoqui): http.handlers.append(tts.tts._httpHandler())
@@ -665,6 +627,10 @@ while not sysTerminating:
 
         if m.startswith("COM-PYT: "):
             text = base64.b64decode(m[9:]).decode('utf-8')
+            executorPython.execute(text)
+
+        if m.startswith("COM-PYT-INT: "):
+            text = base64.b64decode(m[13:]).decode('utf-8')
             executorPython.generatePythonAndExecute(text)
 
         if m.startswith("CALL: "):

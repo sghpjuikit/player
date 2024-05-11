@@ -14,6 +14,11 @@ import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.main.APP
 import sp.it.pl.main.ScheduledNote
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakContext
+import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler
+import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.ALIAS
+import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.DEFER
+import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.KOTLN
+import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.PYTHN
 import sp.it.pl.voice.toVoiceS
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.delay
@@ -25,9 +30,11 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.system.Os
+import sp.it.util.system.Os.WINDOWS
 import sp.it.util.system.Windows
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.equalsNc
+import sp.it.util.text.keys
 import sp.it.util.text.words
 import sp.it.util.ui.pressReleaseShortcut
 import sp.it.util.ui.pressReleaseText
@@ -36,6 +43,88 @@ import sp.it.util.units.seconds
 import sp.it.util.units.uuid
 
 typealias ComMatch = Try<String?, String?>?
+
+internal fun VoiceAssistant.voiceCommands(): List<SpeakHandler> {
+   val sh = ::SpeakHandler
+   return listOfNotNull(
+      sh(PYTHN,        "Repeat last speech", "repeat last speech")                                                     { null },
+      sh(PYTHN,                  "Greeting", "greeting \$user_greeting")                                               { null },
+      sh(KOTLN,                      "Help", "help")                                                                   { if (matches(it)) Ok("List commands by saying, list commands") else null },
+      sh(KOTLN,                "Do nothing", "ignore")                                                                 { if (matches(it)) Ok(null) else null },
+      sh(KOTLN,         "Restart Assistant", "restart assistant|yourself")                                             { if (matches(it)) { speak("Ok"); restart(); Ok(null) } else null },
+      sh(KOTLN,             "Help Commands", "list commands")                                                          { if (matches(it)) Ok(handlersHelpText()) else null },
+      sh(KOTLN,        "Start conversation", "start conversation")                                                     { if (matches(it)) { llmOn = true; Ok(null) } else null },
+      sh(KOTLN,      "Restart conversation", "restart conversation")                                                   { if (matches(it)) { llmOn = true; Ok(null) } else null },
+      sh(KOTLN,         "Stop conversation", "stop conversation")                                                      { if (matches(it)) { llmOn = false; Ok(null) } else null },
+      sh(KOTLN,              "Current time", "what time is it")                                                        { voiceCommandCurrentTime(it) },
+      sh(KOTLN,              "Current date", "what date is it")                                                        { voiceCommandCurrentDate(it) },
+      sh(KOTLN,              "Current song", "what song|playback is active")                                           { voiceCommandCurrentSong(it) },
+      sh(KOTLN,           "Resume playback", "play|start|resume|continue music|playback")                              { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
+      sh(KOTLN,            "Pause playback", "stop|end|pause music|playback")                                          { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
+      sh(KOTLN,        "Play previous song", "play previous song")                                                     { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
+      sh(KOTLN,            "Play next song", "play next song")                                                         { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
+      sh(KOTLN, "Llm answer from clipboard", "generate|answer|write from? clipboard \$text")                           { voiceCommandGenerateClipboard(it) },
+      sh(KOTLN,                "Llm answer", "generate|answer|write \$text")                                           { voiceCommandGenerate(it) },
+      sh(DEFER,                     "Speak", "speak|say \$text")                                                       { voiceCommandSpeakText(it) },
+      sh(DEFER,      "Speak from clipboard", "speak|say from? clipboard")                                              { voiceCommandSpeakClipboard(it) },
+      sh(DEFER,        "Describe clipboard", "describe|define clipboard // describe the term or content in clipboard") { voiceCommandDescribeClipboard(it) },
+      sh(DEFER,             "Describe text", "describe|define \$text // describe the text")                            { voiceCommandDescribeText(it) },
+      sh(KOTLN,              "Close window", "close|hide window")                                                      { voiceCommandAltF4(it) },
+      sh(KOTLN,               "Search text", "search for? \$text")                                                     { voiceSearch(it) },
+      sh(KOTLN,                 "Type text", "type \$text")                                                            { voiceType(it) },
+      sh(KOTLN,       "Open widget by name", "open|show widget? \$widget_name widget?")                                { voiceCommandOpenWidget(it) },
+      sh(KOTLN,               "Shutdown OS", "shut down system|pc|computer|os")                                        { voiceCommandOsShutdown(it) }.takeIf { WINDOWS.isCurrent },
+      sh(KOTLN,                "Restart OS", "restart system|pc|computer|os")                                          { voiceCommandOsRestart(it) }.takeIf { WINDOWS.isCurrent },
+      sh(KOTLN,              "Hibernate OS", "hibernate system|pc|computer|os")                                        { voiceCommandOsHibernate(it) }.takeIf { WINDOWS.isCurrent },
+      sh(KOTLN,                  "Sleep OS", "sleep system|pc|computer|os")                                            { voiceCommandOsSleep(it) }.takeIf { WINDOWS.isCurrent },
+      sh(KOTLN,                   "Lock OS", "lock system|pc|computer|os")                                             { voiceCommandOsLock(it) }.takeIf { WINDOWS.isCurrent },
+      sh(KOTLN,                "Log off OS", "log off system|pc|computer|os")                                          { voiceCommandOsLogOff(it) }.takeIf { WINDOWS.isCurrent },
+      sh(KOTLN,              "Set reminder", "set reminder in|at \$time \$text")                                       { voiceCommandSetReminder(it) },
+      sh(DEFER,                      "Wait", "wait \$time // units: s")                                                { voiceCommandWait(it) },
+      sh(DEFER,               "Count to...", "count from \$from to \$to")                                              { voiceCommandCountTo(it) }.takeUnless { usePythonCommands.value },
+      sh(ALIAS,               "Open weather", "open weather")                                                          { null },
+   )
+}
+
+internal fun VoiceAssistant.voiceCommandsPrompt(): String =
+   (
+      // commands without matchers, this lets python always handles them
+      "" +
+      // normal commands
+      """
+      * list commands
+      * restart assistant|yourself
+      * start|restart|stop conversation
+      * shut_down|restart|hibernate|sleep|lock|log_off system|pc|computer|os
+      * list available voices
+      * change voice Δvoice // resolve to one from {', '.join(voices)}
+      * open Δwidget_name  // various tasks can be acomplished using appropriate widget
+      * play music
+      * stop music
+      * play previous song
+      * play next song
+      * what song|playback is active
+      * what time is it
+      * what date is it
+      * generate from? clipboard
+      * lights on|off // turns all lights on/off
+      * lights group Δgroup_name on|off?  // room is usually a group
+      * list light groups
+      * light bulb Δbulb_name on|off?
+      * list light bulbs
+      * lights scene Δscene_name  // sets light scene, scene is usually a mood, user must say 'scene' word
+      * list light scenes
+      """ +
+      // aliases
+      handlers.filter { it.type==ALIAS }.map { "* " + it.commandUi }.joinToString("") +
+      // commands that steal python-code precendence (and must be disabled)
+      "" +
+      // fallback
+      """
+      * unidentified // no other command is highly probable
+      """
+   ).replace('Δ', '$').lineSequence().filter { it.isNotBlank() }.joinToString("\n")
+
 
 fun SpeakContext.voiceCommandCurrentTime(text: String): ComMatch =
    if (matches(text)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" })
@@ -245,7 +334,6 @@ suspend fun SpeakContext.voiceCommandCountTo(text: String): ComMatch =
             """
             for i in range($from, $to):
                wait(0.5)
-               speak("Ok")
                speak(str(i))
             """.trimIndent()
          )
@@ -255,19 +343,24 @@ suspend fun SpeakContext.voiceCommandCountTo(text: String): ComMatch =
       null
    }
 
-fun voiceCommandRegex(commandUi: String) = Regex(
-   commandUi.net { it ->
-      fun String.rr() = replace("(", "").replace(")", "").replace("?", "")
-      it.split(" ")
-         .map { p ->
-            when {
-               p.startsWith("$") -> "(.+?)"
-               p.contains("|") && p.endsWith("?") -> p.rr().net { "(?:${it.split("|").joinToString("|") { it }})?" }
-               p.endsWith("?") -> p.rr().net { "(?:${it})?" }
-               p.contains("|") -> p.rr().net { "(?:$it)" }
-               else -> p.rr()
-            }
+fun voiceCommandRegex(commandUi: String) =
+   Regex(
+      commandUi
+         // remove comment hint
+         .substringBefore("//").trim()
+         // to regex
+         .net { it ->
+            fun String.rr() = replace("(", "").replace(")", "").replace("?", "")
+            it.split(" ")
+               .map { p ->
+                  when {
+                     p.startsWith("$") -> "(.+?)"
+                     p.contains("|") && p.endsWith("?") -> p.rr().net { "(?:${it.split("|").joinToString("|") { it }})?" }
+                     p.endsWith("?") -> p.rr().net { "(?:${it})?" }
+                     p.contains("|") -> p.rr().net { "(?:$it)" }
+                     else -> p.rr()
+                  }
+               }
+               .joinToString(" *").replace(" * *", " *").trim()
          }
-         .joinToString(" *").replace(" * *", " *").trim()
-   }
-)
+   )

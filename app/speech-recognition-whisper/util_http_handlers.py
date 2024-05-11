@@ -79,10 +79,9 @@ class HttpHandlerIntentData:
     userPrompt: str
 
 class HttpHandlerIntent(HttpHandler):
-    def __init__(self, llm: Llm, sysPrompt: str):
+    def __init__(self, llm: Llm):
         super().__init__("POST", "/intent")
         self.llm = llm
-        self.sysPrompt = sysPrompt
 
     def __call__(self, req: BaseHTTPRequestHandler):
         content_length = req.headers['Content-Length']
@@ -96,7 +95,7 @@ class HttpHandlerIntent(HttpHandler):
         body = HttpHandlerIntentData(**body)
 
         try:
-            f = self.llm(ChatIntentDetect.normal(self.sysPrompt if len(body.functions)==0 else body.functions, body.userPrompt, False))
+            f = self.llm(ChatIntentDetect.normal(body.functions, body.userPrompt, False))
             (command, canceled, commandIterator) = f.result()
             command = command.strip().removeprefix("COM ").removesuffix(" COM").strip()
             command = command.replace('unidentified', body.userPrompt)

@@ -42,6 +42,7 @@ import sp.it.pl.plugin.HueSceneType.GroupScene
 import sp.it.pl.plugin.HueSceneType.LightScene
 import sp.it.pl.plugin.impl.VoiceAssistant
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler
+import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.KOTLN
 import sp.it.pl.plugin.impl.availableWidgets
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.async.coroutine.FX
@@ -113,7 +114,7 @@ class Hue: PluginBase() {
 
    private fun installSpeechHandlers() {
       val speechHandlers = listOf(
-         SpeakHandler("Turn hue lights on/off", "turn? lights on|off?") { text ->
+         SpeakHandler(KOTLN, "Turn hue lights on/off", "turn? lights on|off?") { text ->
             if (matches(text)) {
                val s = when { text.endsWith("on") -> true; text.endsWith("off") -> false; else -> null }
                hueBridge.init().toggleBulbGroup("0", s).ui { refreshes(Unit) }
@@ -121,11 +122,11 @@ class Hue: PluginBase() {
             } else
                null
          },
-         SpeakHandler("List hue light bulbs", "list light bulbs") { text ->
+         SpeakHandler(KOTLN, "List hue light bulbs", "list light bulbs") { text ->
             if (matches(text)) Ok("The available light bulbs are: " + hueBridge.init().bulbs().joinToString(", ") { it.name })
             else null
          },
-         SpeakHandler("Turn hue light bulb on/off", "turn? light bulb \$bulb_name on|off?") { text ->
+         SpeakHandler(KOTLN, "Turn hue light bulb on/off", "turn? light bulb \$bulb_name on|off?") { text ->
             if (matches(text)) {
                val (bName) = args(text)
                val s = when { text.endsWith("on") -> true; text.endsWith("off") -> false; else -> null }
@@ -137,11 +138,11 @@ class Hue: PluginBase() {
             } else
                null
          },
-         SpeakHandler("List hue light scenes", "list light scenes") { text ->
+         SpeakHandler(KOTLN, "List hue light scenes", "list light scenes") { text ->
             if (text == "list light scenes") Ok("The available light scenes are: " + hueBridge.init().scenes().joinToString(", ") { it.name })
             else null
          },
-         SpeakHandler("Set hue lights scene", "lights scene \$scene_name") { text ->
+         SpeakHandler(KOTLN, "Set hue lights scene", "lights scene \$scene_name") { text ->
             if (text.startsWith("lights scene ")) {
                val (sName) = args(text)
                val scenes = hueBridge.init().scenes()
@@ -152,11 +153,11 @@ class Hue: PluginBase() {
             } else
                null
          },
-         SpeakHandler("List hue light groups", "list light groups") { text ->
+         SpeakHandler(KOTLN, "List hue light groups", "list light groups") { text ->
             if (matches(text)) Ok("The available light groups are: " + hueBridge.init().bulbsAndGroups().second.joinToString(", ") { it.name })
             else null
          },
-         SpeakHandler("Turn hue light group on/off", "turn? lights group \$group_name on|off?") { text ->
+         SpeakHandler(KOTLN, "Turn hue light group on/off", "turn? lights group \$group_name on|off?") { text ->
             if (matches(text)) {
                val (gName) = args(text)
                val (s, ss) = when { text.endsWith("on") -> true to " on"; text.endsWith("off") -> false to " off"; else -> null to "" }

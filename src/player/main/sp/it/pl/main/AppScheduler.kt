@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
 import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Side
+import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -45,6 +46,7 @@ import sp.it.util.file.div
 import sp.it.util.functional.Try.Companion.ok
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.asIf
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.on
@@ -169,8 +171,10 @@ class AppSchedulerWidget(widget: Widget): SimpleController(widget) {
          }
          lay(ALWAYS) += content
       }
+
       // update list when scheduleds change
       scheduleds.onChangeAndNow { update() } on onClose
+
       // update list when time changes
       launch(FX) {
          while(true) {
@@ -179,6 +183,11 @@ class AppSchedulerWidget(widget: Widget): SimpleController(widget) {
             groups.children.forEach { it.userData?.asIf<(Instant) -> Unit>()?.invoke(now) }
          }
       }.job.toSubscription() on onClose
+
+      // delete scheduled on DELETE
+      root.onEventDown(KEY_PRESSED, DELETE) {
+         scheduledSel.ifNotNull { scheduler delete it }
+      }
    }
 
    override fun focus() {
@@ -220,14 +229,16 @@ class AppSchedulerWidget(widget: Widget): SimpleController(widget) {
             val updater = { at: Instant ->
                var isOverdue = s.at<=at
                if (isOverdue) icon.icon(IconMA.CHECK)
-               text = if (isOverdue) s.at.toUi() else "${s.at.toUi()} in ${(s.at.toEpochMilli()-at.toEpochMilli()).millis.toUi()}"
+               text = if (isOverdue) s.at.toUi() else "${s.at.toUi()}    in ${(s.at.toEpochMilli()-at.toEpochMilli()).millis.toUi()}"
             }
             icon.onClickDo {
                content.text = s.textUi()
                scheduledSel = s
             }
+            this.minWidth = 300.emScaled
             this.select(s===scheduledSel)
             this@borderPane.userData = updater
+            updater(Instant.now())
          }
          right = Icon(IconMD.DELETE).apply { isFocusTraversable = false }.onClickDo { scheduler delete s }
          onEventDown(KEY_PRESSED, ESCAPE) { scheduler delete s }

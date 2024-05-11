@@ -569,12 +569,13 @@ class TtsTacotron2(TtsWithModelBase):
                     if not cache_used or not audio_file_exists:
 
                         # Format the input using utility methods
-                        sequences, lengths = utils.prepare_input_sequence([text])
+                        with self.write.suppressed(): sequences, lengths = utils.prepare_input_sequence([text])
                         sequences, lengths = (sequences.to(device), lengths.to(device))
 
                         # Run the chained models
                         with torch.no_grad():
                             mel, _, _ = tacotron2.infer(sequences, lengths)
+                            mel, _, _ = tacotron2.infer(sequences.to(device), lengths.to(device))
                             audio = waveglow.infer(mel)
                         audio_numpy = audio[0].data.cpu().numpy()
 
@@ -678,12 +679,12 @@ class TtsFastPitch(TtsWithModelBase):
                     if not cache_used or not audio_file_exists:
 
                         # Format the input using utility methods
-                        batches = tp.prepare_input_sequence([text], batch_size=1)
+                        with self.write.suppressed(): batches = tp.prepare_input_sequence([text], batch_size=1)
+
                         gen_kw = {'pace': 1.0, 'speaker': 0, 'pitch_tgt': None, 'pitch_transform': None}
                         denoising_strength = 0.005
-                        batch = batches[0]
                         with torch.no_grad():
-                            mel, mel_lens, *_ = fastpitch(batch['text'].to(device), **gen_kw)
+                            mel, mel_lens, *_ = fastpitch(batches[0]['text'].to(device), **gen_kw)
                             audio = hifigan(mel).float()
                             audio = denoiser(audio.squeeze(1), denoising_strength)
                             audio = audio.cpu().squeeze(1)

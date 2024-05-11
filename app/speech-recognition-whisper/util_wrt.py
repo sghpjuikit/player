@@ -1,21 +1,34 @@
+from typing import TextIO, AnyStr, List
+from contextlib import contextmanager
 from collections.abc import Iterator
 from util_actor import Actor
-from typing import TextIO, AnyStr, List
 from imports import *
+import threading
 import sys
 
 class Writer(Actor):
+    suppress = threading.local()
 
     def __init__(self):
         super().__init__("stdout", "Writer", "cpu", None, True)
 
-        self.stdout = self.StdoutWrapper(self.queue)
+        self.stdout = self.StdoutWrapper(self)
         self.stdout.switchStdout()
         self.write = self
         self.write(f"RAW: {self.name} starting")
 
     def __call__(self, event: str | Iterator | object):
-        self.queue.put(event)
+        if not getattr(self.suppress, 'var', False):
+            self.queue.put(event)
+
+    @contextmanager
+    def suppressed(self):
+        self.suppress.var = True
+        yield
+        self.suppress.var = False
+
+    def suppressOutput(self, suppress: bool):
+        self.suppress.var = suppress
 
     def _loop(self):
 
@@ -41,7 +54,7 @@ class Writer(Actor):
 
 
     class StdoutWrapper:
-        def __init__(self, queue: Queue):
+        def __init__(self, queue):
             self.queue = queue
             self.stdout: TextIO = sys.stdout
 
@@ -69,5 +82,5 @@ class Writer(Actor):
         def writelines(self, lines: List[AnyStr]) -> None: self.queue(iter(lines))
         def write(self, s: AnyStr) -> int:
             s = s.decode(self.encoding) if isinstance(s, bytes) else s
-            if len(s)>0: self.queue.put(s)
+            if len(s)>0: self.queue(s)
             return 0

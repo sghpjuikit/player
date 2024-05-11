@@ -19,14 +19,33 @@ class AsyncTest: FreeSpec({
          }
          "futOfBlock + then" {
             Fut.futOfBlock { ct() }.then { it to ct() }.blockAndGetOrThrow() shouldBe (ct to ct)
+            Fut.futOfBlock { ct() }.then(CURR) { it to ct() }.blockAndGetOrThrow() shouldBe (ct to ct)
+         }
+         "fut(ct) + then(ct)" {
+            Fut.fut(ct).then { it to ct() }.then { it to ct() }.blockAndGetOrThrow().also {
+               it.first.first shouldBe ct
+               it.first.second shouldBe ct
+               it.second shouldBe ct
+            }
+            Fut.fut(ct).then(CURR) { it to ct() }.then(CURR) { it to ct() }.blockAndGetOrThrow().also {
+               it.first.first shouldBe ct
+               it.first.second shouldBe ct
+               it.second shouldBe ct
+            }
          }
          "fut(ct) + then(VT).then(VT).then()" {
-            Fut.fut(ct).then(VT) { it to ct() }.then(VT) { it to ct() }.then { (it to ct()) }.blockAndGetOrThrow().also {
+            Fut.fut(ct).then(VT) {
+               println(ct())
+               it to ct() }.then(VT) {
+               println(ct())
+               it to ct() }.then() {
+               println(ct())
+               (it to ct()) }.blockAndGetOrThrow().also {
                it.first.first.first shouldBe ct
                it.first.first.second.isVirtual shouldBe true
                it.first.first.second shouldBe it.first.second
                it.first.first.second shouldBe it.second
-               
+
             }
          }
       }

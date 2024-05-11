@@ -105,7 +105,7 @@ object AppScheduler {
 
    infix fun delete(s: Scheduled) {
       jobs -= s
-      launch(FX) { jobsObservable += s }
+      launch(FX) { jobsObservable -= s }
    }
 
    private fun removeDanglingJobs() {
@@ -229,7 +229,7 @@ class AppSchedulerWidget(widget: Widget): SimpleController(widget) {
             this.select(s===scheduledSel)
             this@borderPane.userData = updater
          }
-         right = Icon(IconMD.DELETE).apply { isMouseTransparent = true; isFocusTraversable = false }.onClickDo { scheduler delete s }
+         right = Icon(IconMD.DELETE).apply { isFocusTraversable = false }.onClickDo { scheduler delete s }
          onEventDown(KEY_PRESSED, ESCAPE) { scheduler delete s }
       }
 }

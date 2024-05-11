@@ -127,7 +127,7 @@ class VoiceAssistant: PluginBase() {
             "llm-openai-url=${llmOpenAiUrl.value}",
             "llm-openai-bearer=${llmOpenAiBearer.value}",
             "llm-openai-model=${llmOpenAiModel.value}",
-            "llm-chat-sys-prompt=${llmChatSysPrompt.value}",
+            "llm-chat-sys-prompt=${llmChatSysPrompt.value.replace('\n', ' ')}",
             "llm-chat-max-tokens=${llmChatMaxTokens.value}",
             "llm-chat-temp=${llmChatTemp.value}",
             "llm-chat-topp=${llmChatTopP.value}",
@@ -485,7 +485,7 @@ class VoiceAssistant: PluginBase() {
   micVoiceDetectProbDebug.chan().throttleToLast(p) subscribe { write("mic-voice-detect-debug=$it") }
                     ttsOn.chan().throttleToLast(p) subscribe { write("speech-on=$it") }
       ttsEngineCoquiVoice.chan().throttleToLast(p) subscribe { write("coqui-voice=$it") }
-         llmChatSysPrompt.chan().throttleToLast(p) subscribe { write("llm-chat-sys-prompt=$it") }
+         llmChatSysPrompt.chan().throttleToLast(p) subscribe { write("llm-chat-sys-prompt=${it.replace('\n', ' ')}") }
          llmChatMaxTokens.chan().throttleToLast(p) subscribe { write("llm-chat-max-tokens=$it") }
               llmChatTemp.chan().throttleToLast(p) subscribe { write("llm-chat-temp=$it") }
               llmChatTopP.chan().throttleToLast(p) subscribe { write("llm-chat-topp=$it") }

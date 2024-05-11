@@ -19,6 +19,7 @@ import kotlin.reflect.KProperty0
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.invoke
 import org.jetbrains.kotlin.utils.findIsInstanceAnd
+import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.core.bodyAsJs
 import sp.it.pl.layout.Widget
@@ -34,6 +35,7 @@ import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.ValueToggleButtonGroup
+import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
@@ -114,7 +116,9 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
    private val plugin = APP.plugins.plugin<VoiceAssistant>().asValue(onClose)
 
    private val mode by cv(Out.DEBUG).noUi()
-      .def(name = "Tab", info = "Level of console output.")
+      .def(name = "Tab", info = "Type of shown output.")
+   private val submit by cv(Submit.CHAT).noUi()
+      .def(name = "Submit", info = "Type of input to send.")
 
    init {
       root.prefSize = 500.emScaled x 500.emScaled
@@ -247,17 +251,16 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            }
 
                            run = {
-                              plugin.value.ifNotNull { this@hBox.children[2].asIs<SpitComboBox<Submit>>().value.run.invoke(it, text) }
+                              plugin.value.ifNotNull { submit.value.run(it, text) }
                            }
                            onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) insertNewline() else run() }
                         }
                         lay(NEVER) += Icon(IconFA.SEND).onClickDo { run() }.apply {
                            mode sync { tooltip(it.runDesc) }
                         }
-                        lay(NEVER) += SpitComboBox<Submit>({ it.text }).apply {
-                           items setTo Submit.entries
-                           value = Submit.CHAT
-                        }
+
+
+                        lay(NEVER) += ConfigEditor.create(::submit.getDelegateConfig()).editor
                         lay(NEVER) += CheckIcon(chatSettings).icons(IconFA.COG, IconFA.COG).apply {
                            mode sync { tooltip("${it.nameUi} settings") }
                         }
@@ -330,10 +333,10 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
    }
 
    enum class Submit(
-      val text: String,
-      val desc: String,
+      override val nameUi: String,
+      override val infoUi: String,
       val run: VoiceAssistant.(String) -> Unit,
-   ) {
+   ): NameUi, InfoUi {
       CHAT("Chat", "Send the text to the Voice Assestant as if user spoke it", { raw("CALL: " + it) }),
       SPEAK("Speak", "Narrates the specified text using synthesized voice", { speak(it) }),
       COM("Command", "Send command and execute it", { writeCom(it) }),

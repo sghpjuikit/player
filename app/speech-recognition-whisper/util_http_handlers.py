@@ -59,7 +59,7 @@ class HttpHandlerStateActorEvents(HttpHandler):
                     if type_param == 'PROCESSING':
                         state = None if actor.processing_event is None else [ actor._get_event_text(actor.processing_event) ]
                     if type_param == 'PROCESSED':
-                        state = actor.events_processed
+                        state = [{"event": e, "processed in": t} for e, t in zip(actor.events_processed, actor.processing_times)]
                     if type_param == 'QUEUED':
                         state = list(map(actor._get_event_text, actor.queued()))
 

@@ -1,6 +1,8 @@
 package sp.it.pl.plugin.impl
 
 import io.ktor.client.request.get
+import java.time.Instant
+import java.time.LocalDateTime
 import javafx.geometry.HPos
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.VPos
@@ -15,6 +17,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.layout.VBox
+import javafx.util.Duration
 import kotlin.reflect.KProperty0
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.invoke
@@ -108,6 +111,7 @@ import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.em
+import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
 
@@ -311,7 +315,10 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             userData.ifNotNull { eType ->
                launch(FX) {
                   val events = VT.invokeTry { plugin.value?.state(type, eType as String) ?: fail { "Voice Assistant not running" } }
-                  APP.ui.actionPane.show(events.map { JsTable.of(it) ?: it })
+                  APP.ui.actionPane.show(events.map {
+                     if (eType=="PROCESSED") APP.serializerJson.json.fromJsonValue<List<EventProcessedRaw>>(it).orNull()?.map { EventProcessed(it.`processed in`.seconds, it.event) } ?: it
+                     else JsTable.of(it) ?: it
+                  })
                }
             }
          }
@@ -334,7 +341,9 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       }
    }
 
-   enum class Submit(
+   private data class EventProcessedRaw(val `processed in`: Double, val event: String)
+   private data class EventProcessed(val `processed in`: Duration, val event: String)
+   private enum class Submit(
       override val nameUi: String,
       override val infoUi: String,
       val run: VoiceAssistant.(String) -> Unit,

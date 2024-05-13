@@ -113,27 +113,23 @@ class Actor:
             event = self._get_next_event()
             if self._stop or not self.enabled: return
 
-            self.events_processed.append(self._get_event_text(event))
-            self.processing_event = event
-            self.processing = True
+            try:
+                self.processing_event = event
+                self.processing = True
+                self.processing_start = time.time()
+                yield event
+            finally:
+                self.processing_stop = time.time()
+                self.processing_time = self.processing_stop - self.processing_start
+                self.processing_times.append(self.processing_time)
+                self.processing_time_avg = sum(self.processing_times) / len(self.processing_times)
+                self.events_processed.append(self._get_event_text(event))
+                self.processing_stop = None
+                self.processing_start = None
+                self.processing = False
+                self.processing_event = None
 
-            self.processing_start = time.time()
-            yield event
-            self.processing_stop = time.time()
-
-            self.processing_time = self.processing_stop - self.processing_start
-            self.processing_times.append(self.processing_time)
-            self.processing_time_avg = sum(self.processing_times) / len(self.processing_times)
-
-            self.processing_stop = None
-            self.processing_start = None
-            self.processing = False
-            self.processing_event = None
         except Exception as e:
-            self.processing_stop = None
-            self.processing_start = None
-            self.processing = False
-            self.processing_event = None
             if not isinstance(e, ActorStoppedException): self.write(f"ERR: {self.name} event processing error {e}")
             if not isinstance(e, ActorStoppedException): traceback.print_exc()
 

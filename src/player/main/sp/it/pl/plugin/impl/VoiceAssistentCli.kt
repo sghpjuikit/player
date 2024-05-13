@@ -7,6 +7,7 @@ class VoiceAssistentCliReader {
    fun StringBuilder.determineState(): String {
       return when {
          startsWith("RAW: ") -> "RAW"
+         startsWith("USER-RAW: ") -> "USER-RAW"
          startsWith("USER: ") -> "USER"
          startsWith("SYS: ") -> "SYS"
          startsWith("COM: ") -> "COM"

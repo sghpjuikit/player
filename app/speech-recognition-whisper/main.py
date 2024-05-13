@@ -498,8 +498,11 @@ def callback(st: SpeechText):
     # ignore no input
     if len(text) == 0: return
 
+
     # ignore speech recognition noise
-    if assist.needsWakeWord(st.start) and not starts_with_any(text, wake_words): return
+    if assist.needsWakeWord(st.start) and not starts_with_any(text, wake_words):
+        write(f'USER-RAW: {text}')
+        return
 
     # monitor activity time
     assist.activity_last_diff = time.time() - assist.activity_last_at

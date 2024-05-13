@@ -508,18 +508,20 @@ class VoiceAssistant: PluginBase() {
 
    private val confirmers = mutableListOf<SpeakConfirmer>()
 
-   private suspend fun confirm(text: String) {
-      if (!isRunning) return
+   private suspend fun confirm(text: String): Unit? {
+      if (!isRunning) return null
       val h = confirmers.removeLastOrNull()
-      if (h != null && h.regex.matches(text)) h.action(text).getAny().ifNotNull(::speak)
+      return if (h != null && h.regex.matches(text)) h.action(text).getAny().ifNotNull(::speak)?.toUnit()
+      else null
    }
 
    private fun handleInput(text: String, state: String) {
       when (state) {
          "" -> Unit
          "ERR" -> Unit
-         "RAW" -> launch(FX) { confirm(text) }
-         "USER" -> launch(FX) { handleSpeech(text, user = true) }
+         "RAW" -> Unit
+         "USER-RAW" -> launch(FX) { confirm(text) }
+         "USER" -> launch(FX) { confirm(text) ?: handleSpeech(text, user = true) }
          "SYS" -> Unit
          "COM" -> launch(FX) { handleSpeech(text, command = true, orDetectIntent = true) }
       }

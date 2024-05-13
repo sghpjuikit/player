@@ -266,7 +266,7 @@ suspend fun SpeakContext.voiceCommandOsLogOff(text: String): ComMatch =
 
 fun SpeakContext.voiceCommandOsLock(text: String): ComMatch =
    if (matches(text))
-      if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
+   if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
       else Windows.lock().map { null }.mapError { it.localizedMessage }
    else null
 

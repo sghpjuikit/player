@@ -427,15 +427,15 @@ class AssistBasic:
         self.activity_last_at = time.time()
         self.activity_last_diff = 0
         self.restartChatDelay = 5*60
-        
+
         Thread(name='Assist-Idle-Monitor', target=lambda: self.assistUpdateIdle(), daemon=True).start()
 
     def assistUpdateIdle(self):
         while True:
             time.sleep(1.0)
-            if self.restartChatDelay > (time.time() - self.activity_last_at) and len(executorPython.ms)>0:
-                self.restartChat()
-            
+            if self.restartChatDelay < (time.time() - self.activity_last_at) and len(executorPython.ms)>0:
+                self.restartChat(react=False)
+
     def needsWakeWord(self, speech_start: datetime) -> bool:
         return self.isChat is False and (speech_start - self.last_announcement_at).total_seconds() > self.wake_word_delay
 
@@ -489,27 +489,27 @@ class AssistBasic:
                 # command handling
                 write('COM: ' + text)
 
-    def startChat(self):
+    def startChat(self, react: bool = True):
         if self.isChat: return
         self.isChat = True
         write("COM: start conversation")
-        llm(ChatReact(llmSysPrompt, "User started conversation with you. Greet him", "Conversing"))
+        if (react): llm(ChatReact(llmSysPrompt, "User started conversation with you. Greet him", "Conversing"))
         mic.set_pause_threshold_talk()
 
-    def restartChat(self):
+    def restartChat(self, react: bool = True):
         tts.skip()
         llm.generating = False
         write("COM: restart conversation")
-        llm(ChatReact(llmSysPrompt, "User erased his conversation with you from your memory.", "Ok"))
+        if (react): llm(ChatReact(llmSysPrompt, "User erased his conversation with you from your memory.", "Ok"))
         executorPython.ms = []
 
-    def stopChat(self):
+    def stopChat(self, react: bool = True):
         if self.isChat is False: return
         self.isChat = False
         tts.skip()
         llm.generating = False
         write("COM: stop conversation")
-        llm(ChatReact(llmSysPrompt, "User stopped conversation with you", "Ok"))
+        if (react): llm(ChatReact(llmSysPrompt, "User stopped conversation with you", "Ok"))
         mic.set_pause_threshold_normal()
 
 

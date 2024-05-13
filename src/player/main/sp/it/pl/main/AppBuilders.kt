@@ -8,6 +8,7 @@ import java.net.URLEncoder
 import java.nio.file.Path
 import java.util.Optional
 import java.util.concurrent.atomic.AtomicLong
+import java.util.function.Consumer
 import javafx.animation.ParallelTransition
 import javafx.beans.property.Property
 import javafx.event.EventHandler
@@ -58,6 +59,7 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.spinner.Spinner
 import sp.it.pl.ui.objects.table.FieldedTable.UNCONSTRAINED_RESIZE_POLICY_FIELDED
 import sp.it.pl.ui.objects.table.FilteredTable
+import sp.it.pl.ui.objects.table.autoResizeColumns
 import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.tablerow.SpitTableRow
 import sp.it.pl.ui.objects.textfield.SpitTextField
@@ -88,6 +90,7 @@ import sp.it.util.async.IO
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.collections.collectionUnwrap
+import sp.it.util.collections.getElementClass
 import sp.it.util.collections.getElementType
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setToOne
@@ -99,6 +102,8 @@ import sp.it.util.conf.nonEmpty
 import sp.it.util.dev.Dsl
 import sp.it.util.file.FileType
 import sp.it.util.file.hasExtension
+import sp.it.util.file.json.JsTable
+import sp.it.util.file.json.JsValue
 import sp.it.util.file.toFileOrNull
 import sp.it.util.file.toURIOrNull
 import sp.it.util.file.type.MimeGroup
@@ -107,6 +112,7 @@ import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
+import sp.it.util.functional.consumer
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
@@ -508,42 +514,66 @@ fun computeDataInfoUi(data: Any?): Fut<List<Named>> = (data as? Fut<*> ?: Fut.fu
 
 fun contextMenuFor(o: Any?): ContextMenu = ValueContextMenu<Any?>().apply { setItemsFor(o) }
 
-fun <T: Any> tableViewForClassJava(type: KClass<T>, block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> = tableViewForClass<Any>(type.asIs(), block.asIs()).asIs()
+inline fun <reified T: Any> tableViewForClass(type: KClass<T> = T::class, noinline block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> =
+   object: FilteredTable<T>(type.java, null) {
+      override fun computeMainField(field: ObjectField<T, *>?) =
+         field ?: fields.firstOrNull { it.type.isSubtypeOf<String>() } ?: fields.firstOrNull()
 
-inline fun <reified T: Any> tableViewForClass(type: KClass<T> = T::class, block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> = object: FilteredTable<T>(type.java, null) {
-   override fun computeMainField(field: ObjectField<T, *>?) =
-      field ?: fields.firstOrNull { it.type.isSubtypeOf<String>() } ?: fields.firstOrNull()
+      override fun computeFieldsAll() =
+         (computeFieldsAllRecursively(type) ?: APP.classFields[type].toList()).plus(INDEX)
 
-   override fun computeFieldsAll() =
-      (computeFieldsAllRecursively(type) ?: APP.classFields[type].toList()).plus(INDEX)
+      val typeExact = type<T>()
 
-   val typeExact = type<T>()
-
-   private fun <T: Any> computeFieldsAllRecursively(type: KClass<T>): List<ObjectField<T, *>>? =
-      when {
-         type == Map.Entry::class ->
-            listOf<ObjectField<Map.Entry<Any?,Any?>, Any?>>(
-               object: ObjectFieldBase<Map.Entry<Any?,Any?>, Any?>(VType<Any?>(typeExact.type.argOf(Map.Entry::class, 0).typeOrAny), { it -> it.key }, "Key", "Key", { it, or -> it?.toUi() ?: or }) {},
-               object: ObjectFieldBase<Map.Entry<Any?,Any?>, Any?>(VType<Any?>(typeExact.type.argOf(Map.Entry::class, 0).typeOrAny), { it -> it.value }, "Value", "Value", { it, or -> it?.toUi() ?: or }) {}
-            ).asIs()
-         type.isDataClass || type.isRecordClass -> {
-            val properties = type.dataComponentProperties()
-            if (properties.size==1)
+      private fun <T: Any> computeFieldsAllRecursively(type: KClass<T>): List<ObjectField<T, *>>? =
+         when {
+            type == Map.Entry::class ->
+               listOf<ObjectField<Map.Entry<Any?,Any?>, Any?>>(
+                  object: ObjectFieldBase<Map.Entry<Any?,Any?>, Any?>(VType<Any?>(typeExact.type.argOf(Map.Entry::class, 0).typeOrAny), { it -> it.key }, "Key", "Key", { it, or -> it?.toUi() ?: or }) {},
+                  object: ObjectFieldBase<Map.Entry<Any?,Any?>, Any?>(VType<Any?>(typeExact.type.argOf(Map.Entry::class, 0).typeOrAny), { it -> it.value }, "Value", "Value", { it, or -> it?.toUi() ?: or }) {}
+               ).asIs()
+            type.isDataClass || type.isRecordClass -> {
+               val properties = type.dataComponentProperties()
+               if (properties.size==1)
                // data class designed as value class must not have subfields
+                  null
+               else
+                  properties.map { ObjectFieldOfDataClass(it) { it.toUi() } }
+                     .flatMap { f -> computeFieldsAllRecursively(f.type.raw)?.map { f.flatMap(it.asIs()) } ?: listOf(f) }
+                     .asIs()
+            }
+            // value class !have subfields
+            type.isValueClass ->
                null
-            else
-               properties.map { ObjectFieldOfDataClass(it) { it.toUi() } }
-                  .flatMap { f -> computeFieldsAllRecursively(f.type.raw)?.map { f.flatMap(it.asIs()) } ?: listOf(f) }
-                  .asIs()
+            // ordinary class !have subfields
+            else ->
+               null
          }
-         // value class !have subfields
-         type.isValueClass ->
-            null
-         // ordinary class !have subfields
-         else ->
-            null
-      }
-}.apply {
+   }.apply {
+      tableViewForClassInitialize(block)
+   }
+
+fun <T: Any> tableViewForClassJava(type: KClass<T>, block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> =
+   tableViewForClass<Any>(type.asIs(), block.asIs()).asIs()
+
+inline fun <reified T: Any> tableViewForCollection(collection: Collection<T>, noinline block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> =
+   tableViewForClass<T>(collection.getElementClass().kotlin.asIs(), block).apply {
+      tableViewForClassInitialize(block)
+      setItemsRaw(collection) { autoResizeColumns() }
+   }
+
+fun <T: Any> tableViewForCollectionJava(items: Collection<T>, block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> =
+   tableViewForCollection<Any>(items.asIs(), block.asIs()).asIs()
+
+fun tableViewForJsTable(json: JsTable, block: FilteredTable<JsValue>.() -> Unit = {}): FilteredTable<JsValue> =
+   object: FilteredTable<JsValue>(JsValue::class.java, null) {
+      override fun computeFieldsAll() = json.columns.plus(INDEX)
+      override fun computeMainField(field: ObjectField<JsValue, *>?) = field ?: fields.firstOrNull { it.type.isSubtypeOf<String>() } ?: fields.firstOrNull()
+   }.apply {
+      tableViewForClassInitialize(block)
+      setItemsRaw(json.jsArray.value) { autoResizeColumns() }
+   }
+
+fun <T: Any> FilteredTable<T>.tableViewForClassInitialize(block: FilteredTable<T>.() -> Unit = {}) {
    selectionModel.selectionMode = SelectionMode.MULTIPLE
    rowFactory = Callback {
       SpitTableRow<T>().apply {
@@ -567,7 +597,7 @@ inline fun <reified T: Any> tableViewForClass(type: KClass<T> = T::class, block:
    columnResizePolicy = if (fields.any { it===INDEX }) UNCONSTRAINED_RESIZE_POLICY_FIELDED else CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
    columnState = defaultColumnInfo
    block()
-//   sceneProperty().flatMap { it.windowProperty() }.syncNonNullWhile { w -> w.onIsShowing1st { autoResizeColumns() } }
+   // sceneProperty().flatMap { it.windowProperty() }.syncNonNullWhile { w -> w.onIsShowing1st { autoResizeColumns() } }
 }
 
 fun resizeIcon(): Icon = Icon(IconMD.RESIZE_BOTTOM_RIGHT).apply {
@@ -724,7 +754,7 @@ fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_
 
 /** Calls [configure] with simple [ValueConfig] and [nonEmpty] */
 fun configureString(titleText: String, inputName: String, shower: Shower = WINDOW_ACTIVE(CENTER), action: (String) -> Any?) {
-   ValueConfig(type(), inputName, "", "").constrain { nonEmpty() }.configure(titleText) {
+   ValueConfig(type(), inputName, "", "").constrain { nonEmpty() }.configure(titleText, shower) {
       action(it.value)
    }
 }

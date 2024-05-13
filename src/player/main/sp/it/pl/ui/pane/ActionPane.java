@@ -38,6 +38,7 @@ import sp.it.util.access.V;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.KClassListMap;
 import sp.it.util.dev.DebugKt;
+import sp.it.util.file.json.JsTable;
 import sp.it.util.file.json.JsValue;
 import sp.it.util.text.Jwt;
 import sp.it.util.type.ClassName;
@@ -63,6 +64,8 @@ import static sp.it.pl.main.AppBuildersKt.animShowNodes;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppBuildersKt.tableViewForClassJava;
+import static sp.it.pl.main.AppBuildersKt.tableViewForCollectionJava;
+import static sp.it.pl.main.AppBuildersKt.tableViewForJsTable;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.autoResizeColumns;
@@ -303,14 +306,11 @@ public class ActionPane extends OverlayPane<Object> {
 		failIfNotFxThread();
 
 		var d = futureUnwrapOrThrow(data);
-		if (d instanceof Collection<?>) {
-			if (dataTable!=null) {
-				return dataTable.getItems()==null || dataTable.getItems().isEmpty() ? d : dataTable.getSelectedOrAllItemsCopy();
-			} else {
-				return d;
-			}
-		} else
+		if (dataTable!=null) {
+			return dataTable.getItems()==null || dataTable.getItems().isEmpty() ? d : dataTable.getSelectedOrAllItemsCopy();
+		} else {
 			return d;
+		}
 	}
 
 	public void setData(Object d) {
@@ -368,16 +368,25 @@ public class ActionPane extends OverlayPane<Object> {
 		var dataAsC = (Collection<?>) null;
 		if (data instanceof UiResult) {
 			dataTable = null;
-		} else if (data instanceof Collection<?> items && !items.isEmpty()) {
-			var itemType = (KClass<Object>) getKotlinClass(getElementClass(items));
-			dataTable = tableViewForClassJava(itemType, consumer(t -> {
+		} else if (data instanceof JsTable items) {
+			dataTable = tableViewForJsTable(items, consumer(t ->
 				t.getSelectedItems().addListener((Change<?> c) -> {
 					if (insteadIcons==null) {
 						dataInfo.setText(computeDataInfo(collectionUnwrap(t.getSelectedOrAllItemsCopy()), true));
 					}
-				});
-				t.setItemsRaw(items, consumer(unit -> autoResizeColumns(t)));
-			}));
+				})
+			));
+			dataTablePane.getChildren().setAll(dataTable.getRoot());
+			gap = 70.0;
+			priority = SOMETIMES;
+		} else if (data instanceof Collection<?> items && !items.isEmpty()) {
+			dataTable = tableViewForCollectionJava(items, consumer(t ->
+				t.getSelectedItems().addListener((Change<?> c) -> {
+					if (insteadIcons==null) {
+						dataInfo.setText(computeDataInfo(collectionUnwrap(t.getSelectedOrAllItemsCopy()), true));
+					}
+				})
+			));
 			dataTablePane.getChildren().setAll(dataTable.getRoot());
 			gap = 70.0;
 			priority = SOMETIMES;

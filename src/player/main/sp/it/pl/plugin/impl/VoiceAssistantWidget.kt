@@ -64,8 +64,10 @@ import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsNumber
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
+import sp.it.util.file.json.JsTable
 import sp.it.util.file.json.JsTrue
 import sp.it.util.functional.Try
+import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
@@ -309,7 +311,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             userData.ifNotNull { eType ->
                launch(FX) {
                   val events = VT.invokeTry { plugin.value?.state(type, eType as String) ?: fail { "Voice Assistant not running" } }
-                  APP.ui.actionPane.show(events)
+                  APP.ui.actionPane.show(events.map { JsTable.of(it) ?: it })
                }
             }
          }

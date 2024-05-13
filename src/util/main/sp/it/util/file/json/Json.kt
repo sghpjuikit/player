@@ -84,6 +84,7 @@ sealed class JsValue: JsTokenLike {
    fun asJsNullValue() = asIs<JsNull>().let { null }
    fun asJsTrueValue() = if (this is JsNull) null else asIs<JsTrue>().let { true }
    fun asJsFalseValue() = if (this is JsNull) null else asIs<JsFalse>().let { false }
+   fun asJsBoolValue() = if (this is JsNull) null else asIf<JsTrue>()?.let { true } ?: asIs<JsFalse>().let { false }
    fun asJsStringValue() = if (this is JsNull) null else asIs<JsString>().value
    fun asJsNumberValue() = if (this is JsNull) null else asIs<JsNumber>().value
    fun asJsArrayValue() = if (this is JsNull) null else asIs<JsArray>().value
@@ -94,11 +95,13 @@ sealed class JsValue: JsTokenLike {
 
 sealed interface JsRoot
 
+sealed class JsBool: JsValue()
+
 object JsNull: JsValue()
 
-object JsTrue: JsValue()
+object JsTrue: JsBool()
 
-object JsFalse: JsValue()
+object JsFalse: JsBool()
 
 data class JsString(val value: String): JsValue()
 

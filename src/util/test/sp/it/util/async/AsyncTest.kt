@@ -35,11 +35,8 @@ class AsyncTest: FreeSpec({
          }
          "fut(ct) + then(VT).then(VT).then()" {
             Fut.fut(ct).then(VT) {
-               println(ct())
                it to ct() }.then(VT) {
-               println(ct())
                it to ct() }.then() {
-               println(ct())
                (it to ct()) }.blockAndGetOrThrow().also {
                it.first.first.first shouldBe ct
                it.first.first.second.isVirtual shouldBe true

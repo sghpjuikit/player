@@ -222,6 +222,7 @@ class LlmGpt4All(Llm):
                             f.set_result((text, canceled, commandIterator))
                     except Exception as x:
                         f.set_exception(x)
+                        commandIterator.put('') # this finishes commandIterator that would otherwise block self.write forever. TODO: handle in onDone callback or erase written text here wit \b
                         raise x
                     finally:
                         self.generating = False
@@ -284,8 +285,13 @@ class LlmHttpOpenAi(Llm):
 
                     except Exception as e:
                         f.set_exception(e)
-                        if isinstance(e, openai.APIConnectionError): self.write(f"ERR: OpenAI server could not be reached: {e.__cause__}")
-                        elif isinstance(e, openai.APIStatusError): self.write(f"ERR: OpenAI returned {e.status_code} status code with response {e.response}")
+                        commandIterator.put('') # this finishes commandIterator that would otherwise block self.write forever. TODO: handle in onDone callback or erase written text here wit \b
+                        if isinstance(e, openai.APIConnectionError):
+                            self.write(f"ERR: {self.name} event processing error: server could not be reached: {e.__cause__}")
+                            traceback.print_exc()
+                        elif isinstance(e, openai.APIStatusError):
+                            self.write(f"ERR: {self.name} event processing error: server returned {e.status_code} status code with response {e.response}")
+                            traceback.print_exc()
                         else: raise e
                     finally:
                         self.generating = False

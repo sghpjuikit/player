@@ -63,6 +63,8 @@ internal fun VoiceAssistant.voiceCommands(): List<SpeakHandler> {
       sh(KOTLN,            "Pause playback", "stop|end|pause music|playback")                                          { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
       sh(KOTLN,        "Play previous song", "play previous song")                                                     { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
       sh(KOTLN,            "Play next song", "play next song")                                                         { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
+      sh(KOTLN,           "Play first song", "play first song")                                                        { if (matches(it)) { APP.audio.playlists.playFirstItem(); Ok(null) } else null },
+      sh(KOTLN,            "Play last song", "play last song")                                                         { if (matches(it)) { APP.audio.playlists.playLastItem(); Ok(null) } else null },
       sh(KOTLN, "Llm answer from clipboard", "generate|answer|write from? clipboard \$text")                           { voiceCommandGenerateClipboard(it) },
       sh(KOTLN,                "Llm answer", "generate|answer|write \$text")                                           { voiceCommandGenerate(it) },
       sh(DEFER,                     "Speak", "speak|say \$text")                                                       { voiceCommandSpeakText(it) },
@@ -101,8 +103,7 @@ internal fun VoiceAssistant.voiceCommandsPrompt(): String =
       * open Δwidget_name  // various tasks can be acomplished using appropriate widget
       * play music
       * stop music
-      * play previous song
-      * play next song
+      * play previous|next|first|last song
       * what song|playback is active
       * what time is it
       * what date is it

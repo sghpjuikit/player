@@ -38,7 +38,7 @@ class HttpHandlerState(HttpHandler):
             req.end_headers()
             req.wfile.write(data)
         except Exception as e:
-            traceback.print_exc()
+            print_exc()
             req.send_error(500, f"{e}")
 
 
@@ -69,7 +69,7 @@ class HttpHandlerStateActorEvents(HttpHandler):
             req.end_headers()
             req.wfile.write(data)
         except Exception as e:
-            traceback.print_exc()
+            print_exc()
             req.send_error(500, f"{e}")
 
 
@@ -107,7 +107,7 @@ class HttpHandlerIntent(HttpHandler):
             req.end_headers()
             req.wfile.write(command)
         except Exception as e:
-            traceback.print_exc()
+            print_exc()
             req.send_error(500, f"{e}")
 
 
@@ -135,7 +135,7 @@ class HttpHandlerStt(HttpHandler):
             req.end_headers()
             req.wfile.write(text)
         except Exception as e:
-            traceback.print_exc()
+            print_exc()
             req.send_error(500, f"{e}")
 
 
@@ -169,5 +169,5 @@ class HttpHandlerSttReact(HttpHandler):
             req.end_headers()
             req.wfile.write(command)
         except Exception as e:
-            traceback.print_exc()
+            print_exc()
             req.send_error(500, f"{e}")

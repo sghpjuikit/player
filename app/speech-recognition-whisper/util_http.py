@@ -60,7 +60,7 @@ class Http:
             self.write("RAW: Http server stopped")
         except Exception as e:
             self.write("ERR: error " + str(e))
-            traceback.print_exc()
+            print_exc()
 
     def stop(self):
         if self.server is not None: self.server.shutdown()

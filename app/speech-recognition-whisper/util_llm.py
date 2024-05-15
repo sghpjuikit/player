@@ -288,10 +288,10 @@ class LlmHttpOpenAi(Llm):
                         commandIterator.put('') # this finishes commandIterator that would otherwise block self.write forever. TODO: handle in onDone callback or erase written text here wit \b
                         if isinstance(e, openai.APIConnectionError):
                             self.write(f"ERR: {self.name} event processing error: server could not be reached: {e.__cause__}")
-                            traceback.print_exc()
+                            print_exc()
                         elif isinstance(e, openai.APIStatusError):
                             self.write(f"ERR: {self.name} event processing error: server returned {e.status_code} status code with response {e.response}")
-                            traceback.print_exc()
+                            print_exc()
                         else: raise e
                     finally:
                         self.generating = False

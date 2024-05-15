@@ -114,7 +114,7 @@ class Mic(Actor):
                 except Exception as e:
                     if sourceI==1:
                         self.speak("Failed to use microphone. See log for details")
-                        traceback.print_exc()
+                        print_exc()
 
                 # mic connected
                 if source is not None:
@@ -155,13 +155,13 @@ class Mic(Actor):
                     self.speak("Microphone offline. Check your microphone connection please.")
                 else:
                     self.write("ERR: Other OSError occurred:" + str(e))
-                    traceback.print_exc()
+                    print_exc()
                 pass
 
             # go reconnect mic
             except Exception as e:
                 self.write("ERR: Error occurred:" + str(e))
-                traceback.print_exc()
+                print_exc()
                 pass
 
     # This class is derived work of Recognizer class from speech_recognition,
@@ -306,7 +306,7 @@ class MicVoiceDetectNvidia:
             return m
         except Exception as r:
             print(f"ERR: failed to load speaker detector model {e}", end='')
-            traceback.print_exc()
+            print_exc()
             return None
 
     def loadSpeakersCorrect(self) -> list[MicVoice] | None:
@@ -320,7 +320,7 @@ class MicVoiceDetectNvidia:
             return voices
         except Exception as e:
             print(f"ERR: failed to load verified voices {e}", end='')
-            traceback.print_exc()
+            print_exc()
             return None
 
     def loadSpeakerFromFile(self, file: str) -> object:
@@ -387,5 +387,5 @@ class MicVoiceDetectNvidia:
             return False
         except Exception as e:
             print(f'ERR: failed to determine speaker: {e}')
-            traceback.print_exc()
+            print_exc()
             return False

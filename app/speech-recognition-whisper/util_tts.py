@@ -393,7 +393,7 @@ class TtsCoqui(TtsWithModelBase):
 
                 except Exception as e:
                     tts.write("ERR: error generating voice for http " + str(e))
-                    traceback.print_exc()
+                    print_exc()
 
         return MyRequestHandler()
 

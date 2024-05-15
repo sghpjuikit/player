@@ -54,8 +54,7 @@ class PythonExecutor:
             up = 'Assignment: You are expert programmer. Output must be in valid python code!\nInstruction:\n' + text
             self.generatePython(sp, up, self.ms).add_done_callback(on_done)
         except Exception:
-            import traceback
-            traceback.print_exc()
+            print_exc()
 
     def execute(self, text: str):
         self.skip()
@@ -104,7 +103,7 @@ class PythonExecutor:
                     (text, canceled, commandIterator) = self.fixPython(text).result()
                 except Exception as e:
                     self.write(f"ERR: error executing command: Unable to fix: {e}")
-                    traceback.print_exc()
+                    print_exc()
                 else:
                     if canceled is True: raise CommandCancelException()
                     if canceled is False: self.write(f"RAW: executing:\n```\n{text}\n```")
@@ -114,9 +113,8 @@ class PythonExecutor:
         except CommandCancelException as ce:
             self.write(f"ERR: error executing command: CANCELLED")
         except Exception as e:
-            import traceback
             self.write(f"ERR: error executing command: {e}")
-            traceback.print_exc()
+            print_exc()
 
     def isValidPython(self, code: str) -> bool:
         import ast

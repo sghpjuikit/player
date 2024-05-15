@@ -6,6 +6,7 @@ import atexit
 import time
 import sys
 import os
+from imports import print_exc
 from datetime import datetime
 from threading import Timer
 from itertools import chain
@@ -522,7 +523,7 @@ def callback(st: SpeechText):
         else: assist(text, textSanitized)
     except Exception as e:
         write(f"ERR: {e}")
-        traceback.print_exc()
+        print_exc()
         tts(name + " encountered an error. Please speak again or check logs for details.")
 
 def start_exit_invoker():

@@ -78,7 +78,7 @@ class Actor:
             self.write(f'ERR: {self.name} failed to load due to import error {e}')
         except Exception as e:
             self.write(f'ERR: {self.name} failed to run due error {e}')
-            traceback.print_exc()
+            print_exc()
 
     @contextmanager
     def _looping(self, set_loading: bool = True):
@@ -131,7 +131,7 @@ class Actor:
 
         except Exception as e:
             if not isinstance(e, ActorStoppedException): self.write(f"ERR: {self.name} event processing error {e}")
-            if not isinstance(e, ActorStoppedException): traceback.print_exc()
+            if not isinstance(e, ActorStoppedException): print_exc()
 
     def _loopLoadAndIgnoreEvents(self):
         """

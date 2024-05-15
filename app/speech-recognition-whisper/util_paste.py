@@ -26,7 +26,7 @@ def pasteTokens(tokens):
             for token in tokens: tokens_queue.put(token)
             stop = True
         except Exception as e:
-            traceback.print_exc()
+            print_exc()
 
     def process_token():
         nonlocal stop
@@ -55,7 +55,7 @@ def pasteTokens(tokens):
                             pasteAccumulated()
                             break
         except Exception as e:
-            traceback.print_exc()
+            print_exc()
 
     Thread(name="paster-acc", daemon=True, target=acc_tokens, args=(tokens,)).start()
     Thread(name="paster-cpy", daemon=True, target=process_token).start()

@@ -455,6 +455,7 @@ public class Thumbnail {
 	private @Nullable Timeline animation = null;
 	private @Nullable Fut<List<ImageFrame>> animImages = null;
 	private Runnable animCommand = () -> {};
+	private @Nullable Runnable animOnDone = null;
 
 	private void animDispose() {
 		animInitialized = null;
@@ -493,7 +494,9 @@ public class Thumbnail {
 							var img = it.stream().findFirst().orElseThrow().getImg();
 							setImgFrame(img);
 							animation = img==null ? null : getFieldValue(getFieldValue(img, "animation"), "timeline");
-							if (animation != null) animation.pause();
+							if (animation != null) animation.stop();
+							if (animation != null) animation.setCycleCount(animOnDone==null ? INDEFINITE : 1);
+							if (animation != null) animation.setOnFinished(animOnDone==null ? null : e -> animOnDone.run());
 						}
 						return it;
 					});
@@ -512,7 +515,8 @@ public class Thumbnail {
 						animation = new Timeline(
 							images.stream().map(it -> new KeyFrame(new Duration(it.getDelayMs()), e -> setImgFrame(it.getImg()))).toArray(KeyFrame[]::new)
 						);
-						animation.setCycleCount(INDEFINITE);
+						animation.setCycleCount(animOnDone==null ? INDEFINITE : 1);
+						animation.setOnFinished(animOnDone==null ? null : e -> animOnDone.run());
 						return images;
 					});
 				}
@@ -522,27 +526,37 @@ public class Thumbnail {
 		}
 	}
 
+	/** @return whether the currently loaded image has animation */
 	public boolean isAnimated() {
 		return animation!=null; // same impl as Image.isAnimation(), which is not public
 	}
 
+	/** @return whether the currently loaded image has animation and it is playing */
 	public boolean isAnimating() {
 		return animation!=null && animation.getCurrentRate()!=0;
 	}
 
+	/** Plays or pauses currently loaded image animation */
 	public void animationPlayPause(boolean play) {
 		if (play) animationPlay();
 		else animationPause();
 	}
 
+	/** Plays currently loaded image animation */
 	public void animationPlay() {
 		animCommand = () -> { if (animation!=null) animation.play(); };
 		animInitialize(false);
 	}
 
+	/** Pauses currently loaded image animation */
 	public void animationPause() {
 		animCommand = () -> { if (animation!=null) animation.pause(); };
 		animInitialize(true);
+	}
+
+	/** Sets block to be executed if the current image animation finishes. Animatin is set to 1 loop. Call before animation starts. */
+	public void animationOnDone(@Nullable Runnable onDone) {
+		animOnDone = onDone;
 	}
 
 /* ---------- DATA -------------------------------------------------------------------------------------------------- */

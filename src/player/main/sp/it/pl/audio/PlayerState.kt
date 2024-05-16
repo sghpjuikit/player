@@ -12,6 +12,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
 import sp.it.util.collections.setTo
+import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull
@@ -35,13 +36,14 @@ class PlayerState {
 
    @Blocking
    fun serialize() {
-      playlistId = PlaylistManager.active
+      failIfNotFxThread()
 
-      val activePlaylists = APP.widgetManager.widgets.findAll(OPEN)
+      val playlistsActive = APP.widgetManager.widgets.findAll(OPEN)
          .mapNotNull { it.controller.asIf<PlaylistFeature>()?.playlist?.id }
          .toSet()
-      playlists setTo PlaylistManager.playlists
-      playlists.removeIf { it.id !in activePlaylists }
+
+      playlistId = PlaylistManager.active
+      playlists setTo PlaylistManager.playlists.filter { it.id !in playlistsActive }
 
       CoreSerializer.useAtomically {
          writeSingleStorage(PlayerStateDB(this@PlayerState))
@@ -51,8 +53,10 @@ class PlayerState {
    companion object {
 
       @Blocking
-      fun deserialize() = run {
-         CoreSerializer.readSingleStorage<PlayerStateDB>()
+      fun deserialize(): PlayerState {
+         failIfNotFxThread()
+
+         val p = CoreSerializer.readSingleStorage<PlayerStateDB>()
             .ifErrorNotify {
                AppError(
                   "Failed to load song player state.",
@@ -61,9 +65,11 @@ class PlayerState {
             }
             .orNull()?.toDomain()
             ?: PlayerState()
-      }.also {
-         PlaylistManager.playlists += it.playlists // TODO: not thread safe
-         PlaylistManager.active = it.playlistId
+
+         PlaylistManager.playlists += p.playlists
+         PlaylistManager.active = p.playlistId
+
+         return p
       }
 
    }

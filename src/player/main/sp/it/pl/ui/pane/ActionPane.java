@@ -188,8 +188,6 @@ public class ActionPane extends OverlayPane<Object> {
 			)
 		);
 
-		getContent().setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE); // TODO: apply on content change?, fix null
-
 		// put some padding of the content from edge
 		// note: The content is user-resizable now, sp we do not use bind, but set maxSize on show
 		// getContent().maxWidthProperty().bind(widthProperty().multiply(CONTENT_SIZE_SCALE));

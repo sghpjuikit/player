@@ -379,7 +379,7 @@ class CommandExecutorMain(CommandExecutor):
 
 commandExecutor.commandExecutor = CommandExecutorMain()
 executorPython = PythonExecutor(
-    tts,
+    tts, llm,
     lambda sp, up, ms: llm(ChatIntentDetect.python(sp, up, ms)),
     lambda code: llm(ChatIntentDetect.pythonFix(code)),
     write, llmSysPrompt, ', '.join(voices)
@@ -394,7 +394,14 @@ class AssistBasic:
         self.activity_last_diff = 0
         self.restartChatDelay = 5*60
 
+        executorPython.onQuestion = self.onQuestion
+        executorPython.llm = llm
+        llm.api = executorPython
+
         Thread(name='Assist-Idle-Monitor', target=lambda: self.assistUpdateIdle(), daemon=True).start()
+
+    def onQuestion(self):
+        self.last_announcement_at = datetime.now()
 
     def assistUpdateIdle(self):
         while True:
@@ -409,8 +416,8 @@ class AssistBasic:
         # announcement
         if len(text) == 0:
             self.last_announcement_at = datetime.now()
-            if self.isChat: llm(ChatReact(llmSysPrompt, "Afk user prodded you - say you are still conversing", "Yes, we are talking"))
-            else: llm(ChatReact(llmSysPrompt, "Afk user prodded you - are you there?", "Yes"))
+            if self.isChat: llm(ChatReact(llmSysPrompt, "User said your name - say you are still conversing. Say 2 words at most", "Yes, we are talking"))
+            else: llm(ChatReact(llmSysPrompt, "User said your name - are you there? Say 2 words at most", "Yes"))
         # do greeting
         elif text == "hi" or text == "hello" or text == "greetings":
             commandExecutor.execute(f"greeting {text}")
@@ -474,7 +481,6 @@ class AssistBasic:
         write("COM: stop conversation")
         if (react): llm(ChatReact(llmSysPrompt, "User stopped conversation with you", "Ok"))
         mic.set_pause_threshold_normal()
-
 
 assist = AssistBasic()
 

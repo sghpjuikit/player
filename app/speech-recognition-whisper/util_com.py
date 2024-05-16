@@ -1,4 +1,5 @@
 from imports import *
+from util_llm import ChatIntentDetect
 
 class CommandExecutor:
     def execute(self, text: str) -> str:
@@ -23,15 +24,48 @@ def preprocess_command(text: str) -> str:
     return text.strip().removeprefix("```python").removeprefix("```").removesuffix("```").strip()
 
 class PythonExecutor:
-    def __init__(self, tts, generatePython, fixPython, write, llmSysPrompt, voices):
+    def __init__(self, tts, llm, generatePython, fixPython, write, llmSysPrompt, voices):
         self.id = 0
         self.tts = tts
+        self.llm = llm
         self.generatePython = generatePython
         self.fixPython = fixPython
         self.write = write
         self.llmSysPrompt = llmSysPrompt
         self.voices = voices
         self.ms = []
+        self.onQuestion = None
+
+    def showEmote(self, emotionInput: str):
+        def showEmoteDo():
+            try:
+                import os
+                import random
+                directory_path = 'emotes'
+                directories = [d for d in os.listdir(directory_path) if os.path.isdir(os.path.join(directory_path, d))]
+                if len(directories)==0: self.write(f'COM: show emote none')
+                if len(directories)==0: return
+                directoriesS = ''.join(map(lambda x: f'\n* {x}', directories))
+                f = self.llm(ChatIntentDetect(
+                    f'You detect closest emotion for input to one from list of emotions:{directoriesS}',
+                    f'Respond with exactly one closest emotion from the list, as is, or \'none\' if no emotion is close, for the event: {emotionInput}', '', '', '', False, False
+                ))
+                try: (text, canceled, commandIterator) = f.result()
+                except Exception: (text, canceled, commandIterator) = (None, None, None)
+                if text is None: self.write(f'COM: show emote none')
+                if text is None: return
+                text = text.rstrip('.!?').strip().lower()
+                if text not in directories: self.write(f'COM: show emote none')
+                if text not in directories: return
+                d = os.path.join(directory_path, text)
+                files = os.listdir(d)
+                if len(files)==0: self.write(f'COM: show emote none')
+                if len(files)==0: return
+                file = os.path.join(directory_path, text, random.choice(files))
+                if os.path.exists(file): self.write(f'COM: show emote {file}')
+            except Exception:
+                print_exc()
+        Thread(name='Emote-Processor', target=showEmoteDo, daemon=True).start()
 
     def skip(self):
         self.id = self.id+1
@@ -67,30 +101,73 @@ class PythonExecutor:
             import time
             from util_paste import get_clipboard_text
 
+            # plumbing
             class CommandCancelException(Exception): pass
-            def doOrSkip(block):
+            def assertSkip():
                 if (idd!=self.id): raise CommandCancelException()
-                return block()
-            def command(c: str): doOrSkip(lambda: self.write('COM: ' + c))
-            def commandDoNothing(): pass
-            def commandSetReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str): command(f'set reminder in {afterNumber}{afterUnit} {text_to_remind}')
-            def commandSetReminderAt(at: datetime, text_to_remind: str): command(f'set reminder at {at.strftime("%Y-%m-%dT%H:%M:%SZ")} {text_to_remind}')
-            def generate(c: str): doOrSkip(lambda: command('generate ' + c))
+            def execCode(filename: str, **kwargs):
+                try:
+                    speak("Ok")
+                    with open(f'{filename}.py', 'r') as file:
+                        code = file.read() # expand code
+                        for key, value in kwargs.items(): code = f'{key} = {repr(value)}\n{code}' # expand variables
+                        exec(code) # exec code
+                    speak("Done")
+                except:
+                    speak("Error")
+
+            # api
+            def command(c: str):
+                assertSkip()
+                self.write('COM: ' + c)
+            def commandDoNothing():
+                pass
+            def commandSetReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str):
+                command(f'set reminder in {afterNumber}{afterUnit} {text_to_remind}')
+            def commandSetReminderAt(at: datetime, text_to_remind: str):
+                command(f'set reminder at {at.strftime("%Y-%m-%dT%H:%M:%SZ")} {text_to_remind}')
+            def generate(c: str):
+                command('generate ' + c)
             def speak(t: str):
-                doOrSkip(lambda: self.tts.skippable(t.removeprefix('"').removesuffix('"')).result())
+                assertSkip()
+                self.tts.skippable(t.removeprefix('"').removesuffix('"')).result()
                 wait(1.0) # simulate speaking
-            def body(t: str): doOrSkip(lambda: self.write(f'SYS: *{t}*'))
-            def wait(t: float): doOrSkip(lambda: time.sleep(t))
+            def body(t: str):
+                assertSkip()
+                self.write(f'SYS: *{t}*')
+            def wait(t: float):
+                for _ in range(int(t/0.1)):
+                    assertSkip()
+                    time.sleep(0.1)
             def speakCurrentTime(): command('what time is it')
             def speakCurrentDate(): command('what date is it')
             def speakCurrentSong(): command('what song is active')
             def speakDefinition(t: str): command('describe ' + t)
-            def continueWithClipboardContext(input: str) -> str:
-                return continueWithContext(f'{input}:\n```{get_clipboard_text()}```')
             def continueWithContext(input: str):
                 self.generatePythonAndExecute(f'{input}')
                 raise CommandCancelException()
-            def writeCode(code: str): self.write(f'```\n{code}\n```')
+            def continueWithClipboardContext(input: str) -> str:
+                return continueWithContext(f'{input}:\n```{get_clipboard_text()}```')
+            def continueWithQuestion(question: str):
+                speak(question)
+                self.onQuestion()
+                raise CommandCancelException()
+            def writeCode(code: str) -> str:
+                assertSkip()
+                self.write(f'```\n{code}\n```')
+                return code
+            def showEmote(emotionInput: str):
+                assertSkip()
+                self.showEmote(emotionInput)
+            def showWarning(text: str):
+                assertSkip()
+                command(f"show warning {text}")
+            def recordVoice(voiceName: str):
+                speak('Recording will start in 3 seconds. Speak anything for 20 seconds.')
+                wait(3.0)
+                speak('Recording started')
+                execCode('com_record', WAVE_OUTPUT_FILENAME_RAW=voiceName)
+                speak('Recording finished')
 
             # invoke command as python
             if self.isValidPython(text):
@@ -144,26 +221,32 @@ You have full control over the response, by responding with python code (that is
 
 Therefore, your response must be valid executable python. You can not use your own imports or comments.
 If the full response is not executable python, you will be mortified.
-You must avoid markdown code blocks, ``` and comments.
-The python code may use valid python constructs (loops, variables, multiple lines etc.) and these functions:
+You must avoid markdown code blocks, ```, comments, redefining functions.
+The python code may use valid python constructs (loops, variables, multiple lines etc.) and has available these functions:
 * import datetime
 * import time
-* def speak(your_speach_to_user: str): None  // has 1s minimum invocation time
+* def speak(your_speech_to_user: str): None  # has 1s minimum invocation time
 * def body(your_physical_action: str): None
 * def command(COMMAND_below_to_execute: str): None
 * def commandDoNothing(): None # does nothing, useful to stop engaging with user
 * def commandSetReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str): None # units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year
 * def commandSetReminderAt(at: datetime, text_to_remind: str): None
 * def wait(secondsToWait: float): None # wait e.g. to sound more natural
+* def showEmote(emotionInput: str): None # show emote inferred from the short emotion description passed as argument 
+* def showWarning(warning: str): None # show text as warning across screen
 * def speakCurrentTime(): None # uses speak() with current time
 * def speakCurrentDate(): None # uses speak() with current date
 * def speakCurrentSong(): None # uses speak() with song information
 * def speakDefinition(term: str): None # uses speak() to define/describe/explain the term or concept
 * def continueWithContext(context: str): None # think/meta/pipe function, stops current reply and makes you respond again with added context, call once as last function
 * def continueWithClipboardContext(explanation: str): str # get current clipboard content and call continueWithContext(), you can add your explanation
-* def writeCode(code: str): None # use when user asks you to write code
+* def continueWithQuestion(question: str): None # ask user for additional data
+* def writeCode(code: str): str # use when user wants you to write/produce programming code (without executing), also returns the text
+* def recordVoice(voiceName: str): None # continueWithQuestion() user for voiceName if not available from previous conversation
 
+You always continueWithQuestion() user for arguments before calling function with parameters, unless you know the argument already.
 If your answer depends on data or thinking, always pass it as context to continueWithContext(), you will auto-continue with the data you passed as context now available.
+
 You always write short and efficient python (e.g. loop instead of manual duplicate calls).
 You always use write() functions to write.
 You always use speak() functions to speak.
@@ -182,12 +265,11 @@ If you are uncertain what to do, simply speak() why.
 * speak(f'20 times 20 is {20 * 20}')
 
 **Example of wrong python responses**
-* play-music # missing command()
+* play-music # missing command(), not a function
 * command(stop music) # command stop music string must be quoted as python stirng
 * Hey! speak("Hey") # Hey! is outside speak()
 * speak(speak()) # no arg
 * speak('It's good') # ' not escaped
-* speak(lol()) # lol is inaccessible function, use command()
 * speak("It is " + str(datetime()) # speakCurrentTime() already does this
 * speakLol('It's good') # no such function
 

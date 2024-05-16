@@ -1,4 +1,5 @@
 import os.path
+import sys
 import traceback
 
 from imports import *
@@ -42,7 +43,8 @@ class ChatIntentDetect(ChatProceed):
             "? is optional, $ is command parameter, : is default value. " +
             "Use '_' as word separator in $ parameter values. " +
             "Do not write $ after resolving parameter, e.g. `$number` -> `5`. " +
-            "Do not respond in any other way, do not answer except with a command if appropriate. " +
+            "Do not write comment, do not give examples, do not respond in any other way than the command itself! " +
+            "If no command is likely, respond with `unidentified` " +
             "Command example: `my command parameter1_value` " +
             "Commands: \n" + assist_function_prompt,
             userPrompt,
@@ -65,8 +67,8 @@ class ChatIntentDetect(ChatProceed):
     def pythonFix(cls, code: str):
         a = cls(
             'You are expert python programmer.\n' +
-            'You fix code formatting, remove comments, remove markdown code blocks and your response is always executable python code.\n' +
-            'You never use comments.',
+            'You fix code formatting, quoting, remove comments, remove markdown code blocks and your response is always executable python code.\n' +
+            'You never use comments. You never change functions names or calls.',
             userPrompt='Respond only with the executable code ad avoid any descriptions! The code to fix is below:\n' + code,
             outStart='', outCont='', outEnd='', speakTokens=False, writeTokens=False
         )
@@ -117,6 +119,7 @@ class Llm(Actor):
     def __init__(self, name: str, deviceName: str, write: Writer, speak: Tts):
         super().__init__("llm", name,  deviceName, write, True)
         self.speak = speak
+        self.api = None
         self.generating = False
 
     def __call__(self, e: ChatProceed) -> Future[str]:
@@ -130,6 +133,7 @@ class Llm(Actor):
             # speak generated text or fallback if error
             if isinstance(e, ChatReact):
                 self.speak(e.fallback if text is None else text)
+                self.api.showEmote(e.userPrompt)
 
             # run generated command or unidentified if error
             if isinstance(e, ChatIntentDetect) and e.writeTokens:

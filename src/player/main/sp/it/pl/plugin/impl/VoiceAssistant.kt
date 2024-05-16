@@ -61,7 +61,6 @@ import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
-import sp.it.util.dev.printIt
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.json.JsObject
@@ -85,12 +84,10 @@ import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
-import sp.it.util.system.Os.WINDOWS
 import sp.it.util.text.applyBackspace
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.concatApplyBackspace
 import sp.it.util.text.encodeBase64
-import sp.it.util.text.keys
 import sp.it.util.text.lines
 import sp.it.util.text.split2
 import sp.it.util.text.splitTrimmed
@@ -100,8 +97,8 @@ import sp.it.util.units.seconds
 
 /** Provides speech recognition and voice control capabilities. Uses whisper AI launched as python program. */
 class VoiceAssistant: PluginBase() {
+   internal val dir = APP.location / "speech-recognition-whisper"
    private val onClose = Disposer()
-   private val dir = APP.location / "speech-recognition-whisper"
    private var setup: Fut<Process>? = null
    private fun setup(): Fut<Process> {
       fun doOnError(eText: String, e: Throwable?, details: String?) = logger.error(e) { "$eText\n${details.wrap()}" }.toUnit()
@@ -533,7 +530,8 @@ class VoiceAssistant: PluginBase() {
       if (!command) return
 
       var textSanitized = text.removePrefix("COM ").removeSuffix(" COM").replace("_", " ").sanitize(sttBlacklistWords_)
-      var (c, result) = handlers.firstNotNullOfOrNull { SpeakContext(it, this@VoiceAssistant)(textSanitized)?.let { r -> it to r } } ?: (null to null)
+      var handlersViable = handlers.asSequence().filter { it.type==SpeakHandler.Type.KOTLN || !usePythonCommands.value }
+      var (c, result) = handlersViable.firstNotNullOfOrNull { SpeakContext(it, this@VoiceAssistant)(textSanitized)?.let { r -> it to r } } ?: (null to null)
       logger.info { "Speech ${if (orDetectIntent) "event" else "intent"} handled by command `${c?.name}`, request=`${textSanitized}`" }
       if (result==null) {
          if (!orDetectIntent)

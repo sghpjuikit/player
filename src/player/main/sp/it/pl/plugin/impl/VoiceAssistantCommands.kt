@@ -1,10 +1,12 @@
 package sp.it.pl.plugin.impl
 
+import java.io.File
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.Period
+import javafx.geometry.Pos
 import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyCode
 import javafx.scene.robot.Robot
@@ -19,9 +21,12 @@ import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.ALIAS
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.DEFER
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.KOTLN
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.PYTHN
+import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.voice.toVoiceS
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.delay
+import sp.it.util.async.runFX
+import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
@@ -49,6 +54,8 @@ internal fun VoiceAssistant.voiceCommands(): List<SpeakHandler> {
    return listOfNotNull(
       sh(PYTHN,        "Repeat last speech", "repeat last speech")                                                     { null },
       sh(PYTHN,                  "Greeting", "greeting \$user_greeting")                                               { null },
+      sh(KOTLN,                "Show emote", "show emote \$text")                                                      { voiceCommandShowEmote(it) },
+      sh(KOTLN,              "Show warning", "show warning \$text")                                                    { voiceCommandShowWarn(it) },
       sh(KOTLN,                      "Help", "help")                                                                   { if (matches(it)) Ok("List commands by saying, list commands") else null },
       sh(KOTLN,                "Do nothing", "ignore")                                                                 { if (matches(it)) Ok(null) else null },
       sh(KOTLN,         "Restart Assistant", "restart assistant|yourself")                                             { if (matches(it)) { speak("Ok"); restart(); Ok(null) } else null },
@@ -84,7 +91,7 @@ internal fun VoiceAssistant.voiceCommands(): List<SpeakHandler> {
       sh(KOTLN,              "Set reminder", "set reminder in|at \$time \$text")                                       { voiceCommandSetReminder(it) },
       sh(DEFER,                      "Wait", "wait \$time // units: s")                                                { voiceCommandWait(it) },
       sh(DEFER,               "Count to...", "count from \$from to \$to")                                              { voiceCommandCountTo(it) }.takeUnless { usePythonCommands.value },
-      sh(ALIAS,               "Open weather", "open weather")                                                          { null },
+      sh(ALIAS,              "Open weather", "open weather")                                                           { null },
    )
 }
 
@@ -126,6 +133,28 @@ internal fun VoiceAssistant.voiceCommandsPrompt(): String =
       """
    ).replace('Δ', '$').lineSequence().filter { it.isNotBlank() }.joinToString("\n")
 
+
+fun SpeakContext.voiceCommandShowEmote(text: String): ComMatch =
+   if (matches(text)) {
+      APP.plugins.use<Notifier> {
+         val n = Thumbnail(400.0, 400.0).apply {
+            pane.isMouseTransparent = true
+            runFX(50.millis) { loadFile(plugin.dir / text.substringAfter("show emote ")) }
+            runFX(200.millis) { animationPlay() }
+         }
+         val not = it.showNotification("Emote", n.pane, true, Pos.TOP_RIGHT)
+         n.animationOnDone { n.animationPause(); not.hide() }
+      }
+      Ok(null)
+   } else
+      null
+
+fun SpeakContext.voiceCommandShowWarn(text: String): ComMatch =
+   if (matches(text)) {
+      APP.plugins.get<Notifier>()?.showWarningNotification("", text.substringAfter("show warning ")) {}
+      Ok(null)
+   } else
+      null
 
 fun SpeakContext.voiceCommandCurrentTime(text: String): ComMatch =
    if (matches(text)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" })

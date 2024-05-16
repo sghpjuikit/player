@@ -13,6 +13,8 @@ app/vlc/
 app/widgets/**/out
 app/speech-recognition-whisper/__pycache__
 app/speech-recognition-whisper/cache
+app/speech-recognition-whisper/emotes
+!app/speech-recognition-whisper/emotes/README.md
 app/speech-recognition-whisper/models-gpt4all/**
 !app/speech-recognition-whisper/models-gpt4all/README.md
 app/speech-recognition-whisper/models-whisper/**

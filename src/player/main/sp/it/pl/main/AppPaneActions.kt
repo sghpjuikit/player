@@ -14,6 +14,8 @@ import javafx.scene.layout.Priority.ALWAYS
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlinx.coroutines.runBlocking
+import mu.KLogger
+import mu.KotlinLogging
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -78,6 +80,7 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.flatten
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
+import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
@@ -95,6 +98,8 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.units.millis
+
+private val logger = KotlinLogging.logger { }
 
 object ActionsPaneGenericActions {
    val actionsAll = KClassListMap<ActionData<*, *>> { fail() }
@@ -297,13 +302,12 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Sets created time to last modified time for the file. Useful after a file copy destroyed this value.",
          IconFA.CLOCK_ALT
       ) {
-            it.forEach {
-               try {
-                  val time = Files.readAttributes(it.toPath(), BasicFileAttributes::class.java)?.lastModifiedTime()!!
-                  it.setCreated(time).ifError { throw it }
-               } catch (e: Throwable) {
-                  e.printStackTrace()
-                  // TODO: logger.error(e) { "Failed to change the creation time to last modified time file=$it" }
+            it.forEach { f ->
+               runTry {
+                  val time = Files.readAttributes(f.toPath(), BasicFileAttributes::class.java)?.lastModifiedTime()!!
+                  f.setCreated(time).ifError { throw it }
+               }.ifError {
+                  logger.error(it) { "Failed to change the creation time to last modified time file=$f" }
                }
             }
          }

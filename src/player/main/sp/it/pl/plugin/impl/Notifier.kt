@@ -1,6 +1,8 @@
 package sp.it.pl.plugin.impl
 
+import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Pos
+import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.VPos
 import javafx.scene.Node
@@ -29,6 +31,7 @@ import sp.it.pl.layout.hasFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppEventLog
+import sp.it.pl.main.AppScheduler
 import sp.it.pl.main.emScaled
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
@@ -67,8 +70,11 @@ import sp.it.util.type.raw
 import sp.it.util.type.type
 import sp.it.util.ui.containsMouse
 import sp.it.util.ui.hyperlink
+import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.minSize
+import sp.it.util.ui.screen
+import sp.it.util.ui.separator
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
@@ -215,6 +221,20 @@ class Notifier: PluginBase() {
       }
 
       return showNotification(title, root, isPermanent, pos)
+   }
+
+   /** Show warning notification displaying given text. */
+   fun showWarningNotification(title: String, contentText: String, onDone: () -> Unit): Notification {
+      val content = vBox(0.0, CENTER) {
+         lay += label("- WARNING -") { styleClass += listOf("h1", "h3p") }
+         lay += separator(HORIZONTAL) { maxWidth = 500.emScaled }
+         lay += label(contentText) { styleClass += listOf("h4", "h3p") }
+      }
+      return showNotification(title, content, true, CENTER).apply {
+         headerVisible.value = false
+         lClickAction = { onDone() }
+         onShowing += { content.prefWidth = root.scene.window.screen.bounds.width }
+      }
    }
 
    /** Hides hovered notification or last shown notification or does nothing if no showing. */

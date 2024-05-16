@@ -131,17 +131,8 @@ data class ScheduledNote(override val id: UUID, override val at: Instant, val no
          APP.plugins.use<VoiceAssistant>() { p ->
             p.speakEvent(LlmString("In the past user asked you to schedule reminder. Now it is time to remind him. He may not remember, do it so he understands what to do.\n\nReminder was: $note"), "You asked me to remind you of: $note")
          }
-         APP.plugins.use<Notifier>() {
-            val content = vBox(0.0, CENTER) {
-               lay += label("- WARNING -") { styleClass += listOf("h1", "h3p") }
-               lay += separator(HORIZONTAL) { maxWidth = 500.emScaled }
-               lay += label(note) { styleClass += listOf("h4", "h3p") }
-            }
-            it.showNotification("Reminder", content, true, CENTER).apply {
-               headerVisible.value = false
-               lClickAction = { AppScheduler delete this@ScheduledNote }
-               onShowing += { content.prefWidth = root.scene.window.screen.bounds.width }
-            }
+         APP.plugins.get<Notifier>()?.showWarningNotification("Reminder", note) {
+            AppScheduler delete this@ScheduledNote
          }
       }
    }

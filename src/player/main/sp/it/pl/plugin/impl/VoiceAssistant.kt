@@ -511,8 +511,8 @@ class VoiceAssistant: PluginBase() {
    private suspend fun confirm(text: String): Unit? {
       if (!isRunning) return null
       val h = confirmers.removeLastOrNull()
-      return if (h != null && h.regex.matches(text)) h.action(text).getAny().ifNotNull(::speak)?.toUnit()
-      else null
+      return if (h == null) null
+      else h.action(h.regex.matches(text), text)?.getAny().ifNotNull(::speak)?.toUnit()
    }
 
    private fun handleInput(text: String, state: String) {
@@ -647,14 +647,18 @@ class VoiceAssistant: PluginBase() {
       fun args(text: String) = DestructuredList(handler.regex.matchEntire(text)!!.groupValues.drop(1).map { it.replace("_", " ") })
 
       /**
+       * Confirms question with user and invokes the block if matcher matches user's answer. Includes optional UI warning.
        * @param confirmText text to be spoken to user to request feedback
        * @param commandUi matcher
        * @param action action that runs on FX thread, takes intent detection result an returns voice feedback
        * @return `Ok(null)` ([confirmText] is always spoken)
        */
-      public suspend fun confirming(confirmText: String, commandUi: String, action: suspend (String) -> Try<String?, String?>): Ok<Nothing?> =
+      public suspend fun confirming(confirmText: String, commandUi: String, ui: Boolean = false, action: suspend (String) -> Try<String?, String?>): Ok<Nothing?> =
          FX {
-            plugin.confirmers += SpeakConfirmer(commandUi, action)
+            var n = null as Notification?
+            val c = SpeakConfirmer(commandUi) { matches, text -> n?.hide(); if (matches) action(text) else null }
+                n = if (!ui) null else APP.plugins.get<Notifier>()?.showWarningNotification("", confirmText) { plugin.confirmers -= c }
+            plugin.confirmers += c
             plugin.speak(confirmText)
             Ok(null)
          }
@@ -691,7 +695,7 @@ class VoiceAssistant: PluginBase() {
    /**
     * Speech event confirmer. In ui shown as `"$name -> $commandUi"`
     * @param action action that runs on FX thread, takes original command, returns Try (with text to speak or null if none). */
-   private data class SpeakConfirmer(val commandUi: String, val action: suspend (String) -> Try<String?, String?>) {
+   private data class SpeakConfirmer(val commandUi: String, val action: suspend (Boolean, String) -> Try<String?, String?>?) {
       /** [commandUi] turned into regex */
       val regex = voiceCommandRegex(commandUi)
    }

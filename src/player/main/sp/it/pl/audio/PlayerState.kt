@@ -43,7 +43,7 @@ class PlayerState {
          .toSet()
 
       playlistId = PlaylistManager.active
-      playlists setTo PlaylistManager.playlists.filter { it.id !in playlistsActive }
+      playlists setTo PlaylistManager.playlists.filter { it.id in playlistsActive }
 
       CoreSerializer.useAtomically {
          writeSingleStorage(PlayerStateDB(this@PlayerState))

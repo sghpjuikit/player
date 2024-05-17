@@ -18,7 +18,6 @@ import java.util.regex.Pattern
 import javafx.util.Duration
 import kotlin.reflect.KClass
 import kotlin.text.Charsets.UTF_8
-import org.atteo.evo.inflector.English
 import sp.it.pl.audio.Song
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
@@ -83,6 +82,7 @@ import sp.it.util.text.graphemes
 import sp.it.util.text.isBase64
 import sp.it.util.text.isPalindrome
 import sp.it.util.text.lengthInCodePoints
+import sp.it.util.text.plural
 import sp.it.util.text.sentences
 import sp.it.util.text.toChar32
 import sp.it.util.text.toPrintableNonWhitespace
@@ -273,7 +273,7 @@ object CoreFunctors: Core {
 
       add("To upper case", S, S) { it.uppercase() }
       add("To lower case", S, S) { it.lowercase() }
-      add("Plural", S, S) { English.plural(it) }
+      add("Plural", S, S, p(2)) { it, count -> it.plural(count) }
       add("Is regex", S, B) { runTry { Pattern.compile(it) }.isOk }
       add("Replace 1st (regex)", S, S, pRegex, p<String>("")) { it, regex, n -> replace1st(it, regex, n) }
       add("Remove 1st (regex)", S, S, pRegex) { it, regex -> remove1st(it, regex) }

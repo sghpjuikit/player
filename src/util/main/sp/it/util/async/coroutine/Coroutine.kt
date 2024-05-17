@@ -4,6 +4,8 @@ import java.util.concurrent.CompletionStage
 import javafx.application.Platform
 import javafx.util.Duration
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -126,8 +128,18 @@ fun <T> CoroutineScope.runSuspendingFx(block: suspend CoroutineScope.() -> T) : 
 fun <T> CoroutineScope.runSuspendingFxLater(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(DEFAULT, block)
 
 /** [withContext] that uses [runTry] to never throw and return [Try] instead */
-public suspend inline infix fun <T> CoroutineDispatcher.invokeTry(noinline block: suspend CoroutineScope.() -> T): Try<T, Throwable> =
+suspend inline infix fun <T> CoroutineDispatcher.invokeTry(noinline block: suspend CoroutineScope.() -> T): Try<T, Throwable> =
    runTry { withContext(this, block) }
 
 /** [delay] that uses [Duration] */
-public suspend fun delay(duration: Duration) = delay(duration.toMillis().milliseconds)
+suspend fun delay(duration: Duration) =
+   delay(duration.toMillis().milliseconds)
+
+/** [delay] until the installed block executes, e.g. `delayTill(animation::setOnDone)` */
+suspend fun delayTill(installer: (Runnable) -> Unit): Unit =
+   suspendCoroutine { c -> installer { c.resume(Unit) } }
+
+/** [delay] until the installed block executes, e.g. `animation::setOnDone.delayTill()` */
+@JvmName("delayTill2")
+suspend fun ((Runnable) -> Unit).delayTill(): Unit =
+   suspendCoroutine { c -> this { c.resume(Unit) } }

@@ -10,7 +10,10 @@ import javafx.geometry.Pos
 import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyCode
 import javafx.scene.robot.Robot
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.invoke
+import kotlinx.coroutines.suspendCancellableCoroutine
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.main.APP
@@ -25,6 +28,8 @@ import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.voice.toVoiceS
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.delay
+import sp.it.util.async.coroutine.delayTill
+import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
 import sp.it.util.file.div
 import sp.it.util.functional.Try
@@ -134,17 +139,21 @@ internal fun VoiceAssistant.voiceCommandsPrompt(): String =
    ).replace('Δ', '$').lineSequence().filter { it.isNotBlank() }.joinToString("\n")
 
 
-fun SpeakContext.voiceCommandShowEmote(text: String): ComMatch =
+suspend fun SpeakContext.voiceCommandShowEmote(text: String): ComMatch =
    if (matches(text)) {
-      APP.plugins.use<Notifier> {
-         val n = Thumbnail(400.0, 400.0).apply {
-            pane.isMouseTransparent = true
-            runFX(50.millis) { loadFile(plugin.dir / text.substringAfter("show emote ")) }
-            runFX(200.millis) { animationPlay() }
+      if (text != "show emote none")
+         APP.plugins.use<Notifier> {
+            val n = Thumbnail(400.0, 400.0).apply {
+               pane.isMouseTransparent = true
+               loadFile(plugin.dir / text.substringAfter("show emote ").replace(" ", "_"))
+            }
+            val not = it.showNotification("Emote", n.pane, true, Pos.TOP_RIGHT)
+            delay(200.millis)
+            n.animationPlay()
+            n::animationOnDone.delayTill()
+            delay(200.millis)
+            not.hide()
          }
-         val not = it.showNotification("Emote", n.pane, true, Pos.TOP_RIGHT)
-         n.animationOnDone { n.animationPause(); not.hide() }
-      }
       Ok(null)
    } else
       null

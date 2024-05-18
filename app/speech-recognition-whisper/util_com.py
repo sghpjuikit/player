@@ -50,8 +50,8 @@ class PythonExecutor:
                     f'You detect closest emotion for input to one from list of emotions:{directoriesS}',
                     f'Respond with exactly one closest emotion from the list, as is, or \'none\' if no emotion is close, for the event: {emotionInput}', '', '', '', False, False
                 ))
-                try: (text, canceled, commandIterator) = f.result()
-                except Exception: (text, canceled, commandIterator) = (None, None, None)
+                try: (text, canceled) = f.result()
+                except Exception: (text, canceled) = (None, None)
                 if text is None: self.write(f'COM: show emote none')
                 if text is None: return
                 text = text.rstrip('.!?').strip().lower()
@@ -78,8 +78,8 @@ class PythonExecutor:
             self.historyAppend({ "role": "user", "content": text })
 
             def on_done(future):
-                try: (text, canceled, commandIterator) = future.result()
-                except Exception: (text, canceled, commandIterator) = (None, None, None)
+                try: (text, canceled) = future.result()
+                except Exception: (text, canceled) = (None, None)
                 if text is None or canceled: return
                 text = preprocess_command(text)
                 Thread(name='command-executor', target=lambda: self.executeImpl(text, idd), daemon=True).start()
@@ -177,7 +177,7 @@ class PythonExecutor:
             elif fix:
                 try:
                     self.write('ERR: invalid code, atempting to fix...')
-                    (text, canceled, commandIterator) = self.fixPython(text).result()
+                    (text, canceled) = self.fixPython(text).result()
                 except Exception as e:
                     self.write(f"ERR: error executing command: Unable to fix: {e}")
                     print_exc()

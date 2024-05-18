@@ -96,8 +96,8 @@ class HttpHandlerIntent(HttpHandler):
 
         try:
             f = self.llm(ChatIntentDetect.normal(body.functions, body.userPrompt, False))
-            (command, canceled, commandIterator) = f.result()
-            command = command.strip().removeprefix("COM ").removesuffix(" COM").strip()
+            (command, canceled) = f.result()
+            command = command.strip()
             command = command.replace('unidentified', body.userPrompt)
             command = 'unidentified' if len(command.strip())==0 else command
             command = 'unidentified' if canceled else command

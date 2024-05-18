@@ -66,34 +66,6 @@ def chain(*iterators):
     """Returns an iterator that iterates all elements of all iterators in order"""
     return ichain(*iterators)
 
-class SingleLazyIterator:
-    """Iterator that blocks iteration until single element is put into it and then iterates that single element"""
-
-    def __init__(self, stop_condition: Callable[[], bool] | None = None):
-        self.queue = Queue()
-        self.started = False
-        self.consumed = False
-        self.stop_condition = stop_condition
-
-    def hasStarted(self):
-        return self.started or self.stop_condition()
-
-    def put(self, element: str):
-        self.started = True
-        self.queue.put(element)
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        while self.queue.empty():
-            if self.consumed: raise StopIteration
-            if self.stop_condition is not None and self.stop_condition(): break
-            sleep(0.001)
-        element = self.queue.get()
-        self.consumed = True
-        return element
-
 
 def progress(iterator_has_started: Callable[[], bool], iterator):
     """Returns the specified iterator with prepended elements for progress until first element is evaluated"""

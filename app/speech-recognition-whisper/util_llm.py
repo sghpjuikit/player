@@ -6,7 +6,7 @@ from imports import *
 from util_paste import pasteTokens
 from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
 import gpt4all.gpt4all
-from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain, SingleLazyIterator
+from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain
 from util_actor import Actor
 from util_wrt import Writer
 from util_tts import Tts
@@ -121,14 +121,15 @@ class Llm(Actor):
         self.speak = speak
         self.api = None
         self.generating = False
+        self.commandExecutor: Callable[[str], str] = None
 
     def __call__(self, e: ChatProceed) -> Future[str]:
         ef = EventLlm(e, Future())
         self.queue.put(ef)
 
         def on_done(future):
-            try: (text, canceled, commandIterator) = future.result()
-            except Exception: (text, canceled, commandIterator) = (None, None, None)
+            try: (text, canceled) = future.result()
+            except Exception: (text, canceled) = (None, None, None)
 
             # speak generated text or fallback if error
             if isinstance(e, ChatReact):
@@ -138,14 +139,13 @@ class Llm(Actor):
             # run generated command or unidentified if error
             if isinstance(e, ChatIntentDetect) and e.writeTokens:
                 if text is None:
-                    commandIterator.put('unidentified')
+                    self.commandExecutor('unidentified')
                 else:
-                    command = text.strip().removeprefix("COM ").removesuffix(" COM").strip()
+                    command = text.strip()
                     command = command.replace('unidentified', e.userPrompt)
                     command = 'unidentified' if len(command.strip())==0 else command
                     command = 'unidentified' if canceled else command
                     command = self.commandExecutor(command)
-                    commandIterator.put(command)
 
         ef.future.add_done_callback(on_done)
         return ef.future
@@ -154,9 +154,8 @@ class Llm(Actor):
         return f"{e.event.__class__.__name__}({e.event.userPrompt})"
 
 class LlmNone(Llm):
-    def __init__(self, speak: Tts, write: Writer, commandExecutor: Callable[[str], str]):
+    def __init__(self, speak: Tts, write: Writer):
         super().__init__('LlmNone', 'cpu', write, speak)
-        self.commandExecutor = commandExecutor
 
     def _loop(self):
         self._loaded = True
@@ -170,9 +169,8 @@ class LlmNone(Llm):
 # doc https://docs.gpt4all.io/gpt4all_python.html
 class LlmGpt4All(Llm):
 
-    def __init__(self, modelName: str, modelPath: str, speak: Tts, write: Writer, commandExecutor: Callable[[str], str], sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
+    def __init__(self, modelName: str, modelPath: str, speak: Tts, write: Writer, sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
         super().__init__('LlmGpt4All', "cpu", write, speak)
-        self.commandExecutor = commandExecutor
         self.modelName = modelName
         self.modelPath = modelPath
         self.sysPrompt = sysPrompt
@@ -199,12 +197,11 @@ class LlmGpt4All(Llm):
                 with self._loopProcessEvent() as (e, f):
                     isCommand = isinstance(e, ChatIntentDetect)
                     isCommandWrite = isCommand and cast(ChatIntentDetect, e).writeTokens
-                    commandIterator = SingleLazyIterator(lambda: not self.generating)
                     try:
                         with llm.chat_session():
                             llm._history = e.messages   # overwrite system prompt & history
                             self.generating = True
-                            stop = [" COM"] if isCommand else []
+                            stop = []
                             text = ''
                             def process(token_id, token_string):
                                 nonlocal text, stop
@@ -217,16 +214,15 @@ class LlmGpt4All(Llm):
                             )
                             consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(tokens, 4)
                             if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
-                            if isCommandWrite: self.write(chain([e.outStart], progress(commandIterator.hasStarted, chain([e.outCont], commandIterator)), [e.outEnd]))
+                            if isCommandWrite: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
                             if e.speakTokens: self.speak(tokensSpeech)
                             e.processTokens(tokensAlt)
                             consumer()
                             canceled = self.generating is False
                             text = ''.join(tokensText)
-                            f.set_result((text, canceled, commandIterator))
+                            f.set_result((text, canceled))
                     except Exception as x:
                         f.set_exception(x)
-                        commandIterator.put('') # this finishes commandIterator that would otherwise block self.write forever. TODO: handle in onDone callback or erase written text here wit \b
                         raise x
                     finally:
                         self.generating = False
@@ -236,9 +232,8 @@ class LlmGpt4All(Llm):
 # howto https://cookbook.openai.com/examples/how_to_stream_completions
 class LlmHttpOpenAi(Llm):
 
-    def __init__(self, url: str, bearer: str, modelName: str, speak: Tts, write: Writer, commandExecutor: Callable[[str], str], sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
+    def __init__(self, url: str, bearer: str, modelName: str, speak: Tts, write: Writer, sysPrompt: str, maxTokens: int, temp: float, topp: float, topk: int):
         super().__init__('LlmHttpOpenAi', 'http', write, speak)
-        self.commandExecutor = commandExecutor
         self.url = url
         self.bearer = bearer
         self.modelName = modelName
@@ -260,7 +255,6 @@ class LlmHttpOpenAi(Llm):
                 with self._loopProcessEvent() as (e, f):
                     isCommand = isinstance(e, ChatIntentDetect)
                     isCommandWrite = isCommand and cast(ChatIntentDetect, e).writeTokens
-                    commandIterator = SingleLazyIterator(lambda: not self.generating)
                     try:
                         self.generating = True
 
@@ -268,7 +262,7 @@ class LlmHttpOpenAi(Llm):
                             stream = client.chat.completions.create(
                                 model=self.modelName, messages=e.messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
                                 stream=True, timeout=Timeout(5.0),
-                                stop = [" COM"] if isCommand else [],
+                                stop = [],
                             )
                             try:
                                 for chunk in stream:
@@ -279,17 +273,16 @@ class LlmHttpOpenAi(Llm):
 
                         consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(process(), 4)
                         if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
-                        if isCommandWrite: self.write(chain([e.outStart], progress(commandIterator.hasStarted, chain([e.outCont], commandIterator)), [e.outEnd]))
+                        if isCommandWrite: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
                         if e.speakTokens: self.speak(tokensSpeech)
                         e.processTokens(tokensAlt)
                         consumer()
                         canceled = self.generating is False
                         text = ''.join(tokensText)
-                        f.set_result((text, canceled, commandIterator))
+                        f.set_result((text, canceled))
 
                     except Exception as e:
                         f.set_exception(e)
-                        commandIterator.put('') # this finishes commandIterator that would otherwise block self.write forever. TODO: handle in onDone callback or erase written text here wit \b
                         if isinstance(e, openai.APIConnectionError):
                             self.write(f"ERR: {self.name} event processing error: server could not be reached: {e.__cause__}")
                             print_exc()

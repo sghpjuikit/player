@@ -280,23 +280,21 @@ else:
     speakEngine = TtsNone(write)
 tts = Tts(ttsOn, speakEngine, write)
 
-# commands
-commandExecutor = CommandExecutorDelegate(CommandExecutorDoNothing)
 
 # llm actor, non-blocking
-llm = LlmNone(tts, write, commandExecutor.execute)
+llm = LlmNone(tts, write)
 if llmEngine == 'none':
     pass
 elif llmEngine == "gpt4all":
     llm = LlmGpt4All(
         llmGpt4AllModelName, "models-gpt4all",
-        tts, write, commandExecutor.execute,
+        tts, write,
         llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
     )
 elif llmEngine == "openai":
     llm = LlmHttpOpenAi(
         llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModelName,
-        tts, write, commandExecutor.execute,
+        tts, write,
         llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
     )
 else:
@@ -377,7 +375,8 @@ class CommandExecutorMain(CommandExecutor):
         else:
             return text
 
-commandExecutor.commandExecutor = CommandExecutorMain()
+commandExecutor = CommandExecutorMain()
+llm.commandExecutor = commandExecutor.execute
 executorPython = PythonExecutor(
     tts, llm,
     lambda sp, up, ms: llm(ChatIntentDetect.python(sp, up, ms)),

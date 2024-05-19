@@ -1146,8 +1146,8 @@ interface Utils {
 			if (pool.size()<max) pool.add(p);
 		}
 		P get() {
-			P n = pool.isEmpty() ? null : pool.get(0);
-			if (n!=null) pool.remove(0);
+			P n = pool.isEmpty() ? null : pool.getFirst();
+			if (n!=null) pool.removeFirst();
 			return n==null ? fac.apply() : n;
 		}
 
@@ -2729,11 +2729,8 @@ interface Utils {
 		@Override
 		public int hashCode() {
 			int result;
-			long temp;
-			temp = Double.doubleToLongBits(x);
-			result = (int) (temp ^ (temp >>> 32));
-			temp = Double.doubleToLongBits(y);
-			result = 31 * result + (int) (temp ^ (temp >>> 32));
+			result = Double.hashCode(x);
+			result = 31 * result + Double.hashCode(y);
 			return result;
 		}
 
@@ -2770,45 +2767,28 @@ interface Utils {
 		@Override
 		public int hashCode() {
 			int result;
-			long temp;
 			if (x1 < x2) {
-				temp = Double.doubleToLongBits(x1);
-				result = (int) (temp ^ (temp >>> 32));
-				temp = Double.doubleToLongBits(y1);
-				result = 31 * result + (int) (temp ^ (temp >>> 32));
-				temp = Double.doubleToLongBits(x2);
-				result = 31 * result + (int) (temp ^ (temp >>> 32));
-				temp = Double.doubleToLongBits(y2);
-				result = 31 * result + (int) (temp ^ (temp >>> 32));
+				result = Double.hashCode(x1);
+				result = 31 * result + Double.hashCode(y1);
+				result = 31 * result + Double.hashCode(x2);
+				result = 31 * result + Double.hashCode(y2);
 			} else if (x1 == x2) {
 				if (y1 < y2) {
-					temp = Double.doubleToLongBits(y1);
-					result = (int) (temp ^ (temp >>> 32));
-					temp = Double.doubleToLongBits(x1);
-					result = 31 * result + (int) (temp ^ (temp >>> 32));
-					temp = Double.doubleToLongBits(y2);
-					result = 31 * result + (int) (temp ^ (temp >>> 32));
-					temp = Double.doubleToLongBits(x2);
-					result = 31 * result + (int) (temp ^ (temp >>> 32));
+					result = Double.hashCode(y1);
+					result = 31 * result + Double.hashCode(x1);
+					result = 31 * result + Double.hashCode(y2);
+					result = 31 * result + Double.hashCode(x2);
 				} else {
-					temp = Double.doubleToLongBits(y2);
-					result = (int) (temp ^ (temp >>> 32));
-					temp = Double.doubleToLongBits(x2);
-					result = 31 * result + (int) (temp ^ (temp >>> 32));
-					temp = Double.doubleToLongBits(y1);
-					result = 31 * result + (int) (temp ^ (temp >>> 32));
-					temp = Double.doubleToLongBits(x1);
-					result = 31 * result + (int) (temp ^ (temp >>> 32));
+					result = Double.hashCode(y2);
+					result = 31 * result + Double.hashCode(x2);
+					result = 31 * result + Double.hashCode(y1);
+					result = 31 * result + Double.hashCode(x1);
 				}
 			} else {
-				temp = Double.doubleToLongBits(x2);
-				result = (int) (temp ^ (temp >>> 32));
-				temp = Double.doubleToLongBits(y2);
-				result = 31 * result + (int) (temp ^ (temp >>> 32));
-				temp = Double.doubleToLongBits(x1);
-				result = 31 * result + (int) (temp ^ (temp >>> 32));
-				temp = Double.doubleToLongBits(y1);
-				result = 31 * result + (int) (temp ^ (temp >>> 32));
+				result = Double.hashCode(x2);
+				result = 31 * result + Double.hashCode(y2);
+				result = 31 * result + Double.hashCode(x1);
+				result = 31 * result + Double.hashCode(y1);
 			}
 			return result;
 		}

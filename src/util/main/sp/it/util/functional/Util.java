@@ -181,36 +181,6 @@ public interface Util {
 		return null;
 	}
 
-/* ---------- COLLECTION -> OBJECT ------------------------------------------------------------------------------ */
-
-	/**
-	 * Checks whether all elements of the list are equal by some property
-	 * obtained using specified transformation.
-	 * <p/>
-	 * For example checking whether all lists have the same size:
-	 * <pre>{@code equalBy(lists,List::size) }</pre>
-	 *
-	 * @return true if transformation of each element in the list produces equal result.
-	 */
-	static <V, R> boolean equalBy(List<V> o, Function<V,R> by) {
-		if (o.size()<2) return true;
-		R r = by.apply(o.get(0));
-		for (int i = 1; i<o.size(); i++)
-			if (!r.equals(by.apply(o.get(i)))) return false;
-		return true;
-	}
-
-	/**
-	 * Assuming a map of lists, i-slice is a list i-th elements in every list.
-	 *
-	 * @return i-th slice of the map m
-	 */
-	static <K, T> Map<K,T> mapSlice(Map<K,List<? extends T>> m, int i) {
-		Map<K,T> o = new HashMap<>();
-		m.forEach((key, value) -> o.put(key, value.get(i)));
-		return o;
-	}
-
 /* ---------- FOR --------------------------------------------------------------------------------------------------- */
 
 	/** Functional equivalent of a for loop. */
@@ -523,13 +493,6 @@ public interface Util {
 		return l;
 	}
 
-	/** Returns modifiable list containing element supplied by specified supplier i times. */
-	static <T> List<T> list(int i, Supplier<T> factory) {
-		List<T> l = new ArrayList<>(i);
-		for (int j = 0; j<i; j++) l.add(factory.get());
-		return l;
-	}
-
 	/**
 	 * Returns modifiable list containing element supplied by specified supplier i times. Integer
 	 * params range from 0 to i-1 inclusive;
@@ -578,14 +541,6 @@ public interface Util {
 		return stream(t.asIterator());
 	}
 
-	static <A, B, R> Stream<R> streamBi(A[] a, B[] b, F2<A,B,R> zipper) {
-		failIf(a.length!=b.length);
-		Stream.Builder<R> builder = Stream.builder();
-		for (int i = 0; i<a.length; i++)
-			builder.accept(zipper.apply(a[i], b[i]));
-		return builder.build();
-	}
-
 	/** Creates stream of {@link Integer} in range from-to inclusive. */
 	static Stream<Integer> range(int fromInclusive, int toInclusive) {
 		Stream.Builder<Integer> b = Stream.builder();
@@ -609,16 +564,6 @@ public interface Util {
 	/** Filters collection. Returns list. Source remains unchanged. */
 	static <T> List<T> filter(Collection<T> c, Predicate<T> f) {
 		return c.stream().filter(f).toList();
-	}
-
-	/** Maps array. Returns list. Source remains unchanged. */
-	static <T, R> List<R> map(T[] a, Function<T,R> m) {
-		return Stream.of(a).map(m).toList();
-	}
-
-	/** Maps collection. Returns list. Source remains unchanged. */
-	static <T, R> List<R> map(Collection<T> c, Function<? super T, R> m) {
-		return c.stream().map(m).toList();
 	}
 
 	@SuppressWarnings("unchecked")

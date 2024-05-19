@@ -311,7 +311,7 @@ public class Comet extends SimpleController {
 		root.getChildren().add(
 			layHeaderTop(0.0, CENTER_LEFT,
 				layHorizontally(20,CENTER_LEFT,
-					ConfigEditor.create(Config.forProperty(GameMode.class, "Mode", mode)).buildNode().getChildren().get(0),
+					ConfigEditor.create(Config.forProperty(GameMode.class, "Mode", mode)).buildNode().getChildren().getFirst(),
 					new Icon(MaterialDesignIcon.NUMERIC_1_BOX_OUTLINE,15,"Start 1 player game",() -> game.start(1)),
 					new Icon(MaterialDesignIcon.NUMERIC_2_BOX_OUTLINE,15,"Start 2 player game",() -> game.start(2)),
 					new Icon(MaterialDesignIcon.NUMERIC_3_BOX_OUTLINE,15,"Start 3 player game",() -> game.start(3)),

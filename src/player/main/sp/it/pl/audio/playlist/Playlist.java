@@ -31,7 +31,6 @@ import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runVT;
 import static sp.it.util.dev.FailKt.noNull;
-import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.units.FactoriesKt.uri;
@@ -543,7 +542,7 @@ public class Playlist extends ObservableListWrapper<PlaylistSong> {
 	 * @throws NullPointerException when param null.
 	 */
 	public void addFiles(Collection<File> files) {
-		addUris(map(files, File::toURI));
+		addUris(files.stream().map(File::toURI).toList());
 	}
 
 	/**
@@ -603,7 +602,7 @@ public class Playlist extends ObservableListWrapper<PlaylistSong> {
 	 * Equivalent to {@code addPlaylist(map(songs, Song::toPlaylist), at);}
 	 */
 	public void addItems(Collection<? extends Song> songs, int at) {
-		addPlaylistSongs(map(songs, Song::toPlaylist), at);
+		addPlaylistSongs(songs.stream().map(Song::toPlaylist).toList(), at);
 	}
 
 	/**

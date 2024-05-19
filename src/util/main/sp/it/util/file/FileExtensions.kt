@@ -6,8 +6,11 @@ import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.Objects
 import kotlin.io.path.pathString
 import org.jetbrains.annotations.Blocking
+import sp.it.util.Util
+import sp.it.util.Util.filenamizeString
 import sp.it.util.file.FileType.*
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
@@ -50,3 +53,24 @@ fun File.deleteRecursivelyOrThrow(): Boolean = deleteRecursively().also { if (!i
 
 @Blocking @Throws(IOException::class)
 fun File.setExecutableOrThrow(executable: Boolean): Boolean = setExecutable(executable).also { if (!it) throw IOException("Failed to set executable=$executable for file=$this") }
+
+/**
+ * Renames this file to the specified name (with extension suffix).
+ * If this file does not exist, nothing happens.
+ */
+fun File.renameFile(name: String) {
+   var rf = parentFile!!.absoluteFile
+   renameTo(File(rf, filenamizeString(name)))
+}
+
+/**
+ * Renames this file to the specified name (extension suffix remains the same).
+ * If this file does not exist, nothing happens.
+ */
+fun File.renameFileNoSuffix(name: String) {
+   var rf = parentFile!!.absoluteFile
+   var dot = path.lastIndexOf('.')
+   var p = path
+   var ext = if (dot==-1) "" else p.substring(dot)
+   renameTo(File(rf, filenamizeString(name) + ext))
+}

@@ -252,31 +252,4 @@ public interface Util {
 		return p==-1 ? "" : path.substring(p + 1);
 	}
 
-	/**
-	 * Renames file (with extension suffix).
-	 *
-	 * @param f file to rename, if it does not exist, nothing happens
-	 * @param name new file name without suffix
-	 */
-	@SuppressWarnings("ResultOfMethodCallIgnored")
-	static void renameFile(File f, String name) {
-		File rf = requireNonNull(f.getParentFile()).getAbsoluteFile();
-		f.renameTo(new File(rf, filenamizeString(name)));
-	}
-
-	/**
-	 * Renames file (extension suffix remains the same).
-	 *
-	 * @param f file to rename, if it does not exist, nothing happens
-	 * @param name new file name without suffix
-	 */
-	@SuppressWarnings("ResultOfMethodCallIgnored")
-	static void renameFileNoSuffix(File f, String name) {
-		File rf = requireNonNull(f.getParentFile()).getAbsoluteFile();
-		int dot = f.getPath().lastIndexOf('.');
-		String p = f.getPath();
-		String ext = dot==-1 ? "" : p.substring(dot);
-		f.renameTo(new File(rf, filenamizeString(name) + ext));
-	}
-
 }

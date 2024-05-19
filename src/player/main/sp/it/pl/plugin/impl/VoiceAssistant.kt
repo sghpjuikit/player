@@ -437,21 +437,22 @@ class VoiceAssistant: PluginBase() {
 
    override fun start() {
       // runtime-changeable properties
-      val p = 2.seconds
+      val p2 = 2.seconds
+      val p5 = 5.seconds
       // @formatter:off
-               wakeUpWord.chan().throttleToLast(p) subscribe { write("wake-word=$it") }
-               micEnabled.chan().throttleToLast(p) subscribe { write("mic-enabled=$it") }
-                micEnergy.chan().throttleToLast(p) subscribe { write("mic-energy=$it") }
-           micEnergyDebug.chan().throttleToLast(p) subscribe { write("mic-energy-debug=$it") }
-       micVoiceDetectProb.chan().throttleToLast(p) subscribe { write("mic-voice-detect-prop=$it") }
-  micVoiceDetectProbDebug.chan().throttleToLast(p) subscribe { write("mic-voice-detect-debug=$it") }
-                    ttsOn.chan().throttleToLast(p) subscribe { write("speech-on=$it") }
-      ttsEngineCoquiVoice.chan().throttleToLast(p) subscribe { write("coqui-voice=$it") }
-         llmChatSysPrompt.chan().throttleToLast(p) subscribe { write("llm-chat-sys-prompt=${it.replace('\n', ' ')}") }
-         llmChatMaxTokens.chan().throttleToLast(p) subscribe { write("llm-chat-max-tokens=$it") }
-              llmChatTemp.chan().throttleToLast(p) subscribe { write("llm-chat-temp=$it") }
-              llmChatTopP.chan().throttleToLast(p) subscribe { write("llm-chat-topp=$it") }
-              llmChatTopK.chan().throttleToLast(p) subscribe { write("llm-chat-topk=$it") }
+               wakeUpWord.chan().throttleToLast(p2) subscribe { write("wake-word=$it") }
+               micEnabled.chan().throttleToLast(p2) subscribe { write("mic-enabled=$it") }
+                micEnergy.chan().throttleToLast(p2) subscribe { write("mic-energy=$it") }
+           micEnergyDebug.chan().throttleToLast(p2) subscribe { write("mic-energy-debug=$it") }
+       micVoiceDetectProb.chan().throttleToLast(p2) subscribe { write("mic-voice-detect-prop=$it") }
+  micVoiceDetectProbDebug.chan().throttleToLast(p2) subscribe { write("mic-voice-detect-debug=$it") }
+                    ttsOn.chan().throttleToLast(p2) subscribe { write("speech-on=$it") }
+      ttsEngineCoquiVoice.chan().throttleToLast(p2) subscribe { write("coqui-voice=$it") }
+         llmChatSysPrompt.chan().throttleToLast(p5) subscribe { write("llm-chat-sys-prompt=${it.replace('\n', ' ')}") }
+         llmChatMaxTokens.chan().throttleToLast(p2) subscribe { write("llm-chat-max-tokens=$it") }
+              llmChatTemp.chan().throttleToLast(p2) subscribe { write("llm-chat-temp=$it") }
+              llmChatTopP.chan().throttleToLast(p2) subscribe { write("llm-chat-topp=$it") }
+              llmChatTopK.chan().throttleToLast(p2) subscribe { write("llm-chat-topk=$it") }
       // @formatter:on
       startSpeechRecognition()
 

@@ -140,11 +140,11 @@ class HttpHandlerStt(HttpHandler):
 
 
 @dataclass
-class HttpHandlerSttReactData:
+class HttpHandlerTtsReactData:
     event_to_react_to: str
     fallback: str
 
-class HttpHandlerSttReact(HttpHandler):
+class HttpHandlerTtsReact(HttpHandler):
     def __init__(self, llm: Llm, sysPrompt: str):
         super().__init__("POST", "/tts-event")
         self.llm = llm
@@ -159,7 +159,7 @@ class HttpHandlerSttReact(HttpHandler):
         body = req.rfile.read(content_length)
         body = body.decode('utf-8')
         body = json.loads(body)
-        body = HttpHandlerSttReactData(**body)
+        body = HttpHandlerTtsReactData(**body)
 
         try:
             f = self.llm(ChatReact(self.sysPrompt, body.event_to_react_to, body.fallback).http())

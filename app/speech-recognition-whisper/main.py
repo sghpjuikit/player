@@ -10,7 +10,7 @@ from imports import print_exc
 from datetime import datetime
 from threading import Timer
 from itertools import chain
-from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerIntent, HttpHandlerStt, HttpHandlerSttReact
+from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerIntent, HttpHandlerStt, HttpHandlerTtsReact
 from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
 from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatPaste
 from util_stt import SttNone, SttWhisper, SttNemo, SttHttp, SpeechText
@@ -592,7 +592,7 @@ http.handlers.append(HttpHandlerState(actors))
 http.handlers.append(HttpHandlerStateActorEvents(actors))
 http.handlers.append(HttpHandlerIntent(llm))
 http.handlers.append(HttpHandlerStt(stt))
-http.handlers.append(HttpHandlerSttReact(llm, llmSysPrompt))
+http.handlers.append(HttpHandlerTtsReact(llm, llmSysPrompt))
 if isinstance(tts.tts, TtsCoqui): http.handlers.append(tts.tts._httpHandler())
 
 # start actors

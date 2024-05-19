@@ -27,7 +27,6 @@
 - Drag & drop playlist file support in audio
 - Migrate `ActionPane`  actions to `AppActions.kt`& integrate with `Action`, adding icon to Action & keys to ActionData 
 - Implement better application running detection: app running without exe and app running from different directory
-- Implement `MdNode` monitor file & reload
 - Implement `SliderCE` logarithmic scale
   Should support arbitrary N(0-1) -> N(0-1) function and config dsl
 - App onStart/End command user defined callbacks

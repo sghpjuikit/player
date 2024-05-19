@@ -381,13 +381,17 @@ It is simply a service to intelligently convert input into output.
     pip3 install pygetwindow
     pip3 install stream2sentence
     ```
+   - Windows specific
+    ```
+    pip3 install pycaw
+    ```
 3. Install desired tts module:
     1. **TtsOs** requires https://github.com/Akul-AI/rlvoice-1
         - `pip install rlvoice-1`
         - on Linux also needs `sudo apt update && sudo apt install espeak ffmpeg libespeak1`
         - on OsX also needs `pip install pyobjc==9.0.1`
-    2. **TtsCoqui** requires https://pypi.org/project/TTS/
-        - `pip install TTS`
+    2. **TtsCoqui** requires https://github.com/idiap/coqui-ai-TTS
+        - `pip install coqui-tts==0.23.1`
         - Download XTTSv2 model
            - the following files into [models-coqui](models-coqui) directory
                - `config.json`
@@ -404,7 +408,7 @@ It is simply a service to intelligently convert input into output.
         - TODO
 4. Install desired stt module:
     1. **SttWhisper** requires https://github.com/openai/whisper
-        - `pip install openai-whisper`
+        - `pip install openai-whisper==20231117`
         - model will be downloaded automatically, but you can do so manually
             - Download OpenAi Whisper [models](https://github.com/openai/whisper#available-models-and-languages) (optional)
             - into the [models-whisper](models-whisper) directory
@@ -415,10 +419,10 @@ It is simply a service to intelligently convert input into output.
     2. **SttHttp**
         - TODO
 5. Install desired llm module:
-    1. **LlmOpenAi**
-        - `pip install openai` 
-    2. **LlmGpt4All**
-        - `pip install gpt4all==2.0.2` 
+    1. **LlmOpenAi** requires https://github.com/openai/openai-python
+        - `pip install openai==1.28.0` 
+    2. **LlmGpt4All** requires https://github.com/nomic-ai/gpt4all/releases/tag/v2.7.5
+        - `pip install gpt4all==2.6.0` 
         - Download LLM model for [GPT4All](https://gpt4all.io/index.html) (optional)
             - model is required only for conversation feature 
                 - into the [models-gpt4all](models-gpt4all) directory

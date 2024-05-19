@@ -669,7 +669,7 @@ class VoiceAssistant: PluginBase() {
          VT {
             runTry {
                val url = plugin.httpUrl.value.net { "$it/intent"}
-               val command = APP.http.client.post(url) { bodyJs(JsObject(mapOf("functions" to JsString(functions), "userPrompt" to JsString(userPrompt)))) }.bodyAsText()
+               val command = APP.http.client.post(url) { bodyJs("functions" to functions, "userPrompt" to userPrompt) }.bodyAsText().sanitize(this@SpeakContext.plugin.sttBlacklistWords_)
                FX {
                   withIntent()(command, action)
                }

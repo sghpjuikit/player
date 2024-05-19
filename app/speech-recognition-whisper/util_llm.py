@@ -26,6 +26,11 @@ class ChatProceed:
         self.processTokens = lambda tokens: None
         if (userPrompt is not None and len(userPrompt)>0): self.messages.append({ "role": "user", "content": self.userPrompt })
 
+    def http(self):
+        self.outStart = "HTTP: "
+        self.writeTokens = True
+        return self
+
 class ChatIntentDetect(ChatProceed):
     def __init__(self, sysPrompt: str, userPrompt: str, outStart: str, outCont: str, outEnd: str, speakTokens: bool, writeTokens: bool):
         super().__init__(sysPrompt, userPrompt)

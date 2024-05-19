@@ -95,7 +95,7 @@ class HttpHandlerIntent(HttpHandler):
         body = HttpHandlerIntentData(**body)
 
         try:
-            f = self.llm(ChatIntentDetect.normal(body.functions, body.userPrompt, False))
+            f = self.llm(ChatIntentDetect.normal(body.functions, body.userPrompt, False).http())
             (command, canceled) = f.result()
             command = command.strip()
             command = command.replace('unidentified', body.userPrompt)
@@ -162,7 +162,7 @@ class HttpHandlerSttReact(HttpHandler):
         body = HttpHandlerSttReactData(**body)
 
         try:
-            f = self.llm(ChatReact(self.sysPrompt, body.event_to_react_to, body.fallback))
+            f = self.llm(ChatReact(self.sysPrompt, body.event_to_react_to, body.fallback).http())
             _ = f.result()
             req.send_response(200)
             req.send_header('Content-type', 'text/plain')

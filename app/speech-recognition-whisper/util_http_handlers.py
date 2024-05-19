@@ -167,7 +167,7 @@ class HttpHandlerSttReact(HttpHandler):
             req.send_response(200)
             req.send_header('Content-type', 'text/plain')
             req.end_headers()
-            req.wfile.write(command)
+            req.wfile.write('')
         except Exception as e:
             print_exc()
             req.send_error(500, f"{e}")

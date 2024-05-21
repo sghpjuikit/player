@@ -15,16 +15,24 @@ data class Jwt(val header: JsObject, val payload: JsObject, val signature: Strin
 
    companion object: ConverterString<Jwt>, ConverterToUiString<Jwt> {
 
-      override fun toUiS(o: Jwt, locale: Locale): String = o.header.toPrettyS() + "\n.\n" + o.payload.toPrettyS() + "\n.\n" + o.signature
+      override fun toUiS(o: Jwt, locale: Locale): String =
+         o.header.toPrettyS() + "\n.\n" + o.payload.toPrettyS() + "\n.\n" + o.signature
 
-      override fun toS(o: Jwt): String = o.header.toCompactS().encodeBase64() + "." + o.payload.toCompactS().encodeBase64() + "." + o.signature
+      override fun toS(o: Jwt): String =
+         o.header.toCompactS().encodeBase64() + "." + o.payload.toCompactS().encodeBase64() + "." + o.signature
 
       override fun ofS(s: String): Try<Jwt, String> {
          return runTry {
             val json = JsonAst()
             val (header, payload, signature) = s.split3(".")
-            Jwt(json.ast(header.decodeBase64().orThrow).orThrow.asIs(), json.ast(payload.decodeBase64().orThrow).orThrow.asIs(), signature)
-         }.mapError { it.message ?: "Unknown error" }
+            Jwt(
+               json.ast(header.decodeBase64().orThrow).orThrow.asIs(),
+               json.ast(payload.decodeBase64().orThrow).orThrow.asIs(),
+               signature
+            )
+         }.mapError {
+            it.message ?: "Unknown error"
+         }
       }
 
    }

@@ -444,7 +444,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             fun showing() = showValue
             fun hide() = if (showValue==1.0) hider() else Unit
             fun show() = if (showValue==0.0 && windowsFx.none { it.isOverlayWindow() } && osHasWindowExclusiveFullScreen()!=TRUE) shower() else Unit
-            fun showWithDelay(e: MouseEvent) = if (showValue==0.0) onMouseMoveStop(150.millis, dockHoverDelay.value) { if (!it) show() } else Unit
+            fun showWithDelay() = if (showValue==0.0) onMouseMoveStop(150.millis, dockHoverDelay.value) { if (!it) show() } else Unit
             fun showInitially() = showAnim.applyAt(0.0).toUnit()
 
             init {
@@ -462,7 +462,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!it.isPrimaryButtonDown && !APP.ui.isLayoutMode) mwShower.hide() }
          mw.window.stage.scene.root.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!it.isPrimaryButtonDown && !APP.ui.isLayoutMode) mwShower.hide() }
          mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, PRIMARY) { mwShower.show() }
-         mw.window.stage.scene.root.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay(it) }
+         mw.window.stage.scene.root.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay() }
          mw.window.stage.scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
             if (it.isMetaDown) {
                mwAutohide.toggle()

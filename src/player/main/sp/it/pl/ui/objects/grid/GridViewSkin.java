@@ -774,8 +774,10 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		}
 
 		private void scrollTo(double to, boolean anim) {
+			var s = getSkinnable();
+			if (s==null) return;
 			double minY = 0;
-			double maxY = max(0, computeRowCount(getSkinnable().getItemsShown())*computeRowHeight() - getHeight());
+			double maxY = max(0, computeRowCount(s.getItemsShown())*computeRowHeight() - getHeight());
 			double newY = clip(minY, to, maxY);
 			if (viewStart!=newY) {
 				viewStart = newY;
@@ -785,8 +787,10 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		}
 
 		public void scrollToAnim(double to) {
+			var s = getSkinnable();
+			if (s==null) return;
 			double minY = 0;
-			double maxY = max(0, computeRowCount(getSkinnable().getItemsShown())*computeRowHeight() - getHeight());
+			double maxY = max(0, computeRowCount(s.getItemsShown())*computeRowHeight() - getHeight());
 			double newY = clip(minY, to, maxY);
 			double oldY = viewStart;
 			if (viewStart!=newY) {

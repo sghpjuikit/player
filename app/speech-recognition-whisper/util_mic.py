@@ -315,11 +315,11 @@ class MicVoiceDetectNvidia:
             voices = []
             for f in os.listdir(dir):
                 if f.endswith('.wav'):
-                    voices.append(MicVoice(f, self.loadSpeakerFromFile(os.path.join(dir, f))))
-            print(f"RAW: loaded verified voices: {voices}", end='')
+                    voices.append(MicVoice(f.removesuffix('.wav'), self.loadSpeakerFromFile(os.path.join(dir, f))))
+            print(f"RAW: loading verified voices: {voices}", end='')
             return voices
         except Exception as e:
-            print(f"ERR: failed to load verified voices {e}", end='')
+            print(f"ERR: loading verified voices failed: {e}", end='')
             print_exc()
             return None
 
@@ -383,9 +383,9 @@ class MicVoiceDetectNvidia:
                 similarity_score = (similarity_score + 1) / 2
                 verified = similarity_score >= self.speaker_treshold
                 if self.verbose: print(f'RAW: {voice.name}:{verified} {similarity_score}{">=" if verified else "<"}{self.speaker_treshold}', end='')
-                if verified: return verified
-            return False
+                if verified: return voice.name
+            return None
         except Exception as e:
             print(f'ERR: failed to determine speaker: {e}')
             print_exc()
-            return False
+            return None

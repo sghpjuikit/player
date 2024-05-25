@@ -327,6 +327,7 @@ private val extractors = setOf(
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::alignmentProperty,       type<Property<Pos>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::contentDisplayProperty,  type<Property<ContentDisplay>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::ellipsisStringProperty,  type<Property<String>>()),
+      Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::textTruncatedProperty,   type<ReadOnlyProperty<Boolean>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::fontProperty,            type<Property<Font>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::graphicProperty,         type<Property<Node?>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::graphicTextGapProperty,  type<Property<Double>>()),

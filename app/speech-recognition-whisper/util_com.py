@@ -1,4 +1,5 @@
 from imports import *
+from datetime import datetime
 from util_llm import ChatIntentDetect
 
 class CommandExecutor:
@@ -83,7 +84,7 @@ class PythonExecutor:
             idd = self.id
 
             if history:
-                self.historyAppend({ "role": "user", "content": f"SPEAKER=\"{speaker}\"\n\n{textOriginal}"})
+                self.historyAppend({ "role": "user", "content": f"TIME=\"{datetime.now().isoformat()}\"\nSPEAKER=\"{speaker}\"\n\n{textOriginal}"})
 
             def on_done(future):
                 try:
@@ -290,6 +291,7 @@ class PythonExecutor:
             # invoke command as python
             if self.isValidPython(text):
                 self.historyAppend({ "role": "system", "content": text })
+                text = f'TIME="{datetime.datetime.now().isoformat()}"\nSPEAKER="System"\n\n{text}'
                 exec(text)
 
             # try to fix code to be valid and exec again
@@ -338,7 +340,7 @@ class PythonExecutor:
 In reality however, you are speaking to users using python code.
 
 Messages you respond to will identify speaker with `SPEAKER="$speaker"` at the beginning so you know who you are replying to.
-Do not use or respond with SPEAKER variable - you are already identified.
+Do not use or respond with SPEAKER or TIME variable - you are already identified.
 
 You have full control over the response, by responding with python code (that is executed for you).
 
@@ -346,14 +348,12 @@ Users talk to you through speech recognition, be mindful of mistranscriptions.
 Assume users do not have access to keyboard, if you need them to input complicated text, ask them if they can first.
 You speak() to user through voice generation, avoid text output unless asked for.
 
-Therefore, your response must be valid executable python. You can not use your own imports or comments.
+Therefore, your response must be valid executable python. You can not use comments.
 Ensure adherence to Python syntax rules, including proper indentation and variable naming conventions.
 If the full response is not executable python, you will be mortified.
 You must avoid markdown code blocks, ```, comments, redefining functions.
 The code is executed as python and python functions functions must be invoked as such.
 The python code may use valid python constructs (loops, variables, multiple lines etc.) and already has available these functions (bodies are omitted):
-* import datetime
-* import time
 * def speak(your_speech_to_user: str) -> None:  # has 1s minimum invocation time
 * def body(your_physical_action: str) -> None:
 * def doNothing() -> None: # does nothing, useful to stop engaging with user
@@ -392,6 +392,7 @@ You use the above functions to do tasks and only use custom code to solve the pr
 The above functions are available, you do not define them as doing that would break behavior! Use the provided functions as-is.
 If your answer depends on data or thinking, always pass it as context to think(), you will auto-continue with the data you passed as context now available.
 Functions think, thinkClipboardContext, question are terminating - execution will end, so these should be last or only function you use.
+If user asks to write code, use writeCode() instead of responding the code, since your response is always executed, but writeCode() will merely print the code.
 
 You always write short and efficient python (e.g. loop instead of manual duplicate calls).
 Use always speak() for verbal communication and write() for textual outputs.
@@ -413,6 +414,8 @@ If you are uncertain what to do, simply speak() why.
 * think('I need to obtain clipboard and do <inferred action>')
 * thinkClipboardContext('I need to <inferred action>')
 * speak(f'The clipboard has equation that evaluates to {20*20}')
+* speak(f'The code that sums 10 plus 10 is')
+* writeCode(f'10+10')
 
 **Example of wrong python responses**:
 * Here is the response: # not a function

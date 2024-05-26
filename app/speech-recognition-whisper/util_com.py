@@ -327,9 +327,9 @@ class PythonExecutor:
         # print("append " + str(m), end='')
         self.ms.append(m)
         # debug
-        print(f'+------------------------------------------------', end='')
-        for m in self.ms: print(str(m).strip(), end='')
-        print(f'-------------------------------------------------', end='')
+        # print(f'+------------------------------------------------', end='')
+        # for m in self.ms: print(str(m).strip(), end='')
+        # print(f'-------------------------------------------------', end='')
 
     def prompt(self) -> str:
         return f"""

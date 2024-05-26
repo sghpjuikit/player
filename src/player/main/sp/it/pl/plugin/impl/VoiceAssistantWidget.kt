@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.utils.findIsInstanceAnd
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.core.bodyAsJs
+import sp.it.pl.core.to
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -39,6 +40,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Event
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Line
+import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.View
 import sp.it.pl.ui.ValueToggleButtonGroup
 import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.objects.icon.CheckIcon
@@ -246,14 +248,15 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            runTry {
                               val x = VT.invokeTry {
                                  val r = plugin.value?.events() ?: fail { "Voice Assistant not running" }
-                                 val rFrom =  APP.serializerJson.json.fromJsonValue<Instant?>((r / "started time")!!).orThrow
-                                 val rTo =  APP.serializerJson.json.fromJsonValue<Instant?>((r / "now")!!).orThrow
+                                 val rFrom = Instant.ofEpochMilli((r / "started time")!!.to<Double>().toLong()*1000)
+                                 val rTo = Instant.ofEpochMilli((r / "now")!!.to<Double>().toLong()*1000)
                                  val rEvents = APP.serializerJson.json.fromJsonValue<Map<String, List<EventProcessedRaw>>>((r / "events")!!).orThrow
                                  (rFrom to rTo) to rEvents.map { Line(it.key, it.value.map { it.asEvent() }) }
                               }.orThrow
-//                              this@apply.viewSpanMin.value = x.first.first
-//                              this@apply.viewSpanMax.value = x.first.second
-                              this@apply.lines setTo x.second
+                              view.value = View.between(x.first.first, x.first.second)
+                              viewSpanMin.value = x.first.first
+                              viewSpanMax.value = x.first.second
+                              lines setTo x.second
                               errorProperty.value = null
                            }.ifError {
                               errorProperty.value = if (it is java.net.ConnectException) RuntimeException("Unable to connect") else it

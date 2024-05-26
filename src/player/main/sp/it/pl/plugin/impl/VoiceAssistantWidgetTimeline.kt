@@ -55,9 +55,8 @@ class VoiceAssistantWidgetTimeline: StackPane() {
    val lines = observableList<Line>()
    val viewSpanMin = vn<Instant>(null)
    val viewSpanMax = vn<Instant>(null)
-
-   private var view = v(View())
-   private var hoverType = v(TOOLTIP)
+   val view = v(View())
+   val hoverType = v(TOOLTIP)
 
    private val canvas = canvas({ draw() }) {}
    private val gc = canvas.graphicsContext2D
@@ -106,13 +105,13 @@ class VoiceAssistantWidgetTimeline: StackPane() {
       sceneProperty() attach { if (it!=null) draw() }
       // zoom
       onEventDown(SCROLL) { e ->
-         if (e.deltaY > 0) view.setValueOf { it.zoom(2*e.x/width-1, 1*1.3) }
-         if (e.deltaY < 0) view.setValueOf { it.zoom(2*e.x/width-1, 1/1.3) }
+         if (e.deltaY > 0) view.setValueOf { it.zoom(2*e.x/width-1, 1*1.3).fitViewMinMax() }
+         if (e.deltaY < 0) view.setValueOf { it.zoom(2*e.x/width-1, 1/1.3).fitViewMinMax() }
          drawHover(e.xy, e.screenXy)
       }
       // move
       initMouseDrag(view.value, { drag -> drag.data = view.value }) { drag ->
-         view.value = drag.data.move(-(view.value.span.toNanos()/width*drag.diff.x).toLong())
+         view.value = drag.data.move(-(view.value.span.toNanos()/width*drag.diff.x).toLong()).fitViewMinMax()
       }
       // hover
       onEventDown(MOUSE_MOVED) {
@@ -276,6 +275,16 @@ class VoiceAssistantWidgetTimeline: StackPane() {
       return null
    }
 
+   private fun View.fitViewMinMax(): View {
+      val min = viewSpanMin.value
+      val max = viewSpanMax.value
+      var v = this
+      v = if (max!=null && min!=null && Duration.between(min, max)<v.span) View(Duration.between(min, max), v.end) else v
+      v = if (max!=null && v.end>max) v.move(max.toEpochNs()-v.endNs.toLong()) else v
+      v = if (min!=null && v.start<min) v.move(min.toEpochNs()-v.startNs.toLong()) else v
+      return v
+   }
+
    /** Event with ui text, start and end (supporting [Double.NEGATIVE_INFINITY], [Double.POSITIVE_INFINITY] for open interval) */
    data class Event(val text: String, val fromMs: Double, val toMs: Double)
 
@@ -283,7 +292,7 @@ class VoiceAssistantWidgetTimeline: StackPane() {
    data class Line(val name: String, val events: List<Event>)
 
    /** View of the timeline. */
-   inner class View(
+   data class View(
       val span: Duration = Duration.ofSeconds(20),
       val end: Instant = Instant.now().plusSeconds(10),
       val start: Instant = end.minus(span)
@@ -301,25 +310,15 @@ class VoiceAssistantWidgetTimeline: StackPane() {
          val spanNew = Duration.ofNanos(spanNewNs)
          val spanDiff = spanNewNs/2 - span.toNanos()/2
          val adjustedEndNs = (endNs + (((-at + 1) * spanDiff).toLong())).toLong()
-         return View(spanNew, Instant.ofEpochSecond(adjustedEndNs/1_000_000_000, adjustedEndNs%1_000_000_000)).fitMinMax()
+         return View(spanNew, Instant.ofEpochSecond(adjustedEndNs/1_000_000_000, adjustedEndNs%1_000_000_000))
       }
 
       /** Moves the view forward or backward by a given duration */
       fun move(byNs: Long): View =
-         moveImpl(byNs).fitMinMax()
-
-      /** Moves the view forward or backward by a given duration */
-      fun moveImpl(byNs: Long): View =
          View(span, end.plusNanos(byNs), start.plusNanos(byNs))
 
-      fun fitMinMax(): View {
-         val min = viewSpanMin.value
-         val max = viewSpanMax.value
-         var v = this
-             v = if (max!=null && min!=null && Duration.between(min, max)<span) View(Duration.between(min, max), end) else v
-             v = if (max!=null && v.end>max) v.moveImpl(max.toEpochNs()-v.endNs.toLong()) else v
-             v = if (min!=null && v.start<min) v.moveImpl(min.toEpochNs()-v.startNs.toLong()) else v
-         return v
+      companion object {
+         fun between(start: Instant, end: Instant) = View(Duration.ofMillis(end.toEpochMilli()-start.toEpochMilli()), end)
       }
    }
 

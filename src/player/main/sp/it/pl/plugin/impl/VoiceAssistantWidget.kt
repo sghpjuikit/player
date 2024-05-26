@@ -2,7 +2,6 @@ package sp.it.pl.plugin.impl
 
 import io.ktor.client.request.get
 import java.time.Instant
-import java.time.LocalDateTime
 import javafx.geometry.HPos
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.VPos
@@ -18,6 +17,8 @@ import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.layout.VBox
 import javafx.util.Duration
+import kotlin.Double.Companion.NEGATIVE_INFINITY
+import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.reflect.KProperty0
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.invoke
@@ -34,12 +35,12 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.WidgetTags
-import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
+import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Event
+import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Line
 import sp.it.pl.ui.ValueToggleButtonGroup
 import sp.it.pl.ui.item_node.ConfigEditor
-import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ConfigPane
@@ -54,13 +55,18 @@ import sp.it.util.async.coroutine.invokeTry
 import sp.it.util.async.coroutine.launch
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.setTo
+import sp.it.util.collections.setToOne
 import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.conf.noUi
+import sp.it.util.conf.uiNoOrder
+import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
+import sp.it.util.file.children
+import sp.it.util.file.div
+import sp.it.util.file.hasExtension
 import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsFalse
 import sp.it.util.file.json.JsNull
@@ -69,10 +75,7 @@ import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsTable
 import sp.it.util.file.json.JsTrue
-import sp.it.util.functional.Try
-import sp.it.util.functional.asIf
-import sp.it.util.functional.asIs
-import sp.it.util.functional.getOrSupply
+import sp.it.util.file.json.div
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
@@ -125,6 +128,10 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       .def(name = "Tab", info = "Type of shown output.")
    private val submit by cv(Submit.CHAT).noUi()
       .def(name = "Submit", info = "Type of input to send.")
+   private val speaker by cv("User")
+      .valuesUnsealed { listOf("User") + (VoiceAssistant.dir / "voices-verified").children().filter { it hasExtension "wav" }.map { it.nameWithoutExtension } }.noUi()
+      .uiNoOrder()
+      .def(name = "Speaker", info = "Speaker.")
 
    init {
       root.prefSize = 500.emScaled x 500.emScaled
@@ -215,10 +222,51 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                   }
                }
 
-               contentProperty() syncFrom (errorProperty map { if (it != null) contentEr else contentOk })
+               errorProperty sync { content = if (it != null) contentEr else contentOk }
+               errorProperty sync { isFitToHeight = it != null }
             }
+
+            lay += stackPane {
+               visible syncFrom mode.map { it == Out.EVENTS }
+
+               val errorProperty = vn<Throwable>(null)
+               val contentEr = stackPane {
+                  id = "hw-er"
+                  lay += label {
+                     isWrapText = true
+                     cursor = HAND
+                     textProperty() syncFrom (errorProperty map { it?.message })
+                     onEventDown(MOUSE_CLICKED, PRIMARY) { APP.ui.actionPane.show(errorProperty.value) }
+                  }
+               }
+               val contentOk = VoiceAssistantWidgetTimeline().apply {
+                  mode.sync {
+                     if (it==Out.EVENTS)
+                        launch(FX) {
+                           runTry {
+                              val x = VT.invokeTry {
+                                 val r = plugin.value?.events() ?: fail { "Voice Assistant not running" }
+                                 val rFrom =  APP.serializerJson.json.fromJsonValue<Instant?>((r / "started time")!!).orThrow
+                                 val rTo =  APP.serializerJson.json.fromJsonValue<Instant?>((r / "now")!!).orThrow
+                                 val rEvents = APP.serializerJson.json.fromJsonValue<Map<String, List<EventProcessedRaw>>>((r / "events")!!).orThrow
+                                 (rFrom to rTo) to rEvents.map { Line(it.key, it.value.map { it.asEvent() }) }
+                              }.orThrow
+//                              this@apply.viewSpanMin.value = x.first.first
+//                              this@apply.viewSpanMax.value = x.first.second
+                              this@apply.lines setTo x.second
+                              errorProperty.value = null
+                           }.ifError {
+                              errorProperty.value = if (it is java.net.ConnectException) RuntimeException("Unable to connect") else it
+                           }
+                        }
+                  }
+               }
+
+               errorProperty sync { children setToOne if (it != null) contentEr else contentOk }
+            }
+
             lay += hBox(5.emScaled, CENTER) {
-               visible syncFrom mode.map { it != Out.HW }
+               visible syncFrom mode.map { it != Out.HW && it != Out.EVENTS }
 
                lay(ALWAYS) += vBox(5.emScaled, CENTER) {
                   lay(ALWAYS) += textArea.apply {
@@ -238,6 +286,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                                  Out.INFO -> if (state!=null && state!="") appendTextSmart(it)
                                  Out.SPEAK -> if (state=="SYS" || state=="USER") appendTextSmart(it)
                                  Out.HW -> Unit
+                                 Out.EVENTS -> Unit
                               }
                            }
                         }
@@ -257,10 +306,11 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            }
 
                            run = {
-                              plugin.value.ifNotNull { submit.value.run(it, text) }
+                              plugin.value.ifNotNull { submit.value.run(it, speaker.value, text) }
                            }
                            onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) insertNewline() else run() }
                         }
+                        lay(NEVER) += ConfigEditor.create(::speaker.getDelegateConfig()).editor
                         lay(NEVER) += Icon(IconFA.SEND).onClickDo { run() }.apply {
                            mode sync { tooltip(it.runDesc) }
                         }
@@ -316,7 +366,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                launch(FX) {
                   val events = VT.invokeTry { plugin.value?.state(type, eType as String) ?: fail { "Voice Assistant not running" } }
                   APP.ui.actionPane.show(events.map {
-                     if (eType=="PROCESSED") APP.serializerJson.json.fromJsonValue<List<EventProcessedRaw>>(it).orNull()?.map { EventProcessed(it.`processed in`.seconds, it.event) } ?: it
+                     if (eType=="PROCESSED") APP.serializerJson.json.fromJsonValue<List<EventProcessedRaw>>(it).orNull()?.map { it.typed() } ?: it
                      else JsTable.of(it) ?: it
                   })
                }
@@ -341,17 +391,20 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       }
    }
 
-   private data class EventProcessedRaw(val `processed in`: Double, val event: String)
-   private data class EventProcessed(val `processed in`: Duration, val event: String)
+   private data class EventProcessed(val `processed from`: Instant?, val `processed to`: Instant?, val `processed in`: Duration, val event: String)
+   private data class EventProcessedRaw(val `processed from`: Double?, val `processed to`: Double?, val `processed in`: Double, val event: String) {
+      fun typed() = EventProcessed(`processed from`?.net { Instant.ofEpochMilli((it*1000).toLong()) }, `processed to`?.net { Instant.ofEpochMilli((it*1000).toLong()) }, `processed in`.seconds, event)
+      fun asEvent() = Event(event, `processed from`?.net { it*1000 } ?: NEGATIVE_INFINITY, `processed to`?.net { it*1000 } ?: POSITIVE_INFINITY)
+   }
    private enum class Submit(
       override val nameUi: String,
       override val infoUi: String,
-      val run: VoiceAssistant.(String) -> Unit,
+      val run: VoiceAssistant.(String, String) -> Unit,
    ): NameUi, InfoUi {
-      CHAT("Chat", "Send the text to the Voice Assestant as if user spoke it", { raw("CALL: " + it) }),
-      SPEAK("Speak", "Narrates the specified text using synthesized voice", { speak(it) }),
-      COM("Command", "Send command and execute it", { writeCom(it) }),
-      COM_PYT("Python command", "Send python command and execute it", { writeComPyt(it) }),
+      CHAT("Chat", "Send the text to the Voice Assistant as if user spoke it", { speaker, text -> writeChat(speaker, text) }),
+      SPEAK("Speak", "Narrates the specified text using synthesized voice", { _, text -> speak(text) }),
+      COM("Command", "Send command and execute it", { _, text -> writeCom(text) }),
+      COM_PYT("Python command", "Send python command and execute it", { speaker, text -> writeComPyt(speaker, text) }),
    }
    enum class Out(
       override val nameUi: String,
@@ -389,6 +442,12 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
          "Hw",
          { "" },
          "Show system state",
+         { listOf() }
+      ),
+      EVENTS(
+         "Events",
+         { "" },
+         "Show system event timeline",
          { listOf() }
       ),
    }

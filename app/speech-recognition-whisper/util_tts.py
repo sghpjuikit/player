@@ -14,6 +14,9 @@ from util_play_engine import SdActor
 from util_str import *
 from util_wrt import Writer
 
+@dataclass
+class TtsPause:
+    ms: int
 
 class Tts(Actor):
     def __init__(self, speakOn: bool, tts, write: Writer):
@@ -63,24 +66,33 @@ class Tts(Actor):
             self.queue.put((event, True, False, f))
         return f
 
+    def speakPause(self, ms: int):
+        f = Future()
+        self.queue.put((TtsPause(ms), True, False, f))
+        f
+
     def _loop(self):
         from stream2sentence import generate_sentences
             
         with self._looping():
             while not self._stop:
                 with self._loopProcessEvent() as (event, skippable, repeated, f):
-                    text = ''
-                    try:
-                        self.tts.speak(None, skippable=False)
-                        for sentence in generate_sentences(event, cleanup_text_links=True, cleanup_text_emojis=True):
-                            text = text + sentence
-                            if (len(sentence)>0): self.tts.speak(sentence, skippable=skippable)
-                        self.tts.speak(None, skippable=False)
-                        if not repeated: self.history.append((text, skippable))
-                        f.set_result(text)
-                    except Exception as e:
-                        f.set_exception(e)
-                        raise e
+                    if isinstance(event, TtsPause):
+                        self.tts.speakPause(event.ms)
+                        f.set_result(f'pause({event.ms}ms)')
+                    else:
+                        text = ''
+                        try:
+                            self.tts.speak(None, skippable=False)
+                            for sentence in generate_sentences(event, cleanup_text_links=True, cleanup_text_emojis=True):
+                                text = text + sentence
+                                if (len(sentence)>0): self.tts.speak(sentence, skippable=skippable)
+                            self.tts.speak(None, skippable=False)
+                            if not repeated: self.history.append((text, skippable))
+                            f.set_result(text)
+                        except Exception as e:
+                            f.set_exception(e)
+                            raise e
 
 
 class TtsBase(Actor):
@@ -104,8 +116,12 @@ class TtsBase(Actor):
         """
         self.queue.put((text, skippable))
 
+    def speakPause(self, ms: int):
+        self.queue.put((TtsPause(ms), False))
+
     def _get_event_text(self, e: (str, bool)) -> str | None:
         if e is None: return e
+        if isinstance(e[0], TtsPause): f'pause({e[0].ms}ms)'
         else: return e[0]
 
     def _get_next_event(self) -> (str, bool):
@@ -129,6 +145,11 @@ class TtsBase(Actor):
             # skip boundary value
             if textRaw is None:
                 self._boundary()
+                continue
+
+            if isinstance(textRaw, TtsPause):
+                self.play.playPause(textRaw.ms, True)
+                f'pause({textRaw.ms}ms)'
                 continue
 
             # skip empty value

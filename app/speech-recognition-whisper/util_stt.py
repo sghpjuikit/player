@@ -20,6 +20,7 @@ class SpeechText:
     start: datetime
     audio: AudioData
     stop: datetime
+    user: str
     text: str
 
 
@@ -28,6 +29,7 @@ class EventStt:
     start: datetime
     audio: AudioData
     stop: datetime
+    user: str
     future: Future[SpeechText]
 
 
@@ -37,8 +39,8 @@ class Stt(Actor):
         self.sample_rate: int = sample_rate
         self.onDone: Callable[SpeechText, None] = None
 
-    def __call__(self, e: Speech, auto_handle: bool = True) -> Future[str]:
-        ef = EventStt(e.start, e.audio, e.stop, Future())
+    def __call__(self, e: Speech, auto_handle: bool = True) -> Future[SpeechText]:
+        ef = EventStt(e.start, e.audio, e.stop, e.user, Future())
         self.queue.put(ef)
 
         if auto_handle:
@@ -100,7 +102,7 @@ class SttWhisper(Stt):
                         # sst
                         text = model.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
                         # complete
-                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, text))
+                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, text))
                         else: a.future.set_exception(Exception("Stopped or disabled"))
                     except Exception as e:
                         a.future.set_exception(e)
@@ -158,7 +160,7 @@ class SttNemo(Stt):
                         if self.model=="nvidia/parakeet-ctc-1.1b": text = hypothese1 if hypothese1 else None
                         if self.model=="nvidia/parakeet-ctc-0.6b": text = hypothese1 if hypothese1 else None
                         # complete
-                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, text if text is not None else ''))
+                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, text if text is not None else ''))
                         else: a.future.set_exception(Exception("Stopped or disabled"))
                     except Exception as e:
                         a.future.set_exception(e)
@@ -197,7 +199,7 @@ class SttHttp(Stt):
                         text = res.read().decode('utf-8')
                         if res.status != 200: raise Exception(text)
                         # complete
-                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, text))
+                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, text))
                         else: a.future.set_exception(Exception("Stopped or disabled"))
                     except Exception as e:
                         a.future.set_exception(e)

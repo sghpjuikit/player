@@ -43,16 +43,29 @@ class ChatIntentDetect(ChatProceed):
     @classmethod
     def normal(cls, assist_function_prompt: str, userPrompt: str, writeTokens: bool = True):
         return cls(
-            "From now on, identify user intent by returning exactly one of the following commands. " +
-            "Only respond with exactly one command in format: `command`. " +
-            "? is optional, $ is command parameter, : is default value. " +
+            "You are helpful intent detector. " +
+            "From now on, identify user intent by returning exactly one command matching the right command matcher from the list given below. " +
+            "For each user's message you construct and return single best command possible. " +
+            "Only respond with exactly one command in format: `command` (without the surrounding quotes of course). " +
+            "The resulting command will be matched against the command matchers in the list. The matchers have some rules, similar to regex, that help you infer how to construct the command. " +
+            "\n" +
+            "$ is command parameter (always resolve parameters into argument values, do so according to user input) " +
+            ": is command parameter default parameter value (use if no value available). " +
+            "| is 'or' group, i.e., all values in this group are syntactically valid, but only one is valid semantically. Always pick single best value. " +
+            "? is optional part (do not include this part in the output unless it is 'or' group, but never write '?' character). " +
+            "\n" +
             "Use '_' as word separator in $ parameter values. " +
-            "Do not write $ after resolving parameter, e.g. `$number` -> `5`. " +
-            "Do not write comment, do not give examples, do not respond in any other way than the command itself! " +
-            "If no command is likely, respond with `unidentified` " +
-            "Command example: `my command parameter1_value` " +
-            "Commands: \n" + assist_function_prompt,
-            userPrompt,
+            "Resolve all '|' groups into single value; all $ parameters, e.g. ` a|b $number` -> `a 5`." +
+            "Do not write comments, do not give examples, do not respond in any other way than the command itself! " +
+            "If no command is likely, respond with `unidentified` command. " +
+            "Command example: `my command parameter1_value`. " +
+            "For example:\n" +
+            "* command 'xxx $x_name suffix?' with user intent 'Do xxx called yyy' would resolve to 'xxx yyy'. (Notice resolved $ and removed ?)\n"+
+            "* command 'do xxx|yyy|ccc' with user intent 'Do the y thing' would resolve to 'do yyy'. (Notice resolved |)\n" +
+            "\n" +
+            "**Commands**:\n" +
+            "" + assist_function_prompt,
+            'Respond with exactly one resolved best-matching command for user intent. User intent:\n```\n' + userPrompt + "\n```",
             'RAW: ' if writeTokens else '',
             '',
             '',
@@ -72,18 +85,23 @@ class ChatIntentDetect(ChatProceed):
     def pythonFix(cls, code: str):
         a = cls(
             'You are expert python programmer.\n' +
-            'You fix code formatting, quoting, remove comments, remove markdown code blocks and your response is always executable python code.\n' +
-            'You never use comments. You never change functions names or calls.',
+            'For each user message, you fix his and respond with working python code.\n' +
+            'You fix code formatting, quoting, remove comments, invalid text, remove markdown code blocks and your response is always executable python code.\n' +
+            'You never output comments. You never change used functions names or calls, only fix them.',
             userPrompt='Respond only with the executable code ad avoid any descriptions! The code to fix is below:\n' + code,
             outStart='', outCont='', outEnd='', speakTokens=False, writeTokens=False
         )
         # few-shot promting
-        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "Here is the python code\nprint('')" })
-        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "print('')" })
         a.messages.insert(len(a.messages)-1, { "role": "user", "content": "```\npython\nfunctionCall()\n```" })
         a.messages.insert(len(a.messages)-1, { "role": "system", "content": "functionCall()" })
-        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "for i in range(1,5):\n  f('I'm here)" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "ok:\nfor i in range(1,5):\n  f('I'm here)" })
         a.messages.insert(len(a.messages)-1, { "role": "system", "content": "for i in range(1,5):\n  f('I\'m here')" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "The response is:\n\nspeak('lol')" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('lol')" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "Here is the python code:\nprint('whatever text')" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "print('whatever text')" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "Here is your response:\nx = 10+10" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "x = 10+10" })
 
         return a
 
@@ -126,7 +144,7 @@ class Llm(Actor):
         self.speak = speak
         self.api = None
         self.generating = False
-        self.commandExecutor: Callable[[str], str] = None
+        self.commandExecutor: Callable[[str, str], str] = None
 
     def __call__(self, e: ChatProceed) -> Future[str]:
         ef = EventLlm(e, Future())
@@ -134,7 +152,7 @@ class Llm(Actor):
 
         def on_done(future):
             try: (text, canceled) = future.result()
-            except Exception: (text, canceled) = (None, None, None)
+            except Exception: (text, canceled) = (None, None)
 
             # speak generated text or fallback if error
             if isinstance(e, ChatReact):

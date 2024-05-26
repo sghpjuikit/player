@@ -7,7 +7,7 @@ CHANNELS = 1
 RATE = 44100
 CHUNK = 1024
 RECORD_SECONDS = 20
-WAVE_OUTPUT_FILENAME = os.path.join('voices-verified', f"{WAVE_OUTPUT_FILENAME_RAW}.wav")
+WAVE_OUTPUT_FILENAME = os.path.join('voices-verified', f"{in_name}.wav")
 audio = pyaudio.PyAudio()
 stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
 frames = []

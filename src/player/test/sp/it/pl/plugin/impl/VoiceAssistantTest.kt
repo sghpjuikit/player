@@ -124,4 +124,24 @@ class VoiceAssistantTest: FreeSpec({
       }
    }
 
+   ::voiceCommandNoOptionalParts.name {
+      voiceCommandNoOptionalParts("turn lights group \$group_name") shouldBe "turn lights group \$group_name"
+      voiceCommandNoOptionalParts("turn? lights group? \$group_name") shouldBe "lights \$group_name"
+      voiceCommandNoOptionalParts("turn? lights group? \$group_name? on|off?") shouldBe "lights \$group_name? on|off?"
+   }
+
+   ::voiceCommandWithoutComment.name {
+      voiceCommandWithoutComment("turn lights group \$group_name") shouldBe "turn lights group \$group_name"
+      voiceCommandWithoutComment("turn lights group \$group_name //comment") shouldBe "turn lights group \$group_name"
+      voiceCommandWithoutComment("turn lights group \$group_name // comment") shouldBe "turn lights group \$group_name"
+      voiceCommandWithoutComment("turn lights group \$group_name // comment // second") shouldBe "turn lights group \$group_name"
+   }
+
+   ::voiceCommandCommentOnly.name {
+      voiceCommandCommentOnly("turn lights group \$group_name") shouldBe ""
+      voiceCommandCommentOnly("turn lights group \$group_name //comment") shouldBe "//comment"
+      voiceCommandCommentOnly("turn lights group \$group_name // comment") shouldBe "// comment"
+      voiceCommandCommentOnly("turn lights group \$group_name // comment // second") shouldBe "// comment // second"
+   }
+
 })

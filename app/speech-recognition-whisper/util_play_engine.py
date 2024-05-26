@@ -56,16 +56,14 @@ class SdActor(Actor):
                             continue
 
                         # play pause
-                        def playPause():
-                            samples_count = int(self.sentence_break * self.sample_rate)
+                        def playPause(dur):
+                            samples_count = int(dur * self.sample_rate)
                             samples = np.zeros(samples_count)
                             stream.write(np.zeros(samples_count, dtype=np.float32))
 
                         if event.type == 'p':
-                            samples_count = int(int(event.audio)/1000.0 * self.sample_rate)
-                            samples = np.zeros(samples_count)
-                            stream.write(np.zeros(samples_count, dtype=np.float32))
-                            
+                            playPause(int(event.audio)/1000.0)
+
                         # play file
                         if event.type == 'f':
                             self.volume_adjuster.speechStarted()
@@ -81,7 +79,7 @@ class SdActor(Actor):
                                 stream.write(chunk)
                                 start_pos = end_pos
                             self.volume_adjuster.speechEnded()
-                            playPause()
+                            playPause(self.sentence_break)
 
                         # play wav chunk
                         if event.type == 'b':
@@ -90,7 +88,7 @@ class SdActor(Actor):
                                 if self._skip and event.skippable: break
                                 stream.write(wav_chunk)
                             self.volume_adjuster.speechEnded()
-                            playPause()
+                            playPause(self.sentence_break)
                     except Exception as x:
                         if event.type == "b" or event.type == "f": self.volume_adjuster.speechEnded()
                         if (self._stop): pass  # daemon thread can get interrupted and stream crash mid write
@@ -101,7 +99,7 @@ class SdActor(Actor):
         self.queue.put(SdEvent('boundary', '', None, False))
 
     def playPause(self, millis: int, skippable: bool):
-        self.queue.put(SdEvent('p', '', millis, True))
+        self.queue.put(SdEvent('p', f'{millis}ms', millis, True))
         
     def playFile(self, text: str, audio: str, skippable: bool):
         self.queue.put(SdEvent('f', text, audio, skippable))

@@ -22,6 +22,7 @@ import sp.it.pl.main.IconMA
 import sp.it.pl.main.isAudio
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.action
 import sp.it.util.access.V
@@ -61,6 +62,8 @@ import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
+import sp.it.util.dev.printIt
+import sp.it.util.dev.printStacktrace
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.json.JsObject
@@ -97,7 +100,6 @@ import sp.it.util.units.seconds
 
 /** Provides speech recognition and voice control capabilities. Uses whisper AI launched as python program. */
 class VoiceAssistant: PluginBase() {
-   internal val dir = APP.location / "speech-recognition-whisper"
    private val onClose = Disposer()
    private var setup: Fut<Process>? = null
    private fun setup(): Fut<Process> {
@@ -232,7 +234,11 @@ class VoiceAssistant: PluginBase() {
    /** [handlers] help text */
    private val handlersConf by cv("") {
          val t = v(it)
-         handlers.onChangeAndNow { t.value = handlers.joinToString("\n") { "${it.name} -> ${it.commandUi}" } }
+         handlers.onChangeAndNow {
+            t.value = handlers.joinToString("\n") {
+               "${it.name} -> ${it.commandUi}" + (if (it is SpeakHandlerGroup) "\n"+it.commands.joinToString("\n") { "   ${it.name} -> ${it.commandUi}" } else "")
+            }
+         }
          t
       }
       .noPersist().readOnly().multiline(20)
@@ -407,7 +413,7 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Llm engine > openai > model", info = "The llm model of the OpenAI or OpenAI-compatible server. Server may ignore this.")
 
    /** System prompt telling llm to assume role, or exhibit behavior */
-   val llmChatSysPrompt by cv("You are helpful voice assistant. You are voiced by tts, be extremly short.").multiline(5).nonBlank()
+   val llmChatSysPrompt by cv("You are helpful voice assistant. You are voiced by tts, be extremly short.").multiline(10).nonBlank()
       .def(name = "Llm chat > system prompt", info = "System prompt telling llm to assume role, or exhibit behavior")
 
    /** Maximum number of tokens in the reply. Further tokens will be cut off (by llm) */
@@ -516,8 +522,8 @@ class VoiceAssistant: PluginBase() {
    private fun handleInput(text: String, state: String) {
       when (state) {
          "" -> Unit
-         "ERR" -> Unit
          "RAW" -> Unit
+         "ERR" -> Unit
          "USER-RAW" -> launch(FX) { confirm(text) }
          "USER" -> launch(FX) { confirm(text) ?: handleSpeech(text, user = true) }
          "SYS" -> Unit
@@ -525,26 +531,30 @@ class VoiceAssistant: PluginBase() {
       }
    }
 
-   private suspend fun handleSpeech(text: String, user: Boolean = false, command: Boolean = false, orDetectIntent: Boolean = false, textOriginal: String = "") {
+   private suspend fun handleSpeech(text: String, user: Boolean = false, command: Boolean = false, orDetectIntent: Boolean = false) {
       if (!isRunning) return
-      if (user) speakingTextW.value = text
+      var speaker = text.substringBefore(":")
+      var textSanitized = text.substringAfter(":").replace("_", " ").sanitize(sttBlacklistWords_)
+      if (user) speakingTextW.value = textSanitized
       if (!command) return
 
-      var textSanitized = text.removePrefix("COM ").removeSuffix(" COM").replace("_", " ").sanitize(sttBlacklistWords_)
       var handlersViable = handlers.asSequence().filter { it.type==SpeakHandler.Type.KOTLN || !usePythonCommands.value }
       var (c, result) = handlersViable.firstNotNullOfOrNull { SpeakContext(it, this@VoiceAssistant)(textSanitized)?.let { r -> it to r } } ?: (null to null)
-      logger.info { "Speech ${if (orDetectIntent) "event" else "intent"} handled by command `${c?.name}`, request=`${textSanitized}`" }
+      logger.info { "Speech ${if (orDetectIntent) "event" else "intent"} handled by command `${c?.name}`, request=`${speaker}:${textSanitized}`" }
       if (result==null) {
          if (!orDetectIntent)
-            if (usePythonCommands.value) writeComPytInt(textOriginal)
+            if (usePythonCommands.value) writeComPytInt(speaker, textSanitized)
             else speak("Unrecognized command: $textSanitized")
          else {
-            intent(voiceCommandsPrompt(), textSanitized).ifError {
-               logger.error(it) { "Failed to understand command $textSanitized" }
-               speak("Recognized command failed with error: ${it.message ?: ""}")
-            }.ifOk {
-               handleSpeech(it, command = true, orDetectIntent = false, textOriginal = text)
-            }
+            if (usePythonCommands.value)
+               writeComPytInt(speaker, textSanitized)
+            else
+               intent(voiceCommandsPrompt(), textSanitized).ifError {
+                  logger.error(it) { "Failed to understand command $textSanitized" }
+                  speak("Recognized command failed with error: ${it.message ?: ""}")
+               }.ifOk {
+                  handleSpeech(speaker + ":" + it, command = true, orDetectIntent = false)
+               }
          }
       } else
          result.getAny().ifNotNull(::speak)
@@ -563,15 +573,16 @@ class VoiceAssistant: PluginBase() {
       VT.invokeTry {
          val url = httpUrl.value.net { "$it/intent"}
          APP.http.client.post(url) { bodyJs("functions" to functions, "userPrompt" to userPrompt) }.bodyAsText()
+            .replace("_", " ").sanitize(sttBlacklistWords_)
       }
 
    fun write(text: String): Unit = writing(setup to text)
    
-   fun writeCom(command: String): Unit = writing(setup to "COM: ${command.encodeBase64()}")
+   fun writeCom(command: String): Unit = write("COM: ${command.encodeBase64()}")
 
-   fun writeComPyt(command: String): Unit = writing(setup to "COM-PYT: ${command.encodeBase64()}")
+   fun writeComPyt(speaker: String, command: String): Unit = write("COM-PYT: ${speaker}:${command.encodeBase64()}")
 
-   fun writeComPytInt(command: String): Unit = writing(setup to "COM-PYT-INT: ${command.encodeBase64()}")
+   fun writeComPytInt(speaker: String, command: String): Unit = write("COM-PYT-INT: ${speaker}:${command.encodeBase64()}")
 
    @IsAction(name = "Speak text", info = "Identical to \"Narrate text\"")
    fun synthesize() = speak()
@@ -584,13 +595,11 @@ class VoiceAssistant: PluginBase() {
    fun speak(text: String) = write("SAY: ${text.encodeBase64()}")
 
    @IsAction(name = "Write chat", info = "Writes to voice assistant chat")
-   fun chat() = action<String>("Write chat", "Writes to voice assistant chat", IconMA.CHAT, BLOCK) { chat(it) }.apply {
+   fun chat() = action<String>("Write chat", "Writes to voice assistant chat", IconMA.CHAT, BLOCK) { writeChat("User", it) }.apply {
       constraintsN += listOf(Multiline, MultilineRows(10), RepeatableAction)
    }.invokeWithForm()
 
-   fun chat(text: String) = write("CHAT: ${text.encodeBase64()}")
-
-   fun raw(text: String) = write(text)
+   fun writeChat(speaker: String, text: String) = write("CHAT: ${speaker}:${text.encodeBase64()}")
 
    @Throws(Throwable::class)
    suspend fun speakEvent(eventToReactTo: LlmString, fallback: String): Unit =
@@ -602,6 +611,12 @@ class VoiceAssistant: PluginBase() {
    suspend fun state(actorType: String, eventType: String): JsValue =
       VT {
          APP.http.client.get("${httpUrl.value}/actor-events?actor=${actorType}&type=${eventType}").bodyAsJs()
+      }
+
+   @Throws(Throwable::class)
+   suspend fun events(): JsValue =
+      VT {
+         APP.http.client.get("${httpUrl.value}/actor-events-all").bodyAsJs()
       }
 
    enum class TtsEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
@@ -639,6 +654,10 @@ class VoiceAssistant: PluginBase() {
       /** @return copy with [intent], i.e., `copy(intent = false)` */
       fun withIntent(): SpeakContext = copy(intent = false)
 
+      fun withCommand(commandUi: String): SpeakContext = copy(handler = SpeakHandler(handler.type, handler.name, commandUi, { null }), intent = true)
+
+      fun withCommand(handler: SpeakHandler): SpeakContext = copy(handler = handler, intent = true)
+
       /** @return whether handler matches specified text (with non-empty parameter values), i.e., `handler.regex.matches(text)` */
       fun matches(text: String): Boolean = handler.regex.matches(text) && args(text).none { it.isBlank() }
 
@@ -670,7 +689,8 @@ class VoiceAssistant: PluginBase() {
          VT {
             runTry {
                val url = plugin.httpUrl.value.net { "$it/intent"}
-               val command = APP.http.client.post(url) { bodyJs("functions" to functions, "userPrompt" to userPrompt) }.bodyAsText().sanitize(this@SpeakContext.plugin.sttBlacklistWords_)
+               val command = APP.http.client.post(url) { bodyJs("functions" to functions, "userPrompt" to userPrompt) }.bodyAsText()
+                  .replace("_", " ").sanitize(this@SpeakContext.plugin.sttBlacklistWords_)
                FX {
                   withIntent()(command, action)
                }
@@ -684,12 +704,16 @@ class VoiceAssistant: PluginBase() {
    /**
     * Speech event handler. In ui shown as `"$name -> $commandUi"`.
     * @param action action that runs on FX thread, takes command, returns Try (with text to speak or null if none) or null if no match. */
-   data class SpeakHandler(val type: Type, val name: String, val commandUi: String, val action: suspend SpeakContext.(String) -> Try<String?, String?>?) {
+   open class SpeakHandler(val type: Type, val name: String, val commandUi: String, val action: suspend SpeakContext.(String) -> Try<String?, String?>?) {
       /** [commandUi] turned into regex */
       val regex by lazy { voiceCommandRegex(commandUi) }
 
       enum class Type { PYTHN, KOTLN, DEFER, ALIAS }
    }
+
+   open class SpeakHandlerGroup(
+      type: Type, name: String, commandUi: String, val commands: List<SpeakHandler>, action: suspend SpeakContext.(String) -> Try<String?, String?>?
+   ): SpeakHandler(type, name, commandUi, action)
 
    /**
     * Speech event confirmer. In ui shown as `"$name -> $commandUi"`
@@ -705,6 +729,8 @@ class VoiceAssistant: PluginBase() {
       override val isSupported = true
       override val isSingleton = true
       override val isEnabledByDefault = false
+
+      val dir by lazy { APP.location / "speech-recognition-whisper" }
 
       val speechRecognitionWidgetFactory by lazy { WidgetFactory("VoiceAssistant", VoiceAssistantWidget::class, APP.location.widgets/"VoiceAssistant") }
 

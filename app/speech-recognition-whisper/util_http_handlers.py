@@ -1,5 +1,6 @@
 from imports import *
 import json
+import time
 from datetime import datetime
 from typing import List
 from util_wrt import Writer
@@ -10,7 +11,7 @@ from util_actor import Actor
 from util_http import HttpHandler
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from speech_recognition.audio import AudioData
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 
 class HttpHandlerState(HttpHandler):
@@ -49,7 +50,7 @@ class HttpHandlerStateActorEvents(HttpHandler):
 
     def __call__(self, req: BaseHTTPRequestHandler):
         try:
-            query_params = parse_qs(urlparse(req.path).query)
+            query_params = urlparse(req.path).query
             query_params.get('actor', [''])[0]
             actor_param = query_params.get('actor', [''])[0]
             type_param = query_params.get('type', [''])[0]
@@ -59,7 +60,7 @@ class HttpHandlerStateActorEvents(HttpHandler):
                     if type_param == 'PROCESSING':
                         state = None if actor.processing_event is None else [ actor._get_event_text(actor.processing_event) ]
                     if type_param == 'PROCESSED':
-                        state = [{"event": e, "processed in": t} for e, t in zip(actor.events_processed, actor.processing_times)]
+                        state = [{"event": e, "processed from": t1, "processed to": t2, "processed in": t3} for e, t1, t2, t3 in zip(actor.events_processed, actor.processing_times_start, actor.processing_times_stop, actor.processing_times)]
                     if type_param == 'QUEUED':
                         state = list(map(actor._get_event_text, actor.queued()))
 
@@ -72,6 +73,31 @@ class HttpHandlerStateActorEvents(HttpHandler):
             print_exc()
             req.send_error(500, f"{e}")
 
+class HttpHandlerStateActorEventsAll(HttpHandler):
+    def __init__(self, actors: List[Actor]):
+        super().__init__("GET", "/actor-events-all")
+        self.actors = actors
+
+    def __call__(self, req: BaseHTTPRequestHandler):
+        try:
+            state = {}
+            state["started time"] = min(map(lambda a: a.start_time, self.actors))
+            state["now"] = time.time()
+            state["events"] = {}
+
+            for actor in self.actors:
+                events = list(zip(actor.events_processed, actor.processing_times_start, actor.processing_times_stop, actor.processing_times))
+                if actor.processing_event is not None: events.append((actor._get_event_text(actor.processing_event), actor.processing_start, None, time.time()-actor.processing_start))
+                state["events"][actor.group] = [{"event": e, "processed from": t1, "processed to": t2, "processed in": t3} for e, t1, t2, t3 in events]
+
+            data = json.dumps(state).encode('utf-8')
+            req.send_response(200)
+            req.send_header('Content-type', 'application/json')
+            req.end_headers()
+            req.wfile.write(data)
+        except Exception as e:
+            print_exc()
+            req.send_error(500, f"{e}")
 
 @dataclass
 class HttpHandlerIntentData:
@@ -127,7 +153,7 @@ class HttpHandlerStt(HttpHandler):
             sample_rate = int.from_bytes(body[:4], 'little')
             sample_width = int.from_bytes(body[4:6], 'little')
             audio_data = body[6:]
-            f = self.stt(Speech(datetime.now(), AudioData(audio_data, sample_rate, sample_width), datetime.now()), False)
+            f = self.stt(Speech(datetime.now(), AudioData(audio_data, sample_rate, sample_width), datetime.now(), 'ignored'), False)
             text = f.result().text
             text = text.encode('utf-8')
             req.send_response(200)
@@ -155,19 +181,19 @@ class HttpHandlerTtsReact(HttpHandler):
         if content_length is None: req.send_error(400, 'Invalid input')
         if content_length is None: return
 
-        content_length = int(req.headers['Content-Length'])
-        body = req.rfile.read(content_length)
-        body = body.decode('utf-8')
-        body = json.loads(body)
-        body = HttpHandlerTtsReactData(**body)
-
         try:
+            content_length = int(req.headers['Content-Length'])
+            body = req.rfile.read(content_length)
+            body = body.decode('utf-8')
+            body = json.loads(body)
+            body = HttpHandlerTtsReactData(**body)
+
             f = self.llm(ChatReact(self.sysPrompt, body.event_to_react_to, body.fallback).http())
-            _ = f.result()
+            t, cancelled = f.result()
             req.send_response(200)
             req.send_header('Content-type', 'text/plain')
             req.end_headers()
-            req.wfile.write('')
+            req.wfile.write(t.encode('utf-8'))
         except Exception as e:
             print_exc()
             req.send_error(500, f"{e}")

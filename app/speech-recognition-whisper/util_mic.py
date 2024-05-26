@@ -37,13 +37,19 @@ def get_microphone_index_by_name(name):
     p.terminate()
     return device_index
 
-OnSpeechStart = Callable[[datetime], None]
+@dataclass
+class SpeechStart:
+    start: datetime
+    user: str
 
 @dataclass
 class Speech:
     start: datetime
     audio: AudioData
     stop: datetime
+    user: str
+
+OnSpeechStart = Callable[[SpeechStart], None]
 
 OnSpeechEnd = Callable[[Speech], None]
 
@@ -79,9 +85,18 @@ class Mic(Actor):
     def set_pause_threshold_talk(self):
         self.pause_threshold = 2.0
 
+    def _get_event_text(self, e) -> str | None:
+        return f'{e}'
+
     def _loop(self):
         self.speaker_diar = self.speakerDiarLoader()
         self._loaded = True
+
+        import time
+        self.processing_start = time.time()
+        self.processing_event = "Microphone audio streaming..."
+        self.processing = True
+
         while not self._stop:
 
             # reconnect microphone
@@ -164,6 +179,11 @@ class Mic(Actor):
                 print_exc()
                 pass
 
+        self.processing_event = None
+        self.processing = False
+        self.processing_start = None
+
+
     # This class is derived work of Recognizer class from speech_recognition,
     # which is under BSD 3-Clause "New" or "Revised" License (https://github.com/Uberi/speech_recognition/blob/master/LICENSE.txt)
     # Copyright (c) 2014-2017, Anthony Zhang <azhang9@gmail.com>
@@ -201,6 +221,7 @@ class Mic(Actor):
         isEnoughEnergyAndSpeech = False
         isEnoughEnergyAndCorrectSpeech = False
         speechStart = None
+        user = None
         while True:
             frames = deque()
             isEnoughEnergyAndSpeech = False
@@ -255,10 +276,11 @@ class Mic(Actor):
                 if isEnoughEnergyAndSpeech_buffer and phrase_count >= phrase_buffer_count:
                     if not isEnoughEnergyAndCorrectSpeechEvaluated:
                         isEnoughEnergyAndCorrectSpeechEvaluated = True
-                        isEnoughEnergyAndCorrectSpeech = self.speaker_diar.isCorrectSpeaker(AudioData(b"".join(frames), self.sample_rate, source.SAMPLE_WIDTH))
+                        user = self.speaker_diar.isCorrectSpeaker(AudioData(b"".join(frames), self.sample_rate, source.SAMPLE_WIDTH))
+                        isEnoughEnergyAndCorrectSpeech = user is not None
                         if isEnoughEnergyAndCorrectSpeech:
                             speechStart = datetime.now()
-                            self.onSpeechStart(speechStart) # invoke speech start handler
+                            self.onSpeechStart(SpeechStart(speechStart, user)) # invoke speech start handler
 
                 # check if speaking has stopped for longer than the pause threshold on the audio input
                 if isEnoughEnergyAndSpeech_buffer: pause_count = 1
@@ -273,7 +295,7 @@ class Mic(Actor):
         for i in range(pause_count - non_speaking_buffer_count): frames.pop()  # remove extra non-speaking frames at the end
         frame_data = b"".join(frames)
 
-        if isEnoughEnergyAndCorrectSpeech: return Speech(speechStart, AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH), datetime.now())
+        if isEnoughEnergyAndCorrectSpeech: return Speech(speechStart, AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH), datetime.now(), user)
         else: return None
 
     def vad(self, buffer) -> bool:
@@ -287,8 +309,8 @@ class MicVoice:
     def __repr__(self): return f'{self.name}'
 
 class MicVoiceDetectNone:
-    def isCorrectSpeaker(self, audio_data) -> bool:
-        return True
+    def isCorrectSpeaker(self, audio_data) -> str | None:
+        return "User"
 
 class MicVoiceDetectNvidia:
     def __init__(self, speaker_treshold: float, verbose: bool):

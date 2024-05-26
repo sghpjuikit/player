@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
-- Update Kotlin to 2.0.0-Beta2
+- Update Kotlin to 2.0.0
 - Update dependencies
 - Implement **Weather** widget forecast reactive layout
 - Implement **Voice assistant** widget info to display voice commands
@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **App Scheduler** widget - UI for scheduled tasks
 - Implement **Voice assistant** http APIs
 - Implement **Voice assistant** UX
-- Implement **Voice assistant** asynchronous voice command support 
+- Implement **Voice assistant** asynchronous/suspending voice command support 
 - Implement **Voice assistant** voice command voice confirmation
 - Implement **Voice assistant** voice command programmatic intent detection 
 - Implement **Voice assistant** voice command nesting 
@@ -35,8 +35,9 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** line rewrite support (shows progress bars properly)
 - Implement **Voice assistant** multiple wake words support & better wake word handling
 - Implement **Voice assistant** `TtsCoqui` better text cleanup & voice loading speed
-- Implement **Voice assistant** speaker diarization
+- Implement **Voice assistant** speaker identification/diarization/registration/reaction
 - Implement **Voice assistant** python commands
+- Implement **Voice assistant** automatic history reset (5min)
 - Implement current song voice command
 - Implement log level highlighting
 - Implement **GitProjects** faster and better file sorting
@@ -46,9 +47,14 @@ All notable changes to this project will be documented in this file. Format base
 - Implement markdown support for widget/plugin descriptions
 - Implement better UI for widget features in widget management settings
 - Implement better reminder UX
+- Implement `Min`/`Max`/`Between` constraints for big integer/decimal
+- Implement dock not showing on window mouse hover when mouse movement (uses mouse speed monitoring)
+- Implement warn notification and use for voice confirmation
 - Improve shortcut pane layout
 - Improve nullability inference for window properties in settings
 - Improve notification & song info padding
+- Improve window UX (forbid resizing dock/slide window if hidden)
+- Improve `Thumbnail` animation API
 - Fix **Voice assistant** plugin not waking up from hibernate properly
 - Fix **Voice assistant** python process error logging twice
 - Fix **Voice assistant** some settings not taking effect
@@ -76,17 +82,24 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `DatePickerContent` layout
 - Fix `DatePickerContent` layout alignment with `TimePickerContent`
 - Fix flowPane, tilePane, gridPane vGap, hGap from css not respected
+- Fix minor code issues, TODOs and so on
 
 ### Voice Assistant
 Voice assistant has received a lot of updates to make it more usable and productive.
 
 Documentation has been updated, see [speech-recognition-whisper](app/speech-recognition-whisper/README.md).
+**Llama 3** model is being recommended now. 
 
+#### Http
 The assistant has new http endpoints:
 - to monitor state of actors, including processed/processing/queued events and so on
 - to do intent detection by 3rd parties (this allows more complex and usable voice commands, see below)
 - to do stt (this allows clients to offload all AI computation to other system)
+
+It is now possible to fully run the assistant on low-performance devices by running another instance on different machine
+and connect the two instances over http.
  
+#### Commands
 The commands are now implicitly asynchronous, which makes it easy to call APIs or other complicated logic.
 The commands now have methods to allow multi-step commands or programmatic intent detection.
 This allows arbitrary command complexity, nesting, chaining and more, while programmaticaly guiding the AI
@@ -98,36 +111,22 @@ For example, instead of assistant complaining about invalid parameter, it can no
 or run additional inference only for the particular parameter or set of values of the inferred command and then,
 if still not sufficient, give offer user possible guidance, such as listing available values for the command.
 
-E.g., it would be possible to program command with the following interaction:
-```
-USER: Change settings
-(because user did omit the setting, system is programmed to ask for it)
-ASSISTANT: Which setting do you want to change?
-  USER: I dont know what it is called
-  (the system may be programmed to offer to list settings)
-  ASSISTANT1: Do you want me to list available settings?
-  USER: Yes, but only those related to voice
-  (the response can be programmed to run additional inference (with all available settngs as input) and let LLM respond)
-  ASSISTANT2: The settings are setting1, setting2
-USER: setting1
-ASSISTANT: which value do you want to set
-USER value1
-ASSISTANT: Done
-```
+The UI has been simplified and made more intuitive/powerful.
 
-#### Python commands
-It is possible to make LLM respond in python, which makes it use commands on its own.
-This makes it a lot more powerful.
-More work needs to go into this feature, to make simple command matching avoid python responses and increase chance of match.
+#### Python responses
+The responses can now be fully executable programs, which gives the LLM plentyful ways to respond depending on context.
+This includes history, clipboard, speaking, and other things.
+Lots of new commands have been added, including `body()` to simulate physical responses or `emote()` which shows an
+(animated) image of LLM's choosing (from user defined image sets and emotion sets). [See](/app/speech-recognition-whisper/emotes/README.md)
 
 #### Chat
 Chat mode has been reduced to assistant reacting to user without speaking assistant's name.
-The history has been enabled to entire user-assistant interaction.
-The chat however only works if python commands are enabled.
-More work needs to go into this feature, to work without python commands.
+The history has been generalized to entire user-assistant interaction, i.e., chat mode is basically always on.
+The chat mode however only works if python commands are enabled.
 
 #### Delay Action 
 User can now avoid speaking assistant name during short period after the name was already spoken.
+This also works if system asks user a question and expects immediate answer.
 ```
 USR: System
 SYS: Yes
@@ -135,15 +134,58 @@ USE: command without repeating system name
 ```
 
 #### Speaker diarization
-Assistant can now identify speaker and only react to one of the verified voices.
-Registering verified voices has no UI right, now. [See](/app/speech-recognition-whisper/README.md#voice-detection---speaker-detection)
+Assistant can now identify speaker and only react to one of the verified voices. It now ignores its own voice.
+Registering verified voices has little UI right now, [see](/app/speech-recognition-whisper/README.md#voice-detection---speaker-detection)
+The speaker is no part of llm message, so assistant now reacts to different voices differently.
+This can be achieved by giving the voices personas (using system prompt).
+
+#### Monitoring
+There is now **Hw** tab that displays real-time state of all actors. Actors mostly process/run AI events.
+It is possible to see the current actor implementation, state, procesed events, queue and so on.
+Additionally, **Events** tab shows timeline of all events of all actors visually on time axis.
+Together, these features give insight into what is/has been happening with the system as well as monitor performance.
+
+#### Reliability
+The interaction with LLm now uses more sophisticated multi-step inferrence.
+Commands are first matched with regex-like patterns. Otherwise llm may attempt to infer best command from user's speech.
+Some commands are 'grouped', e.g., to control music, llm generates prompt what to do for itself and only then generates the command.
+Groups are programmed same as ordinary commands and when invoked do subcommand matching.
+Some commands use programmatic nesting for customized multi-step inferrence. 
+This can be achieved programmatically in code of specific command, but also automatically.
+There is also automatic multi-step inferrence. For example, llm chooses emote by generating emotion and then picking best available emote.
+Or if python-based responses are enabled, in case the python code is invalid, llm is used to attempt to fix the code.
+The main prompt of the system now has no notion of commands - all function calling on python side is done using python functions,
+that hide the real commands. This makes the llm work much better as python is all the llm needs to understand.
+
+#### Command prompts and matchers
+The command matchers are regex-like text supporting comments.
+These are both executable as text predicates and usable as part of prompt to tell llm the command is available.
+Some of the matchers for prompts are hardcoded and more work is required to tell all available commands automatically,
+particularly for python-based responses.
+
+#### Interactivity
+The assistant responses (python-based), now give the llm all kinds of powers.
+Besides the commands, like music playback control, phillis hue light control and so on, the llm may choose functions such as:
+- speak() to speak to user (this means not all out put is speech, llm decides by itself)
+- wait() to pause for some reason (this gives llm power to behave across time, speak naturally and so on)
+- body() to pretend to do a physical action (for roleplay)
+- doNothing() to do nothing
+- showEmote() to show (possibly animated) emote of its choosing from those made available by user [see](/app/speech-recognition-whisper/emotes/README.md)
+- showWarning()
+- question() to ask user for additional input.
 
 ### Markdown
 Markdown renderer has been optimized.
 The markdown styling has been improved as well, particularly to be consistent in vertical layout.
-The headings now have visual GitHub-like anchors.
-Now, the `MdNode` can be used seamlessly to render text-based UIs.
+The headings now have visual **GitHub**-like anchors.
+Now, the `MdNode` can be (and is) used seamlessly to render text-based UIs.
 
+### ActionPane custom ui support
+
+`ActionPane` now has completely simplified `show()` API and allows full ui customization after action completes with `UiResult` and `UiInput`.
+This allows nesting icon options as well as computing options dynamically and lazily. Powerful and simple.
+For now only used for opening value with Opener widgets.
+In the future, any Feature will have registered action with compatible widgets as sub options.
 
 ## [8.0.0] 2023 10 27
 - Implement Windows taskbar icons

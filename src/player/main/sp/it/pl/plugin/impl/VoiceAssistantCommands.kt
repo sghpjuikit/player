@@ -71,12 +71,14 @@ internal fun VoiceAssistant.voiceCommands(): List<SpeakHandler> {
       sh(KOTLN,              "Current time", "what time is it")                                                        { voiceCommandCurrentTime(it) },
       sh(KOTLN,              "Current date", "what date is it")                                                        { voiceCommandCurrentDate(it) },
       sh(KOTLN,              "Current song", "what song|playback is active")                                           { voiceCommandCurrentSong(it) },
-      sh(KOTLN,           "Resume playback", "play|start|resume|continue music|playback")                              { if (matches(it)) { APP.audio.resume(); Ok(null) } else null },
-      sh(KOTLN,            "Pause playback", "stop|end|pause music|playback")                                          { if (matches(it)) { APP.audio.pause(); Ok(null) } else null },
-      sh(KOTLN,        "Play previous song", "play previous song")                                                     { if (matches(it)) { APP.audio.playlists.playPreviousItem(); Ok(null) } else null },
-      sh(KOTLN,            "Play next song", "play next song")                                                         { if (matches(it)) { APP.audio.playlists.playNextItem(); Ok(null) } else null },
-      sh(KOTLN,           "Play first song", "play first song")                                                        { if (matches(it)) { APP.audio.playlists.playFirstItem(); Ok(null) } else null },
-      sh(KOTLN,            "Play last song", "play last song")                                                         { if (matches(it)) { APP.audio.playlists.playLastItem(); Ok(null) } else null },
+      sh(KOTLN,           "Resume playback", "play|start|resume|continue music|playback")                              { voiceCommandPlaybackResume(it) },
+      sh(KOTLN,            "Pause playback", "stop|end|pause music|playback")                                          { voiceCommandPlaybackPause(it) },
+      sh(KOTLN,        "Play previous song", "play previous song")                                                     { voiceCommandPlaybackPlayPreviousSong(it) },
+      sh(KOTLN,            "Play next song", "play next song")                                                         { voiceCommandPlaybackPlayNextSong(it) },
+      sh(KOTLN,           "Play first song", "play first song")                                                        { voiceCommandPlaybackPlayFirstSong(it) },
+      sh(KOTLN,            "Play last song", "play last song")                                                         { voiceCommandPlaybackPlayLastSong(it) },
+      sh(KOTLN,               "Play volume", "play volume \$number_zero_one")                                          { voiceCommandPlaybackVolume(it) },
+      sh(KOTLN,           "Adjust playback", "playback \$text")                                                        { voiceCommandPlayback(it) },
       sh(KOTLN, "Llm answer from clipboard", "generate|answer|write from? clipboard \$text")                           { voiceCommandGenerateClipboard(it) },
       sh(KOTLN,                "Llm answer", "generate|answer|write \$text")                                           { voiceCommandGenerate(it) },
       sh(DEFER,                     "Speak", "speak|say \$text")                                                       { voiceCommandSpeakText(it) },
@@ -106,35 +108,37 @@ internal fun VoiceAssistant.voiceCommandsPrompt(): String =
       "" +
       // normal commands
       """
-      * list commands
-      * restart assistant|yourself
-      * start|restart|stop conversation
-      * shut_down|restart|hibernate|sleep|lock|log_off system|pc|computer|os
-      * list available voices
-      * change voice Δvoice // resolve to one from {', '.join(voices)}
-      * open Δwidget_name  // various tasks can be acomplished using appropriate widget
-      * play music
-      * stop music
-      * play previous|next|first|last song
-      * what song|playback is active
-      * what time is it
-      * what date is it
-      * generate from? clipboard
-      * lights on|off // turns all lights on/off
-      * lights group Δgroup_name on|off?  // room is usually a group
-      * list light groups
-      * light bulb Δbulb_name on|off?
-      * list light bulbs
-      * lights scene Δscene_name  // sets light scene, scene is usually a mood, user must say 'scene' word
-      * list light scenes
+      * 'list commands'
+      * 'restart assistant|yourself'
+      * 'start|restart|stop conversation'
+      * 'shut_down|restart|hibernate|sleep|lock|log_off system|pc|computer|os'
+      * 'list available voices'
+      * 'change voice Δvoice' // resolve to one from {', '.join(voices)}
+      * 'open Δwidget_name'  // various tasks can be acomplished using appropriate widget
+      * 'play music'
+      * 'stop music'
+      * 'play previous|next|first|last song'
+      * 'play volume Δvalue'  // sets playback volume, values are double between <0-1>
+      * 'play volume +|-'  // increases/decreases playback volume as many times as many +|- is used (use <1-10>)
+      * 'what song|playback is active'
+      * 'what time is it'
+      * 'what date is it'
+      * 'generate from? clipboard'
+      * 'lights on|off' // turns all lights on/off
+      * 'lights group Δgroup_name on|off?'  // room is usually a group
+      * 'list light groups'
+      * 'light bulb Δbulb_name on|off?'
+      * 'list light bulbs'
+      * 'lights scene Δscene_name'  // sets light scene, scene is usually a mood, user must say 'scene' word
+      * 'list light scenes'
       """ +
       // aliases
-      handlers.filter { it.type==ALIAS }.map { "* " + it.commandUi }.joinToString("") +
+      handlers.filter { it.type==ALIAS }.map { "* '" + it.commandUi + "'" }.joinToString("") +
       // commands that steal python-code precendence (and must be disabled)
       "" +
       // fallback
       """
-      * unidentified // no other command is highly probable
+      * 'unidentified' // no other command is highly probable
       """
    ).replace('Δ', '$').lineSequence().filter { it.isNotBlank() }.joinToString("\n")
 
@@ -145,16 +149,76 @@ suspend fun SpeakContext.voiceCommandShowEmote(text: String): ComMatch =
          APP.plugins.use<Notifier> {
             val n = Thumbnail(400.0, 400.0).apply {
                pane.isMouseTransparent = true
-               loadFile(plugin.dir / text.substringAfter("show emote ").replace(" ", "_"))
+               loadFile(VoiceAssistant.dir / text.substringAfter("show emote ").replace(" ", "_"))
             }
             val not = it.showNotification("Emote", n.pane, true, Pos.TOP_RIGHT)
-            delay(200.millis)
+            delay(1.seconds)
             n.animationPlay()
             n::animationOnDone.delayTill()
-            delay(200.millis)
+            delay(1.seconds)
             not.hide()
          }
       Ok(null)
+   } else
+      null
+
+suspend fun SpeakContext.voiceCommandPlayback(text: String): ComMatch =
+   if (matches(text)) {
+      val p = """
+         * 'play|start|resume|continue music' // stops or ends or pauses music playback
+         * 'stop|end|pause music' // stops or ends or pauses music playback
+         * 'play previous|next|first|last song' // changes playback to previous|next|first|last song
+         * 'play volume Δvalue'  // sets playback volume, values are double between <0-1>
+         * 'play volume +|-'  // increases/decreases playback volume as many times as many +|- is used (use <1-10>), e.g. 'play volume ++++'
+      """.trimIndent().replace('Δ', '$')
+      intent(text, p, text.substringAfter("playback ")) {
+         null
+            ?: with(withCommand("play|start|resume|continue|unpause music|playback")) { voiceCommandPlaybackResume(it) }
+            ?: with(withCommand("stop|end|pause music|playback"                    )) { voiceCommandPlaybackPause(it) }
+            ?: with(withCommand("play previous song"                               )) { voiceCommandPlaybackPlayPreviousSong(it) }
+            ?: with(withCommand("play next song"                                   )) { voiceCommandPlaybackPlayNextSong(it) }
+            ?: with(withCommand("play first song"                                  )) { voiceCommandPlaybackPlayFirstSong(it) }
+            ?: with(withCommand("play last song"                                   )) { voiceCommandPlaybackPlayLastSong(it) }
+            ?: with(withCommand("play volume \$number_zero_one"                    )) { voiceCommandPlaybackVolume(it) }
+            ?: Error("Unknown playback command '${it}'")
+      }
+   } else
+      null
+
+fun SpeakContext.voiceCommandPlaybackResume(text: String) =
+   if (matches(text)) { APP.audio.resume(); Ok(null) }
+   else null
+
+fun SpeakContext.voiceCommandPlaybackPause(text: String) =
+   if (matches(text)) { APP.audio.pause(); Ok(null) }
+   else null
+
+fun SpeakContext.voiceCommandPlaybackPlayPreviousSong(text: String) =
+   if (matches(text)) { APP.audio.playlists.playPreviousItem(); Ok(null) }
+   else null
+
+fun SpeakContext.voiceCommandPlaybackPlayNextSong(text: String) =
+   if (matches(text)) { APP.audio.playlists.playNextItem(); Ok(null) }
+   else null
+
+fun SpeakContext.voiceCommandPlaybackPlayFirstSong(text: String) =
+   if (matches(text)) { APP.audio.playlists.playFirstItem(); Ok(null) }
+   else null
+
+fun SpeakContext.voiceCommandPlaybackPlayLastSong(text: String) =
+   if (matches(text)) { APP.audio.playlists.playLastItem(); Ok(null) }
+   else null
+
+fun SpeakContext.voiceCommandPlaybackVolume(text: String): ComMatch =
+   if (matches(text)) {
+      runTry {
+         val (v) = args(text)
+              if ('-' in v) repeat(v.count { it=='-' }) { APP.audio.volumeDec() }
+         else if ('+' in v) repeat(v.count { it=='+' }) { APP.audio.volumeInc() }
+         else APP.audio.volume.value = v.toDouble()
+      }.map { null }.mapError {
+         "Error " + it.localizedMessage
+      }
    } else
       null
 
@@ -364,6 +428,7 @@ suspend fun SpeakContext.voiceCommandCountTo(text: String): ComMatch =
       val (from, to) = pattern.find(text)!!.destructured.net { (a,b) -> (a.toIntOrNull() ?: 1) to (b.toIntOrNull() ?: 10) }
       VT {
          APP.plugins.get<VoiceAssistant>()?.writeComPyt(
+            "User",
             """
             for i in range($from, $to):
                wait(0.5)
@@ -375,6 +440,21 @@ suspend fun SpeakContext.voiceCommandCountTo(text: String): ComMatch =
    } else {
       null
    }
+
+fun List<SpeakHandler>.toPromptHint() =
+   joinToString("") { voiceCommandToPromptHint(it.commandUi) }
+
+fun voiceCommandToPromptHint(commandUi: String) =
+   "\n* '${voiceCommandNoOptionalParts(voiceCommandWithoutComment(commandUi))}' ${voiceCommandCommentOnly(commandUi)}"
+
+fun voiceCommandWithoutComment(commandUi: String) =
+   commandUi.substringBefore("//").trim()
+
+fun voiceCommandCommentOnly(commandUi: String) =
+   if ("//" in commandUi) "//" + commandUi.substringAfter("//") else ""
+
+fun voiceCommandNoOptionalParts(commandUi: String) =
+   commandUi.replace(" *", " ").splitToSequence(" ").mapNotNull { if (it.endsWith("?") && "|" !in it && "$" !in it) null else it }.joinToString(" ")
 
 fun voiceCommandRegex(commandUi: String) =
    Regex(

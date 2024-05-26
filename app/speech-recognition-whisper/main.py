@@ -10,11 +10,11 @@ from imports import print_exc
 from datetime import datetime
 from threading import Timer
 from itertools import chain
-from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerIntent, HttpHandlerStt, HttpHandlerTtsReact
+from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerStateActorEventsAll, HttpHandlerIntent, HttpHandlerStt, HttpHandlerTtsReact
 from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
 from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatPaste
 from util_stt import SttNone, SttWhisper, SttNemo, SttHttp, SpeechText
-from util_mic import Mic, MicVoiceDetectNone, MicVoiceDetectNvidia
+from util_mic import Mic, MicVoiceDetectNone, MicVoiceDetectNvidia, SpeechStart, Speech
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_http import Http, HttpHandler
@@ -303,7 +303,7 @@ else:
 
 # assist
 class Assist:
-    def __call__(self, text: str, textSanitized: str):
+    def onSpeech(self, speech: SpeechText):
         pass
 
 
@@ -364,13 +364,13 @@ class CommandExecutorMain(CommandExecutor):
             llm(ChatProceed(llmSysPrompt, "Describe the following content:\n" + text.removeprefix("do-describe ")))
             return handled
         elif text == 'start conversation':
-            assist.startChat()
+            assist.startChat("User")
             return handled
         elif text == 'restart conversation':
-            assist.restartChat()
+            assist.restartChat("User")
             return handled
         elif text == 'stop conversation':
-            assist.stopChat()
+            assist.stopChat("User")
             return handled
         else:
             return text
@@ -393,14 +393,10 @@ class AssistBasic:
         self.activity_last_diff = 0
         self.restartChatDelay = 5*60
 
-        executorPython.onQuestion = self.onQuestion
         executorPython.llm = llm
         llm.api = executorPython
 
         Thread(name='Assist-Idle-Monitor', target=lambda: self.assistUpdateIdle(), daemon=True).start()
-
-    def onQuestion(self):
-        self.last_announcement_at = datetime.now()
 
     def assistUpdateIdle(self):
         while True:
@@ -408,22 +404,27 @@ class AssistBasic:
             if self.restartChatDelay < (time.time() - self.activity_last_at) and len(executorPython.ms)>0:
                 self.restartChat(react=False)
 
-    def needsWakeWord(self, speech_start: datetime) -> bool:
-        return self.isChat is False and (speech_start - self.last_announcement_at).total_seconds() > self.wake_word_delay
+    def needsWakeWord(self, speech: SpeechText) -> bool:
+        return self.isChat is False and executorPython.isQuestion is False and (speech.start - self.last_announcement_at).total_seconds() > self.wake_word_delay
 
-    def __call__(self, text: str, textSanitized: str):
+    def onActivity(self, speech: SpeechText):
+        self.activity_last_diff = time.time() - self.activity_last_at
+        self.activity_last_at = time.time()
+
+    def onSpeech(self, speech: SpeechText):
+        text = speech.text
         # announcement
         if len(text) == 0:
             self.last_announcement_at = datetime.now()
             if self.isChat: llm(ChatReact(llmSysPrompt, "User said your name - say you are still conversing. Say 2 words at most", "Yes, we are talking"))
             else: llm(ChatReact(llmSysPrompt, "User said your name - are you there? Say 2 words at most", "Yes"))
-        # do greeting
-        elif text == "hi" or text == "hello" or text == "greetings":
-            commandExecutor.execute(f"greeting {text}")
         # cancel
         elif text == "ok" or text == "okey" or text == "whatever" or text == "stop":
             tts.skip()
             llm.generating = False
+        # do greeting
+        elif (text == "hi" or text == "hello" or text == "greetings") and not usePythonCommands:
+            commandExecutor.execute(f"greeting {text}")
         # do help
         elif text == "help":
             if self.isChat:
@@ -441,6 +442,9 @@ class AssistBasic:
                     f'Run command by saying the command.'
                 )
                 commandExecutor.execute("help") # allows application to customize the help output
+
+        elif text == "repeat":
+            commandExecutor.execute(text)
         elif text == "start conversation":
             commandExecutor.execute("start conversation")
         elif text == "restart conversation" or text == "reset conversation":
@@ -448,84 +452,87 @@ class AssistBasic:
         elif text == "stop conversation":
             commandExecutor.execute("stop conversation")
         elif text.startswith("generate "):
-            write('COM: ' + commandExecutor.execute(text))
+            write(f'COM: {speech.user}:' + commandExecutor.execute(text))
         elif text.startswith("count "):
-            write('COM: ' + commandExecutor.execute(text))
+            write(f'COM: {speech.user}:' + commandExecutor.execute(text))
         # do command - python
         elif usePythonCommands:
-            executorPython.generatePythonAndExecute(text)
+            executorPython.generatePythonAndExecute(speech.user, speech.text)
         # do command
         else:
-            write('COM: ' + commandExecutor.execute(text))
+            write(f'COM: {speech.user}:' + commandExecutor.execute(text))
 
-    def startChat(self, react: bool = True):
+    def startChat(self, speaker: str, react: bool = True):
         if self.isChat: return
         self.isChat = True
-        write("COM: start conversation")
+        write(f"COM: {speaker}:start conversation")
         if (react): llm(ChatReact(llmSysPrompt, "User started conversation with you. Greet him", "Conversing"))
         mic.set_pause_threshold_talk()
 
-    def restartChat(self, react: bool = True):
+    def restartChat(self, speaker: str, react: bool = True):
         tts.skip()
         llm.generating = False
-        write("COM: restart conversation")
+        write(f"COM: {speaker}:restart conversation")
         if (react): llm(ChatReact(llmSysPrompt, "User erased his conversation with you from your memory.", "Ok"))
         executorPython.ms = []
 
-    def stopChat(self, react: bool = True):
+    def stopChat(self, speaker: str, react: bool = True):
         if self.isChat is False: return
         self.isChat = False
         tts.skip()
         llm.generating = False
-        write("COM: stop conversation")
+        write(f"COM: {speaker}:stop conversation")
         if (react): llm(ChatReact(llmSysPrompt, "User stopped conversation with you", "Ok"))
         mic.set_pause_threshold_normal()
 
 assist = AssistBasic()
 
-def skipWithoutSound():
-    executorPython.skip()
+def skipWithoutSound(speech: Speech):
+    executorPython.onSpeech(speech.user)
     if llm.generating: llm.generating = False
     tts.skipWithoutSound()
 
-def skip():
-    executorPython.skip()
+def skip(speech: SpeechStart):
+    executorPython.onSpeechStart(speech.user)
     if llm.generating: llm.generating = False
     tts.skip()
 
-def callback(st: SpeechText):
+def callback(speech: SpeechText):
     if sysTerminating: return
 
     # sanitize
-    text = st.text
-    textSanitized = text.rstrip(".").strip()
+    text = speech.text
     text = text.lower().rstrip(".").strip()
 
     # ignore no input
     if len(text) == 0: return
 
+    # handle question
+    if executorPython.isBlockingQuestion:
+        if executorPython.isBlockingQuestion and executorPython.isBlockingQuestionSpeaker==speech.user: executorPython.onBlockingQuestionDone.set_result(speech.text)
+        write(f'USER: {text}')
+        # monitor activity time
+        assist.onActivity(speech)
+        return
 
     # ignore speech recognition noise
-    if assist.needsWakeWord(st.start) and not starts_with_any(text, wake_words):
+    if not starts_with_any(text, wake_words) and assist.needsWakeWord(speech):
         write(f'USER-RAW: {text}')
         return
 
     # monitor activity time
-    assist.activity_last_diff = time.time() - assist.activity_last_at
-    assist.activity_last_at = time.time()
+    assist.onActivity(speech)
 
     # sanitize
-    textSanitized = remove_any_prefix(textSanitized, wake_words).strip().lstrip(",").lstrip(".").rstrip(".").strip()
     text = remove_any_prefix(text, wake_words).strip().lstrip(",").lstrip(".").rstrip(".").strip().replace(' the ', ' ').replace(' a ', ' ')
 
     # cancel any ongoing activity
-    skipWithoutSound()
+    skipWithoutSound(speech)
 
     # handle by active assistant state
     try:
         write(f'USER: {name}' + (', ' + text if len(text)>0 else ''))
-        if text == "repeat": commandExecutor.execute(text)
-        else: assist(text, textSanitized)
+        assist.onSpeech(SpeechText(speech.start, speech.audio, speech.stop, speech.user, text))
     except Exception as e:
         write(f"ERR: {e}")
         print_exc()
@@ -580,7 +587,7 @@ stt.onDone = callback
 def micSpeakerDiarLoader():
     if not micVoiceDetect: return MicVoiceDetectNone()
     else: return MicVoiceDetectNvidia(micVoiceDetectTreshold, micVoiceDetectVerbose)
-mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, lambda e: skip(), lambda e: stt(e), tts, write, micEnergy, micVerbose, micSpeakerDiarLoader)
+mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, lambda e: skip(e), lambda e: stt(e), tts, write, micEnergy, micVerbose, micSpeakerDiarLoader)
 actors: [Actor] = list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.tts.play if hasattr(tts.tts, 'play') else None]))
 
 # http
@@ -590,6 +597,7 @@ host, _, port = httpUrl.partition(":")
 http = Http(host, int(port), write)
 http.handlers.append(HttpHandlerState(actors))
 http.handlers.append(HttpHandlerStateActorEvents(actors))
+http.handlers.append(HttpHandlerStateActorEventsAll(actors))
 http.handlers.append(HttpHandlerIntent(llm))
 http.handlers.append(HttpHandlerStt(stt))
 http.handlers.append(HttpHandlerTtsReact(llm, llmSysPrompt))
@@ -608,13 +616,19 @@ def onBootup():
     while True:
         if all(actor.state() == "ACTIVE" for actor in actors): break
         else: sleep(0.1)
-    llm(ChatReact(llmSysPrompt, "You booted up", f"{name} online"))
+    llm(ChatReact(llmSysPrompt, "You booted up. Use 4 words or less.", f"{name} online"))
 
 Thread(name='on-bootup', target=onBootup, daemon=True).start()
 
 while not sysTerminating:
     try:
         m = input()
+        def speakerAndText(text: str) -> (str, str):
+            speaker = "User" if ":" not in text else text.split(":")[0]
+            text = text if ":" not in text else text.split(":")[1]
+            text = base64.b64decode(text).decode('utf-8')
+            text = remove_any_prefix(text, wake_words)
+            return (speaker, text)
 
         # talk command
         if m.startswith("SAY-LINE: "):
@@ -628,29 +642,24 @@ while not sysTerminating:
 
         # chat command
         if m.startswith("CHAT: "):
-            text = base64.b64decode(m[6:]).decode('utf-8')
-            text = remove_any_prefix(text, wake_words)
-            text = name + ' ' + text
+            text = m[6:]
+            speaker, text = speakerAndText(text)
             now = datetime.now()
-            callback(SpeechText(now, None, now, text))
+            callback(SpeechText(now, None, now, speaker, name + ' ' + text))
 
         if m.startswith("COM-PYT: "):
-            text = base64.b64decode(m[9:]).decode('utf-8')
-            executorPython.execute(text)
+            text = m[9:]
+            speaker, text = speakerAndText(text)
+            executorPython.execute(speaker, text, text)
 
         if m.startswith("COM-PYT-INT: "):
-            text = base64.b64decode(m[13:]).decode('utf-8')
-            executorPython.generatePythonAndExecute(text)
-
-        if m.startswith("CALL: "):
-            text = m[6:]
-            text = remove_any_prefix(text, wake_words)
-            text = name + ' ' + text
-            now = datetime.now()
-            callback(SpeechText(now, None, now, text))
+            text = m[13:]
+            speaker, text = speakerAndText(text)
+            executorPython.generatePythonAndExecute(speaker, text)
 
         if m.startswith("COM: "):
-            text = base64.b64decode(m[5:]).decode('utf-8')
+            text = m[5:]
+            text = base64.b64decode(text).decode('utf-8')
             commandExecutor.execute(text)
 
         # changing settings commands

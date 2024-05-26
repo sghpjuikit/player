@@ -23,7 +23,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.invoke
-import kotlinx.coroutines.launch
 import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.bodyAsJs
@@ -43,9 +42,9 @@ import sp.it.pl.plugin.HueSceneType.LightScene
 import sp.it.pl.plugin.impl.VoiceAssistant
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.KOTLN
-import sp.it.pl.plugin.impl.availableWidgets
+import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandlerGroup
+import sp.it.pl.plugin.impl.toPromptHint
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.IO
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.conf.cv
@@ -58,7 +57,6 @@ import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.div
 import sp.it.util.file.json.toPrettyS
-import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.asIf
@@ -72,7 +70,6 @@ import sp.it.util.reactive.addRem
 import sp.it.util.reactive.on
 import sp.it.util.text.equalsNcs
 import sp.it.util.text.split3
-import sp.it.util.text.words
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -114,7 +111,7 @@ class Hue: PluginBase() {
 
    private fun installSpeechHandlers() {
       val speechHandlers = listOf(
-         SpeakHandler(KOTLN, "Turn hue lights on/off", "turn? lights on|off?") { text ->
+         SpeakHandler(KOTLN, "Turn hue lights on/off", "turn? lights on|off? // turns all lights on or off or toggle if empty") { text ->
             if (matches(text)) {
                val s = when { text.endsWith("on") -> true; text.endsWith("off") -> false; else -> null }
                hueBridge.init().toggleBulbGroup("0", s).ui { refreshes(Unit) }
@@ -138,26 +135,11 @@ class Hue: PluginBase() {
             } else
                null
          },
-         SpeakHandler(KOTLN, "List hue light scenes", "list light scenes") { text ->
-            if (text == "list light scenes") Ok("The available light scenes are: " + hueBridge.init().scenes().joinToString(", ") { it.name })
-            else null
-         },
-         SpeakHandler(KOTLN, "Set hue lights scene", "lights scene \$scene_name") { text ->
-            if (text.startsWith("lights scene ")) {
-               val (sName) = args(text)
-               val scenes = hueBridge.init().scenes()
-               val s = scenes.find { it.name.lowercase() equalsNcs sName }
-               if (s!=null) hueBridge.applyScene(s).ui { refreshes(Unit) }
-               if (s!=null) Ok("Ok")
-               else Error("No Light Scene $sName available")
-            } else
-               null
-         },
          SpeakHandler(KOTLN, "List hue light groups", "list light groups") { text ->
             if (matches(text)) Ok("The available light groups are: " + hueBridge.init().bulbsAndGroups().second.joinToString(", ") { it.name })
             else null
          },
-         SpeakHandler(KOTLN, "Turn hue light group on/off", "turn? lights group \$group_name on|off?") { text ->
+         SpeakHandler(KOTLN, "Turn hue light group on/off", "turn? lights group \$group_name on|off? // group is usually a room") { text ->
             if (matches(text)) {
                val (gName) = args(text)
                val (s, ss) = when { text.endsWith("on") -> true to " on"; text.endsWith("off") -> false to " off"; else -> null to "" }
@@ -178,9 +160,37 @@ class Hue: PluginBase() {
                if (!intent) Error("No such Light Group available.")
                else null
          },
+         SpeakHandler(KOTLN, "List hue light scenes", "list light scenes") { text ->
+            if (matches(text)) Ok("The available light scenes are: " + hueBridge.init().scenes().joinToString(", ") { it.name })
+            else null
+         },
+         SpeakHandler(KOTLN, "Set hue lights scene", "lights scene \$scene_name // scene is usually a mood") { text ->
+            if (matches(text)) {
+               val (sName) = args(text)
+               val scenes = hueBridge.init().scenes()
+               val s = scenes.find { it.name.lowercase() equalsNcs sName }
+               if (s!=null) hueBridge.applyScene(s).ui { refreshes(Unit) }
+               if (s!=null) Ok("Ok")
+               else Error("No Light Scene $sName available")
+            } else
+               null
+         },
       )
 
-      APP.plugins.plugin<VoiceAssistant>().syncWhile { it.handlers addRem speechHandlers } on onClose
+      // handlers for group should avoid mentioning light/lights in matchers to improve matching
+      val speechHandlerGroupSubs = speechHandlers.map { SpeakHandler(it.type, it.name, "light " + it.commandUi.replace("lights ", "").replace("light ", ""), it.action) }
+      val speechHandlerGroup = listOf(
+         SpeakHandlerGroup(KOTLN, "Hue commands", "hue lights \$text", speechHandlers) { text ->
+            if (matches(text)) {
+               intent(text, speechHandlerGroupSubs.toPromptHint(), text.substringAfter("hue lights ")) { c ->
+                  val cp = if (c=="on" || c=="off") "light $c" else c
+                  speechHandlerGroupSubs.firstNotNullOfOrNull { with(withCommand(it)) { invoke(cp) } } ?: Error("Unknown hue lights command '${cp}'")
+               }
+            }
+            else null
+         }
+      )
+      APP.plugins.plugin<VoiceAssistant>().syncWhile { it.handlers addRem (speechHandlerGroup + speechHandlers) } on onClose
    }
 
    inner class HueBridge: CoroutineScope by scope {

@@ -23,10 +23,13 @@ class Actor:
         self.processing_event = None
         self.processing_start = None
         self.processing_stop = None
+        self.processing_times_start = []
+        self.processing_times_stop = []
         self.processing_times = []
         self.processing_times_last_len = 0
         self.processing_time = None
         self.processing_time_avg = None
+        self.start_time = time.time()
 
     def queued(self) -> list:
         """
@@ -117,9 +120,11 @@ class Actor:
                 self.processing_event = event
                 self.processing = True
                 self.processing_start = time.time()
+                self.processing_times_start.append(self.processing_start)
                 yield event
             finally:
                 self.processing_stop = time.time()
+                self.processing_times_stop.append(self.processing_stop)
                 self.processing_time = self.processing_stop - self.processing_start
                 self.processing_times.append(self.processing_time)
                 self.processing_time_avg = sum(self.processing_times) / len(self.processing_times)

@@ -11,7 +11,7 @@ from util_actor import Actor
 from util_http import HttpHandler
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from speech_recognition.audio import AudioData
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 
 class HttpHandlerState(HttpHandler):
@@ -50,7 +50,7 @@ class HttpHandlerStateActorEvents(HttpHandler):
 
     def __call__(self, req: BaseHTTPRequestHandler):
         try:
-            query_params = urlparse(req.path).query
+            query_params = parse_qs(urlparse(req.path).query)
             query_params.get('actor', [''])[0]
             actor_param = query_params.get('actor', [''])[0]
             type_param = query_params.get('type', [''])[0]

@@ -78,8 +78,10 @@ class Actor:
         try:
             self._loop()
         except ImportError as e:
+            self._stop = True
             self.write(f'ERR: {self.name} failed to load due to import error {e}')
         except Exception as e:
+            self._stop = True
             self.write(f'ERR: {self.name} failed to run due error {e}')
             print_exc()
 

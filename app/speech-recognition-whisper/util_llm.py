@@ -174,7 +174,7 @@ class Llm(Actor):
         return ef.future
 
     def _get_event_text(self, e: EventLlm) -> str:
-        return f"{e.event.__class__.__name__}({e.event.userPrompt})"
+        return f"{e.event.__class__.__name__}:{e.event.userPrompt}"
 
 class LlmNone(Llm):
     def __init__(self, speak: Tts, write: Writer):

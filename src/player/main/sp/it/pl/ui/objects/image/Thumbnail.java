@@ -22,6 +22,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -258,19 +259,19 @@ public class Thumbnail {
 	public void loadImage(@Nullable Image img) {
 		imageFile = null;
 		if (Objects.equals(image.getValue(), img)) return;
-		animDispose();
+		animHelper.animDispose();
 		setImgAsync(img);
 	}
 
 	public void loadImage(@Nullable Image img, @Nullable File file) {
 		imageFile = file;
 		if (Objects.equals(image.getValue(), img)) return;
-		animDispose();
+		animHelper.animDispose();
 		setImgAsync(img);
 	}
 
 	public void loadFile(@Nullable File img) {
-		animDispose();
+		animHelper.animDispose();
 		imageFile = null;
 		if (img==null) {
 			loadImage(null, null);
@@ -283,7 +284,7 @@ public class Thumbnail {
 	}
 
 	public void loadCover(@Nullable Cover img) {
-		animDispose();
+		animHelper.animDispose();
 		if (img==null) {
 			loadImage(null, null);
 		} else {
@@ -325,7 +326,7 @@ public class Thumbnail {
 		root.requestLayout();
 	}
 
-	private void setImgFrame(Image i) {
+	void setImgFrame(@Nullable Image i) {
 		applyViewPort(i);
 		needsApplyViewport = true;
 		imageView.setImage(i);
@@ -393,12 +394,12 @@ public class Thumbnail {
 			);
 	}
 
-	private void applyViewPort(Image i) {
+	private void applyViewPort(@Nullable Image i) {
 		needsApplyViewport = true;
 		applyViewPortImpl(i);
 	}
 
-	private void applyViewPortImpl(Image i) {
+	private void applyViewPortImpl(@Nullable Image i) {
 		if (!needsApplyViewport) return;
 	    needsApplyViewport = false;
 
@@ -451,112 +452,36 @@ public class Thumbnail {
 
 /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
-	private @Nullable Boolean animInitialized = null;
-	private @Nullable Timeline animation = null;
-	private @Nullable Fut<List<ImageFrame>> animImages = null;
-	private Runnable animCommand = () -> {};
-	private @Nullable Runnable animOnDone = null;
+	private ThumbnailAnim animHelper = new ThumbnailAnim(this);
 
-	private void animDispose() {
-		animInitialized = null;
-		animCommand = () -> {};
-		if (animation != null) animation.stop();
-		animation = null;
-		if (animImages!=null) animImages.ui(consumer(images -> { if (images!=null) images.forEach(img -> destroyImage(img.getImg())); }));
-		animImages = null;
-		if (imageView.getImage() != image.getValue()) setImgFrame(image.getValue());
+	/** @return whether the current image has animation (animation must be initialized before this call) */
+	public Fut<Boolean> isAnimated() {
+		return animHelper.isAnimated();
 	}
 
-	private void animInitialize(boolean lazy) {
-		if (!lazy) animInitializeImpl();
-		if (animImages==null) return;
-		if (animImages.isDone()) animCommand.run();
-		else animImages.ui(consumer(it -> animCommand.run()));
-	}
-
-
-	private void animInitializeImpl() {
-		if (animInitialized!=null && animInitialized) return;
-		animInitialized = true;
-
-		if (image.getValue()==null) return;
-		var f = getFile();
-		if (f==null) return;
-		var fMime = MimeTypesKt.mimeType(f);
-		if (fMime.getName().equals("image/gif")) {
-			try {
-				var isAnim = isImageAnimated(f, fMime);
-				if (isAnim) {
-					var p = new Params(f, new ImageSize(image.getValue().getWidth(), image.getValue().getHeight()), fitFrom.getValue(), fMime, false);
-					animImages = runVT(() -> imgImplLoadFX(p.getFile(), p.getSize(), p.getScaleExact())).then(CURR, it -> it==null ? null : List.of(new ImageFrame(0, 0, it)));
-					animImages = animImages.ui(it -> {
-						if (it!=null) {
-							var img = it.stream().findFirst().orElseThrow().getImg();
-							setImgFrame(img);
-							animation = img==null ? null : getFieldValue(getFieldValue(img, "animation"), "timeline");
-							if (animation != null) animation.stop();
-							if (animation != null) animation.setCycleCount(animOnDone==null ? INDEFINITE : 1);
-							if (animation != null) animation.setOnFinished(animOnDone==null ? null : e -> animOnDone.run());
-						}
-						return it;
-					});
-				}
-			} catch (Throwable t) {
-				logger.error("Failed to load image={} animation", f, t);
-			}
-		}
-		if (fMime.getName().equals("image/webp")) {
-			try {
-				var isAnim = isImageAnimated(f, fMime);
-				if (isAnim) {
-					var p = new Params(f, new ImageSize(image.getValue().getWidth(), image.getValue().getHeight()), fitFrom.getValue(), fMime, false);
-					animImages = runVT(() -> loadImageFrames(p));
-					animImages = animImages.ui(images -> {
-						animation = new Timeline(
-							images.stream().map(it -> new KeyFrame(new Duration(it.getDelayMs()), e -> setImgFrame(it.getImg()))).toArray(KeyFrame[]::new)
-						);
-						animation.setCycleCount(animOnDone==null ? INDEFINITE : 1);
-						animation.setOnFinished(animOnDone==null ? null : e -> animOnDone.run());
-						return images;
-					});
-				}
-			} catch (Throwable t) {
-				logger.error("Failed to load image={} animation", f, t);
-			}
-		}
-	}
-
-	/** @return whether the currently loaded image has animation */
-	public boolean isAnimated() {
-		return animation!=null; // same impl as Image.isAnimation(), which is not public
-	}
-
-	/** @return whether the currently loaded image has animation and it is playing */
+	/** @return whether the current image has animation and it is playing */
 	public boolean isAnimating() {
-		return animation!=null && animation.getCurrentRate()!=0;
+		return animHelper.isAnimating();
 	}
 
 	/** Plays or pauses currently loaded image animation */
 	public void animationPlayPause(boolean play) {
-		if (play) animationPlay();
-		else animationPause();
+		animHelper.animationPlayPause(play);
 	}
 
 	/** Plays currently loaded image animation */
 	public void animationPlay() {
-		animCommand = () -> { if (animation!=null) animation.play(); };
-		animInitialize(false);
+		animHelper.animationPlay();
+	}
+
+	/** Plays currently loaded image animation once and returns future that ends when the animation ends or as soon as possible if not animated or error loading animation or image */
+	public Fut<Unit> animationPlayOnceAndWait() {
+		return animHelper.animationPlayOnceAndWait();
 	}
 
 	/** Pauses currently loaded image animation */
 	public void animationPause() {
-		animCommand = () -> { if (animation!=null) animation.pause(); };
-		animInitialize(true);
-	}
-
-	/** Sets block to be executed if the current image animation finishes. Animatin is set to 1 loop. Call before animation starts. */
-	public void animationOnDone(@Nullable Runnable onDone) {
-		animOnDone = onDone;
+		animHelper.animationPause();
 	}
 
 /* ---------- DATA -------------------------------------------------------------------------------------------------- */

@@ -26,7 +26,9 @@ import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.KOTLN
 import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type.PYTHN
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.voice.toVoiceS
+import sp.it.util.async.coroutine.IO
 import sp.it.util.async.coroutine.VT
+import sp.it.util.async.coroutine.await
 import sp.it.util.async.coroutine.delay
 import sp.it.util.async.coroutine.delayTill
 import sp.it.util.async.coroutine.launch
@@ -145,19 +147,21 @@ internal fun VoiceAssistant.voiceCommandsPrompt(): String =
 
 suspend fun SpeakContext.voiceCommandShowEmote(text: String): ComMatch =
    if (matches(text)) {
-      if (text != "show emote none")
-         APP.plugins.use<Notifier> {
+      if (text != "show emote none") {
+         val f = VoiceAssistant.dir / text.substringAfter("show emote ").replace(" ", "_")
+         val fExists = IO { f.exists() }
+         if (fExists) APP.plugins.use<Notifier> {
             val n = Thumbnail(400.0, 400.0).apply {
                pane.isMouseTransparent = true
-               loadFile(VoiceAssistant.dir / text.substringAfter("show emote ").replace(" ", "_"))
+               loadFile(f)
             }
             val not = it.showNotification("Emote", n.pane, true, Pos.TOP_RIGHT)
             delay(1.seconds)
-            n.animationPlay()
-            n::animationOnDone.delayTill()
+            n.animationPlayOnceAndWait().await()
             delay(1.seconds)
             not.hide()
          }
+      }
       Ok(null)
    } else
       null

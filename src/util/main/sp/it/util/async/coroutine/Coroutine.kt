@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.asDeferred
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.javafx.JavaFx
@@ -98,7 +99,7 @@ suspend fun <T> Flow<T>.collectOn(dispatcher: CoroutineDispatcher, collector: Fl
 fun <T> Fut<T>.asDeferred(): Deferred<T> = asCompletableFuture().asDeferred()
 
 /** @return awaited value - see [Fut.asDeferred] and [Deferred.await] */
-suspend fun <T> Fut<T>.await(): T = asDeferred().await()
+suspend fun <T> Fut<T>.await(): T = asCompletableFuture().await()
 
 /** @return this job as [Fut] - see [Job.asCompletableFuture] */
 fun <T> Deferred<T>.asFut(): Fut<T> = Fut(asCompletableFuture())

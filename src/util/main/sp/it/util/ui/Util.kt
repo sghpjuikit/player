@@ -489,6 +489,12 @@ var Arc.radius: P
    get() = P(radiusX, radiusY)
    set(value) { radiusX = value.x; radiusY = value.y }
 
+/** <[width], [height]> of the image represented as point, the values may be == 0 */
+val Image.size get() = P(width, height)
+
+/** <[requestedWidth], [requestedHeight]> of the image represented as point, the values may be <=0 */
+val Image.requestedSize get() = P(requestedWidth, requestedHeight)
+
 /** ([MouseEvent.x],[MouseEvent.y]) */
 val MouseEvent.xy get() = P(x, y)
 

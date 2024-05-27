@@ -14,6 +14,7 @@ class SdEvent:
         self.text = text
         self.audio = audio
         self.skippable = skippable
+        self.future = Future()
 
 class SdActor(Actor):
     def __init__(self, write: Writer):
@@ -48,10 +49,12 @@ class SdActor(Actor):
                     try:
                         # skip
                         if self._skip and event.skippable:
+                            event.future.set_exception(Exception('skipped'))
                             continue
 
                         # skip stop at boundary
                         if event.type == 'boundary':
+                            event.future.set_result([])
                             self._skip = False
                             continue
 
@@ -59,14 +62,18 @@ class SdActor(Actor):
                         def playPause(dur):
                             samples_count = int(dur * self.sample_rate)
                             samples = np.zeros(samples_count)
-                            stream.write(np.zeros(samples_count, dtype=np.float32))
+                            data = np.zeros(samples_count, dtype=np.float32)
+                            stream.write(data)
+                            return data
 
                         if event.type == 'p':
-                            playPause(int(event.audio)/1000.0)
+                            data = playPause(int(event.audio)/1000.0)
+                            event.future.set_result(data)
 
                         # play file
                         if event.type == 'f':
                             self.volume_adjuster.speechStarted()
+                            data = []
                             audio_data, fs = sf.read(event.audio, dtype='float32')
                             if fs != self.sample_rate: audio_data = signal.resample(audio_data, int(len(audio_data) * self.sample_rate / fs))
                             chunk_size = 1024
@@ -77,35 +84,45 @@ class SdActor(Actor):
                                 end_pos = min(start_pos + chunk_size, audio_length)
                                 chunk = audio_data[start_pos:end_pos]
                                 stream.write(chunk)
+                                data.append(chunk)
                                 start_pos = end_pos
+                            event.future.set_result(data)
                             self.volume_adjuster.speechEnded()
                             playPause(self.sentence_break)
 
                         # play wav chunk
                         if event.type == 'b':
                             self.volume_adjuster.speechStarted()
+                            data = []
                             for wav_chunk in event.audio:
                                 if self._skip and event.skippable: break
                                 stream.write(wav_chunk)
+                                data.append(wav_chunk)
+                            event.future.set_result(data)
                             self.volume_adjuster.speechEnded()
                             playPause(self.sentence_break)
                     except Exception as x:
+                        event.future.set_exception(e)
                         if event.type == "b" or event.type == "f": self.volume_adjuster.speechEnded()
                         if (self._stop): pass  # daemon thread can get interrupted and stream crash mid write
                         else: raise x
         stream.stop()
 
-    def boundary(self):
-        self.queue.put(SdEvent('boundary', '', None, False))
+    def boundary(self) -> Future:
+        return self.playEvent(SdEvent('boundary', '', None, False))
 
-    def playPause(self, millis: int, skippable: bool):
-        self.queue.put(SdEvent('p', f'{millis}ms', millis, True))
-        
-    def playFile(self, text: str, audio: str, skippable: bool):
-        self.queue.put(SdEvent('f', text, audio, skippable))
+    def playPause(self, millis: int, skippable: bool) -> Future:
+        return self.playEvent(SdEvent('p', f'{millis}ms', millis, True))
 
-    def playWavChunk(self, text: str, audio: np.ndarray, skippable: bool):
-        self.queue.put(SdEvent('b', text, audio, skippable))
+    def playFile(self, text: str, audio: str, skippable: bool) -> Future:
+        return self.playEvent(SdEvent('f', text, audio, skippable))
+
+    def playWavChunk(self, text: str, audio: np.ndarray, skippable: bool) -> Future:
+        return self.playEvent(SdEvent('b', text, audio, skippable))
+
+    def playEvent(self, e: SdEvent) -> Future:
+        self.queue.put(e)
+        return e.future
 
 
 class VolumeAdjuster:

@@ -27,6 +27,7 @@ val Dur.kt: DurationKt get() = toMillis().milliseconds
 fun Dur.formatToSmallestUnit(): String {
    val ms = toMillis()
    return when {
+      this==Dur.INDEFINITE -> "∞"
       ms<1000 -> "%.0f ms".format(ms)
       ms<10000 -> "%.1f s".format(toSeconds())
       ms<60000 -> "%.0f s".format(toSeconds())

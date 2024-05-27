@@ -14,6 +14,8 @@ import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
+import kotlin.Double.Companion.NEGATIVE_INFINITY
+import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.round
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
@@ -47,6 +49,7 @@ import sp.it.util.ui.x
 import sp.it.util.ui.x2
 import sp.it.util.ui.xy
 import sp.it.util.units.em
+import sp.it.util.units.formatToSmallestUnit
 import sp.it.util.units.millis
 
 class VoiceAssistantWidgetTimeline: StackPane() {
@@ -229,7 +232,7 @@ class VoiceAssistantWidgetTimeline: StackPane() {
          if (hoverType.value==TOOLTIP) {
             if (!hoverT.isShowing) hoverT.show(this, 0.0, 0.0)
             hoverT.xy = xyScreen + 1.em.emScaled.x2
-            hoverT.text = "${e.fromMs.toTimeUiHover()}:from\n${e.toMs.toTimeUiHover()}:to\n\n${e.text}"
+            hoverT.text = "from: ${e.fromMs.toTimeUiHover()}\n  to: ${e.toMs.toTimeUiHover()}\n dur: ${e.durMs.millis.formatToSmallestUnit()}\n\n${e.text}"
             hoverT.opacity = 1.0
          } else {
             hoverT.opacity = 0.0
@@ -286,7 +289,7 @@ class VoiceAssistantWidgetTimeline: StackPane() {
    }
 
    /** Event with ui text, start and end (supporting [Double.NEGATIVE_INFINITY], [Double.POSITIVE_INFINITY] for open interval) */
-   data class Event(val text: String, val fromMs: Double, val toMs: Double)
+   data class Event(val text: String, val fromMs: Double, val toMs: Double, val durMs: Double = if (fromMs==NEGATIVE_INFINITY) POSITIVE_INFINITY else if (toMs==POSITIVE_INFINITY) Instant.now().toEpochMilli()-fromMs else toMs-fromMs)
 
    /** Series of [Event] with ui name */
    data class Line(val name: String, val events: List<Event>)
@@ -338,8 +341,8 @@ class VoiceAssistantWidgetTimeline: StackPane() {
       private fun Instant.toUiHover() = formatter.format(toLocalDateTime())
       private fun Double.toTimeUiHover() =
          when (this) {
-            Double.POSITIVE_INFINITY -> "+∞"
-            Double.NEGATIVE_INFINITY -> "-∞"
+            POSITIVE_INFINITY -> "+∞"
+            NEGATIVE_INFINITY -> "-∞"
             else -> Instant.ofEpochMilli(toLong()).toUiHover()
          }
    }

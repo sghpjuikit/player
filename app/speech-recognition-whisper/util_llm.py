@@ -112,6 +112,7 @@ class ChatReact(ChatProceed):
             f"{sys_prompt}",
             f"React to provided event with single short sentence. Event:\n {event_to_react_to}."
         )
+        self.userPromptRaw = event_to_react_to
         self.outStart = 'SYS: '
         self.speakTokens = False
         self.writeTokens = False
@@ -157,7 +158,7 @@ class Llm(Actor):
             # speak generated text or fallback if error
             if isinstance(e, ChatReact):
                 self.speak(e.fallback if text is None else text)
-                self.api.showEmote(e.userPrompt)
+                self.api.showEmote(e.userPromptRaw)
 
             # run generated command or unidentified if error
             if isinstance(e, ChatIntentDetect) and e.writeTokens:

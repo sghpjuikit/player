@@ -45,8 +45,8 @@ class PythonExecutor:
                 if len(directories)==0: return
                 directoriesS = ''.join(map(lambda x: f'\n* {x}', directories))
                 f = self.llm(ChatIntentDetect(
-                    f'You detect closest emotion for input to one from list of emotions:{directoriesS}',
-                    f'Respond with exactly one closest emotion from the list, as is, or \'none\' if no emotion is close, for the event: {emotionInput}', '', '', '', False, False
+                    f'You are emotion detector. Available emotions are:{directoriesS}',
+                    f'Respond with exactly one closest emotion, or \'none\' if no emotion is close, for the event: {emotionInput}', '', '', '', False, False
                 ))
                 try: (text, canceled) = f.result()
                 except Exception: (text, canceled) = (None, None)

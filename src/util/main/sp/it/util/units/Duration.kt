@@ -8,6 +8,8 @@ import kotlin.time.DurationUnit.NANOSECONDS
 import sp.it.util.dev.Dependency
 import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
+import sp.it.util.functional.Try.Error
+import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.Util
 import sp.it.util.functional.runTry
 
@@ -52,6 +54,8 @@ fun Dur.formatToSmallestUnit(): String {
 @Dependency("sp.it.util.units.durationOfHMSMs")
 @JvmOverloads
 fun Dur.toHMSMs(includeZeros: Boolean = true): String {
+   if (this==Dur.INDEFINITE) return "∞"
+
    val secondsTotal = toMillis()/1000
    val seconds = secondsTotal.toInt()%60
    val minutes = ((secondsTotal - seconds)/60).toInt()%60
@@ -78,6 +82,9 @@ fun Dur.toHMSMs(includeZeros: Boolean = true): String {
 fun durationOfHMSMs(s: String): Try<Dur, String> {
    return try {
 
+      // indefinite
+      if (s=="∞") return Ok(Dur.INDEFINITE)
+
       // try parsing in Duration.toString format
       runTry {
          val sFixed = s.replace(" ", "") // fixes Duration.toString() inconsistency with Duration.valueOf()
@@ -99,7 +106,7 @@ fun durationOfHMSMs(s: String): Try<Dur, String> {
             val t = unit*amount
             sumT += t.toDouble()
          }
-         return Try.Java.ok(Dur(sumT))
+         return Ok(Dur(sumT))
       }
 
       // parse normally
@@ -114,18 +121,18 @@ fun durationOfHMSMs(s: String): Try<Dur, String> {
       val value: Double = (if (index==-1) s else s.substring(0, index)).toDouble()
 
       if (index==-1)
-         Try.Java.ok(Dur(value))
+         Ok(Dur(value))
       else {
          when (s.substring(index)) {
-            "ms" -> Try.Java.ok(Dur(value))
-            "s" -> Try.Java.ok(Dur(1000*value))
-            "m" -> Try.Java.ok(Dur(60000*value))
-            "h" -> Try.Java.ok(Dur(3600000*value))
-            else -> Try.Java.error("Must have suffix from [ms|s|m|h]")
+            "ms" -> Ok(Dur(value))
+            "s" -> Ok(Dur(1000*value))
+            "m" -> Ok(Dur(60000*value))
+            "h" -> Ok(Dur(3600000*value))
+            else -> Error("Must have suffix from [ms|s|m|h]")
          }
       }
    } catch (e: IllegalArgumentException) {
-      Try.Java.error(e.message ?: "Unknown error")
+      Error(e.message ?: "Unknown error")
    }
 }
 

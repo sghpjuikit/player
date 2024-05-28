@@ -78,6 +78,23 @@ flowchart TD
     CE_OUT --->|Structured Text| WRITER[/Writer Actor/]
 ```
 
+###### Stt
+```mermaid
+flowchart TD
+  STTX[Stt Actor]
+  STTX     -.-> STTX0[/SttNone/]
+  STTX     -.-> STTX1[/SttWhisper/]
+  STTX     -.-> STTX2[/SttWhisperS2T/]
+  STTX     -.-> STTX3[/SttFasterWhisper/]
+  STTX     -.-> STTX4[/SttNemo/]
+  STTX     -.-> STTX5[/SttHttp/]
+  STTX1    -.->|python local AI model| STTXX1[(\ntiny.en\ntiny\nbase.en\nbase\nsmall.en\nsmall\nmedium.en)]
+  STTX2    -.->|python local AI model| STTXX2[(\ntiny.en\ntiny\nbase.en\nbase\nsmall.en\nsmall\nmedium.en)]
+  STTX3    -.->|python local AI model| STTXX3[(\ntiny.en\ntiny\nbase.en\nbase\nsmall.en\nsmall\nmedium.en\ndistil-small.en\ndistil-medium.en\ndistil-large-v2\ndistil-large-v3)]
+  STTX4    -.->|python local AI model| STTXX4[(\nnvidia/parakeet-ctc-1.1b\nnvidia/parakeet-ctc-0.6b\nnvidia/parakeet-tdt-1.1b)]
+  STTX5    -.->|http| STTXX5[(Other self instance)]
+```
+
 ###### Tts
 
 ```mermaid
@@ -97,19 +114,6 @@ flowchart TD
   V6 -.->|pytorch| V6X[(speechbrain lib)]
   V7 -.->|pytorch| V7X[(torch lib)]
   V8 -.->|http| V8X[(Other self instance)]
-```
-
-###### Stt
-```mermaid
-flowchart TD
-  STTX[Stt Actor]
-  STTX     -.-> STTX0[/SttNone/]
-  STTX     -.-> STTX1[/SttWhisper/]
-  STTX     -.-> STTX2[/SttNemo/]
-  STTX     -.-> STTX3[/SttHttp/]
-  STTX1    -.->|python local AI model| STTXX1[(\nbase.en.pt\nbase.pt\nmedium.en.pt\nsmall.en.pt\nsmall.pt\ntiny.en.pt\ntiny.pt)]
-  STTX2    -.->|python local AI model| STTXX2[(\nnvidia/parakeet-ctc-1.1b\nnvidia/parakeet-ctc-0.6b\nnvidia/parakeet-tdt-1.1b)]
-  STTX3    -.->|http| STTXX4[(Other self instance)]
 ```
 
 ###### Llm
@@ -413,6 +417,12 @@ It is simply a service to intelligently convert input into output.
             - Download OpenAi Whisper [models](https://github.com/openai/whisper#available-models-and-languages) (optional)
             - into the [models-whisper](models-whisper) directory
             - from [official source](https://github.com/openai/whisper/blob/f296bcd3fac41525f1c5ab467062776f8e13e4d0/whisper/__init__.py)
+    1. **SttWhisperS2T** requires https://github.com/shashikg/WhisperS2T (`CTranslate2` backend)
+        - `pip install whisper-s2t`
+        - model will be downloaded automatically
+    1. **SttFasterWhisper** requires https://github.com/SYSTRAN/faster-whisper
+        - `pip install faster-whisper`
+        - model will be downloaded automatically
     2. **SttNemo**
         - `pip install nemo_toolkit[asr]`
         - TODO

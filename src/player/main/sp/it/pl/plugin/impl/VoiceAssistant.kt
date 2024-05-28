@@ -22,7 +22,6 @@ import sp.it.pl.main.IconMA
 import sp.it.pl.main.isAudio
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
-import sp.it.pl.plugin.impl.VoiceAssistant.SpeakHandler.Type
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.action
 import sp.it.util.access.V
@@ -57,17 +56,14 @@ import sp.it.util.conf.noPersist
 import sp.it.util.conf.nonBlank
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
+import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiNoCustomUnsealedValue
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
-import sp.it.util.dev.printIt
-import sp.it.util.dev.printStacktrace
 import sp.it.util.file.children
 import sp.it.util.file.div
-import sp.it.util.file.json.JsObject
-import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsValue
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
@@ -135,6 +131,10 @@ class VoiceAssistant: PluginBase() {
             "stt-engine=${sttEngine.value.code}",
             "stt-whisper-model=${sttWhisperModel.value}",
             "stt-whisper-device=${sttWhisperDevice.value}",
+            "stt-fasterwhisper-model=${sttFasterWhisperModel.value}",
+            "stt-fasterwhisper-device=${sttFasterWhisperDevice.value}",
+            "stt-whispers2t-model=${sttWhisperSt2Model.value}",
+            "stt-whispers2t-device=${sttWhisperSt2Device.value}",
             "stt-nemo-model=${sttNemoModel.value}",
             "stt-nemo-device=${sttNemoDevice.value}",
             "stt-http-url=${sttHttpUrl.value}",
@@ -315,31 +315,60 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Wake up word", info = "Optional wake words or phrases (separated by ',') that activate voice recognition. Case-insensitive.\nThe first wake word will be used as name for the system")
 
    /** Engine used to recognize speech. May require additional configuration */
-   val sttEngine by cv(TtsEngine.WHISPER).uiNoOrder()
+   val sttEngine by cv(SttEngine.WHISPER).uiNoOrder()
       .def(name = "Speech recognition", info = "Engine used to recognize speech. May require additional configuration")
 
-   /** [TtsEngine.WHISPER] AI model used to transcribe voice to text */
+   /** [SttEngine.WHISPER] AI model used to transcribe voice to text */
    val sttWhisperModel by cv("base.en")
       .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large", "large-v1", "large-v2", "large-v3") }
       .uiNoOrder()
+      .readOnlyUnless(sttEngine.map { it==SttEngine.WHISPER })
       .def(name = "Speech recognition > Whisper model", info = "Whisper model for speech recognition.")
 
-   /** [TtsEngine.WHISPER] torch device used to transcribe voice to text */
+   /** [SttEngine.WHISPER] torch device used to transcribe voice to text */
    val sttWhisperDevice by cv("")
-      .def(name = "Speech recognition > Whisper device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
+      .readOnlyUnless(sttEngine.map { it==SttEngine.WHISPER })
+      .def(name = "Speech recognition > Whisper device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which falls back to 'cpu'.")
 
-   /** [TtsEngine.NEMO] AI model used to transcribe voice to text */
+   /** [SttEngine.FASTER_WHISPER] AI model used to transcribe voice to text */
+   val sttFasterWhisperModel by cv("small.en")
+      .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large", "large-v1", "large-v2", "large-v3", "distil-small.en", "distil-medium.en", "distil-large-v2", "distil-large-v3") }
+      .uiNoOrder()
+      .readOnlyUnless(sttEngine.map { it==SttEngine.FASTER_WHISPER })
+      .def(name = "Speech recognition > FasterWhisper model", info = "Whisper model for speech recognition. Distill models are faster versions of original models.")
+
+   /** [SttEngine.FASTER_WHISPER] torch device used to transcribe voice to text */
+   val sttFasterWhisperDevice by cv("")
+      .readOnlyUnless(sttEngine.map { it==SttEngine.FASTER_WHISPER })
+      .def(name = "Speech recognition > FasterWhisper device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which falls back to 'cpu'.")
+
+   /** [SttEngine.WHISPER_S2T] AI model used to transcribe voice to text */
+   val sttWhisperSt2Model by cv("small.en")
+      .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large", "large-v1", "large-v2", "large-v3") }
+      .uiNoOrder()
+      .readOnlyUnless(sttEngine.map { it==SttEngine.WHISPER_S2T })
+      .def(name = "Speech recognition > WhisperS2T model", info = "Whisper model for speech recognition.")
+
+   /** [SttEngine.WHISPER_S2T] torch device used to transcribe voice to text */
+   val sttWhisperSt2Device by cv("")
+      .readOnlyUnless(sttEngine.map { it==SttEngine.WHISPER_S2T })
+      .def(name = "Speech recognition > WhisperS2T device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which falls back to 'cpu'.")
+
+   /** [SttEngine.NEMO] AI model used to transcribe voice to text */
    val sttNemoModel by cv("nvidia/parakeet-ctc-1.1b")
       .values { listOf("nvidia/parakeet-tdt-1.1b", "nvidia/parakeet-ctc-1.1b", "nvidia/parakeet-ctc-0.6b") }
       .uiNoOrder()
+      .readOnlyUnless(sttEngine.map { it==SttEngine.NEMO })
       .def(name = "Speech recognition > Nemo model", info = "Nemo model for speech recognition.")
 
-   /** [TtsEngine.NEMO] torch device used to transcribe voice to text */
+   /** [SttEngine.NEMO] torch device used to transcribe voice to text */
    val sttNemoDevice by cv("")
+      .readOnlyUnless(sttEngine.map { it==SttEngine.NEMO })
       .def(name = "Speech recognition > Nemo device", info = "Nemo torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
 
-   /** [TtsEngine.HTTP] torch device used to transcribe voice to text */
+   /** [SttEngine.HTTP] torch device used to transcribe voice to text */
    val sttHttpUrl by cv("localhost:1235")
+      .readOnlyUnless(sttEngine.map { it==SttEngine.HTTP })
       .def(name = "Speech recognition > Http url", info = "Voice recognition server address and port.")
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
@@ -359,32 +388,35 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Speech enabled", info = "Whether speech is allowed. In general, this also prevents initial loading of speech AI model until enabled.")
 
    /** Engine used to generate voice. May require additional configuration */
-   val ttsEngine by cv(SpeechEngine.SYSTEM).uiNoOrder()
+   val ttsEngine by cv(TtsEngine.SYSTEM).uiNoOrder()
       .def(name = "Speech engine", info = "Engine used to generate voice. May require additional configuration")
 
    /** Access token for character.ai account used when speech engine is Character.ai */
    val ttsEngineCoquiVoice by cv("Ann_Daniels.flac")
       .valuesUnsealed { (dir / "voices-coqui").children().filter { it.isAudio() }.map { it.name }.toList() }
+      .readOnlyUnless(ttsEngine.map { it==TtsEngine.COQUI })
       .def(
          name = "Speech engine > coqui > voice",
          info = "" +
-            "Voice when using ${SpeechEngine.COQUI.nameUi} speech engine. " +
+            "Voice when using ${TtsEngine.COQUI.nameUi} speech engine. " +
             "Sample file of the voice to be used. User can add more audio samples to ${(dir / "voices-coqui").absolutePath}. " +
             "Should be 3-10s long."
       )
 
-   /** [SpeechEngine.COQUI] torch device used to transcribe voice to text */
+   /** [TtsEngine.COQUI] torch device used to transcribe voice to text */
    val ttsEngineCoquiCudaDevice by cv("")
+      .readOnlyUnless(ttsEngine.map { it==TtsEngine.COQUI })
       .def(
          name = "Speech engine > coqui > device",
-         info = "Torch device for speech generation when using ${SpeechEngine.COQUI.nameUi} speech engine."
+         info = "Torch device for speech generation when using ${TtsEngine.COQUI.nameUi} speech engine."
       )
 
    /** Speech server address and port to connect to. */
    val ttsEngineHttpUrl by cv("localhost:1236")
+      .readOnlyUnless(ttsEngine.map { it==TtsEngine.HTTP })
       .def(
          name = "Speech engine > http > url",
-         info = "Speech server address and port to connect to when using ${SpeechEngine.HTTP.nameUi} speech engine."
+         info = "Speech server address and port to connect to when using ${TtsEngine.HTTP.nameUi} speech engine."
       )
 
    /** Whether [llmEngine] conversation is active */
@@ -398,18 +430,22 @@ class VoiceAssistant: PluginBase() {
    /** Model for gpt4all. Must be in models-gpt4all. */
    val llmGpt4AllModel by cv("none")
       .valuesUnsealed { dir.div("models-gpt4all").children().map { it.name }.filter { it.endsWith("gguf") }.toList() + "none" }
+      .readOnlyUnless(llmEngine.map { it==LlmEngine.GPT4ALL })
       .def(name = "Llm engine > gpt4all > model", info = "Model for gpt4all. Must be in ${(dir / "models-gpt4all").absolutePath}")
 
    /** Url of the OpenAI or OpenAI-compatible server */
    val llmOpenAiUrl by cv("http://localhost:1234/v1")
+      .readOnlyUnless(llmEngine.map { it==LlmEngine.OPENAI })
       .def(name = "Llm engine > openai > url", info = "Url of the OpenAI or OpenAI-compatible server")
 
    /** The user authorization of the OpenAI or OpenAI-compatible server */
    val llmOpenAiBearer by cv("ABC123xyz789").password()
+      .readOnlyUnless(llmEngine.map { it==LlmEngine.OPENAI })
       .def(name = "Llm engine > openai > bearer", info = "The user authorization of the OpenAI or OpenAI-compatible server. Server may ignore this.")
 
    /** The llm model of the OpenAI or OpenAI-compatible server */
-   val llmOpenAiModel by cv("").password()
+   val llmOpenAiModel by cv("")
+      .readOnlyUnless(llmEngine.map { it==LlmEngine.OPENAI })
       .def(name = "Llm engine > openai > model", info = "The llm model of the OpenAI or OpenAI-compatible server. Server may ignore this.")
 
    /** System prompt telling llm to assume role, or exhibit behavior */
@@ -465,7 +501,7 @@ class VoiceAssistant: PluginBase() {
       // restart-requiring properties
       val processChangeVals = listOf<V<*>>(
          micName, micVoiceDetect,
-         sttEngine, sttWhisperModel, sttWhisperDevice, sttNemoModel, sttNemoDevice, sttHttpUrl,
+         sttEngine, sttWhisperModel, sttWhisperDevice, sttWhisperSt2Model, sttWhisperSt2Device, sttFasterWhisperModel, sttFasterWhisperDevice, sttNemoModel, sttNemoDevice, sttHttpUrl,
          ttsEngine, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
          httpUrl
@@ -619,14 +655,16 @@ class VoiceAssistant: PluginBase() {
          APP.http.client.get("${httpUrl.value}/actor-events-all").bodyAsJs()
       }
 
-   enum class TtsEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
+   enum class SttEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
       NONE("none", "None", "No speech recognition"),
       WHISPER("whisper", "Whisper", "OpenAI Whisper speech recognition. Fully offline."),
+      FASTER_WHISPER("faster-whisper", "Faster Whisper", "OpenAI Whisper speech recognition. Fully offline. Optimized for speed (int8 inferrence + distill models)"),
+      WHISPER_S2T("whispers2t", "WhisperS2T", "OpenAI Whisper speech recognition. Fully offline. Optimized for speed."),
       NEMO("nemo", "Nemo", "Nvidia Nemo ASR. Fully offline."),
       HTTP("http", "Http", "Recognition using different instance of this application with http enabled."),
    }
 
-   enum class SpeechEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
+   enum class TtsEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
       NONE("none", "None", "No voice"),
       SYSTEM("os", "System", "System voice. Fully offline"),
       COQUI("coqui", "Coqui", "Voice using huggingface.co/coqui/XTTS-v2 model. Fully offline"),

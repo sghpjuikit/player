@@ -1,1 +1,1 @@
-Directory for models
+Directory for SttWhisper models

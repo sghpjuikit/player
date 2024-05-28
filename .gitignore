@@ -19,6 +19,10 @@ app/speech-recognition-whisper/models-gpt4all/**
 !app/speech-recognition-whisper/models-gpt4all/README.md
 app/speech-recognition-whisper/models-whisper/**
 !app/speech-recognition-whisper/models-whisper/README.md
+app/speech-recognition-whisper/models-fasterwhisper/**
+!app/speech-recognition-whisper/models-fasterwhisper/README.md
+app/speech-recognition-whisper/models-whispers2t/**
+!app/speech-recognition-whisper/models-whispers2t/README.md
 app/speech-recognition-whisper/models-coqui/**
 !app/speech-recognition-whisper/models-coqui/README.md
 app/speech-recognition-whisper/voices-coqui/**

@@ -100,7 +100,104 @@ class SttWhisper(Stt):
                         audio_array, sampling_rate = sf.read(wav_stream)
                         audio_array = audio_array.astype(np.float32)
                         # sst
-                        text = model.transcribe(audio_array, language=None, task=None, fp16=torch.cuda.is_available())['text']
+                        text = model.transcribe(audio_array, language='en', task='transcribe', fp16=torch.cuda.is_available())['text']
+                        # complete
+                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, text))
+                        else: a.future.set_exception(Exception("Stopped or disabled"))
+                    except Exception as e:
+                        a.future.set_exception(e)
+                        raise e
+
+# home https://github.com/shashikg/WhisperS2T
+class SttWhisperS2T(Stt):
+    def __init__(self, enabled: bool, device: str, model: str, write: Writer):
+        super().__init__('SttWhisperS2T', device, write, enabled, 16000)
+        self.model = model
+        self.device = device
+
+    def _loop(self):
+        self._loopWaitTillReady()
+
+        # initialize
+        import whisper_s2t
+        from whisper_s2t.backends.ctranslate2.model import BEST_ASR_CONFIG
+        # init model dir
+        if self.sample_rate != whisper.audio.SAMPLE_RATE: raise Exception("Whisper must be 16000Hz sample rate")
+        # init model dir
+        modelDir = "models-whispers2t"
+        if not exists(modelDir): makedirs(modelDir)
+        # load model
+        device = self.device.split(':')[0] if ':' in self.device else self.device
+        device_index = int(self.device.split(':')[1]) if ':' in self.device else 0
+        model_kwargs = {
+            'compute_type': 'int8', # Note int8 is only supported for CTranslate2 backend, for others only float16 is supported for lower precision.
+            'asr_options': BEST_ASR_CONFIG
+        }
+        model = whisper_s2t.load_model(model_identifier=self.model, backend='CTranslate2', device=device, device_index=device_index, **model_kwargs)
+        # loop
+        with self._looping():
+            while not self._stop:
+                with self._loopProcessEvent() as a:
+                    try:
+                        # prepare data
+                        wav_bytes = a.audio.get_wav_data()  # must be 16kHz
+                        wav_stream = BytesIO(wav_bytes)
+                        audio_array, sampling_rate = sf.read(wav_stream)
+                        audio_array = audio_array.astype(np.float32)
+                        # gather data as file
+                        file = join('cache', 'nemo', str(uuid.uuid4())) + '.wav'
+                        sf.write(file, audio_array, sampling_rate)
+                        # sst
+                        files = [file]
+                        lang_codes = ['en']
+                        tasks = ['transcribe']
+                        initial_prompts = [None]
+                        text = model.transcribe_with_vad(files, lang_codes=lang_codes, tasks=tasks, initial_prompts=initial_prompts, batch_size=32)
+                        # complete
+                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, text[0][0]['text']))
+                        else: a.future.set_exception(Exception("Stopped or disabled"))
+                    except Exception as e:
+                        a.future.set_exception(e)
+                        raise e
+                    finally:
+                        remove(file)
+
+
+# home https://github.com/SYSTRAN/faster-whisper
+class SttFasterWhisper(Stt):
+    def __init__(self, enabled: bool, device: str, model: str, write: Writer):
+        super().__init__('SttFasterWhisper', device, write, enabled, 16000)
+        self.model = model
+        self.device = device
+
+    def _loop(self):
+        self._loopWaitTillReady()
+
+        # initialize
+        from faster_whisper import WhisperModel
+        # init model dir
+        if self.sample_rate != whisper.audio.SAMPLE_RATE: raise Exception("Whisper must be 16000Hz sample rate")
+        # init model dir
+        modelDir = "models-fasterwhisper"
+        if not exists(modelDir): makedirs(modelDir)
+        # load model
+        device = self.device.split(':')[0] if ':' in self.device else self.device
+        device_index = int(self.device.split(':')[1]) if ':' in self.device else 0
+        compute_type = "int8_float16" if self.device.startswith("cuda") else "int8"
+        model = WhisperModel(model_size_or_path=self.model, download_root=modelDir, device=device, device_index=device_index, compute_type=compute_type)
+        # loop
+        with self._looping():
+            while not self._stop:
+                with self._loopProcessEvent() as a:
+                    try:
+                        # prepare data
+                        wav_bytes = a.audio.get_wav_data()  # must be 16kHz
+                        wav_stream = BytesIO(wav_bytes)
+                        audio_array, sampling_rate = sf.read(wav_stream)
+                        audio_array = audio_array.astype(np.float32)
+                        # sst
+                        segments, info = model.transcribe(audio=audio_array, language='en', task='transcribe', beam_size=5)
+                        text = ''.join(segment.text for segment in segments)
                         # complete
                         if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, text))
                         else: a.future.set_exception(Exception("Stopped or disabled"))

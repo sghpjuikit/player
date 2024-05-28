@@ -13,7 +13,7 @@ from itertools import chain
 from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerStateActorEventsAll, HttpHandlerIntent, HttpHandlerStt, HttpHandlerTtsReact
 from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
 from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatPaste
-from util_stt import SttNone, SttWhisper, SttNemo, SttHttp, SpeechText
+from util_stt import SttNone, SttWhisper, SttFasterWhisper, SttWhisperS2T, SttNemo, SttHttp, SpeechText
 from util_mic import Mic, MicVoiceDetectNone, MicVoiceDetectNvidia, SpeechStart, Speech
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_itr import teeThreadSafe, teeThreadSafeEager
@@ -116,6 +116,15 @@ Args:
     Whisper torch device, e.g., cpu, cuda:0, cuda:1.
     Default: ''
 
+  stt-whispers2t-model=$model
+    Whisper model for speech recognition
+    Values: tiny.en, tiny, base.en, base, small.en, small, medium.en, medium, large, large-v1, large-v2, large-v3
+    Default: small.en
+
+  stt-whispers2t-device
+    Whisper torch device, e.g., cpu, cuda:0, cuda:1.
+    Default: ''
+    
   stt-nemo-model=$model
     Nemo model for speech recognition
     Values: nvidia/parakeet-tdt-1.1b, nvidia/parakeet-ctc-1.1b, nvidia/parakeet-ctc-0.6b
@@ -231,6 +240,10 @@ micVoiceDetectVerbose = arg('mic-voice-detect-debug', "false")=="true"
 sttEngineType = arg('stt-engine', 'whisper')
 sttWhisperDevice = arg('stt-whisper-device', '')
 sttWhisperModel = arg('stt-whisper-model', 'base.en')
+sttFasterWhisperDevice = arg('stt-fasterwhisper-device', '')
+sttFasterWhisperModel = arg('stt-fasterwhisper-model', 'small.en')
+sttWhispers2tDevice = arg('stt-whispers2t-device', '')
+sttWhispers2tModel = arg('stt-whispers2t-model', 'small.en')
 sttNemoDevice = arg('stt-nemo-device', '')
 sttNemoModel = arg('stt-nemo-model', 'nvidia/parakeet-ctc-1.1b')
 sttHttpUrl = arg('stt-http-url', 'localhost:1235')
@@ -573,6 +586,10 @@ def install_exit_handler():
 stt = SttNone(micEnabled, write)
 if sttEngineType == 'whisper':
     stt = SttWhisper(micEnabled, "cpu" if len(sttWhisperDevice)==0 else sttWhisperDevice, sttWhisperModel, write)
+if sttEngineType == 'faster-whisper':
+    stt = SttFasterWhisper(micEnabled, "cpu" if len(sttFasterWhisperDevice)==0 else sttFasterWhisperDevice, sttFasterWhisperModel, write)
+if sttEngineType == 'whispers2t':
+    stt = SttWhisperS2T(micEnabled, "cpu" if len(sttWhispers2tDevice)==0 else sttWhispers2tDevice, sttWhispers2tModel, write)
 elif sttEngineType == 'nemo':
     stt = SttNemo(micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
 elif sttEngineType == 'http':

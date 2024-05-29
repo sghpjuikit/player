@@ -10,7 +10,7 @@ from util_actor import Actor, ActorStoppedException
 from util_dir_cache import cache_file
 from util_http import HttpHandler
 from util_itr import teeThreadSafeEager, words
-from util_play_engine import SdActor
+from util_play import SdActor
 from util_str import *
 from util_wrt import Writer
 
@@ -185,9 +185,9 @@ class TtsNone(TtsBase):
 
 
 class TtsWithModelBase(TtsBase):
-    def __init__(self, name: str, play: SdActor, write: Writer):
+    def __init__(self, name: str, write: Writer):
         super().__init__(name, write)
-        self.play = play
+        self.play = SdActor(write)
 
     def _boundary(self):
         self.play.boundary()
@@ -221,8 +221,8 @@ class TtsWithModelBase(TtsBase):
 
 
 class TtsOs(TtsWithModelBase):
-    def __init__(self, play: SdActor, write: Writer):
-        super().__init__('TtsOs', play, write)
+    def __init__(self, write: Writer):
+        super().__init__('TtsOs', write)
         self.deviceName = 'cpu'
         self._engine = None
 
@@ -322,8 +322,8 @@ class TtsOs(TtsWithModelBase):
 
 # https://pypi.org/project/TTS/
 class TtsCoqui(TtsWithModelBase):
-    def __init__(self, voice: str, device: str, play: SdActor, write: Writer):
-        super().__init__('TtsCoqui', play, write)
+    def __init__(self, voice: str, device: str, write: Writer):
+        super().__init__('TtsCoqui', write)
         self.speed = 1.0
         self.voice = voice
         self.device = device
@@ -514,8 +514,8 @@ class TtsCoqui(TtsWithModelBase):
 
 
 class TtsHttp(TtsWithModelBase):
-    def __init__(self, url: str, port: int, play: SdActor, write: Writer):
-        super().__init__('TtsHttp', play, write)
+    def __init__(self, url: str, port: int, write: Writer):
+        super().__init__('TtsHttp', write)
         self.url = url
         self.port = port
 
@@ -532,6 +532,9 @@ class TtsHttp(TtsWithModelBase):
                     conn.set_debuglevel(0)
                     conn.request('POST', '/speech', text, {})
                     response = conn.getresponse()
+                    
+                    if response.status != 200:
+                        raise Exception(f"Http status={response.status} {response.reason}")
 
                     def read_wav_chunks_from_response(response):
                         chunk_size = 1024*(numpy.zeros(1, dtype=numpy.float32).nbytes)  # Adjust the chunk size as needed
@@ -562,8 +565,8 @@ class TtsHttp(TtsWithModelBase):
 
 # https://pytorch.org/hub/nvidia_deeplearningexamples_tacotron2/
 class TtsTacotron2(TtsWithModelBase):
-    def __init__(self, device: str, play: SdActor, write: Writer):
-        super().__init__('TtsTacotron2', play, write)
+    def __init__(self, device: str, write: Writer):
+        super().__init__('TtsTacotron2', write)
         self.deviceName = device
         self.device = device
 
@@ -613,8 +616,8 @@ class TtsTacotron2(TtsWithModelBase):
 
 # https://speechbrain.github.io
 class TtsSpeechBrain(TtsWithModelBase):
-    def __init__(self, device: str, play: SdActor, write: Writer):
-        super().__init__('TtsSpeechBrain', play, write)
+    def __init__(self, device: str, write: Writer):
+        super().__init__('TtsSpeechBrain', write)
         self.deviceName = device
         self.device = device
 
@@ -652,8 +655,8 @@ class TtsSpeechBrain(TtsWithModelBase):
 
 # https://huggingface.co/nvidia/tts_en_fastpitch
 class TtsFastPitch(TtsWithModelBase):
-    def __init__(self, device: str, play: SdActor, write: Writer):
-        super().__init__('TtsFastPitch', play, write)
+    def __init__(self, device: str, write: Writer):
+        super().__init__('TtsFastPitch', write)
         self.deviceName = device
         self.device = device
 

@@ -18,7 +18,6 @@ from util_mic import Mic, MicVoiceDetectNone, MicVoiceDetectNvidia, SpeechStart,
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_http import Http, HttpHandler
-from util_play_engine import SdActor
 from util_wrt import Writer
 from util_actor import Actor
 from util_paste import *
@@ -274,21 +273,21 @@ usePythonCommands = arg('use-python-commands', 'false')=="true"
 if ttsEngineType == 'none':
     speakEngine = TtsNone(write)
 elif ttsEngineType == 'os':
-    speakEngine = TtsOs(SdActor(write), write)
+    speakEngine = TtsOs(write)
 elif ttsEngineType == 'coqui':
-    speakEngine = TtsCoqui(ttsCoquiVoice, "cuda" if len(ttsCoquiCudaDevice)==0 else ttsCoquiCudaDevice, SdActor(write), write)
+    speakEngine = TtsCoqui(ttsCoquiVoice, "cuda" if len(ttsCoquiCudaDevice)==0 else ttsCoquiCudaDevice, write)
 elif ttsEngineType == 'tacotron2':
-    speakEngine = TtsTacotron2("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
+    speakEngine = TtsTacotron2("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, write)
 elif ttsEngineType == 'speechbrain':
-    speakEngine = TtsSpeechBrain("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
+    speakEngine = TtsSpeechBrain("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, write)
 elif ttsEngineType == 'http':
     if len(ttsHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')
     ttsHttpUrl = ttsHttpUrl.removeprefix("http://").removeprefix("https://")
     if ':' not in ttsHttpUrl: raise AssertionError('speech-server must be in format host:port')
     host, _, port = ttsHttpUrl.partition(":")
-    speakEngine = TtsHttp(host, int(port), SdActor(write), write)
+    speakEngine = TtsHttp(host, int(port), write)
 elif ttsEngineType == 'fastpitch':
-    speakEngine = TtsFastPitch("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, SdActor(write), write)
+    speakEngine = TtsFastPitch("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, write)
 else:
     speakEngine = TtsNone(write)
 tts = Tts(ttsOn, speakEngine, write)

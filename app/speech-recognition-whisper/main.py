@@ -10,7 +10,7 @@ from imports import print_exc
 from datetime import datetime
 from threading import Timer
 from itertools import chain
-from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerStateActorEventsAll, HttpHandlerIntent, HttpHandlerStt, HttpHandlerTtsReact
+from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerStateActorEventsAll, HttpHandlerIntent, HttpHandlerStt, HttpHandlerTts, HttpHandlerTtsReact
 from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
 from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatPaste
 from util_stt import SttNone, SttWhisper, SttFasterWhisper, SttWhisperS2T, SttNemo, SttHttp, SpeechText
@@ -604,7 +604,7 @@ def micSpeakerDiarLoader():
     if not micVoiceDetect: return MicVoiceDetectNone()
     else: return MicVoiceDetectNvidia(micVoiceDetectTreshold, micVoiceDetectVerbose)
 mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, lambda e: skip(e), lambda e: stt(e), tts, write, micEnergy, micVerbose, micSpeakerDiarLoader)
-actors: [Actor] = list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.tts.play if hasattr(tts.tts, 'play') else None]))
+actors: [Actor] = list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.play]))
 
 # http
 http = None
@@ -616,8 +616,8 @@ http.handlers.append(HttpHandlerStateActorEvents(actors))
 http.handlers.append(HttpHandlerStateActorEventsAll(actors))
 http.handlers.append(HttpHandlerIntent(llm))
 http.handlers.append(HttpHandlerStt(stt))
+http.handlers.append(HttpHandlerTts(tts.tts))
 http.handlers.append(HttpHandlerTtsReact(llm, llmSysPrompt))
-if isinstance(tts.tts, TtsCoqui): http.handlers.append(tts.tts._httpHandler())
 
 # start actors
 if http is not None: http.start()

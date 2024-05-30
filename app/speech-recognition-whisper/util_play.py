@@ -16,6 +16,26 @@ class SdEvent:
         self.skippable = skippable
         self.future = Future()
 
+    @classmethod
+    def boundary(cls):
+        return cls('boundary', '', None, False)
+
+    @classmethod
+    def empty(cls, millis: int, skippable: bool):
+        return cls('e', f'', None, True)
+    
+    @classmethod
+    def pause(cls, millis: int, skippable: bool):
+        return cls('p', f'{millis}ms', millis, True)
+
+    @classmethod
+    def file(cls, text: str, audio: str, skippable: bool):
+        return cls('f', text, audio, skippable)
+
+    @classmethod
+    def wavChunks(cls, text: str, audio: np.ndarray, skippable: bool):
+        return cls('b', text, audio, skippable)
+    
 class SdActor(Actor):
     def __init__(self, write: Writer):
         super().__init__('play', 'SdActor', "cpu", write, True)
@@ -49,13 +69,13 @@ class SdActor(Actor):
                     try:
                         # skip
                         if self._skip and event.skippable:
-                            event.future.set_exception(Exception('skipped'))
+                            event.future.set_result([])
                             continue
 
                         # skip stop at boundary
                         if event.type == 'boundary':
-                            event.future.set_result([])
                             self._skip = False
+                            event.future.set_result([])
                             continue
 
                         # play pause
@@ -66,6 +86,9 @@ class SdActor(Actor):
                             stream.write(data)
                             return data
 
+                        if event.type == 'e':
+                            event.future.set_result([])
+                            
                         if event.type == 'p':
                             data = playPause(int(event.audio)/1000.0)
                             event.future.set_result(data)
@@ -107,18 +130,6 @@ class SdActor(Actor):
                         if (self._stop): pass  # daemon thread can get interrupted and stream crash mid write
                         else: raise x
         stream.stop()
-
-    def boundary(self) -> Future:
-        return self.playEvent(SdEvent('boundary', '', None, False))
-
-    def playPause(self, millis: int, skippable: bool) -> Future:
-        return self.playEvent(SdEvent('p', f'{millis}ms', millis, True))
-
-    def playFile(self, text: str, audio: str, skippable: bool) -> Future:
-        return self.playEvent(SdEvent('f', text, audio, skippable))
-
-    def playWavChunk(self, text: str, audio: np.ndarray, skippable: bool) -> Future:
-        return self.playEvent(SdEvent('b', text, audio, skippable))
 
     def playEvent(self, e: SdEvent) -> Future:
         self.queue.put(e)

@@ -165,11 +165,6 @@ class PythonExecutor:
             def speak(t: str):
                 assertSkip()
                 self.tts.skippable(t.removeprefix('"').removesuffix('"')).result()
-                # simulate speaking
-                for _ in range(10):
-                    assertSkip()
-                    time.sleep(0.1)
-
             def body(t: str):
                 assertSkip()
                 self.write(f'SYS: *{t}*')
@@ -354,7 +349,7 @@ If the full response is not executable python, you will be mortified.
 You must avoid markdown code blocks, ```, comments, redefining functions.
 The code is executed as python and python functions functions must be invoked as such.
 The python code may use valid python constructs (loops, variables, multiple lines etc.) and already has available these functions (bodies are omitted):
-* def speak(your_speech_to_user: str) -> None:  # has 1s minimum invocation time
+* def speak(your_speech_to_user: str) -> None:  # blocks until speaking is done
 * def body(your_physical_action: str) -> None:
 * def doNothing() -> None: # does nothing, useful to stop engaging with user
 * def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str) -> None: # units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year

@@ -1,18 +1,22 @@
 import os
+import re
 import time
 import torch
 import numpy
 import asyncio
 import torchaudio
-from collections.abc import Iterator
-from imports import *
 from util_actor import Actor, ActorStoppedException
+from util_itr import teeThreadSafeEager, words
+from util_play import SdActor, SdEvent
+from contextlib import contextmanager
+from collections.abc import Iterator
 from util_dir_cache import cache_file
 from util_http import HttpHandler
-from util_itr import teeThreadSafeEager, words
-from util_play import SdActor
-from util_str import *
+from itertools import chain
 from util_wrt import Writer
+from util_str import *
+from util_fut import *
+from imports import *
 
 @dataclass
 class TtsPause:
@@ -22,6 +26,7 @@ class Tts(Actor):
     def __init__(self, speakOn: bool, tts, write: Writer):
         super().__init__("tts-preprocessor", 'Tts-preprocessor', None, write, True)
         self.tts = tts
+        self.play = SdActor(write)
         self.speakOn = speakOn
         self._skip = False
         self.history = []
@@ -29,18 +34,21 @@ class Tts(Actor):
     def start(self):
         super().start()
         self.tts.start()
+        self.play.start()
 
     def stop(self):
         super().stop()
         self.tts.stop()
+        self.play.stop()
 
     def skip(self):
         self.tts.skip()
+        self.play.skip()
 
     def skipWithoutSound(self):
-        self.tts.skipWithoutSound()
+        self.tts.skip()
 
-    def skippable(self, event: str) -> Future[str | None]:
+    def skippable(self, event: str) -> Future[[]]:
         f = Future()
         if not self.speakOn:
             f.set_result(None)
@@ -55,7 +63,7 @@ class Tts(Actor):
             self.write('SYS: ' + text)
             self.queue.put((words(text), skippable, True, Future()))
 
-    def __call__(self, event: str | Iterator) -> Future[str | None]:
+    def __call__(self, event: str | Iterator) -> Future[[]]:
         f = Future()
         if not self.speakOn:
             f.set_result(None)
@@ -66,30 +74,42 @@ class Tts(Actor):
             self.queue.put((event, True, False, f))
         return f
 
-    def speakPause(self, ms: int):
+    def speakPause(self, ms: int) -> Future[[]]:
         f = Future()
         self.queue.put((TtsPause(ms), True, False, f))
-        f
 
     def _loop(self):
         from stream2sentence import generate_sentences
             
-        with self._looping():
+        with (self._looping()):
             while not self._stop:
                 with self._loopProcessEvent() as (event, skippable, repeated, f):
                     if isinstance(event, TtsPause):
-                        self.tts.speakPause(event.ms)
-                        f.set_result(f'pause({event.ms}ms)')
+                        self.tts.genPause(SdEvent.pause(event.ms, True)).add_done_callback(callback(f))
                     else:
                         text = ''
                         try:
-                            self.tts.speak(None, skippable=False)
+                            # start
+                            self.tts.gen(None, skippable=False)
+                            self.play.playEvent(SdEvent.boundary())
+                            fAll = []
+                            # sentences tts
                             for sentence in generate_sentences(event, cleanup_text_links=True, cleanup_text_emojis=True):
                                 text = text + sentence
-                                if (len(sentence)>0): self.tts.speak(sentence, skippable=skippable)
-                            self.tts.speak(None, skippable=False)
+                                if (len(sentence)>0): fAll.append(flatMap(self.tts.gen(sentence, skippable=skippable), self.play.playEvent))
+
+                            # join tts results
+                            fLast = fAll[-1]
+                            fResult = flatMap(fLast, lambda _: futureCompleted(list(chain(*map(lambda r: r.result(), fAll)))))
+                            
+                            # end
+                            fResult.add_done_callback(complete_also(f))
+                            self.tts.gen(None, skippable=False)
+                            self.play.playEvent(SdEvent.boundary())
+                            
+                            # history
                             if not repeated: self.history.append((text, skippable))
-                            f.set_result(text)
+                            
                         except Exception as e:
                             f.set_exception(e)
                             raise e
@@ -100,109 +120,68 @@ class TtsBase(Actor):
         super().__init__("tts", name, None, write, True)
         self.max_text_length = 400
         self._skip = False
+        self._loopResult = None
 
     def skip(self):
-        """
-        Stop processing this element and skip any next element until first non-skippable
-        """
         self._skip = True
 
     def skipWithoutSound(self):
         self._skip = True
 
-    def speak(self, text: str, skippable: bool):
+    def gen(self, text: str, skippable: bool) -> Future[SdEvent]:
         """
         Adds the text to queue
         """
-        self.queue.put((text, skippable))
-
-    def speakPause(self, ms: int):
-        self.queue.put((TtsPause(ms), False))
+        f = Future()
+        self.queue.put((text, skippable, f))
+        return f
 
     def _get_event_text(self, e: (str, bool)) -> str | None:
         if e is None: return e
         if isinstance(e[0], TtsPause): f'pause({e[0].ms}ms)'
         else: return e[0]
 
-    def _get_next_event(self) -> (str, bool):
+    def _get_next_event(self) -> (str, bool, Future):
         e = self._get_next_event_impl()
         if e is None: raise ActorStoppedException()
         return e
 
-    def _get_next_event_impl(self) -> (str, bool):
+    def _get_next_event_impl(self) -> (str, bool, Future):
         """
         :return: next element from queue, skipping over skippable elements if _skip=True, blocks until then
         """
         while not self._stop:
-            textRaw, skippable = self.queue.get()
+            textRaw, skippable, f = self.queue.get()
 
             # skip skippable
             if self._skip and skippable:
+                f.set_result(SdEvent.empty())
                 continue
 
             self._skip = False
 
             # skip boundary value
             if textRaw is None:
-                self._boundary()
-                continue
-
-            if isinstance(textRaw, TtsPause):
-                self.play.playPause(textRaw.ms, True)
-                f'pause({textRaw.ms}ms)'
+                f.set_result(SdEvent.boundary())
                 continue
 
             # skip empty value
             if len(textRaw.strip()) == 0:
+                f.set_result(SdEvent.empty())
                 continue
 
             # gather all elements that are already ready (may improve tts quality)
-            if skippable:
-                ts = textRaw
-                while True:
-                    if self.queue.not_empty: break
-                    t, s = self.queue[0]
-                    if t is None or not s: break
-                    if len(ts) + len(t) > self.max_text_length: break
-                    ts = ts + t
-                    self.queue.get_nowait()
+            # if skippable:
+            #     ts = textRaw
+            #     while True:
+            #         if self.queue.not_empty: break
+            #         t, s = self.queue[0]
+            #         if t is None or not s: break
+            #         if len(ts) + len(t) > self.max_text_length: break
+            #         ts = ts + t
+            #         self.queue.get_nowait()
 
-            return (textRaw, skippable)
-
-    def _boundary(self):
-        pass
-
-
-class TtsNone(TtsBase):
-    def __init__(self, write: Writer):
-        super().__init__("TtsNone", write)
-
-    def _loop(self):
-        self._loopLoadAndIgnoreEvents()
-
-    def speak(self, text: str, skippable: bool): # pylint: disable=unused-argument
-        pass
-
-
-class TtsWithModelBase(TtsBase):
-    def __init__(self, name: str, write: Writer):
-        super().__init__(name, write)
-        self.play = SdActor(write)
-
-    def _boundary(self):
-        self.play.boundary()
-
-    def skip(self):
-        super().skip()
-        self.play.skip()
-
-    def start(self):
-        super().start()
-        self.play.start()
-
-    def stop(self):
-        super().stop()
-        self.play.stop()
+            return (textRaw, skippable, f)
 
     def _cache_dir(self, *names: str):
         dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", *[name.replace('.','-') for name in names])
@@ -219,13 +198,43 @@ class TtsWithModelBase(TtsBase):
         cache_used = len(text) < 100
         return (audio_file, audio_file_exists, cache_used)
 
+    @contextmanager
+    def _loopProcessEventFut(self, cacheName: str, sample_rate: int, save):
+        with self._loopProcessEvent() as (text, skippable, f):
+            audio_file, audio_file_exists, cache_used = self._cache_file_try(cacheName, text)
+            # use tts
+            if not cache_used or not audio_file_exists:
+                try: 
+                    # tts
+                    yield (text, skippable, f)
+                    # update cache
+                    if cache_used and text:
+                        try: torchaudio.save(audio_file, save(f.result(), sample_rate))
+                        except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
+                except Exception as e:
+                    f.set_exception(e)
+                    raise e
+            # use cache
+            else:
+                f.set_result(SdEvent.file(text, audio_file, skippable))
 
-class TtsOs(TtsWithModelBase):
+
+class TtsNone(TtsBase):
+    def __init__(self, write: Writer):
+        super().__init__("TtsNone", write)
+
+    def _loop(self):
+        self._loopLoadAndIgnoreEvents()
+
+    def speak(self, text: str, skippable: bool): # pylint: disable=unused-argument
+        pass
+
+class TtsOs(TtsBase):
     def __init__(self, write: Writer):
         super().__init__('TtsOs', write)
         self.deviceName = 'cpu'
         self._engine = None
-
+        
     def _loop(self):
         # init
         import uuid
@@ -241,11 +250,6 @@ class TtsOs(TtsWithModelBase):
             if 'Zira' in voice.name:
                 self._engine.setProperty('voice', voices[1].id)
 
-        # alternative for playing around
-        # class Eng:
-        #     def notify(self, topic, **kwargs): pass
-        #     def endLoop(self): pass
-
         # from rlvoice.driver import DriverProxy # https://github.com/Akul-AI/rlvoice-1
         # import weakref
         # import time
@@ -253,75 +257,78 @@ class TtsOs(TtsWithModelBase):
 
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvent() as (text, skippable):
+                with self._loopProcessEvent() as (text, skippable, f):
                     audio_file, audio_file_exists = cache_file(text, cache_dir)
                     cache_used = len(text) < 100
                     if not cache_used or not audio_file_exists:
+                        try:
+    
+                            # classic way (cant be interrupted, but low latency)
+                            # self._engine.say(text)
+                            # self._engine.runAndWait()
+                            # self._engine.stop()
+    
+                            # in-memory (can be interrupted, but high latency and only windows), !work after 1st event for some reason
+                            # audios = []
+                            # self._engine.to_memory(text, audios)
+                            # self._engine.runAndWait()
+                            # audio = audios[0]
+                            # audio = numpy.array(audio, dtype=numpy.int32) # to numpty
+                            # audio = audio.astype(numpy.float32) / 32768.0 # normalize
+                            # self.play.playWavChunk(text, audio, skippable)
+                            # save file
+    
+                            # in-memory (can be interrupted, but high latency and only windows), experimental
+                            # f = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "os", str(uuid.uuid4()) + '.wav')
+                            # self._engine._driver.save_to_file(text, f)
+                            # self._engine._driver.startLoop()
+                            # for i in self._engine._driver.iterate(): pass
+                            # self._engine._driver.endLoop()
+                            # self._engine._driver.stop()
+                            # self.play.playFile(text, f, skippable)
+                            # save file
+    
+                            # custom implementation (in-memory, windows only)
+                            # from ctypes import c_int16
+                            # import win32com.client
+                            # import math
+                            # class TextToSpeech:
+                            #     def __init__(self):
+                            #         self.speech = win32com.client.Dispatch("SAPI.SpVoice")
+                            #
+                            #     def say(self, text: str) -> bytes:
+                            #         self.speech.Rate = int(math.log(400 / 156.63, 1.11))
+                            #         self.stream = win32com.client.Dispatch("SAPI.SpMemoryStream")
+                            #         self.speech.AudioOutputStream = self.stream
+                            #         self.speech.Speak(text)
+                            #
+                            #         data = self.stream.GetData()
+                            #         data = [c_int16((data[i])|data[i+1]<<8).value for i in range(0,len(data),2)]
+                            #         return data
+                            #
+                            # tts = TextToSpeech()
+                            # with self._looping():
+                            #     while not self._stop:
+                            #         with self._loopProcessEvent() as (text, skippable, f):
+                            #             audio = tts.say(text)
+                            #             audio = numpy.array(audio, dtype=numpy.int32) # to numpty
+                            #             audio = audio.astype(numpy.float32) / 32768.0 # normalize
+                            #             self.play.playWavChunk(text, audio, skippable)
 
-                        # classic way (cant be interrupted, but low latency)
-                        # self._engine.say(text)
-                        # self._engine.runAndWait()
-                        # self._engine.stop()
-
-                        # in-memory (can be interrupted, but high latency and only windows), !work after 1st event for some reason
-                        # audios = []
-                        # self._engine.to_memory(text, audios)
-                        # self._engine.runAndWait()
-                        # audio = audios[0]
-                        # audio = numpy.array(audio, dtype=numpy.int32) # to numpty
-                        # audio = audio.astype(numpy.float32) / 32768.0 # normalize
-                        # self.play.playWavChunk(text, audio, skippable)
-                        # save file
-
-                        # in-memory (can be interrupted, but high latency and only windows), experimental
-                        # f = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "os", str(uuid.uuid4()) + '.wav')
-                        # self._engine._driver.save_to_file(text, f)
-                        # self._engine._driver.startLoop()
-                        # for i in self._engine._driver.iterate(): pass
-                        # self._engine._driver.endLoop()
-                        # self._engine._driver.stop()
-                        # self.play.playFile(text, f, skippable)
-                        # save file
-
-                        # custom implementation (in-memory, windows only)
-                        # from ctypes import c_int16
-                        # import win32com.client
-                        # import math
-                        # class TextToSpeech:
-                        #     def __init__(self):
-                        #         self.speech = win32com.client.Dispatch("SAPI.SpVoice")
-                        #
-                        #     def say(self, text: str) -> bytes:
-                        #         self.speech.Rate = int(math.log(400 / 156.63, 1.11))
-                        #         self.stream = win32com.client.Dispatch("SAPI.SpMemoryStream")
-                        #         self.speech.AudioOutputStream = self.stream
-                        #         self.speech.Speak(text)
-                        #
-                        #         data = self.stream.GetData()
-                        #         data = [c_int16((data[i])|data[i+1]<<8).value for i in range(0,len(data),2)]
-                        #         return data
-                        #
-                        # tts = TextToSpeech()
-                        # with self._looping():
-                        #     while not self._stop:
-                        #         with self._loopProcessEvent() as (text, skippable):
-                        #             audio = tts.say(text)
-                        #             audio = numpy.array(audio, dtype=numpy.int32) # to numpty
-                        #             audio = audio.astype(numpy.float32) / 32768.0 # normalize
-                        #             self.play.playWavChunk(text, audio, skippable)
-
-                        # file-based (interruptable, cachable, high latency, all platforms)
-                        audio_file = audio_file if cache_used else os.path.join(cache_dir, str(uuid.uuid4()))
-                        self._engine.save_to_file(text, audio_file)
-                        self._engine.runAndWait()
-                        self._engine.stop()
-                        self.play.playFile(text, audio_file, skippable)
+                            # file-based (interruptable, cachable, high latency, all platforms)
+                            audio_file = audio_file if cache_used else os.path.join(cache_dir, str(uuid.uuid4()))
+                            self._engine.save_to_file(text, audio_file)
+                            self._engine.runAndWait()
+                            self._engine.stop()
+                            f.set_result(SdEvent.file(text, audio_file, skippable))
+                        except Exception as e:
+                            f.set_exception(e)
                     else:
-                        self.play.playFile(text, audio_file, skippable)
+                        f.set_result(SdEvent.file(text, audio_file, skippable))
 
 
 # https://pypi.org/project/TTS/
-class TtsCoqui(TtsWithModelBase):
+class TtsCoqui(TtsBase):
     def __init__(self, voice: str, device: str, write: Writer):
         super().__init__('TtsCoqui', write)
         self.speed = 1.0
@@ -332,91 +339,12 @@ class TtsCoqui(TtsWithModelBase):
         self.model: Xtts | None = None
         self.http_handler: HttpHandler | None = None
 
-    def gen(self, text: str):
+    def _gen(self, text: str):
         text_to_gen = replace_numbers_with_words(text)
         text_to_gen = text_to_gen.strip()
         text_to_gen = text_to_gen.replace("</s>", "").replace("```", "").replace("...", " ")
         text_to_gen = re.sub(" +", " ", text_to_gen)
         return self.model.inference_stream(text_to_gen, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
-
-    def _httpHandler(self) -> HttpHandler:
-        import soundfile as sf
-        import re
-        from http.server import BaseHTTPRequestHandler
-        tts = self
-
-        def waitTillLoaded():
-            while self._loaded is False:
-                if self._stop: return
-                time.sleep(0.1)
-
-        class MyRequestHandler(HttpHandler):
-            def __init__(self, ):
-                super().__init__('POST', '/speech')
-
-            def __call__(self, req: BaseHTTPRequestHandler):
-                if tts._stop: return
-                try:
-                    content_length = int(req.headers['Content-Length'])
-                    body = req.rfile.read(content_length)
-                    text = body.decode('utf-8')
-                    audio_file, audio_file_exists, cache_used = tts._cache_file_try(os.path.join('coqui', tts._voice), text)
-
-                    # generate
-                    if not cache_used or not audio_file_exists:
-                        waitTillLoaded()
-
-                        req.send_response(200)
-                        req.send_header('Content-type', 'application/octet-stream')
-                        req.end_headers()
-
-                        # generate
-                        audio_chunks = []
-                        for audio_chunk in tts.gen(text):
-                            audio_chunks.append(audio_chunk)
-
-                            if req.wfile.closed: return
-                            if tts._stop: req.wfile.close()
-                            if tts._stop: return
-
-                            req.wfile.write(audio_chunk.cpu().numpy().tobytes())
-                            req.wfile.flush()
-
-                        # update cache
-                        if cache_used and text:
-                            wav = torch.cat(audio_chunks, dim=0)
-                            try: torchaudio.save(audio_file, wav.squeeze().unsqueeze(0).cpu(), 24000)
-                            except Exception as e: tts.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
-
-                    # play file
-                    else:
-
-                        req.send_response(200)
-                        req.send_header('Content-type', 'application/octet-stream')
-                        req.end_headers()
-
-                        audio_data, fs = sf.read(audio_file, dtype='float32')
-                        if fs!=24000: return
-                        chunk_size = 1024
-                        audio_length = len(audio_data)
-                        start_pos = 0
-                        while start_pos < audio_length:
-
-                            if req.wfile.closed: return
-                            if tts._stop: req.wfile.close()
-                            if tts._stop: return
-
-                            end_pos = min(start_pos + chunk_size, audio_length)
-                            chunk = audio_data[start_pos:end_pos]
-                            start_pos = end_pos
-                            req.wfile.write(chunk)
-                            req.wfile.flush()
-
-                except Exception as e:
-                    tts.write("ERR: error generating voice for http " + str(e))
-                    print_exc()
-
-        return MyRequestHandler()
 
     def _loop(self):
         # init
@@ -482,38 +410,20 @@ class TtsCoqui(TtsWithModelBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvent() as (text, skippable):
-                    audio_file, audio_file_exists, cache_used = self._cache_file_try(os.path.join('coqui', self._voice), text)
+                with self._loopProcessEventFut(os.path.join('coqui', self._voice), 24000, lambda audio: torch.from_numpy(np.concatenate(list(map(lambda x: x.cpu().numpy(), audio)), exis=0)).squeeze().unsqueeze(0).cpu()) as (text, skippable, f):
+                    # wait for init
+                    loadModelThread.join()
+                    loadVoiceIfNew()
 
                     # generate
-                    if not cache_used or not audio_file_exists:
+                    audio_chunks = self._gen(text)
+                    consumer, audio_chunks_play = teeThreadSafeEager(audio_chunks, 1)
 
-                        # wait for init
-                        loadModelThread.join()
-                        loadVoiceIfNew()
-
-                        # generate
-                        audio_chunks = self.gen(text)
-                        consumer, audio_chunks_play, audio_chunks_cache = teeThreadSafeEager(audio_chunks, 2)
-
-                        # play
-                        self.play.playWavChunk(text, map(lambda x: x.cpu().numpy(), audio_chunks_play), skippable)
-                        consumer()
-
-                        # update cache
-                        if cache_used and text:
-                            audio_chunks = []
-                            for audio_chunk in audio_chunks_cache:
-                                audio_chunks.append(audio_chunk)
-
-                            wav = torch.cat(audio_chunks, dim=0)
-                            try: torchaudio.save(audio_file, wav.squeeze().unsqueeze(0).cpu(), 24000)
-                            except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
-                    else:
-                        self.play.playFile(text, audio_file, skippable)
+                    f.set_result(SdEvent.wavChunks(text, map(lambda x: x.cpu().numpy(), audio_chunks_play), skippable))
+                    consumer()
 
 
-class TtsHttp(TtsWithModelBase):
+class TtsHttp(TtsBase):
     def __init__(self, url: str, port: int, write: Writer):
         super().__init__('TtsHttp', write)
         self.url = url
@@ -525,8 +435,7 @@ class TtsHttp(TtsWithModelBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvent() as (text, skippable):
-
+                with self._loopProcessEvent() as (text, skippable, f):
                     text = text.encode('utf-8')
                     conn = http.client.HTTPConnection(self.url, self.port)
                     conn.set_debuglevel(0)
@@ -534,6 +443,7 @@ class TtsHttp(TtsWithModelBase):
                     response = conn.getresponse()
                     
                     if response.status != 200:
+                        f.set_exception(Exception(f"Http status={response.status} {response.reason}"))
                         raise Exception(f"Http status={response.status} {response.reason}")
 
                     def read_wav_chunks_from_response(response):
@@ -556,15 +466,19 @@ class TtsHttp(TtsWithModelBase):
                             wav_data = buffer.read()
                             yield numpy.frombuffer(wav_data, dtype=numpy.float32)
 
-                    audio_chunks = read_wav_chunks_from_response(response)
-                    consumer, audio_chunks = teeThreadSafeEager(audio_chunks, 1)
-                    self.play.playWavChunk(text, audio_chunks, skippable)
+                    try:
+                        audio_chunks = read_wav_chunks_from_response(response)
+                        consumer, audio_chunks = teeThreadSafeEager(audio_chunks, 1)
+                        f.set_result(SdEvent.wavChunks(text, audio_chunks, skippable))
+                    except Exception as e:
+                        f.set_exception(e)
+
                     consumer()
                     conn.close()
-
+                        
 
 # https://pytorch.org/hub/nvidia_deeplearningexamples_tacotron2/
-class TtsTacotron2(TtsWithModelBase):
+class TtsTacotron2(TtsBase):
     def __init__(self, device: str, write: Writer):
         super().__init__('TtsTacotron2', write)
         self.deviceName = device
@@ -586,36 +500,23 @@ class TtsTacotron2(TtsWithModelBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvent() as (text, skippable):
-                    audio_file, audio_file_exists, cache_used = self._cache_file_try("tacotron2", text)
+                with self._loopProcessEventFut("tacotron2", 24000, lambda audio: torch.tensor(audio[0]).unsqueeze(0)) as (text, skippable, f):
+                    # Format the input using utility methods
+                    with self.write.suppressed(): sequences, lengths = utils.prepare_input_sequence([text])
+                    sequences, lengths = (sequences.to(device), lengths.to(device))
 
-                    # generate
-                    if not cache_used or not audio_file_exists:
+                    # Run the chained models
+                    with torch.no_grad():
+                        mel, _, _ = tacotron2.infer(sequences, lengths)
+                        mel, _, _ = tacotron2.infer(sequences.to(device), lengths.to(device))
+                        audio = waveglow.infer(mel)
+                    audio_numpy = audio[0].data.cpu().numpy()
 
-                        # Format the input using utility methods
-                        with self.write.suppressed(): sequences, lengths = utils.prepare_input_sequence([text])
-                        sequences, lengths = (sequences.to(device), lengths.to(device))
-
-                        # Run the chained models
-                        with torch.no_grad():
-                            mel, _, _ = tacotron2.infer(sequences, lengths)
-                            mel, _, _ = tacotron2.infer(sequences.to(device), lengths.to(device))
-                            audio = waveglow.infer(mel)
-                        audio_numpy = audio[0].data.cpu().numpy()
-
-                        # play
-                        self.play.playWavChunk(text, [audio_numpy], skippable)
-
-                        # update cache
-                        if cache_used and text:
-                            try: torchaudio.save(audio_file, torch.tensor(audio_numpy).unsqueeze(0), 24000)
-                            except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
-                    else:
-                        self.play.playFile(text, audio_file, skippable)
+                    f.set_result(SdEvent.wavChunks(text, [audio_numpy], skippable))
 
 
 # https://speechbrain.github.io
-class TtsSpeechBrain(TtsWithModelBase):
+class TtsSpeechBrain(TtsBase):
     def __init__(self, device: str, write: Writer):
         super().__init__('TtsSpeechBrain', write)
         self.deviceName = device
@@ -632,29 +533,16 @@ class TtsSpeechBrain(TtsWithModelBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvent() as (text, skippable):
-                    audio_file, audio_file_exists, cache_used = self._cache_file_try("speechbrain", text)
-
-                    # generate
-                    if not cache_used or not audio_file_exists:
-                        text_to_gen = replace_numbers_with_words(text) + f"{'.' if text.endswith('.') else ''}"
-                        mel_output, mel_length, alignment = tacotron2.encode_text(text_to_gen)
-                        waveforms = hifi_gan.decode_batch(mel_output)
-                        audio_numpy = waveforms.detach().cpu().squeeze()
-
-                        # play
-                        self.play.playWavChunk(text, [audio_numpy], skippable)
-
-                        # update cache
-                        if cache_used and text:
-                            try: torchaudio.save(audio_file, audio_numpy.unsqueeze(0), 24000)
-                            except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
-                    else:
-                        self.play.playFile(text, audio_file, skippable)
+                with self._loopProcessEventFut("speechbrain", 24000, lambda audio: audio[0].unsqueeze(0)) as (text, skippable, f):
+                    text_to_gen = replace_numbers_with_words(text) + f"{'.' if text.endswith('.') else ''}"
+                    mel_output, mel_length, alignment = tacotron2.encode_text(text_to_gen)
+                    waveforms = hifi_gan.decode_batch(mel_output)
+                    audio_numpy = waveforms.detach().cpu().squeeze()
+                    f.set_result(SdEvent.wavChunks(text, [audio_numpy], skippable))
 
 
 # https://huggingface.co/nvidia/tts_en_fastpitch
-class TtsFastPitch(TtsWithModelBase):
+class TtsFastPitch(TtsBase):
     def __init__(self, device: str, write: Writer):
         super().__init__('TtsFastPitch', write)
         self.deviceName = device
@@ -696,29 +584,16 @@ class TtsFastPitch(TtsWithModelBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEvent() as (text, skippable):
-                    audio_file, audio_file_exists, cache_used = self._cache_file_try("fastpitch", text)
+                with self._loopProcessEventFut("fastpitch", vocoder_train_setup['sampling_rate'], lambda it: it.audio.clone().detach()) as (text, skippable, f):
+                    # Format the input using utility methods
+                    with self.write.suppressed(): batches = tp.prepare_input_sequence([text], batch_size=1)
 
-                    # generate
-                    if not cache_used or not audio_file_exists:
+                    gen_kw = {'pace': 1.0, 'speaker': 0, 'pitch_tgt': None, 'pitch_transform': None}
+                    denoising_strength = 0.005
+                    with torch.no_grad():
+                        mel, mel_lens, *_ = fastpitch(batches[0]['text'].to(device), **gen_kw)
+                        audio = hifigan(mel).float()
+                        audio = denoiser(audio.squeeze(1), denoising_strength)
+                        audio = audio.cpu().squeeze(1)
 
-                        # Format the input using utility methods
-                        with self.write.suppressed(): batches = tp.prepare_input_sequence([text], batch_size=1)
-
-                        gen_kw = {'pace': 1.0, 'speaker': 0, 'pitch_tgt': None, 'pitch_transform': None}
-                        denoising_strength = 0.005
-                        with torch.no_grad():
-                            mel, mel_lens, *_ = fastpitch(batches[0]['text'].to(device), **gen_kw)
-                            audio = hifigan(mel).float()
-                            audio = denoiser(audio.squeeze(1), denoising_strength)
-                            audio = audio.cpu().squeeze(1)
-
-                        # play
-                        self.play.playWavChunk(text, audio, skippable)
-
-                        # update cache
-                        if cache_used and text:
-                            try: torchaudio.save(audio_file, audio.clone().detach(), vocoder_train_setup['sampling_rate'])
-                            except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
-                    else:
-                        self.play.playFile(text, audio_file, skippable)
+                    f.set_result(SdEvent.wavChunks(text, audio, skippable))

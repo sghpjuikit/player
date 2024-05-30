@@ -324,7 +324,7 @@ class MicVoiceDetectNvidia:
     def loadSpeakerModel(self):
         try:
             m = nemo_asr.models.EncDecSpeakerLabelModel.from_pretrained("nvidia/speakerverification_en_titanet_large")
-            m.to(torch.device("cuda:1"))
+            m.to(torch.device("cpu"))
             return m
         except Exception as r:
             print(f"ERR: failed to load speaker detector model {e}", end='')

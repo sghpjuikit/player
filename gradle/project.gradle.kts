@@ -95,8 +95,8 @@ allprojects {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
          implementation(kotlin("compiler-embeddable"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.8.1")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.8.1")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.9.0-RC")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.9.0-RC")
          implementation("org.jetbrains", "annotations", "24.1.0")
       }
 
@@ -105,7 +105,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "23-ea+18"
+         val version = "23-ea+20"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -142,7 +142,7 @@ allprojects {
       "Misc" group {
          implementation("com.github.f4b6a3", "uuid-creator", "5.3.7")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
-         implementation("com.github.oshi", "oshi-core", "6.6.0")  // https://github.com/oshi/oshi/releases
+         implementation("com.github.oshi", "oshi-core", "6.6.1")  // https://github.com/oshi/oshi/releases
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }

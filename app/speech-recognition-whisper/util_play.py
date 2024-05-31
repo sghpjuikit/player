@@ -21,7 +21,7 @@ class SdEvent:
         return cls('boundary', '', None, False)
 
     @classmethod
-    def empty(cls, millis: int, skippable: bool):
+    def empty(cls):
         return cls('e', f'', None, True)
     
     @classmethod
@@ -81,7 +81,6 @@ class SdActor(Actor):
                         # play pause
                         def playPause(dur):
                             samples_count = int(dur * self.sample_rate)
-                            samples = np.zeros(samples_count)
                             data = np.zeros(samples_count, dtype=np.float32)
                             stream.write(data)
                             return data

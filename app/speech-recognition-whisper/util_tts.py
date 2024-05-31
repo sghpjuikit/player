@@ -22,6 +22,7 @@ from imports import *
 class TtsPause:
     ms: int
 
+
 class Tts(Actor):
     def __init__(self, speakOn: bool, tts, write: Writer):
         super().__init__("tts-preprocessor", 'Tts-preprocessor', None, write, True)
@@ -85,7 +86,7 @@ class Tts(Actor):
             while not self._stop:
                 with self._loopProcessEvent() as (event, skippable, repeated, f):
                     if isinstance(event, TtsPause):
-                        self.tts.genPause(SdEvent.pause(event.ms, True)).add_done_callback(callback(f))
+                        self.play.playEvent(SdEvent.pause(event.ms, True)).add_done_callback(complete_also(f))
                     else:
                         text = ''
                         try:
@@ -209,7 +210,7 @@ class TtsBase(Actor):
                     yield (text, skippable, f)
                     # update cache
                     if cache_used and text:
-                        try: torchaudio.save(audio_file, save(f.result(), sample_rate))
+                        try: torchaudio.save(audio_file, save(f.result()), sample_rate)
                         except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
                 except Exception as e:
                     f.set_exception(e)
@@ -228,6 +229,7 @@ class TtsNone(TtsBase):
 
     def speak(self, text: str, skippable: bool): # pylint: disable=unused-argument
         pass
+
 
 class TtsOs(TtsBase):
     def __init__(self, write: Writer):
@@ -381,8 +383,6 @@ class TtsCoqui(TtsBase):
                 with open(voiceFileJson, "w") as jf:
                     json.dump(latents, jf)
 
-
-
         def loadVoiceIfNew():
             if self._voice != self.voice:
                 loadVoice()
@@ -410,17 +410,18 @@ class TtsCoqui(TtsBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEventFut(os.path.join('coqui', self._voice), 24000, lambda audio: torch.from_numpy(np.concatenate(list(map(lambda x: x.cpu().numpy(), audio)), exis=0)).squeeze().unsqueeze(0).cpu()) as (text, skippable, f):
-                    # wait for init
-                    loadModelThread.join()
-                    loadVoiceIfNew()
+                with self._loopProcessEventFut(os.path.join('coqui', self._voice), 24000, lambda audio: torch.from_numpy(numpy.concatenate(list(map(lambda x: x.cpu().numpy(), audio.audio)), axis=0)).squeeze().unsqueeze(0).cpu()) as (text, skippable, f):
+                    if text is not None:
+                        # wait for init
+                        loadModelThread.join()
+                        loadVoiceIfNew()
 
-                    # generate
-                    audio_chunks = self._gen(text)
-                    consumer, audio_chunks_play = teeThreadSafeEager(audio_chunks, 1)
+                        # generate
+                        audio_chunks = self._gen(text)
+                        consumer, audio_chunks_play = teeThreadSafeEager(audio_chunks, 1)
 
-                    f.set_result(SdEvent.wavChunks(text, map(lambda x: x.cpu().numpy(), audio_chunks_play), skippable))
-                    consumer()
+                        f.set_result(SdEvent.wavChunks(text, map(lambda x: x.cpu().numpy(), audio_chunks_play), skippable))
+                        consumer()
 
 
 class TtsHttp(TtsBase):
@@ -501,18 +502,19 @@ class TtsTacotron2(TtsBase):
         with self._looping():
             while not self._stop:
                 with self._loopProcessEventFut("tacotron2", 24000, lambda audio: torch.tensor(audio[0]).unsqueeze(0)) as (text, skippable, f):
-                    # Format the input using utility methods
-                    with self.write.suppressed(): sequences, lengths = utils.prepare_input_sequence([text])
-                    sequences, lengths = (sequences.to(device), lengths.to(device))
+                    if text is not None:
+                        # Format the input using utility methods
+                        with self.write.suppressed(): sequences, lengths = utils.prepare_input_sequence([text])
+                        sequences, lengths = (sequences.to(device), lengths.to(device))
 
-                    # Run the chained models
-                    with torch.no_grad():
-                        mel, _, _ = tacotron2.infer(sequences, lengths)
-                        mel, _, _ = tacotron2.infer(sequences.to(device), lengths.to(device))
-                        audio = waveglow.infer(mel)
-                    audio_numpy = audio[0].data.cpu().numpy()
+                        # Run the chained models
+                        with torch.no_grad():
+                            mel, _, _ = tacotron2.infer(sequences, lengths)
+                            mel, _, _ = tacotron2.infer(sequences.to(device), lengths.to(device))
+                            audio = waveglow.infer(mel)
+                        audio_numpy = audio[0].data.cpu().numpy()
 
-                    f.set_result(SdEvent.wavChunks(text, [audio_numpy], skippable))
+                        f.set_result(SdEvent.wavChunks(text, [audio_numpy], skippable))
 
 
 # https://speechbrain.github.io
@@ -534,11 +536,12 @@ class TtsSpeechBrain(TtsBase):
         with self._looping():
             while not self._stop:
                 with self._loopProcessEventFut("speechbrain", 24000, lambda audio: audio[0].unsqueeze(0)) as (text, skippable, f):
-                    text_to_gen = replace_numbers_with_words(text) + f"{'.' if text.endswith('.') else ''}"
-                    mel_output, mel_length, alignment = tacotron2.encode_text(text_to_gen)
-                    waveforms = hifi_gan.decode_batch(mel_output)
-                    audio_numpy = waveforms.detach().cpu().squeeze()
-                    f.set_result(SdEvent.wavChunks(text, [audio_numpy], skippable))
+                    if text is not None:
+                        text_to_gen = replace_numbers_with_words(text) + f"{'.' if text.endswith('.') else ''}"
+                        mel_output, mel_length, alignment = tacotron2.encode_text(text_to_gen)
+                        waveforms = hifi_gan.decode_batch(mel_output)
+                        audio_numpy = waveforms.detach().cpu().squeeze()
+                        f.set_result(SdEvent.wavChunks(text, [audio_numpy], skippable))
 
 
 # https://huggingface.co/nvidia/tts_en_fastpitch
@@ -554,7 +557,6 @@ class TtsFastPitch(TtsBase):
             self.write(f'RAW: {self.name} downloading {target_path}')
             wget.download(url, target_path)
         return target_path
-
 
     def _loop(self):
         # Download files
@@ -581,19 +583,21 @@ class TtsFastPitch(TtsBase):
         fastpitch.to(device)
         hifigan.to(device)
         denoiser.to(device)
+
         # loop
         with self._looping():
             while not self._stop:
                 with self._loopProcessEventFut("fastpitch", vocoder_train_setup['sampling_rate'], lambda it: it.audio.clone().detach()) as (text, skippable, f):
-                    # Format the input using utility methods
-                    with self.write.suppressed(): batches = tp.prepare_input_sequence([text], batch_size=1)
+                    if text is not None:
+                        # Format the input using utility methods
+                        with self.write.suppressed(): batches = tp.prepare_input_sequence([text], batch_size=1)
 
-                    gen_kw = {'pace': 1.0, 'speaker': 0, 'pitch_tgt': None, 'pitch_transform': None}
-                    denoising_strength = 0.005
-                    with torch.no_grad():
-                        mel, mel_lens, *_ = fastpitch(batches[0]['text'].to(device), **gen_kw)
-                        audio = hifigan(mel).float()
-                        audio = denoiser(audio.squeeze(1), denoising_strength)
-                        audio = audio.cpu().squeeze(1)
+                        gen_kw = {'pace': 1.0, 'speaker': 0, 'pitch_tgt': None, 'pitch_transform': None}
+                        denoising_strength = 0.005
+                        with torch.no_grad():
+                            mel, mel_lens, *_ = fastpitch(batches[0]['text'].to(device), **gen_kw)
+                            audio = hifigan(mel).float()
+                            audio = denoiser(audio.squeeze(1), denoising_strength)
+                            audio = audio.cpu().squeeze(1)
 
-                    f.set_result(SdEvent.wavChunks(text, audio, skippable))
+                        f.set_result(SdEvent.wavChunks(text, audio, skippable))

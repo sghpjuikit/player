@@ -254,13 +254,15 @@ open class ListConfig<T>(
 
    val toConfigurable: (T?) -> Configurable<*>
 
+   private fun configs(t: T?) = a.itemToConfigurable(t).getConfigs().filter { it.isPersistable() }
+
    override var valueAsJson: JsValue
       get() {
          return runTry {
                JsArray(
                   value.map {
-                     if (a.isSimpleItemType) a.itemToConfigurable(it).getConfigs().first().valueAsJson
-                     else JsObject(a.itemToConfigurable(it).getConfigs().associate { Configuration.configToRawKeyMapperDefault(it) to it.valueAsJson } )
+                     if (a.isSimpleItemType) configs(it).first().valueAsJson
+                     else JsObject(configs(it).associate { Configuration.configToRawKeyMapperDefault(it) to it.valueAsJson } )
                   }
                )
             }
@@ -273,12 +275,11 @@ open class ListConfig<T>(
                property.asJsArray().value.asSequence()
                   .mapIndexed { i, s ->
                      val item = if (isFixedSizeAndHasConfigurableItems) a.list[i] else a.itemFactory?.invoke()
-                     val configs = a.itemToConfigurable(item).getConfigs()
                      if (a.isSimpleItemType) {
-                        configs.first().apply { valueAsJson = s }.value as T
+                        configs(item).first().apply { valueAsJson = s }.value as T
                      } else {
                         val values = s.asJsObject().value
-                        configs.forEach { it.valueAsJson = Configuration.configToRawKeyMapperDefault(it).let { values[it] ?: fail { "Unknown value path=$it" } } }
+                        configs(item).forEach { it.valueAsJson = Configuration.configToRawKeyMapperDefault(it).let { values[it] ?: fail { "Unknown value path=$it" } } }
                         item
                      }
                   }

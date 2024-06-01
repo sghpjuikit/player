@@ -11,12 +11,14 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 import javafx.animation.ParallelTransition
 import javafx.beans.property.Property
+import javafx.beans.value.ObservableValue
 import javafx.event.EventHandler
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Side
 import javafx.scene.Cursor
+import javafx.scene.Cursor.HAND
 import javafx.scene.Node
 import javafx.scene.control.ContentDisplay
 import javafx.scene.control.ContextMenu
@@ -685,6 +687,20 @@ fun errorIcon(error: Any?) = Icon().apply {
    onClickDo { APP.ui.actionPane.show(error) }
    isFocusTraversable = false
    isMouseTransparent = true
+}
+
+fun errorLabel(error: Throwable) = label {
+   isWrapText = true
+   cursor = HAND
+   text = error.message
+   onEventDown(MOUSE_CLICKED, PRIMARY) { APP.ui.actionPane.show(error) }
+}
+
+fun errorLabel(error: ObservableValue<Throwable?>) = label {
+   isWrapText = true
+   cursor = HAND
+   textProperty() syncFrom (error map { it?.message })
+   onEventDown(MOUSE_CLICKED, PRIMARY) { APP.ui.actionPane.show(error.value) }
 }
 
 fun <N: Node> showFloating(title: String, shower: Shower = WINDOW_ACTIVE(CENTER), content: (PopWindow) -> N): PopWindow = popWindow {

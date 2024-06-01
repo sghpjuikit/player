@@ -75,6 +75,17 @@ class Subscribed: Unsubscribable {
          val s2 = whileIs sync s1::subscribe
          return Subscription { s1.subscribe(false); s2.unsubscribe() }
       }
+
+      /**
+       * Create [Subscribed] for specified subscribing that will be subscribed between next invocations of [from] and [to].
+       *
+       * @return subscription that will unsubscribe the subscribed and prevent future subscribing
+       */
+      fun subBetween(from: Handler0, to: Handler0, subscribing: (Subscribed) -> Subscription): Subscription {
+         val s = Subscribed(subscribing)
+         return from.addRem { s.subscribe() } + to.addRem { s.unsubscribe() } + { s.unsubscribe() }
+      }
+
    }
 
 }

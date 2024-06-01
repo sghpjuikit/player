@@ -1187,11 +1187,13 @@ class ConfigurableCE(c: Config<Configurable<*>?>): ConfigEditor<Configurable<*>?
 class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): ConfigEditor<ObservableList<Configurable<*>?>>(c) {
    private var at = -1
    private var prevB = Icon(FontAwesomeIcon.ANGLE_LEFT, 16.0, "Previous item").onClickDo { prev() }
+   private var atL = label("0/0")
    private var nextB = Icon(FontAwesomeIcon.ANGLE_RIGHT, 16.0, "Next item").onClickDo { next() }
    private var configPane = ConfigPane<Any?>()
    override var editor: Node = vBox(10, CENTER_RIGHT) {
       lay += hBox(5, CENTER_RIGHT) {
          lay += prevB
+         lay += atL
          lay += nextB
       }
       lay(ALWAYS) += configPane
@@ -1207,22 +1209,29 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
       isEditable syncTo configPane.editable on disposer
    }
 
+   private fun updateAtL() {
+      atL.text = if (c.a.list.isEmpty()) "0/0" else "${at+1}/${c.a.list.size}"
+   }
+
    private fun prev() {
       val size = c.a.list.size
       if (size<=0) at = -1
-      if (size<=0) return
+      if (size<=0) return updateAtL()
 
       at = if (at==-1 || at==0) size - 1 else at - 1
       configPane.configure(c.a.list[at])
+      updateAtL()
    }
 
    private fun next() {
+      atL
       val size = c.a.list.size
       if (size<=0) at = -1
-      if (size<=0) return
+      if (size<=0) return updateAtL()
 
       at = if (at==-1 || at==size - 1) 0 else at + 1
       configPane.configure(c.a.list[at])
+      updateAtL()
    }
 
    override fun get() = Try.ok(config.value)

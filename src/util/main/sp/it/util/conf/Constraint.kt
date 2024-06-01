@@ -251,6 +251,9 @@ interface Constraint<in T> {
    /** Hints ui editor to use the specified to-info-string converter to display extended information about the value. */
    class UiInfoConverter<T>(val converter: (T) -> String): MarkerConstraint()
 
+   /** Hint for ui to use or not use pagination. */
+   class UiPaginated(val value: Boolean): MarkerConstraint()
+
    class ReadOnlyIf(val condition: ObservableValue<Boolean>): Constraint<Any?> {
       constructor(condition: ObservableValue<Boolean>, unless: Boolean): this(
          object: BooleanBinding() {

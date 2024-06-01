@@ -60,6 +60,7 @@ import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.Constraint.NumberMinMax.Between
 import sp.it.util.conf.Constraint.ObjectNonNull
+import sp.it.util.conf.Constraint.UiPaginated
 import sp.it.util.conf.Constraint.ValueSealedRadio
 import sp.it.util.conf.Constraint.ValueSealedSet
 import sp.it.util.conf.Constraint.ValueSealedToggle
@@ -391,6 +392,10 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
          put<ObservableList<*>> {
             when (it) {
                is ListConfig<*> -> when {
+                  it.hasConstraint<UiPaginated>() -> when {
+                     it.findConstraint<UiPaginated>()!!.value -> PaginatedObservableListCE(it.asIs())
+                     else -> ObservableListCE(it)
+                  }
                   it.a.itemType.isSubclassOf<Configurable<*>>() -> PaginatedObservableListCE(it.asIs())
                   else -> ObservableListCE(it)
                }

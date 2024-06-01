@@ -25,14 +25,14 @@ def flatMap(f: Future, func) -> Future:
                 rf.set_exception(fut.exception())
             else:
                 mapped = func(fut.result())
-                if isinstance(mapped, Future): mapped.add_done_callback(complete_also(rf))
+                if isinstance(mapped, Future): futureOnDone(mapped, complete_also(rf))
                 else:
                     print(f'wtf is this shit {mapped}')
                     rf.set_exception(ValueError('Function must return a Future object'))
         except Exception as e:
             rf.set_exception(e)
 
-    f.add_done_callback(callback)
+    futureOnDone(f, callback)
     return rf
 
 
@@ -42,3 +42,7 @@ def futureCompleted(result) -> Future:
     future = Future()
     future.set_result(result)
     return future
+
+def futureOnDone(future, onDone):
+    if future.done(): onDone(future)
+    else: future.add_done_callback(onDone)

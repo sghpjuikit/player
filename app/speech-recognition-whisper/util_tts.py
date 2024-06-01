@@ -86,7 +86,7 @@ class Tts(Actor):
             while not self._stop:
                 with self._loopProcessEvent() as (event, skippable, repeated, f):
                     if isinstance(event, TtsPause):
-                        self.play.playEvent(SdEvent.pause(event.ms, True)).add_done_callback(complete_also(f))
+                        futureOnDone(self.play.playEvent(SdEvent.pause(event.ms, True)), complete_also(f))
                     else:
                         text = ''
                         try:
@@ -100,11 +100,14 @@ class Tts(Actor):
                                 if (len(sentence)>0): fAll.append(flatMap(self.tts.gen(sentence, skippable=skippable), self.play.playEvent))
 
                             # join tts results
-                            fLast = fAll[-1]
-                            fResult = flatMap(fLast, lambda _: futureCompleted(list(chain(*map(lambda r: r.result(), fAll)))))
-                            
+                            if len(fAll)>0:
+                                fLast = fAll[-1]
+                                fResult = flatMap(fLast, lambda _: futureCompleted(list(chain(*map(lambda r: r.result(), fAll)))))
+                            else:
+                                fResult = futureCompleted([])
+
                             # end
-                            fResult.add_done_callback(complete_also(f))
+                            futureOnDone(fResult, complete_also(f))
                             self.tts.gen(None, skippable=False)
                             self.play.playEvent(SdEvent.boundary())
                             
@@ -217,6 +220,7 @@ class TtsBase(Actor):
                     raise e
             # use cache
             else:
+                yield (None, None, None)
                 f.set_result(SdEvent.file(text, audio_file, skippable))
 
 

@@ -10,6 +10,7 @@ from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain
 from util_actor import Actor
 from util_wrt import Writer
 from util_tts import Tts
+from util_fut import *
 from util_str import *
 
 class ChatProceed:
@@ -171,7 +172,7 @@ class Llm(Actor):
                     command = 'unidentified' if canceled else command
                     command = self.commandExecutor(command)
 
-        ef.future.add_done_callback(on_done)
+        futureOnDone(ef.future, on_done)
         return ef.future
 
     def _get_event_text(self, e: EventLlm) -> str:

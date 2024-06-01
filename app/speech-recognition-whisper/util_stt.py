@@ -1,11 +1,11 @@
 from imports import *
-from util_mic import OnSpeechStart, Speech, OnSpeechEnd
+from util_mic import OnSpeechStart, Speech, OnSpeechEnd, AudioData
 from os.path import dirname, abspath, exists, join
-from speech_recognition.audio import AudioData
 from os import makedirs, remove
 from datetime import datetime
 from util_actor import Actor
 from util_wrt import Writer
+from util_fut import *
 from time import sleep
 from io import BytesIO
 import whisper.audio
@@ -48,7 +48,7 @@ class Stt(Actor):
                 try: st = future.result()
                 except Exception: st = None
                 if st is not None and self.onDone is not None: self.onDone(st)
-            ef.future.add_done_callback(on_done)
+            futureOnDone(ef.future, on_done)
 
         return ef.future
 

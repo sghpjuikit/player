@@ -1,6 +1,7 @@
 from imports import *
 from datetime import datetime
 from util_llm import ChatIntentDetect
+from util_fut import *
 
 class CommandExecutor:
     def execute(self, text: str) -> str:
@@ -98,7 +99,7 @@ class PythonExecutor:
 
             sp = self.prompt()
             up = 'Assignment: You are expert programmer. Output must be in valid python code!\nInstruction:\n' + textOriginal
-            self.generatePython(sp, up, self.ms).add_done_callback(on_done)
+            futureOnDone(self.generatePython(sp, up, self.ms), on_done)
         except Exception:
             self.write("ERR: Failed to respond")
             print_exc()

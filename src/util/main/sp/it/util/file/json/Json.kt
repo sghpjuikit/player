@@ -95,7 +95,11 @@ sealed class JsValue: JsTokenLike {
 
 sealed interface JsRoot
 
-sealed class JsBool: JsValue()
+sealed class JsBool: JsValue() {
+   companion object {
+      operator fun invoke(value: Boolean): JsBool = if (value) JsTrue else JsFalse
+   }
+}
 
 object JsNull: JsValue()
 
@@ -113,6 +117,7 @@ data class JsArray(val value: List<JsValue>): JsValue(), JsRoot {
 
 data class JsObject(val value: Map<String, JsValue>): JsValue(), JsRoot {
    constructor(vararg entries: Pair<String, JsValue>): this(entries.toMap(LinkedHashMap()))
+   constructor(entries: List<Pair<String, JsValue>>): this(entries.toMap(LinkedHashMap()))
 }
 
 open class JsonAst {

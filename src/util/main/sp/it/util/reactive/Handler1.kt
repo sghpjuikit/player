@@ -35,4 +35,8 @@ class Handler1<I>(backingSet: MutableSet<C<I>> = LinkedHashSet(2)): MutableSet<C
       if (it is E && filter(it)) block(it)
    }
 
+   fun asChan(): ChanValue<I> = object: ChanValue<I> {
+      override infix fun subscribe(listener: (I) -> Unit): Subscription = addRem(listener)
+   }
+
 }

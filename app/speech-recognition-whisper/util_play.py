@@ -40,7 +40,7 @@ class SdActor(Actor):
     def __init__(self, write: Writer):
         super().__init__('play', 'SdActor', "cpu", write, True)
         self._skip = False
-        self.sentence_break = 1
+        self.sentence_break = 0.8
         self.sample_rate = 24000
         self.volume_adjuster = VolumeAdjuster()
 

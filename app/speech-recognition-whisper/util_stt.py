@@ -145,7 +145,7 @@ class SttWhisperS2T(Stt):
                         audio_array, sampling_rate = sf.read(wav_stream)
                         audio_array = audio_array.astype(np.float32)
                         # gather data as file
-                        file = join('cache', 'nemo', str(uuid.uuid4())) + '.wav'
+                        file = join('cache', 'whispers2t', str(uuid.uuid4())) + '.wav'
                         sf.write(file, audio_array, sampling_rate)
                         # sst
                         files = [file]

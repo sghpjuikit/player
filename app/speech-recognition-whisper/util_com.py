@@ -79,13 +79,13 @@ class PythonExecutor:
     def cancelActiveCommand(self):
         self.id = self.id+1
 
-    def generatePythonAndExecute(self, speaker: str, textOriginal: str, history: bool = True):
+    def generatePythonAndExecute(self, speaker: str, location: str, textOriginal: str, history: bool = True):
         try:
             self.cancelActiveCommand()
             idd = self.id
 
             if history:
-                self.historyAppend({ "role": "user", "content": f"TIME=\"{datetime.now().isoformat()}\"\nSPEAKER=\"{speaker}\"\n\n{textOriginal}"})
+                self.historyAppend({ "role": "user", "content": f"TIME=\"{datetime.now().isoformat()}\"\nSPEAKER=\"{speaker}\"\nLOCATION:\"{location}\"\n\n{textOriginal}"})
 
             def on_done(future):
                 try:
@@ -95,7 +95,7 @@ class PythonExecutor:
 
                 if text is None or canceled: return
                 text = preprocess_command(text)
-                Thread(name='command-executor', target=lambda: self.executeImpl(speaker, text, textOriginal, idd), daemon=True).start()
+                Thread(name='command-executor', target=lambda: self.executeImpl(speaker, location, text, textOriginal, idd), daemon=True).start()
 
             sp = self.prompt()
             up = 'Assignment: You are expert programmer. Output must be in valid python code!\nInstruction:\n' + textOriginal
@@ -104,11 +104,11 @@ class PythonExecutor:
             self.write("ERR: Failed to respond")
             print_exc()
 
-    def execute(self, speaker: str, text: str):
+    def execute(self, speaker: str, location: str, text: str):
         self.cancelActiveCommand()
-        self.executeImpl(speaker, text, self.id)
+        self.executeImpl(speaker, location, text, self.id)
 
-    def executeImpl(self, speaker: str, text: str, textOriginal: str, idd: str, fix: bool = True):
+    def executeImpl(self, speaker: str, location: str, text: str, textOriginal: str, idd: str, fix: bool = True):
         try:
             import ast
             import datetime
@@ -164,6 +164,7 @@ class PythonExecutor:
             def generate(c: str):
                 command('generate ' + c)
             def speak(t: str):
+                if t is None: return;
                 assertSkip()
                 self.tts.skippable(t.removeprefix('"').removesuffix('"')).result()
             def body(t: str):
@@ -187,7 +188,7 @@ class PythonExecutor:
 
                 self.ms.pop()
                 self.ms.pop()
-                self.generatePythonAndExecute(speaker, f'{textOriginal}\n\nEDIT: Your thoughts are (do not think() about these anymore) :' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)))
+                self.generatePythonAndExecute(speaker, location, f'{textOriginal}\n\nEDIT: Your thoughts are (do not think() about these anymore). If your thoughts give you a task, do it. If they are simply a statement of fact, do nothing. Thoughts:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)))
 
 
                 raise CommandNextException()
@@ -201,7 +202,7 @@ class PythonExecutor:
 
                 self.ms.pop()
                 self.ms.pop()
-                self.generatePythonAndExecute(speaker, f'{textOriginal}.\n\nEDIT: I set clipboard to (do not try to obtain clipboard anymore):\n```\n{get_clipboard_text()}\n```')
+                self.generatePythonAndExecute(speaker, location, f'{textOriginal}.\n\nEDIT: I set clipboard to (do not try to obtain clipboard anymore):\n```\n{get_clipboard_text()}\n```')
 
                 raise CommandNextException()
             def question(question: str) -> str | None:
@@ -287,7 +288,7 @@ class PythonExecutor:
             # invoke command as python
             if self.isValidPython(text):
                 self.historyAppend({ "role": "system", "content": text })
-                text = f'TIME="{datetime.datetime.now().isoformat()}"\nSPEAKER="System"\n\n{text}'
+                text = f'TIME="{datetime.datetime.now().isoformat()}"\nSPEAKER="System"\nLOCATION:\"{location}\"\n\n{text}'
                 exec(text)
 
             # try to fix code to be valid and exec again
@@ -301,7 +302,7 @@ class PythonExecutor:
                 else:
                     if canceled is True: raise CommandCancelException()
                     if canceled is False: self.write(f"RAW: executing:\n```\n{text}\n```")
-                    if canceled is False: self.executeImpl(speaker, text, textOriginal, idd, fix = False)
+                    if canceled is False: self.executeImpl(speaker, location, text, textOriginal, idd, fix = False)
 
         # stop on cancel
         except CommandNextException:
@@ -342,7 +343,7 @@ You have full control over the response, by responding with python code (that is
 
 Users talk to you through speech recognition, be mindful of mistranscriptions.
 Assume users do not have access to keyboard, if you need them to input complicated text, ask them if they can first.
-You speak() to user through voice generation, avoid text output unless asked for.
+You speak() to user through speech synthesis (user hears you). speak() dates, money and such in a spoken manner, not scientific.
 
 Therefore, your response must be valid executable python. You can not use comments.
 Ensure adherence to Python syntax rules, including proper indentation and variable naming conventions.
@@ -350,7 +351,7 @@ If the full response is not executable python, you will be mortified.
 You must avoid markdown code blocks, ```, comments, redefining functions.
 The code is executed as python and python functions functions must be invoked as such.
 The python code may use valid python constructs (loops, variables, multiple lines etc.) and already has available these functions (bodies are omitted):
-* def speak(your_speech_to_user: str) -> None:  # blocks until speaking is done
+* def speak(your_speech_to_user: str) -> None:  # blocks until speaking is done, pass text as it should be heard (particularly dates and numbers)
 * def body(your_physical_action: str) -> None:
 * def doNothing() -> None: # does nothing, useful to stop engaging with user
 * def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str) -> None: # units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year
@@ -393,7 +394,7 @@ If user asks to write code, use writeCode() instead of responding the code, sinc
 You always write short and efficient python (e.g. loop instead of manual duplicate calls).
 Use always speak() for verbal communication and write() for textual outputs.
 Use always question() when requiring input from the user.
-Use always question() when requiring answer or input from user, in conversation or even for function argument if necessary
+Use always question() when requiring user's answer or input, in conversation or even for function argument if necessary. 
 Use always body() function for any nonverbal actions of your physical body or movement, i.e. action('looks up'), action('moves closer')
 Use always wait() function to control time in your responses, take into consideration that speak() has about 0.5s delay.
 Use always musicPlayback() to control anything music related, pass as action context relevant to the intent
@@ -401,6 +402,7 @@ Use always lightsControl() to control anything lights related, pass as action co
 Use always think() function to react to data you obtained with other functions.
 Use always thinkClipboardContext() if you need to know clipboard content (and pass correct action), avoid using other functions or modules such as pyperclip for it
 You always correctly quote and escape function parameters.
+You always use writeCode() to produce code that is supposed to be shown to user.
 If you are uncertain what to do, simply speak() why.
 
 **Example of correct python responses**:
@@ -420,5 +422,5 @@ If you are uncertain what to do, simply speak() why.
 * speak('It's good') # ' not escaped
 * speak("It is " + str(datetime()) # speakCurrentTime() already does this
 * speakLol('It's good') # no such function
-* def speak(your_speech_to_user: str): None  # illegal redefining function!
+* def speak(your_speech_to_user: str) -> None:  # illegal redefining existing function!
 """

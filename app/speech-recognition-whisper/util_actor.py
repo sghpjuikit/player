@@ -185,3 +185,6 @@ class Actor:
         if not self.enabled: return "PAUSED"
         if not self._loaded: return "STARTING"
         else: return "ACTIVE"
+
+    def state_active(self) -> bool:
+        return self.state() in ["ACTIVE", "PAUSED"]

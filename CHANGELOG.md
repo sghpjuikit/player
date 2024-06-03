@@ -38,6 +38,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** speaker identification/diarization/registration/reaction
 - Implement **Voice assistant** python commands
 - Implement **Voice assistant** automatic history reset (5min)
+- Implement **Voice assistant** implement multiple microphones & microphone location
+- Implement **Voice assistant** tts over http supports all tts actors
 - Implement current song voice command
 - Implement log level highlighting
 - Implement **GitProjects** faster and better file sorting
@@ -132,6 +134,10 @@ USR: System
 SYS: Yes
 USE: command without repeating system name
 ```
+
+
+#### Multiple microphones
+Implement multiple microphones & microphone location
 
 #### Speaker diarization
 Assistant can now identify speaker and only react to one of the verified voices. It now ignores its own voice.

@@ -1,20 +1,12 @@
-import traceback
-import base64
-import psutil
-import signal
-import atexit
-import time
-import sys
-import os
 from imports import print_exc
 from datetime import datetime
 from threading import Timer
 from itertools import chain
-from util_http_handlers import HttpHandlerState, HttpHandlerStateActorEvents, HttpHandlerStateActorEventsAll, HttpHandlerIntent, HttpHandlerStt, HttpHandlerTts, HttpHandlerTtsReact
+from util_http_handlers import *
 from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
 from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatPaste
 from util_stt import SttNone, SttWhisper, SttFasterWhisper, SttWhisperS2T, SttNemo, SttHttp, SpeechText
-from util_mic import Mic, MicVoiceDetectNone, MicVoiceDetectNvidia, SpeechStart, Speech
+from util_mic import Mic, Vad, MicVoiceDetectNone, MicVoiceDetectNvidia, SpeechStart, Speech
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_http import Http, HttpHandler
@@ -22,8 +14,22 @@ from util_wrt import Writer
 from util_actor import Actor
 from util_paste import *
 from util_com import *
+from util_now import *
 from util_str import *
+import faulthandler
+import threading
+import traceback
+import base64
+import psutil
+import signal
+import atexit
+import time
+import json
+import sys
+import os
 
+# install_crash_logger
+faulthandler.enable()
 
 # print engine actor, non-blocking
 write = Writer()
@@ -55,18 +61,24 @@ It is possible to exit gracefully (on any platform) by writing 'EXIT' to stdin
 
 Args:
 
+
   mic-enabled=$bool
     Optional bool whether microphone listening should be allowed.
     When false, speech recognition will receive no input and will not do anything.
     Interacting with the program is still fully possible through stdin `CALL: $command`.
     Default: True
     
-  mic-energy=$int(0,inf)
+  mics=$json
+    Use to define multiple microphones.
+    Overrides below microphone settins.
+    Structure: `{ "exactMicNameOrEmptyForDefaultMic": { "energy": float, "location": "location name", "verbose": boolean }, ... }`
+  
+  mic-energy=$int(0,32767)
     Microphone energy treshold. ANything above this volume is considered potential voice.
-    Use `mic-energy-debug=True` to figure out what value to use, as default may cause speech recognition to not work.
+    Use `mic-verbose=True` to figure out what value to use, as default may cause speech recognition to not work.
     Default: 120
     
-  mic-energy-debug=$bool
+  mic-verbose=$bool
     Optional bool whether microphone should be printing real-time `mic-energy`.
     Use only to determine optimal `mic-energy`.
     Default: False
@@ -78,11 +90,14 @@ Args:
     Use `mic-voice-detect-prop` to set up sensitivity.
     Default: False
     
+  mic-voice-detect-device=$str
+    Microphone voice detection torch device, e.g., cpu, cuda:0, cuda:1.
+    Default "cpu"
+
   mic-voice-detect-prop=$int<0,1>
     Microphone voice detection treshold. Anything above this value is considered matched voice.
     Use `mic-voice-detect-debug` to determine optimal value.
     Default: 0.6
-    
   mic-voice-detect-debug=$bool
     Optional bool whether microphone should be printing real-time `mic-voice-detect-prop`.
     Use only to determine optimal `mic-voice-detect-prop`.
@@ -228,11 +243,13 @@ sysTerminating = False
 sysCacheDir = "cache"
 if not os.path.exists(sysCacheDir): os.makedirs(sysCacheDir)
 
+micDef = arg('mics', "")
 micEnabled = arg('mic-enabled', "true")=="true"
 micName = arg('mic-name', '')
 micEnergy = int(arg('mic-energy', "120"))
-micVerbose = arg('mic-energy-debug', "false")=="true"
+micVerbose = arg('mic-verbose', "false")=="true"
 micVoiceDetect = arg('mic-voice-detect', "false")=="true"
+micVoiceDetectDevice = arg('mic-voice-detect-device', "cpu")
 micVoiceDetectTreshold = float(arg('mic-voice-detect-prop', "0.6"))
 micVoiceDetectVerbose = arg('mic-voice-detect-debug', "false")=="true"
 
@@ -469,7 +486,7 @@ class AssistBasic:
             write(f'COM: {speech.user}:' + commandExecutor.execute(text))
         # do command - python
         elif usePythonCommands:
-            executorPython.generatePythonAndExecute(speech.user, speech.text)
+            executorPython.generatePythonAndExecute(speech.user, speech.location, speech.text)
         # do command
         else:
             write(f'COM: {speech.user}:' + commandExecutor.execute(text))
@@ -479,7 +496,7 @@ class AssistBasic:
         self.isChat = True
         write(f"COM: {speaker}:start conversation")
         if (react): llm(ChatReact(llmSysPrompt, "User started conversation with you. Greet him", "Conversing"))
-        mic.set_pause_threshold_talk()
+        for mic in mics: mic.set_pause_threshold_talk()
 
     def restartChat(self, speaker: str, react: bool = True):
         tts.skip()
@@ -495,7 +512,7 @@ class AssistBasic:
         llm.generating = False
         write(f"COM: {speaker}:stop conversation")
         if (react): llm(ChatReact(llmSysPrompt, "User stopped conversation with you", "Ok"))
-        mic.set_pause_threshold_normal()
+        for mic in mics: mic.set_pause_threshold_normal()
 
 assist = AssistBasic()
 
@@ -544,7 +561,7 @@ def callback(speech: SpeechText):
     # handle by active assistant state
     try:
         write(f'USER: {name}' + (', ' + text if len(text)>0 else ''))
-        assist.onSpeech(SpeechText(speech.start, speech.audio, speech.stop, speech.user, text))
+        assist.onSpeech(SpeechText(speech.start, speech.audio, speech.stop, speech.user, speech.location, text))
     except Exception as e:
         write(f"ERR: {e}")
         print_exc()
@@ -567,12 +584,11 @@ def stop(*args):  # pylint: disable=unused-argument
         tts(name + ' offline')
 
         llm.stop()
-        mic.stop()
+        for mic in mics: mic.stop()
         stt.stop()
         tts.stop()
-        if http is not None: http.stop()
+        http.stop()
         write.stop()
-
 
 def install_exit_handler():
     atexit.register(stop)
@@ -581,70 +597,90 @@ def install_exit_handler():
     signal.signal(signal.SIGBREAK, stop)
     signal.signal(signal.SIGABRT, stop)
 
-
-stt = SttNone(micEnabled, write)
-if sttEngineType == 'whisper':
-    stt = SttWhisper(micEnabled, "cpu" if len(sttWhisperDevice)==0 else sttWhisperDevice, sttWhisperModel, write)
-if sttEngineType == 'faster-whisper':
-    stt = SttFasterWhisper(micEnabled, "cpu" if len(sttFasterWhisperDevice)==0 else sttFasterWhisperDevice, sttFasterWhisperModel, write)
-if sttEngineType == 'whispers2t':
-    stt = SttWhisperS2T(micEnabled, "cpu" if len(sttWhispers2tDevice)==0 else sttWhispers2tDevice, sttWhispers2tModel, write)
-elif sttEngineType == 'nemo':
-    stt = SttNemo(micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
-elif sttEngineType == 'http':
-    sttHttpUrl = sttHttpUrl.removeprefix("http://").removeprefix("https://")
-    if ':' not in sttHttpUrl: raise AssertionError('stt-http-url must be in format host:port')
-    host, _, port = sttHttpUrl.partition(":")
-    stt = SttHttp(host, int(port), micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
-else:
-    pass
-stt.onDone = callback
-
-def micSpeakerDiarLoader():
-    if not micVoiceDetect: return MicVoiceDetectNone()
-    else: return MicVoiceDetectNvidia(micVoiceDetectTreshold, micVoiceDetectVerbose)
-mic = Mic(None if len(micName)==0 else micName, micEnabled, stt.sample_rate, lambda e: skip(e), lambda e: stt(e), tts, write, micEnergy, micVerbose, micSpeakerDiarLoader)
-actors: [Actor] = list(filter(lambda x: x is not None, [write, mic, stt, llm, tts.tts, tts.play]))
-
-# http
-http = None
-if ':' not in httpUrl: raise AssertionError('http-url must be in format host:port')
-host, _, port = httpUrl.partition(":")
-http = Http(host, int(port), write)
-http.handlers.append(HttpHandlerState(actors))
-http.handlers.append(HttpHandlerStateActorEvents(actors))
-http.handlers.append(HttpHandlerStateActorEventsAll(actors))
-http.handlers.append(HttpHandlerIntent(llm))
-http.handlers.append(HttpHandlerStt(stt))
-http.handlers.append(HttpHandlerTts(tts.tts))
-http.handlers.append(HttpHandlerTtsReact(llm, llmSysPrompt))
-
-# start actors
-if http is not None: http.start()
-tts.start()
-stt.start()
-mic.start()
-llm.start()
-install_exit_handler()
-start_exit_invoker()
-
-def onBootup():
-    while True:
-        if all(actor.state() == "ACTIVE" for actor in actors): break
-        else: sleep(0.1)
+def _onBootup():
+    wait_until(0.1, lambda: all(actor.state_active() for actor in actors))
     llm(ChatReact(llmSysPrompt, "You booted up. Use 4 words or less.", f"{name} online"))
 
-Thread(name='on-bootup', target=onBootup, daemon=True).start()
+def install_on_bootup():
+    Thread(name='on-bootup', target=_onBootup, daemon=True).start()
+
+try:
+
+    stt = SttNone(micEnabled, write)
+    if sttEngineType == 'whisper':
+        stt = SttWhisper(micEnabled, "cpu" if len(sttWhisperDevice)==0 else sttWhisperDevice, sttWhisperModel, write)
+    if sttEngineType == 'faster-whisper':
+        stt = SttFasterWhisper(micEnabled, "cpu" if len(sttFasterWhisperDevice)==0 else sttFasterWhisperDevice, sttFasterWhisperModel, write)
+    if sttEngineType == 'whispers2t':
+        stt = SttWhisperS2T(micEnabled, "cpu" if len(sttWhispers2tDevice)==0 else sttWhispers2tDevice, sttWhispers2tModel, write)
+    elif sttEngineType == 'nemo':
+        stt = SttNemo(micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
+    elif sttEngineType == 'http':
+        sttHttpUrl = sttHttpUrl.removeprefix("http://").removeprefix("https://")
+        if ':' not in sttHttpUrl: raise AssertionError('stt-http-url must be in format host:port')
+        host, _, port = sttHttpUrl.partition(":")
+        stt = SttHttp(host, int(port), micEnabled, "cpu" if len(sttNemoDevice)==0 else sttNemoDevice, sttNemoModel, write)
+    else:
+        pass
+    stt.onDone = callback
+
+    micVad = Vad(0.5, stt.sample_rate)
+    if micVoiceDetect: micSpeakerDetector = MicVoiceDetectNvidia(micVoiceDetectTreshold, micVoiceDetectVerbose, micVoiceDetectDevice)
+    else: micSpeakerDetector = MicVoiceDetectNone()
+
+
+    mics: [Mic] = []
+    if len(micDef)>0:
+        for micDefName, att in json.loads(micDef).items():
+            mics.append(
+                Mic(None if len(micDefName)==0 else micDefName, micEnabled, att['location'], stt.sample_rate, lambda e: skip(e), lambda e: stt(e), tts, write, att['energy'], att['verbose'], micVad, micSpeakerDetector)
+            )
+    else:
+        mics.append(
+            Mic(None if len(micName)==0 else micName, micEnabled, "Livingroom", stt.sample_rate, lambda e: skip(e), lambda e: stt(e), tts, write, micEnergy, micVerbose, micVad, micSpeakerDetector)
+        )
+
+    actors: [Actor] = [write, *mics, stt, llm, tts.tts, tts.play]
+
+    # http
+    if ':' not in httpUrl: raise AssertionError('http-url must be in format host:port')
+    host, _, port = httpUrl.partition(":")
+    http = Http(host, int(port), write)
+    http.handlers.append(HttpHandlerState(actors))
+    http.handlers.append(HttpHandlerStateActorEvents(actors))
+    http.handlers.append(HttpHandlerStateActorEventsAll(actors))
+    http.handlers.append(HttpHandlerIntent(llm))
+    http.handlers.append(HttpHandlerStt(stt))
+    http.handlers.append(HttpHandlerTts(tts.tts))
+    http.handlers.append(HttpHandlerMicState(mics))
+    http.handlers.append(HttpHandlerTtsReact(llm, llmSysPrompt))
+
+    # start actors
+    http.start()
+    tts.start()
+    stt.start()
+
+    for mic in mics: mic.start()
+    llm.start()
+    install_exit_handler()
+    start_exit_invoker()
+    install_on_bootup()
+
+except Exception:
+    write("ERR: Failed to start")
+    sysTerminating = True
+    print_exc()
 
 while not sysTerminating:
     try:
         m = input()
-        def speakerAndText(text: str) -> (str, str):
+        def speakerAndLocAndText(text: str) -> (str, str, str):
             speaker = "User" if ":" not in text else text.split(":")[0]
-            text = text if ":" not in text else text.split(":")[1]
+            location = "PC" if ":" not in text else text.split(":")[1]
+            text = text if ":" not in text else text.split(":")[2]
             text = base64.b64decode(text).decode('utf-8')
             text = remove_any_prefix(text, wake_words)
-            return (speaker, text)
+            return (speaker, location, text)
 
         # talk command
         if m.startswith("SAY-LINE: "):
@@ -658,20 +694,17 @@ while not sysTerminating:
 
         # chat command
         if m.startswith("CHAT: "):
-            text = m[6:]
-            speaker, text = speakerAndText(text)
+            speaker, location, text = speakerAndLocAndText(m[6:])
             now = datetime.now()
-            callback(SpeechText(now, None, now, speaker, name + ' ' + text))
+            callback(SpeechText(now, None, now, speaker, location, name + ' ' + text))
 
         if m.startswith("COM-PYT: "):
-            text = m[9:]
-            speaker, text = speakerAndText(text)
-            executorPython.execute(speaker, text, text)
+            speaker, location, text = speakerAndLocAndText(m[9:])
+            executorPython.execute(speaker, location, text, text)
 
         if m.startswith("COM-PYT-INT: "):
-            text = m[13:]
-            speaker, text = speakerAndText(text)
-            executorPython.generatePythonAndExecute(speaker, text)
+            speaker, location, text = speakerAndLocAndText(m[13:])
+            executorPython.generatePythonAndExecute(speaker, location, text)
 
         if m.startswith("COM: "):
             text = m[5:]
@@ -684,24 +717,30 @@ while not sysTerminating:
 
         elif m.startswith("mic-enabled="):
             e = prop(m, "mic-enabled", "true").lower() == "true"
-            mic.enabled = e
+            micEnabledOld = micEnabled
+            micEnabled = e
+            for mic in mics: mic.enabled = e
             stt.enabled = e
+            if micEnabledOld!=e:
+                llm(ChatReact(llmSysPrompt, f"User turned {'on' if e else 'off'} microphone input", "Microphone {'on' if e else 'off'}"))
 
         elif m.startswith("mic-energy="):
             micEnergy = int(prop(m, "mic-energy", "120"))
-            mic.energy_threshold = micEnergy
+            for mic in mics: mic.energy_threshold = micEnergy
 
-        elif m.startswith("mic-energy-debug="):
-            micVerbose = prop(m, "mic-energy-debug", "false").lower() == "true"
-            mic.energy_debug = micVerbose
+        elif m.startswith("mic-verbose="):
+            micVerbose = prop(m, "mic-verbose", "false").lower() == "true"
+            for mic in mics: mic.energy_debug = micVerbose
 
         elif m.startswith("mic-voice-detect-prop="):
             micVoiceDetectTreshold = float(prop(m, "mic-voice-detect-prop", "0.6"))
-            if micVoiceDetect: mic.speaker_diar.speaker_treshold = micVoiceDetectTreshold
+            for mic in mics:
+                if micVoiceDetect: mic.speaker_diar.speaker_treshold = micVoiceDetectTreshold
 
         elif m.startswith("mic-voice-detect-debug="):
             micVoiceDetectVerbose = prop(m, "mic-voice-detect-debug", "false").lower() == "true"
-            if micVoiceDetect: mic.speaker_diar.verbose = micVoiceDetectVerbose
+            for mic in mics:
+                if micVoiceDetect: mic.speaker_diar.verbose = micVoiceDetectVerbose
 
         elif m.startswith("speech-on="):
             tts.enabled = prop(m, "speech-on", "true").lower() == "true"

@@ -108,8 +108,8 @@ class SdActor(Actor):
                                 stream.write(chunk)
                                 data.append(chunk)
                                 start_pos = end_pos
-                            event.future.set_result(data)
                             self.volume_adjuster.speechEnded()
+                            event.future.set_result(data)
                             playPause(self.sentence_break)
 
                         # play wav chunk
@@ -120,15 +120,17 @@ class SdActor(Actor):
                                 if self._skip and event.skippable: break
                                 stream.write(wav_chunk)
                                 data.append(wav_chunk)
-                            event.future.set_result(data)
                             self.volume_adjuster.speechEnded()
+                            event.future.set_result(data)
                             playPause(self.sentence_break)
+
                     except Exception as x:
                         event.future.set_exception(e)
                         if event.type == "b" or event.type == "f": self.volume_adjuster.speechEnded()
                         if (self._stop): pass  # daemon thread can get interrupted and stream crash mid write
                         else: raise x
         stream.stop()
+        stream.close()
 
     def playEvent(self, e: SdEvent) -> Future:
         self.queue.put(e)

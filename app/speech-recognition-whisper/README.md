@@ -373,17 +373,15 @@ It is simply a service to intelligently convert input into output.
 1. Install python >= `3.11`
 2. Install python dependencies
     ```
-    pip3 install SpeechRecognition
-    pip3 install playsound
     pip3 install sounddevice
     pip3 install soundfile
-    pip3 install PyAudio
     pip3 install pysilero-vad
     pip3 install psutil
     pip3 install pyperclip
     pip3 install pyautogui
     pip3 install pygetwindow
     pip3 install stream2sentence
+    pip3 install torch
     ```
    - Windows specific
     ```
@@ -395,7 +393,7 @@ It is simply a service to intelligently convert input into output.
         - on Linux also needs `sudo apt update && sudo apt install espeak ffmpeg libespeak1`
         - on OsX also needs `pip install pyobjc==9.0.1`
     2. **TtsCoqui** requires https://github.com/idiap/coqui-ai-TTS
-        - `pip install coqui-tts==0.23.1`
+        - `pip install coqui-tts==0.24.1`
         - Download XTTSv2 model
            - the following files into [models-coqui](models-coqui) directory
                - `config.json`
@@ -410,24 +408,7 @@ It is simply a service to intelligently convert input into output.
         - TODO
     5. **TtsFastpitch** 
         - TODO
-4. Install desired stt module:
-    1. **SttWhisper** requires https://github.com/openai/whisper
-        - `pip install openai-whisper==20231117`
-        - model will be downloaded automatically, but you can do so manually
-            - Download OpenAi Whisper [models](https://github.com/openai/whisper#available-models-and-languages) (optional)
-            - into the [models-whisper](models-whisper) directory
-            - from [official source](https://github.com/openai/whisper/blob/f296bcd3fac41525f1c5ab467062776f8e13e4d0/whisper/__init__.py)
-    1. **SttWhisperS2T** requires https://github.com/shashikg/WhisperS2T (`CTranslate2` backend)
-        - `pip install whisper-s2t`
-        - model will be downloaded automatically
-    1. **SttFasterWhisper** requires https://github.com/SYSTRAN/faster-whisper
-        - `pip install faster-whisper`
-        - model will be downloaded automatically
-    2. **SttNemo**
-        - `pip install nemo_toolkit[asr]`
-        - TODO
-    2. **SttHttp**
-        - TODO
+4. Install desired stt [module](#tts-text-to-speech):
 5. Install desired llm module:
     1. **LlmOpenAi** requires https://github.com/openai/openai-python
         - `pip install openai==1.28.0` 
@@ -445,12 +426,15 @@ It is simply a service to intelligently convert input into output.
 For help invoke `-h` or `--help`
 
 #### First run & recommended setup
-First run the raw script with no arguments.
-Setup microphone sensitivity settings and speech recognition model (`base.en` should be absolutely enough.
-Or skip audio setup and control program though CLI `SAY`/`CALL` commands.
-Then try couple of commands.
+First run the raw script with no arguments (it has sensible defaults).
+Setup microphone sensitivity through UI or using micrphone verbose settings.
+Control program though [CLI](#input-format-optional).
+
+Try speech recognition model (`base.en` should be absolutely enough.
 For speech generation try offline `speech-engine=coqui`.
+
 For llm chat try `llm-engine=openai` with [LmStudio](https://lmstudio.ai) and run it simply as server (everything should work out of the box).
+Use `Meta-Llama-3-8B-Instruct` model.
 
 #### Specialized setup
 It is possible to run only particular features, using `SttNone, LlmNone, TtsNone, mic-enabled=false`. For example:
@@ -460,20 +444,26 @@ It is possible to run only particular features, using `SttNone, LlmNone, TtsNone
 It is possible to offload or provide AI computation on different machine, using another instance of this application,
 and connecting to it using `SttHttp`, `LlmOpenAi`, `TtsHttp`.
 It is up to the user to choose proper setup and infrastructure.
-Anyway, this makes it possible to run parts of the application on different platforms, different systems,
+This makes it possible to run parts of the application on different platforms, different systems,
 separate client and server, offload entirety of computation needed for inference elsewhere, and so on.
 
 #### Performance
-Weak systems (no GPU):   
-`SttWhisper(tiny.en.pt) + TtsOs + Llm(8B_Q4_CPU)`   
-Alternatively, offload the computation tp another instance over http.
+**Weak systems (no GPU)**:   
+`SttFasterWhisper(tiny.en.pt) + TtsOs + Llm(8B_Q4_CPU)`   
+Alternatively, offload the computation to another instance on other pc over http with `SttHttp` + `TtsHttp` + `LlmOpenAi`.
 
-Good system (12GB VRAM):   
-`SttWhisper(base|small.en.pt) + TtsCoqui + Llm(8B_Q4_GPU)`   
+**Good system (12GB VRAM)**:   
+`SttFasterWhisper(distill-small.en.pt) + TtsFastPitch + Llm(8B_Q4_CPU)`   
+Distill whisper is small and fast. FastPitch is also very fast.
 LLM model (CPU mode) work well on `Nvidia 4070` + `AMD 5800X3D`.
 
-Powerful system (24GB VRAM):   
-`SttNemo(parakeet-ctc-1.1b) + TtsCoqui + Llm(8B_Q8_GPU).   
+**Powerful system (24GB VRAM)**:   
+`SttNemo(parakeet-ctc-0.6b) + TtsFastPitch + Llm(8B_Q8_GPU)`
+Nemo has better recognition than Whisper and is faster and here not memory bound. Use bigger llm model and gpu offloading.
+
+**Very powerful system (>36GB VRAM)**:   
+`SttNemo(parakeet-tdt-1.1b) + TtsFastPitch|TtsCoqui + Llm(>8B_Q8_GPU)`
+Use best nemo model. Try higher llm quants. Try offloading speaker diarization AI to GPU as well.
 
 ##### Multitasking
 Since we have potentially multiple AIs running at once (stt, llm, tts, vad, etc.),
@@ -489,15 +479,28 @@ It is currently not possible to unload any models from memory.
 The goal of this project is to be offline, private, independent and anonymous, but some parts (LlmOpenAi) can use
 online services. Consult the diagrams.
 
+#### Troubleshooting
+The assistant architecture is based around actors and these publish their state over http.
+Use http or desktop UI widget's `HW` and `Events` tabs to see state of the system and timeline of all events.
+
 ## Privacy
+The application is designed to be private and local.
+
+It supports distributed multi-instance architecture over http.
+The communication between multiple instances of this application is unsecured and plainly readable.
+You may therefore need to block/unblock the application though firewall, depending on the features used.
+
+For privacy, stay offline, in local network or inside VPN.
+
 The application:
 - does not expose http API to the internet, unless user explicitly changes `localhost` to `0.0.0.0`.
-- does not connect to online services and log in anywhere
-- may download AI models once enabled features require them
-You may wish/need to block/unblock the application though firewall, depending on the desired effect.
+- does not connect to **any** online services or  log in anywhere
+- may download AI models first time enabled features require them
 
-The communication between multiple instances of this application is unsecured and plainly readable.
-For privacy, stay offline, in local network or inside VPN.
+The only http communication is for:
+- downloading models
+- http api for UI integration
+- stt/tts/llm communication if computing is offloaded to another instance/server
 
 ## Integration
 
@@ -527,41 +530,106 @@ Text for `SAY` and `CHAT` must be base64 encoded so it can contain multiline and
 Base64 is more portable solution and guaranteed to solve all special character issues.
 Currently, input is always consumed whole (no streaming).
 
-### S2T (speech to text)
+### Mic
+
+#### Sensitivity
+It is important to set microphone sensitivity to the right value.
+Even though after treshold detection, voice activity detection and optionally speaker fingerprint detection is ran:
+    - If the value is higher than your captured voice energy, speehc will not be detected
+    - If the value is lower than ambient noise, volume treshold filtering speech detection is effectively disabled:
+        - vad (voice activity detection) will run effectively all the time, causing higher CPU load and possible speech generation or even system stutter
+        - external noise or speech may be triggered to be speech, if it passes through vad and speaker diarization
+        - speech detection may never end as it requires speech pauses and vad
+
+For this the python application has `mic-verbose` flag that prints real-time microphone energy. 
+The assistant ui widget shows real-time energy in microphone settings ui.
+
+#### Multiple microphones
+The assistant supports multiple microphone inputs.
+Each can be assigned different location.
+Microphone location is passed as speaker location to `Llm` as context.
+
+### Stt (speech to text)
 
 Currently, `OpenAI Whisper` or `Nvidia Nemo Parakeet` is supported. Model can be specified.
+Model leaderboard: https://huggingface.co/spaces/hf-audio/open_asr_leaderboard
+TLDR is - if you have Nvidia GPU and enough VRAM, always run `Nvidia Nemo` over `Whisper`.
 
-### T2S (text to speech)
-By default, system voice is used.
+#### SttWhisper
+Install
+- requires https://github.com/openai/whisper
+- `pip install openai-whisper==20231117`
+- model will be downloaded automatically, but you can do so manually
+- Download OpenAi Whisper [models](https://github.com/openai/whisper#available-models-and-languages) (optional)
+- into the [models-whisper](models-whisper) directory
+- from [official source](https://github.com/openai/whisper/blob/f296bcd3fac41525f1c5ab467062776f8e13e4d0/whisper/__init__.py)
 
-#### none
+#### SttWhisperS2T
+Install
+- requires https://github.com/shashikg/WhisperS2T (`CTranslate2` backend)
+- `pip install whisper-s2t`
+- model will be downloaded automatically
+
+#### SttFasterWhisper requires https://github.com/SYSTRAN/faster-whisper
+Install
+- `pip install faster-whisper`
+- model will be downloaded automatically
+
+#### SttNemo
+Install
+- `pip install nemo_toolkit[asr]`
+
+Nemo is of higher quality while being faster than even the best whisper-large model.
+In addition, it has no hallucinations.
+Hardware requirements are Nvidia GPU and enough VRAM.
+
+#### SttHttp
+TODO
+
+### Tts (text to speech)
+By default, `TtsOs` is used.
+
+#### TtsNone
 No voice.
 
-#### os
+#### TtsOs
 Uses built-in OS text-to-speech (offline, high performance, low quality).
+Sounds robotic and has high delay, but is accessible on any system and has low hardware requirements.
 
-#### coqui
+#### TtsCoqui
 Uses xttsv2 model (offline, low performance, realistic quality).
+It supports voice cloning and real-time streaming.
+However it is slower, has problems speaking numbers and short sentences, and sometimes hallucinates. 
+
 ```
 pip install torch
 pip install TTS
 ```
+- document making voices 22050 input
+    - `ffmpeg -i dramatic.wav -ar 22050 dramatic2.wav`
 
 ##### Voice cloning
-- Create a voice sample recording (cleanest possible))
-    - Make it into 3-20s wav, `ffmpeg -i <input_file>.extension -ss 00:00:00 -t 00:00:15 -c:a pcm_s16le <output_file>.wav`
-- Place it into coqui voices dirctory
-- Adjust voice in UI, through cli arg.
+- Create a voice sample recording (cleanest possible)
+    - Make it into 3-20s `22050Hz` wav, `ffmpeg -i <input_file>.extension -ss 00:00:00 -t 00:00:15 -c:a pcm_s16le -ar 22050 <output_file>.wav`
+        - using different sampling rate will degrade speech output quality
+- Place it into [voices-coqui](voices-coqui) dirctory
+- Change voice using assistant ui widget or simply by talking to the assistant.
+    - No restart necessary
+    - Voice loading is slower 1st time, the generated data are saved to disk.
 
-#### character.ai
-Supports [character.ai](https://beta.character.ai) voice generation (requires free account and access token)
-using [PyCharacterAi](https://pypi.org/project/PyCharacterAI/), read details there.
-```
-pip install PyCharacterAI
-```
+#### TtsFastPitch
+Fastpitch is the fastest and most quality tts available here.
+It has minimum hallucinations and handles speaking numbers very well.
+It does not support voice cloning.
 
 ### LLM (Chat)
-By default, disabled. GPT4All supported models can be provided to enable LLM chat functionality.
+By default, disabled.
+
+#### Context
+Each user message to llm has a context:
+- TIME - current date and time
+- SPEAKER - person sending the message, detected from 'verified voices' and spoken voice or by default 'User'
+- LOCATION - location of the SPEAKER, user can assign locations to microphone 
 
 ### Termination
 This script terminates:

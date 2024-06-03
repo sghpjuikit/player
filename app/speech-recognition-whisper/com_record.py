@@ -1,25 +1,21 @@
-import pyaudio
-import wave
+import sounddevice as sd
+import numpy as np
+import scipy.io.wavfile as wavfile
 import os
 
-FORMAT = pyaudio.paInt16
+# recommended assistant input
 CHANNELS = 1
-RATE = 44100
-CHUNK = 1024
-RECORD_SECONDS = 20
+RATE = 16000
+DURATION = 20
+OUTPUT_DIR = 'voices-verified'
 WAVE_OUTPUT_FILENAME = os.path.join('voices-verified', f"{in_name}.wav")
-audio = pyaudio.PyAudio()
-stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
-frames = []
-for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-    data = stream.read(CHUNK)
-    frames.append(data)
-stream.stop_stream()
-stream.close()
-audio.terminate()
-waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-waveFile.setnchannels(CHANNELS)
-waveFile.setsampwidth(audio.get_sample_size(FORMAT))
-waveFile.setframerate(RATE)
-waveFile.writeframes(b''.join(frames))
-waveFile.close()
+
+# Record audio
+duration = DURATION  # Duration in seconds
+recording_length = int(DURATION * RATE)
+with sd.InputStream(samplerate=RATE, channels=CHANNELS, dtype='int16') as stream:
+    recording = np.empty((recording_length,), dtype=np.int16)
+    stream.read(recording, exception_on_overflow=False)
+
+# Save the recorded audio to a WAV file
+wavfile.write(filename, RATE, recording.astype(np.int16))

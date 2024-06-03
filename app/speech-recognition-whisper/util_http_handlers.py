@@ -8,11 +8,10 @@ from util_wrt import Writer
 from util_llm import Llm, ChatIntentDetect, ChatReact
 from util_stt import Stt
 from util_tts import TtsBase
-from util_mic import Speech
+from util_mic import Mic, Speech, AudioData
 from util_actor import Actor
 from util_http import HttpHandler
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from speech_recognition.audio import AudioData
 from urllib.parse import parse_qs, urlparse
 
 
@@ -155,7 +154,7 @@ class HttpHandlerStt(HttpHandler):
             sample_rate = int.from_bytes(body[:4], 'little')
             sample_width = int.from_bytes(body[4:6], 'little')
             audio_data = body[6:]
-            f = self.stt(Speech(datetime.now(), AudioData(audio_data, sample_rate, sample_width), datetime.now(), 'ignored'), False)
+            f = self.stt(Speech(datetime.now(), AudioData(audio_data, sample_rate, sample_width), datetime.now(), 'ignored', 'ignored'), False)
             text = f.result().text
             text = text.encode('utf-8')
             req.send_response(200)
@@ -259,3 +258,22 @@ class HttpHandlerTts(HttpHandler):
         except Exception as e:
             print_exc()
             if not stream.closed: stream.close()
+
+class HttpHandlerMicState(HttpHandler):
+    def __init__(self, mics: [Mic]):
+        super().__init__("GET", "/mic/state")
+        self.mics = mics
+
+    def __call__(self, req: BaseHTTPRequestHandler):
+        try:
+            state = {}
+            for mic in self.mics: state[mic.micName] = mic.last_energy
+            data = json.dumps(state).encode('utf-8')
+
+            req.send_response(200)
+            req.send_header('Content-type', 'application/json')
+            req.end_headers()
+            req.wfile.write(data)
+        except Exception as e:
+            print_exc()
+            req.send_error(500, f"{e}")

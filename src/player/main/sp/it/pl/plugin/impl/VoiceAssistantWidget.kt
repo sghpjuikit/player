@@ -32,11 +32,14 @@ import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.loadIn
 import sp.it.pl.main.APP
+import sp.it.pl.main.Double01
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.errorLabel
+import sp.it.pl.main.showFloating
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Event
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Line
@@ -45,8 +48,11 @@ import sp.it.pl.ui.ValueToggleButtonGroup
 import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.NodeShow
+import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.pane.ConfigPane
 import sp.it.pl.ui.pane.ConfigPane.Layout.MINI
+import sp.it.pl.ui.pane.ConfigPaneScrolPane
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
 import sp.it.util.access.visible
@@ -55,6 +61,7 @@ import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.invokeTry
 import sp.it.util.async.coroutine.launch
+import sp.it.util.async.coroutine.toSubscription
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
@@ -78,15 +85,19 @@ import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsTable
 import sp.it.util.file.json.JsTrue
 import sp.it.util.file.json.div
+import sp.it.util.functional.Try.Error
+import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.supplyIf
-import sp.it.util.reactive.Subscription
+import sp.it.util.math.max
+import sp.it.util.math.min
+import sp.it.util.reactive.Subscribed.Companion.subBetween
+import sp.it.util.reactive.Subscribed.Companion.subscribedIff
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.attachWhileTrue
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.map
 import sp.it.util.reactive.onEventDown
@@ -97,7 +108,6 @@ import sp.it.util.reactive.syncWhile
 import sp.it.util.reactive.zip
 import sp.it.util.reactive.zip2
 import sp.it.util.text.nameUi
-import sp.it.util.type.atomic
 import sp.it.util.ui.appendTextSmart
 import sp.it.util.ui.flowPane
 import sp.it.util.ui.hBox
@@ -116,6 +126,7 @@ import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.em
+import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -152,16 +163,71 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             }
             lay += label("   ")
             lay += CheckIcon().icons(IconMD.TEXT_TO_SPEECH, IconMD.TEXT_TO_SPEECH_OFF).apply {
-               disableProperty() syncFrom plugin.map { it==null }
                selected syncFrom plugin.flatMap { it!!.ttsOn }.orElse(false)
-               selected attach { plugin.value?.ttsOn?.value = it }
-               tooltip("Enable/disable voice output")
+               disableProperty() syncFrom plugin.map { it==null }
+               tooltip("Voice output settings")
+               onClickDo {
+                  showFloating("Voice output settings", DOWN_CENTER(this)) {
+                     it.isAutohide.value = true
+                     vBox {
+                        lay += ConfigPaneScrolPane(
+                           ConfigPane(
+                              ListConfigurable.heterogeneous(
+                                 plugin.value
+                                    ?.net { listOf(it::ttsOn, it::ttsOn, it::ttsEngine, it::ttsEngineCoquiVoice, it::ttsEngineCoquiCudaDevice, it::ttsEngineHttpUrl) }
+                                    .orEmpty()
+                                    .map { it.getDelegateConfig() }
+                              )
+                           ).apply {
+                              ui.value = MINI
+                              editorOrder = ConfigPane.compareByDeclaration
+                           }
+                        )
+                     }
+                  }
+               }
             }
             lay += CheckIcon().icons(IconMA.MIC, IconMA.MIC_OFF).apply {
-               disableProperty() syncFrom plugin.map { it==null }
                selected syncFrom plugin.flatMap { it!!.micEnabled }.orElse(false)
-               selected attach { plugin.value?.micEnabled?.value = it }
-               tooltip("Enable/disable voice input")
+               disableProperty() syncFrom plugin.map { it==null }
+               tooltip("Voice input settings")
+               onClickDo {
+                  showFloating("Voice input settings", DOWN_CENTER(this)) {
+                     it.isAutohide.value = true
+                     vBox {
+                        lay += ConfigPaneScrolPane(
+                           ConfigPane(
+                              ListConfigurable.heterogeneous(
+                                 plugin.value
+                                    ?.net { listOf(it::micEnabled, it::mics, it::micVoiceDetect, it::micVoiceDetectDevice, it::micVoiceDetectProb, it::micVoiceDetectProbDebug) }
+                                    .orEmpty()
+                                    .map { it.getDelegateConfig() }
+                              )
+                           ).apply {
+                              ui.value = MINI
+                              editorOrder = ConfigPane.compareByDeclaration
+                           }
+                        )
+
+                        subBetween(it.onShown, it.onHiding) {
+                           launch(VT) {
+                              while (true) {
+                                 runTry {
+                                    val url = plugin.value?.httpUrl?.value?.net { "$it/mic/state"} ?: fail { "Voice Assistant not running" }
+                                    APP.http.client.get(url).bodyAsJs().asJsObject().value.mapValues { it.value.to<Short>() }
+                                 }.apply {
+                                    FX {
+                                       ifOk { mics -> mics.forEach { name, energy -> plugin.value?.mics?.find { it.name.value==name }?.energyCurrent?.value = Ok(energy min 32767) } }
+                                       ifError { e -> plugin.value?.mics?.forEach { it.energyCurrent.value = Error(e) } }
+                                    }
+                                 }
+                                 delay(125)
+                              }
+                           }.toSubscription()
+                        }
+                     }
+                  }
+               }
             }
             lay += label {
                plugin.sync { text = if (it!=null) "Active" else "Inactive" }
@@ -198,10 +264,9 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                   rowValignment = VPos.CENTER
                   columnHalignment = HPos.CENTER
 
-                  this@scrollPane.visibleProperty() attachWhileTrue {
-                     var a by atomic(true)
+                  subscribedIff(this@scrollPane.visibleProperty()) {
                      launch(VT) {
-                        while (a) {
+                        while (true) {
                            runTry {
                               val url = plugin.value?.httpUrl?.value?.net { "$it/actor"} ?: fail { "Voice Assistant not running" }
                               APP.http.client.get(url).bodyAsJs().asJsObject().value
@@ -219,8 +284,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            }
                            delay(1000)
                         }
-                     }
-                     Subscription { a = false }
+                     }.toSubscription()
                   }
                }
 
@@ -234,12 +298,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                val errorProperty = vn<Throwable>(null)
                val contentEr = stackPane {
                   id = "hw-er"
-                  lay += label {
-                     isWrapText = true
-                     cursor = HAND
-                     textProperty() syncFrom (errorProperty map { it?.message })
-                     onEventDown(MOUSE_CLICKED, PRIMARY) { APP.ui.actionPane.show(errorProperty.value) }
-                  }
+                  lay += errorLabel(errorProperty)
                }
                val contentOk = VoiceAssistantWidgetTimeline().apply {
                   mode.sync {
@@ -331,21 +390,16 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                      lay.children.forEach { it.onNodeDispose() }
                      lay.clear()
                      lay += supplyIf(show) {
-                        scrollPane {
-                           isFitToWidth = true
-                           isFitToHeight = false
-                           prefSize = -1 x -1
-                           vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
-                           hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-                           minWidth = 250.emScaled
-                           content = ConfigPane(
+                        ConfigPaneScrolPane(
+                           ConfigPane(
                               ListConfigurable.Companion.heterogeneous(
                                  plugin.value?.net { m.configs(this@VoiceAssistantWidget, it).map { it.getDelegateConfig() } }.orEmpty()
                               )
                            ).apply {
                               ui.value = MINI
+                              editorOrder = ConfigPane.compareByDeclaration
                            }
-                        }
+                        )
                      }
                   }
                }

@@ -14,12 +14,20 @@ import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.core.bodyAsJs
 import sp.it.pl.core.bodyJs
+import sp.it.pl.core.orMessage
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.main.APP
+import sp.it.pl.main.Double01
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
 import sp.it.pl.main.IconMA
+import sp.it.pl.main.Int01
+import sp.it.pl.main.Long01
+import sp.it.pl.main.Short01
+import sp.it.pl.main.UInt01
 import sp.it.pl.main.isAudio
+import sp.it.pl.main.toS
+import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
@@ -41,9 +49,11 @@ import sp.it.util.async.runOn
 import sp.it.util.collections.list.DestructuredList
 import sp.it.util.collections.observableList
 import sp.it.util.collections.setTo
+import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
 import sp.it.util.conf.Constraint.RepeatableAction
+import sp.it.util.conf.EditMode
 import sp.it.util.conf.between
 import sp.it.util.conf.cList
 import sp.it.util.conf.cr
@@ -57,14 +67,22 @@ import sp.it.util.conf.nonBlank
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.readOnlyUnless
+import sp.it.util.conf.uiConverter
+import sp.it.util.conf.uiGeneral
 import sp.it.util.conf.uiNoCustomUnsealedValue
 import sp.it.util.conf.uiNoOrder
+import sp.it.util.conf.uiPaginated
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
 import sp.it.util.file.children
 import sp.it.util.file.div
+import sp.it.util.file.json.JsBool
+import sp.it.util.file.json.JsNumber
+import sp.it.util.file.json.JsObject
+import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsValue
+import sp.it.util.file.json.toCompactS
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
@@ -75,11 +93,15 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
+import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.chan
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onChangeAndNow
+import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
@@ -93,6 +115,7 @@ import sp.it.util.text.splitTrimmed
 import sp.it.util.text.useStrings
 import sp.it.util.type.atomic
 import sp.it.util.units.seconds
+import sp.it.util.units.uuid
 
 /** Provides speech recognition and voice control capabilities. Uses whisper AI launched as python program. */
 class VoiceAssistant: PluginBase() {
@@ -102,14 +125,27 @@ class VoiceAssistant: PluginBase() {
       fun doOnError(eText: String, e: Throwable?, details: String?) = logger.error(e) { "$eText\n${details.wrap()}" }.toUnit()
       return runOn(NEW("SpeechRecognition-python-starter")) {
          val python = dir / "main.py"
+         fun mics(): String =
+            if (mics.isEmpty())
+               ""
+            else
+               JsObject(
+                  mics.map {
+                     it.name.value.orEmpty() to JsObject(
+                        "location" to JsString(it.location.value),
+                        "energy" to JsNumber(it.energy.value),
+                        "verbose" to JsBool(it.verbose.value),
+                     )
+                  }
+               ).toCompactS()
+
          val commandRaw = listOf(
             "python", python.absolutePath,
             "wake-word=${wakeUpWord.value}",
+            "mics=${mics().replace("\"", "\\\"")}",
             "mic-enabled=${micEnabled.value}",
-            "mic-name=${micName.value ?: ""}",
-            "mic-energy=${micEnergy.value}",
-            "mic-energy-debug=${micEnergyDebug.value}",
             "mic-voice-detect=${micVoiceDetect.value}",
+            "mic-voice-detect-device=${micVoiceDetectDevice.value}",
             "mic-voice-detect-prop=${micVoiceDetectProb.value}",
             "mic-voice-detect-debug=${micVoiceDetectProbDebug.value}",
             "parent-process=${ProcessHandle.current().pid()}",
@@ -259,28 +295,58 @@ class VoiceAssistant: PluginBase() {
    /** Last spoken text */
    val speakingText = speakingTextW.readOnly()
 
+   /** Preferred song order for certain song operations, such as adding songs to playlist */
+   val mics by cList<Mic>({ Mic() }, { it }, Mic()).uiPaginated(false).def(
+      name = "Microphones",
+      info = "Preferred song order for certain song operations, such as adding songs to playlist"
+   )
+
+   class Mic: ConfigurableBase<Any?>() {
+      /** Microphone to be used. Null causes automatic microphone selection */
+      val name by cvn<String>(null)
+         .valuesUnsealed { microphoneNames() }
+         .uiNoCustomUnsealedValue()
+         .def(name = "Name", info = "Microphone to be used. Null causes automatic microphone selection.")
+      /** Location sent to assistant as context. */
+      val location by cv<String>("PC")
+         .def(name = "Location", info = "Location sent to assistant as context.")
+      /** Microphone verbose event logging. */
+      val verbose by cv(false)
+         .def(name = "Verbose", info = "Verbose event logging.")
+      /** Volume above this number is considered speech. Set so ambient energy level is below. */
+      val energy by cv<Int>(120)
+         .between(0, 32767).uiGeneral()
+         .def(name = "Energy treshold", info = "Volume above this number is considered speech. Set so ambient energy level is below.")
+      /** Current volume. Useful to tune energy treshold */
+      val energyCurrent by cv<Try<Short, Throwable>>(Ok(0.toShort()))
+         .uiConverter { it.map { it.toUi() }.orMessage().getAny() }
+         .noPersist().def(editable = EditMode.APP)
+         .def(name = "Energy current", info = "Current volume. Between 0..32767 Useful to tune energy treshold.")
+   }
+
    /** Whether microphone listening is allowed. */
    val micEnabled by cv(true)
       .def(name = "Microphone enabled", info = "Whether microphone listening is allowed. In general, this also prevents initial loading of speech-to-text AI model until enabled.")
 
-   /** Microphone to be used. Null if auto. */
-   val micName by cvn<String>(null)
-      .valuesUnsealed { microphoneNames() }
-      .uiNoCustomUnsealedValue()
-      .def(name = "Microphone name", info = "Microphone to be used. Null causes automatic microphone selection.")
-
-   /** Microphone energy voice treshold. Volume above this number is considered speech. */
-   val micEnergy by cv(120).min(0)
-      .def(name = "Microphone energy", info = "Microphone energt. Volume above this number is considered speech.")
-
-   val micEnergyDebug by cv(false)
-      .def(name = "Microphone energy > debug", info = "Whether current microphone energy lvl is active. Use to setup microphone energy voice treshold.")
+   val micChanges = v(uuid()).apply {
+      mics.onChange { value = uuid() }
+      mics.onItemAdded {
+         it.name attach { value = uuid() }
+         it.location attach { value = uuid() }
+         it.energy attach { value = uuid() }
+         it.verbose attach { value = uuid() }
+      }
+   }
 
    val micVoiceDetect by cv(false)
       .def(
          name = "Microphone > voice detect",
          info = "Microphone voice detection. If true, detects voice from verified voices and ignores others. Verified voices must be 16000Hz wav in `voices-verified` directory. Use `Microphone > voice detect treshold` to set up sensitivity."
       )
+
+   val micVoiceDetectDevice by cv("cpu")
+      .readOnlyUnless(micVoiceDetect)
+      .def(name = "Microphone > voice detect device", info = "Microphone voice detection torch device, e.g., cpu, cuda:0, cuda:1. Default 'cpu'.")
 
    val micVoiceDetectProb by cv(0.6).between(0.0, 1.0)
       .def(
@@ -484,8 +550,6 @@ class VoiceAssistant: PluginBase() {
       // @formatter:off
                wakeUpWord.chan().throttleToLast(p2) subscribe { write("wake-word=$it") }
                micEnabled.chan().throttleToLast(p2) subscribe { write("mic-enabled=$it") }
-                micEnergy.chan().throttleToLast(p2) subscribe { write("mic-energy=$it") }
-           micEnergyDebug.chan().throttleToLast(p2) subscribe { write("mic-energy-debug=$it") }
        micVoiceDetectProb.chan().throttleToLast(p2) subscribe { write("mic-voice-detect-prop=$it") }
   micVoiceDetectProbDebug.chan().throttleToLast(p2) subscribe { write("mic-voice-detect-debug=$it") }
                     ttsOn.chan().throttleToLast(p2) subscribe { write("speech-on=$it") }
@@ -500,7 +564,7 @@ class VoiceAssistant: PluginBase() {
 
       // restart-requiring properties
       val processChangeVals = listOf<V<*>>(
-         micName, micVoiceDetect,
+         micChanges, micVoiceDetect, micVoiceDetectDevice,
          sttEngine, sttWhisperModel, sttWhisperDevice, sttWhisperSt2Model, sttWhisperSt2Device, sttFasterWhisperModel, sttFasterWhisperDevice, sttNemoModel, sttNemoDevice, sttHttpUrl,
          ttsEngine, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
@@ -616,9 +680,11 @@ class VoiceAssistant: PluginBase() {
    
    fun writeCom(command: String): Unit = write("COM: ${command.encodeBase64()}")
 
-   fun writeComPyt(speaker: String, command: String): Unit = write("COM-PYT: ${speaker}:${command.encodeBase64()}")
+   fun writeComPyt(speaker: String, command: String): Unit = write("COM-PYT: ${speaker}:PC:${command.encodeBase64()}")
 
-   fun writeComPytInt(speaker: String, command: String): Unit = write("COM-PYT-INT: ${speaker}:${command.encodeBase64()}")
+   fun writeComPytInt(speaker: String, command: String): Unit = write("COM-PYT-INT: ${speaker}:PC:${command.encodeBase64()}")
+
+   fun writeChat(speaker: String, text: String) = write("CHAT: ${speaker}:PC:${text.encodeBase64()}")
 
    @IsAction(name = "Speak text", info = "Identical to \"Narrate text\"")
    fun synthesize() = speak()
@@ -634,8 +700,6 @@ class VoiceAssistant: PluginBase() {
    fun chat() = action<String>("Write chat", "Writes to voice assistant chat", IconMA.CHAT, BLOCK) { writeChat("User", it) }.apply {
       constraintsN += listOf(Multiline, MultilineRows(10), RepeatableAction)
    }.invokeWithForm()
-
-   fun writeChat(speaker: String, text: String) = write("CHAT: ${speaker}:${text.encodeBase64()}")
 
    @Throws(Throwable::class)
    suspend fun speakEvent(eventToReactTo: LlmString, fallback: String): Unit =

@@ -581,7 +581,7 @@ class TarsosAudioEngine(val settings: Spektrum, val fft: FrequencyBarsProcessor)
    }
 
    private fun obtainMixer(): Mixer? = AudioSystem.getMixerInfo()
-      .find { m -> settings.inputDevice.value.let { it.isNotBlank() && it == m.name } }
+      .find { m -> settings.inputDevice.value.let { it.isNotBlank() && (it == m.name || it == m.name.take(31)) } }
       ?.net { AudioSystem.getMixer(it) }
 
    private fun obtainLine(mixer: Mixer, audioFormat: AudioFormat, lineBuffer: Int): TargetDataLine {

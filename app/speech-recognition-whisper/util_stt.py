@@ -21,6 +21,7 @@ class SpeechText:
     audio: AudioData
     stop: datetime
     user: str
+    location: str
     text: str
 
 
@@ -30,6 +31,7 @@ class EventStt:
     audio: AudioData
     stop: datetime
     user: str
+    location: str
     future: Future[SpeechText]
 
 
@@ -40,7 +42,7 @@ class Stt(Actor):
         self.onDone: Callable[SpeechText, None] = None
 
     def __call__(self, e: Speech, auto_handle: bool = True) -> Future[SpeechText]:
-        ef = EventStt(e.start, e.audio, e.stop, e.user, Future())
+        ef = EventStt(e.start, e.audio, e.stop, e.user, e.location, Future())
         self.queue.put(ef)
 
         if auto_handle:
@@ -102,7 +104,7 @@ class SttWhisper(Stt):
                         # sst
                         text = model.transcribe(audio_array, language='en', task='transcribe', fp16=torch.cuda.is_available())['text']
                         # complete
-                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, text))
+                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, a.location, text))
                         else: a.future.set_exception(Exception("Stopped or disabled"))
                     except Exception as e:
                         a.future.set_exception(e)
@@ -154,7 +156,7 @@ class SttWhisperS2T(Stt):
                         initial_prompts = [None]
                         text = model.transcribe_with_vad(files, lang_codes=lang_codes, tasks=tasks, initial_prompts=initial_prompts, batch_size=32)
                         # complete
-                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, text[0][0]['text']))
+                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, a.location, text[0][0]['text']))
                         else: a.future.set_exception(Exception("Stopped or disabled"))
                     except Exception as e:
                         a.future.set_exception(e)
@@ -199,7 +201,7 @@ class SttFasterWhisper(Stt):
                         segments, info = model.transcribe(audio=audio_array, language='en', task='transcribe', beam_size=5)
                         text = ''.join(segment.text for segment in segments)
                         # complete
-                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, text))
+                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, a.location, text))
                         else: a.future.set_exception(Exception("Stopped or disabled"))
                     except Exception as e:
                         a.future.set_exception(e)
@@ -232,11 +234,9 @@ class SttNemo(Stt):
         cacheDir = join('cache', 'nemo')
         if not exists(cacheDir): makedirs(cacheDir)
         # load model
-        if self.model=="nvidia/parakeet-tdt-1.1b": model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name="nvidia/parakeet-tdt-1.1b")
-        if self.model=="nvidia/parakeet-ctc-1.1b": model = nemo_asr.models.EncDecCTCModelBPE.from_pretrained(model_name="nvidia/parakeet-ctc-1.1b")
-        if self.model=="nvidia/parakeet-ctc-0.6b": model = nemo_asr.models.EncDecCTCModelBPE.from_pretrained(model_name="nvidia/parakeet-ctc-0.6b")
-
-        model.to(torch.device(self.device))
+        if self.model=="nvidia/parakeet-tdt-1.1b": model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name="nvidia/parakeet-tdt-1.1b", map_location=torch.device(self.device))
+        if self.model=="nvidia/parakeet-ctc-1.1b": model = nemo_asr.models.EncDecCTCModelBPE.from_pretrained(model_name="nvidia/parakeet-ctc-1.1b", map_location=torch.device(self.device))
+        if self.model=="nvidia/parakeet-ctc-0.6b": model = nemo_asr.models.EncDecCTCModelBPE.from_pretrained(model_name="nvidia/parakeet-ctc-0.6b", map_location=torch.device(self.device))
         # loop
         with (self._looping()):
             while not self._stop:
@@ -257,7 +257,7 @@ class SttNemo(Stt):
                         if self.model=="nvidia/parakeet-ctc-1.1b": text = hypothese1 if hypothese1 else None
                         if self.model=="nvidia/parakeet-ctc-0.6b": text = hypothese1 if hypothese1 else None
                         # complete
-                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, text if text is not None else ''))
+                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, a.location, text if text is not None else ''))
                         else: a.future.set_exception(Exception("Stopped or disabled"))
                     except Exception as e:
                         a.future.set_exception(e)
@@ -296,7 +296,7 @@ class SttHttp(Stt):
                         text = res.read().decode('utf-8')
                         if res.status != 200: raise Exception(text)
                         # complete
-                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, text))
+                        if not self._stop and self.enabled: a.future.set_result(SpeechText(a.start, a.audio, a.stop, a.user, a.location, text))
                         else: a.future.set_exception(Exception("Stopped or disabled"))
                     except Exception as e:
                         a.future.set_exception(e)

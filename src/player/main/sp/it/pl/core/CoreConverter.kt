@@ -118,6 +118,7 @@ import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toOption
 import sp.it.util.math.StrExF
+import sp.it.util.math.toBigInt
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.ConverterFromString
 import sp.it.util.parsing.ConverterSerializationBase64
@@ -170,13 +171,13 @@ object CoreConverter: Core {
          is String -> o
          is Boolean -> if (o) "yes" else "no"
          is Byte -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
-         is UByte -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is UByte -> NumberFormat.getIntegerInstance(APP.locale.value).format(o.toShort())
          is Short -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
-         is UShort -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is UShort -> NumberFormat.getIntegerInstance(APP.locale.value).format(o.toInt())
          is Int -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
-         is UInt -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is UInt -> NumberFormat.getIntegerInstance(APP.locale.value).format(o.toLong())
          is Long -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
-         is ULong -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is ULong -> NumberFormat.getIntegerInstance(APP.locale.value).format(o.toBigInt())
          is Float -> NumberFormat.getInstance(APP.locale.value).format(o)
          is Double -> NumberFormat.getInstance(APP.locale.value).format(o)
          is BigInteger -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)

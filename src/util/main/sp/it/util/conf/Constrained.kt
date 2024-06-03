@@ -27,6 +27,7 @@ import sp.it.util.conf.Constraint.StringLength
 import sp.it.util.conf.Constraint.StringNonBlank
 import sp.it.util.conf.Constraint.StringNonEmpty
 import sp.it.util.conf.Constraint.UiConverter
+import sp.it.util.conf.Constraint.UiGeneral
 import sp.it.util.conf.Constraint.UiInfoConverter
 import sp.it.util.conf.Constraint.UiNoCustomUnsealedValue
 import sp.it.util.conf.Constraint.UiPaginated
@@ -130,6 +131,8 @@ fun <T: Any?, C: ConstrainedDsl<T>> C.uiNoOrder() = but(PreserveOrder)
 fun <T: Any?, C: ConstrainedDsl<T>> C.uiNoCustomUnsealedValue() = but(UiNoCustomUnsealedValue)
 /** Adds [Constraint.UiPaginated] */
 fun                <T: Any?, C: ConstrainedDsl<ObservableList<T>>> C.uiPaginated(value: Boolean) = but(UiPaginated(value))
+/** Adds [Constraint.UiGeneral] */
+fun                <T: Any?, C: ConstrainedDsl<T>> C.uiGeneral() = but(UiGeneral)
 /** Adds [Constraint.ValueSealedSet] using the specified enumerator */
 fun                <T: Any?, C: ConstrainedDsl<T>> C.values(enumerator: () -> Collection<T>) = but(ValueSealedSet { enumerator() })
 /** Adds [Constraint.ValueSealedSet] using the specified collection as enumerator */

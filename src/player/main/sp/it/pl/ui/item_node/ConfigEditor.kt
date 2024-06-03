@@ -60,6 +60,7 @@ import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.Constraint.NumberMinMax.Between
 import sp.it.util.conf.Constraint.ObjectNonNull
+import sp.it.util.conf.Constraint.UiGeneral
 import sp.it.util.conf.Constraint.UiPaginated
 import sp.it.util.conf.Constraint.ValueSealedRadio
 import sp.it.util.conf.Constraint.ValueSealedSet
@@ -461,6 +462,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
          fun Config<*>.isConfigurable() = type.raw.isSubclassOf<Configurable<*>>()
 
          return when {
+            config.hasConstraint<UiGeneral>() -> GeneralCE(config.asIs())
             config.isComplex() -> ComplexCE(config.asIs())
             config.isMinMax() -> SliderCE(config.asIs())
             else -> null

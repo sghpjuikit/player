@@ -251,6 +251,9 @@ interface Constraint<in T> {
    /** Hints ui editor to use the specified to-info-string converter to display extended information about the value. */
    class UiInfoConverter<T>(val converter: (T) -> String): MarkerConstraint()
 
+   /** Hint for ui to not use any special editor. */
+   object UiGeneral: MarkerConstraint()
+
    /** Hint for ui to use or not use pagination. */
    class UiPaginated(val value: Boolean): MarkerConstraint()
 

@@ -218,7 +218,7 @@ class HttpHandlerTts(HttpHandler):
 
             # generate
             audio_chunks = []
-            event = self.tts.gen(text)
+            event = self.tts.gen(text, False).result()
             stream = req.wfile
 
             if event.type == 'boundary':

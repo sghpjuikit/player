@@ -237,8 +237,8 @@ class HttpHandlerTts(HttpHandler):
                 start_pos = 0
                 while start_pos < audio_length:
                     if req.wfile.closed: return
-                    if tts._stop: req.wfile.close()
-                    if tts._stop: return
+                    if self.tts._stop: req.wfile.close()
+                    if self.tts._stop: return
             
                     end_pos = min(start_pos + chunk_size, audio_length)
                     chunk = audio_data[start_pos:end_pos]

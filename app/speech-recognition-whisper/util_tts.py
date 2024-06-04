@@ -429,6 +429,7 @@ class TtsHttp(TtsBase):
         super().__init__('TtsHttp', write)
         self.url = url
         self.port = port
+        self.deviceName = 'http'
 
     def _loop(self):
         # init

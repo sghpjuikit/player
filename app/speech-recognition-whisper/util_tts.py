@@ -2,7 +2,7 @@ import os
 import re
 import time
 import torch
-import numpy
+import numpy as np
 import asyncio
 import torchaudio
 from util_actor import Actor, ActorStoppedException
@@ -275,8 +275,8 @@ class TtsOs(TtsBase):
                             # self._engine.to_memory(text, audios)
                             # self._engine.runAndWait()
                             # audio = audios[0]
-                            # audio = numpy.array(audio, dtype=numpy.int32) # to numpty
-                            # audio = audio.astype(numpy.float32) / 32768.0 # normalize
+                            # audio = np.array(audio, dtype=np.int32) # to numpty
+                            # audio = audio.astype(np.float32) / 32768.0 # normalize
                             # self.play.playWavChunk(text, audio, skippable)
                             # save file
     
@@ -313,8 +313,8 @@ class TtsOs(TtsBase):
                             #     while not self._stop:
                             #         with self._loopProcessEvent() as (text, skippable, f):
                             #             audio = tts.say(text)
-                            #             audio = numpy.array(audio, dtype=numpy.int32) # to numpty
-                            #             audio = audio.astype(numpy.float32) / 32768.0 # normalize
+                            #             audio = np.array(audio, dtype=np.int32) # to numpty
+                            #             audio = audio.astype(np.float32) / 32768.0 # normalize
                             #             self.play.playWavChunk(text, audio, skippable)
 
                             # file-based (interruptable, cachable, high latency, all platforms)
@@ -410,7 +410,7 @@ class TtsCoqui(TtsBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEventFut(os.path.join('coqui', self._voice), 24000, lambda audio: torch.from_numpy(numpy.concatenate(list(map(lambda x: x.cpu().numpy(), audio.audio)), axis=0)).squeeze().unsqueeze(0).cpu()) as (text, skippable, f):
+                with self._loopProcessEventFut(os.path.join('coqui', self._voice), 24000, lambda audio: torch.from_numpy(np.concatenate(list(map(lambda x: x.cpu().numpy(), audio.audio)), axis=0)).squeeze().unsqueeze(0).cpu()) as (text, skippable, f):
                     if text is not None:
                         # wait for init
                         loadModelThread.join()
@@ -433,50 +433,49 @@ class TtsHttp(TtsBase):
 
     def _loop(self):
         # init
-        import io, http.client
+        import http.client
+        # plumbing
+        class Conn:
+            def __init__(self, url, port): self.conn = http.client.HTTPConnection(url, port)
+            def __enter__(self): return self.conn
+            def __exit__(self, exc_type, exc_val, exc_tb): self.conn.close()
+        
         # loop
         with self._looping():
             while not self._stop:
                 with self._loopProcessEvent() as (text, skippable, f):
-                    text = text.encode('utf-8')
-                    conn = http.client.HTTPConnection(self.url, self.port)
                     try:
-                        conn.set_debuglevel(0)
-                        conn.request('POST', '/speech', text, {})
-                        response = conn.getresponse()
-    
-                        if response.status != 200:
-                            f.set_exception(Exception(f"Http status={response.status} {response.reason}"))
-                            raise Exception(f"Http status={response.status} {response.reason}")
-    
-                        def read_wav_chunks_from_response(response):
-                            chunk_size = 1024*(numpy.zeros(1, dtype=numpy.float32).nbytes)  # Adjust the chunk size as needed
-                            buffer = io.BytesIO()
-                            for chunk in response:
-                                if self._skip: conn.close()
-                                buffer.write(chunk)
-                                while buffer.tell() >= chunk_size:
-                                    if self._skip: break
-                                    buffer.seek(0)
-                                    wav_data = buffer.read(chunk_size)
-                                    remaining_data = buffer.read()
-                                    buffer.seek(0)
-                                    buffer.write(remaining_data)
-                                    yield numpy.frombuffer(wav_data, dtype=numpy.float32)
-                                buffer.truncate(buffer.tell())
-                            if buffer.tell() > 0:
-                                buffer.seek(0)
-                                wav_data = buffer.read()
-                                yield numpy.frombuffer(wav_data, dtype=numpy.float32)
+                        text = text.encode('utf-8')
+                        with Conn(self.url, self.port) as con:
+                            con.set_debuglevel(0)
+                            con.request('POST', '/speech', text, {})
+                            res = con.getresponse()
+        
+                            if res.status != 200:
+                                f.set_exception(Exception(f"Http status={res.status} {res.reason}"))
+                                raise Exception(f"Http status={res.status} {res.reason}")
 
-                        audio_chunks = read_wav_chunks_from_response(response)
-                        consumer, audio_chunks = teeThreadSafeEager(audio_chunks, 1)
-                        f.set_result(SdEvent.wavChunks(text, audio_chunks, skippable))
-                        consumer()
-                        conn.close()
+                            def audio_chunks_generator(remaining_bytes=b''):
+                                for chunk in res:
+                                    if self._skip: break
+                                    data = remaining_bytes + chunk
+                                    remaining_bytes_count = len(data) % 4
+                                    if remaining_bytes_count != 0:  # if size isn't a multiple of 4 (size of float32)
+                                        remaining_bytes = data[-remaining_bytes_count:]
+                                        data = data[:-remaining_bytes_count]
+                                    else:
+                                        remaining_bytes = b''
+                                    yield np.frombuffer(data, dtype=np.float32)
+                                # process any remaining bytes
+                                if remaining_bytes and not self._skip:
+                                    yield np.frombuffer(remaining_bytes, dtype=np.float32)
+                                    
+                            audio_chunks = audio_chunks_generator()
+                            consumer, audio_chunks = teeThreadSafeEager(audio_chunks, 1)
+                            f.set_result(SdEvent.wavChunks(text, audio_chunks, skippable))
+                            consumer()
                     except Exception as e:
                         f.set_exception(e)
-                        conn.close()
                         raise e
 
 

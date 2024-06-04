@@ -22,7 +22,6 @@ from imports import *
 class TtsPause:
     ms: int
 
-
 class Tts(Actor):
     def __init__(self, speakOn: bool, tts, write: Writer):
         super().__init__("tts-preprocessor", 'Tts-preprocessor', None, write, True)
@@ -49,7 +48,7 @@ class Tts(Actor):
     def skipWithoutSound(self):
         self.tts.skip()
 
-    def skippable(self, event: str) -> Future[[]]:
+    def skippable(self, event: str) -> Future[None]:
         f = Future()
         if not self.speakOn:
             f.set_result(None)
@@ -64,7 +63,7 @@ class Tts(Actor):
             self.write('SYS: ' + text)
             self.queue.put((words(text), skippable, True, Future()))
 
-    def __call__(self, event: str | Iterator) -> Future[[]]:
+    def __call__(self, event: str | Iterator) -> Future[None]:
         f = Future()
         if not self.speakOn:
             f.set_result(None)
@@ -75,7 +74,7 @@ class Tts(Actor):
             self.queue.put((event, True, False, f))
         return f
 
-    def speakPause(self, ms: int) -> Future[[]]:
+    def speakPause(self, ms: int) -> Future[None]:
         f = Future()
         self.queue.put((TtsPause(ms), True, False, f))
 
@@ -100,11 +99,8 @@ class Tts(Actor):
                                 if (len(sentence)>0): fAll.append(flatMap(self.tts.gen(sentence, skippable=skippable), self.play.playEvent))
 
                             # join tts results
-                            if len(fAll)>0:
-                                fLast = fAll[-1]
-                                fResult = flatMap(fLast, lambda _: futureCompleted(list(chain(*map(lambda r: r.result(), fAll)))))
-                            else:
-                                fResult = futureCompleted([])
+                            if len(fAll)>0: fResult = fAll[-1]
+                            else: fResult = futureCompleted(None)
 
                             # end
                             futureOnDone(fResult, complete_also(f))

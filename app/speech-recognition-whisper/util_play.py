@@ -69,70 +69,67 @@ class SdActor(Actor):
                     try:
                         # skip
                         if self._skip and event.skippable:
-                            event.future.set_result([])
+                            event.future.set_result(None)
                             continue
 
                         # skip stop at boundary
                         if event.type == 'boundary':
                             self._skip = False
-                            event.future.set_result([])
+                            event.future.set_result(None)
                             continue
 
-                        # play pause
-                        def playPause(dur):
-                            samples_count = int(dur * self.sample_rate)
-                            data = np.zeros(samples_count, dtype=np.float32)
-                            stream.write(data)
-                            return data
-
                         if event.type == 'e':
-                            event.future.set_result([])
-                            
+                            event.future.set_result(None)
+
                         if event.type == 'p':
-                            data = playPause(int(event.audio)/1000.0)
-                            event.future.set_result(data)
+                            for i in range(0, int(event.audio)//100):
+                                if (self._skip and event.skippable) or self._stop:
+                                    event.future.set_result(None)
+                                    break
+                                time.sleep(0.01)
+                            event.future.set_result(None)
 
                         # play file
                         if event.type == 'f':
                             self.volume_adjuster.speechStarted()
-                            data = []
                             audio_data, fs = sf.read(event.audio, dtype='float32')
                             if fs != self.sample_rate: audio_data = signal.resample(audio_data, int(len(audio_data) * self.sample_rate / fs))
                             chunk_size = 1024
                             audio_length = len(audio_data)
                             start_pos = 0
                             while start_pos < audio_length:
-                                if (self._skip and event.skippable) or self._stop: break
+                                if (self._skip and event.skippable) or self._stop:
+                                    event.future.set_result(None)
+                                    break
                                 end_pos = min(start_pos + chunk_size, audio_length)
                                 chunk = audio_data[start_pos:end_pos]
                                 stream.write(chunk)
-                                data.append(chunk)
                                 start_pos = end_pos
                             self.volume_adjuster.speechEnded()
-                            event.future.set_result(data)
-                            playPause(self.sentence_break)
+                            event.future.set_result(None)
+                            time.sleep(self.sentence_break)
 
                         # play wav chunk
                         if event.type == 'b':
                             self.volume_adjuster.speechStarted()
-                            data = []
                             for wav_chunk in event.audio:
-                                if self._skip and event.skippable: break
+                                if self._skip and event.skippable:
+                                    event.future.set_result(None)
+                                    break
                                 stream.write(wav_chunk)
-                                data.append(wav_chunk)
                             self.volume_adjuster.speechEnded()
-                            event.future.set_result(data)
-                            playPause(self.sentence_break)
+                            event.future.set_result(None)
+                            time.sleep(self.sentence_break)
 
                     except Exception as x:
-                        event.future.set_exception(e)
+                        event.future.set_exception(x)
                         if event.type == "b" or event.type == "f": self.volume_adjuster.speechEnded()
                         if (self._stop): pass  # daemon thread can get interrupted and stream crash mid write
                         else: raise x
         stream.stop()
         stream.close()
 
-    def playEvent(self, e: SdEvent) -> Future:
+    def playEvent(self, e: SdEvent) -> Future[None]:
         self.queue.put(e)
         return e.future
 

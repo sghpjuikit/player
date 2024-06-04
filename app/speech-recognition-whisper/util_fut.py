@@ -26,9 +26,7 @@ def flatMap(f: Future, func) -> Future:
             else:
                 mapped = func(fut.result())
                 if isinstance(mapped, Future): futureOnDone(mapped, complete_also(rf))
-                else:
-                    print(f'wtf is this shit {mapped}')
-                    rf.set_exception(ValueError('Function must return a Future object'))
+                else: rf.set_exception(ValueError('Function must return a Future object'))
         except Exception as e:
             rf.set_exception(e)
 

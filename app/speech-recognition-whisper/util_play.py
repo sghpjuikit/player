@@ -87,7 +87,7 @@ class SdActor(Actor):
                                     event.future.set_result(None)
                                     break
                                 time.sleep(0.01)
-                            event.future.set_result(None)
+                            if not event.future.done(): event.future.set_result(None)
 
                         # play file
                         if event.type == 'f':
@@ -106,7 +106,7 @@ class SdActor(Actor):
                                 stream.write(chunk)
                                 start_pos = end_pos
                             self.volume_adjuster.speechEnded()
-                            event.future.set_result(None)
+                            if not event.future.done(): event.future.set_result(None)
                             time.sleep(self.sentence_break)
 
                         # play wav chunk
@@ -118,7 +118,7 @@ class SdActor(Actor):
                                     break
                                 stream.write(wav_chunk)
                             self.volume_adjuster.speechEnded()
-                            event.future.set_result(None)
+                            if not event.future.done(): event.future.set_result(None)
                             time.sleep(self.sentence_break)
 
                     except Exception as x:

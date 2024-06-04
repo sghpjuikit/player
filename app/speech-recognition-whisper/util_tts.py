@@ -439,44 +439,45 @@ class TtsHttp(TtsBase):
                 with self._loopProcessEvent() as (text, skippable, f):
                     text = text.encode('utf-8')
                     conn = http.client.HTTPConnection(self.url, self.port)
-                    conn.set_debuglevel(0)
-                    conn.request('POST', '/speech', text, {})
-                    response = conn.getresponse()
-                    
-                    if response.status != 200:
-                        f.set_exception(Exception(f"Http status={response.status} {response.reason}"))
-                        raise Exception(f"Http status={response.status} {response.reason}")
-
-                    def read_wav_chunks_from_response(response):
-                        chunk_size = 1024*(numpy.zeros(1, dtype=numpy.float32).nbytes)  # Adjust the chunk size as needed
-                        buffer = io.BytesIO()
-                        for chunk in response:
-                            if self._skip: conn.close()
-                            buffer.write(chunk)
-                            while buffer.tell() >= chunk_size:
-                                if self._skip: conn.close()
-                                buffer.seek(0)
-                                wav_data = buffer.read(chunk_size)
-                                remaining_data = buffer.read()
-                                buffer.seek(0)
-                                buffer.write(remaining_data)
-                                yield numpy.frombuffer(wav_data, dtype=numpy.float32)
-                            buffer.truncate(buffer.tell())
-                        if buffer.tell() > 0:
-                            buffer.seek(0)
-                            wav_data = buffer.read()
-                            yield numpy.frombuffer(wav_data, dtype=numpy.float32)
-
                     try:
+                        conn.set_debuglevel(0)
+                        conn.request('POST', '/speech', text, {})
+                        response = conn.getresponse()
+    
+                        if response.status != 200:
+                            f.set_exception(Exception(f"Http status={response.status} {response.reason}"))
+                            raise Exception(f"Http status={response.status} {response.reason}")
+    
+                        def read_wav_chunks_from_response(response):
+                            chunk_size = 1024*(numpy.zeros(1, dtype=numpy.float32).nbytes)  # Adjust the chunk size as needed
+                            buffer = io.BytesIO()
+                            for chunk in response:
+                                if self._skip: conn.close()
+                                buffer.write(chunk)
+                                while buffer.tell() >= chunk_size:
+                                    if self._skip: break
+                                    buffer.seek(0)
+                                    wav_data = buffer.read(chunk_size)
+                                    remaining_data = buffer.read()
+                                    buffer.seek(0)
+                                    buffer.write(remaining_data)
+                                    yield numpy.frombuffer(wav_data, dtype=numpy.float32)
+                                buffer.truncate(buffer.tell())
+                            if buffer.tell() > 0:
+                                buffer.seek(0)
+                                wav_data = buffer.read()
+                                yield numpy.frombuffer(wav_data, dtype=numpy.float32)
+
                         audio_chunks = read_wav_chunks_from_response(response)
                         consumer, audio_chunks = teeThreadSafeEager(audio_chunks, 1)
                         f.set_result(SdEvent.wavChunks(text, audio_chunks, skippable))
+                        consumer()
+                        conn.close()
                     except Exception as e:
                         f.set_exception(e)
+                        conn.close()
+                        raise e
 
-                    consumer()
-                    conn.close()
-                        
 
 # https://pytorch.org/hub/nvidia_deeplearningexamples_tacotron2/
 class TtsTacotron2(TtsBase):

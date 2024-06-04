@@ -4,7 +4,6 @@ from util_tts import Tts
 from util_wrt import Writer
 from itertools import chain
 import nemo.collections.asr as nemo_asr
-from multiprocessing import Process as Proc, Queue as ProcQueue
 from util_vad import SileroVoiceActivityDetectorWithCuda
 from collections import deque
 from datetime import datetime
@@ -150,7 +149,6 @@ class Mic(Actor):
         self.processing_start = time.time()
         self.processing_event = "Microphone audio streaming..."
         self.processing = True
-        self.procQueue = Queue()
         while not self._stop:
 
             # re/connect microphone
@@ -285,7 +283,6 @@ class Mic(Actor):
                 # energy = np.sqrt(np.sum(dnp)**2 / CHUNK_SIZE)
                 energy = audioop.rms(buffer, SAMPLE_WIDTH)
                 self.last_energy = energy
-                # (buffer, energy) = self.procQueue.get()
                 if len(buffer) == 0 and self.energy_debug: self.write(f'{self.name} end of stream')
                 if len(buffer) == 0: return None # reached end of the stream
                 frames.append(buffer)
@@ -319,7 +316,6 @@ class Mic(Actor):
                 # energy = np.sqrt(np.sum(dnp)**2 / CHUNK_SIZE)
                 energy = audioop.rms(buffer, SAMPLE_WIDTH)
                 self.last_energy = energy
-                # (buffer, energy) = self.procQueue.get()
                 if len(buffer) == 0 and self.energy_debug: self.write(f'{self.name} end of stream')
                 if len(buffer) == 0: return None # reached end of the stream
                 frames.append(buffer)

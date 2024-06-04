@@ -587,7 +587,7 @@ class TtsFastPitch(TtsBase):
         # loop
         with self._looping():
             while not self._stop:
-                with self._loopProcessEventFut("fastpitch", vocoder_train_setup['sampling_rate'], lambda it: it.audio.clone().detach()) as (text, skippable, f):
+                with self._loopProcessEventFut("fastpitch", vocoder_train_setup['sampling_rate'], lambda it: it) as (text, skippable, f):
                     if text is not None:
                         # Format the input using utility methods
                         with self.write.suppressed(): batches = tp.prepare_input_sequence([text], batch_size=1)
@@ -598,6 +598,6 @@ class TtsFastPitch(TtsBase):
                             mel, mel_lens, *_ = fastpitch(batches[0]['text'].to(device), **gen_kw)
                             audio = hifigan(mel).float()
                             audio = denoiser(audio.squeeze(1), denoising_strength)
-                            audio = audio.cpu().squeeze(1)
+                            audio = audio.cpu().squeeze(1)[0].data.cpu().numpy()
 
                         f.set_result(SdEvent.wavChunks(text, audio, skippable))

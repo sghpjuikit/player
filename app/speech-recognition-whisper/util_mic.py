@@ -169,7 +169,6 @@ class Mic(Actor):
                     else:
                         i = self.get_microphone_index_by_name(self.micName)
 
-                    self.write(f"RAW: Using microphone: {self.micName}")
                     self.name = f"Mic - {self.location}"
                     self.group = f"Mic - {self.location}"
                     self.deviceName = self.micName
@@ -184,7 +183,8 @@ class Mic(Actor):
                     if loopInit: self.speak(f"Failed to use microphone {self.location}. See log for details")
                     if loopInit: print_exc()
 
-                # notify mic connected
+                # notify mic started/connected
+                if source is not None and loopInit: self.write(f"RAW: Using microphone: {self.micName}")
                 if source is not None and not loopInit: self.speak(f"Microphone {self.location} back online.")
                 if source is not None: break
 

@@ -122,7 +122,7 @@ class SdActor(Actor):
                             time.sleep(self.sentence_break)
 
                     except Exception as x:
-                        event.future.set_exception(x)
+                        if not event.future.done(): event.future.set_exception(x)
                         if event.type == "b" or event.type == "f": self.volume_adjuster.speechEnded()
                         if (self._stop): pass  # daemon thread can get interrupted and stream crash mid write
                         else: raise x

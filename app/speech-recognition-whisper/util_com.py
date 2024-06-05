@@ -19,7 +19,7 @@ def preprocess_command(text: str) -> str:
     return text.strip().removeprefix("```python").removeprefix("```").removesuffix("```").strip()
 
 class PythonExecutor:
-    def __init__(self, tts, llm, generatePython, fixPython, write, llmSysPrompt, voices):
+    def __init__(self, tts, llm, generatePython, fixPython, write, llmSysPrompt, commandExecutor, voices):
         self.id = 0
         self.tts = tts
         self.llm = llm
@@ -27,6 +27,7 @@ class PythonExecutor:
         self.fixPython = fixPython
         self.write = write
         self.llmSysPrompt = llmSysPrompt
+        self.commandExecutor = commandExecutor
         self.voices = voices
         self.ms = []
         self.isQuestion = False
@@ -58,10 +59,10 @@ class PythonExecutor:
                 if text not in directories: return
                 d = os.path.join(directory_path, text)
                 files = os.listdir(d)
-                if len(files)==0: self.write(f'COM: User:show emote none')
+                if len(files)==0: self.write(f'COM: User:PC:show emote none')
                 if len(files)==0: return
                 file = os.path.join(directory_path, text, random.choice(files))
-                if os.path.exists(file): self.write(f'COM: User:show emote {file}')
+                if os.path.exists(file): self.write(f'COM: User:PC:show emote {file}')
             except Exception:
                 print_exc()
         Thread(name='Emote-Processor', target=showEmoteDo, daemon=True).start()
@@ -69,11 +70,13 @@ class PythonExecutor:
     def onSpeech(self, speaker):
         if self.speakerLast==speaker:
             if self.isBlockingQuestion is False:
+                print(f'canceling because speech done by {speaker}', end='')
                 self.cancelActiveCommand()
 
     def onSpeechStart(self, speaker):
         if self.speakerLast==speaker:
             if self.isBlockingQuestion is False:
+                print(f'canceling because speech started by {speaker}', end='')
                 self.cancelActiveCommand()
 
     def cancelActiveCommand(self):
@@ -154,7 +157,7 @@ class PythonExecutor:
                 assertSkip()
                 if c is None: return # sometimes llm passes bad function result here, do nothing
                 if len(c)==0: return # just in case
-                self.write(f'COM: {speaker}:' + c)
+                self.write(f'COM: {speaker}:{location}:' + c)
             def doNothing():
                 pass
             def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str):
@@ -223,9 +226,9 @@ class PythonExecutor:
                     self.isBlockingQuestion = False
                     self.isBlockingQuestionSpeaker = None
                     self.onBlockingQuestionDone = Future()
-            def writeCode(code: str) -> str:
+            def writeCode(language: str, code: str) -> str:
                 assertSkip()
-                self.write(f'```\n{code}\n```')
+                self.write(f'```{language}\n{code}\n```')
                 return code
             def showEmote(emotionInput: str):
                 assertSkip()
@@ -244,9 +247,9 @@ class PythonExecutor:
                 speak('Recording started')
                 execCode('com_record', in_name=name)
                 speak('Recording finished')
-            def musicPlayback(*action: object):
+            def controlMusic(*action: object):
                 command("playback " + ', '.join(map(str, action)))
-            def lightsControl(*action: object):
+            def controlLights(*action: object):
                 command("hue lights " + ', '.join(map(str, action)))
             def commandRepeatLastSpeech():
                 'speak again what you said last time, user may have not heard or asks you'
@@ -270,8 +273,12 @@ class PythonExecutor:
             def commandListVoices():
                 command(f'list available voices')
             def commandChangeVoice(voice: str):
-                'resolve to one from {self.voices}'
-                command(f'change voice {voice}')
+                f = self.llm(ChatIntentDetect(
+                    f'You are voice selector. Available voices are: {self.voices}',
+                    f'Respond with exactly one closest voice, or \'none\' if no such voice is close, for the input: {voice}', '', '', '', False, False
+                ))
+                self.commandExecutor.execute('change voice ' + f.result()[0])
+
             def commandOpen(widget_name: str):
                 'estimated name widget_name, in next step you will get exact list of widgets to choose'
                 command(f'open {widget_name}')
@@ -288,7 +295,7 @@ class PythonExecutor:
             # invoke command as python
             if self.isValidPython(text):
                 self.historyAppend({ "role": "system", "content": text })
-                text = f'TIME="{datetime.datetime.now().isoformat()}"\nSPEAKER="System"\nLOCATION:\"{location}\"\n\n{text}'
+                text = f'TIME="{datetime.datetime.now().isoformat()}"\nSPEAKER="{speaker}"\nLOCATION=\"{location}\"\n\n{text}'
                 exec(text)
 
             # try to fix code to be valid and exec again
@@ -297,8 +304,8 @@ class PythonExecutor:
                     self.write('ERR: invalid code, atempting to fix...')
                     (text, canceled) = self.fixPython(text).result()
                 except Exception as e:
-                    self.write(f"ERR: error executing command: Unable to fix: {e}")
-                    print_exc()
+                    speak('I\'m sorry, I failed to respond: {e}')
+                    raise e
                 else:
                     if canceled is True: raise CommandCancelException()
                     if canceled is False: self.write(f"RAW: executing:\n```\n{text}\n```")
@@ -311,6 +318,7 @@ class PythonExecutor:
             self.write(f"RAW: command CANCELLED")
         except Exception as e:
             self.write(f"ERR: error executing command: {e}")
+            speak('I\'m sorry, I failed to respond: {e}')
             print_exc()
 
     def isValidPython(self, code: str) -> bool:
@@ -334,12 +342,20 @@ class PythonExecutor:
         return f"""
 {self.llmSysPrompt}
 
+###Task###
 In reality however, you are speaking to users using python code.
+Your task is to respond such your entire response is executable Python code that replies to messages using available functions while retaining above personality.
+Your role is to assist to the best of your ability while retaining above personality.
 
-Messages you respond to will identify speaker with `SPEAKER="$speaker"` at the beginning so you know who you are replying to.
-Do not use or respond with SPEAKER or TIME variable - you are already identified.
+###Instruction###
+Messages you respond to will at the beginning carry context.
+* Context identify speaker with `SPEAKER="$speaker"` so you know who you are replying to
+* current time with `TIME="$current time string"` (uses ISO format, never pass into speak() directly)
+* current speaker location with `LOCATION="$speaker location"`
+These variables are automatically declared at the beginning of your message - avoid declaring them.
 
 You have full control over the response, by responding with python code (that is executed for you).
+If user asks for code other than Python, do so using writeCode() function!
 
 Users talk to you through speech recognition, be mindful of mistranscriptions.
 Assume users do not have access to keyboard, if you need them to input complicated text, ask them if they can first.
@@ -347,9 +363,10 @@ You speak() to user through speech synthesis (user hears you). speak() dates, mo
 
 Therefore, your response must be valid executable python. You can not use comments.
 Ensure adherence to Python syntax rules, including proper indentation and variable naming conventions.
-If the full response is not executable python, you will be mortified.
-You must avoid markdown code blocks, ```, comments, redefining functions.
+If the full response is not executable python, you will be penalized.
+You must avoid using markdown code blocks, ``` quotes, all comments, redefining any below functions.
 The code is executed as python and python functions functions must be invoked as such.
+
 The python code may use valid python constructs (loops, variables, multiple lines etc.) and already has available these functions (bodies are omitted):
 * def speak(your_speech_to_user: str) -> None:  # blocks until speaking is done, pass text as it should be heard (particularly dates and numbers)
 * def body(your_physical_action: str) -> None:
@@ -366,11 +383,11 @@ The python code may use valid python constructs (loops, variables, multiple line
 * def think(*thoughts: str) -> None: # think function, stops your reply with given thoughts and makes you respond again with the thoughts added to input, call once as last function. Only think new thoughts, ideally actions, to prompt you to do something and avoid endless thinking.
 * def thinkClipboardContext(action: str) -> str: # get current clipboard content and call think(), you can add your action needed to do with the clipboard.
 * def question(question: str) -> None: # speak the question user needs to answer and wait for his answer (do not follow with any code), you can also use this to get more data before you do a behavior
-* def writeCode(code: str) -> str: # use when user wants you to write/produce programming code (without executing), also returns the text
+* def writeCode(language: str, code: str) -> str: # allows you to output non Python code block (without executing), also returns it
 * def recordVoice() -> None: # always question() user for voiceName if not available from previous conversation
 * def saveClipboardImage() -> str | None: str # saves captured image in clipboard into a file and returns the path or None on error
-* def musicPlayback(action: str) -> None: # adjust music playback in way described by the action (free text), do not skim details, pass user's entire intent
-* def lightsControl(action: str) -> None: # adjust or query lights system in way described by the action (free text providing as much details like room, group, scene, light properties, user's intent, etc as possible)
+* def controlMusic(action: str) -> None: # adjust music playback in way described by the action (free text), do not skim details, pass user's entire intent
+* def controlLights(action: str) -> None: # adjust or query lights system in way described by the action (free text providing as much details like room, group, scene, light properties, user's intent, etc as possible)
 * def commandRepeatLastSpeech() -> None:
 * def commandListCommands() -> None:
 * def commandRestartAssistant() -> None:
@@ -389,7 +406,8 @@ You use the above functions to do tasks and only use custom code to solve the pr
 The above functions are available, you do not define them as doing that would break behavior! Use the provided functions as-is.
 If your answer depends on data or thinking, always pass it as context to think(), you will auto-continue with the data you passed as context now available.
 Functions think, thinkClipboardContext, question are terminating - execution will end, so these should be last or only function you use.
-If user asks to write code, use writeCode() instead of responding the code, since your response is always executed, but writeCode() will merely print the code.
+If user needs you to to write code, use writeCode() instead of responding the code, since your response is always executed, but writeCode() will merely print the code.
+If user asks you a question you answer it. You may question() to get information necessary to finish your response, which may be multi-turn conversation.
 
 You always write short and efficient python (e.g. loop instead of manual duplicate calls).
 Use always speak() for verbal communication and write() for textual outputs.
@@ -397,25 +415,27 @@ Use always question() when requiring input from the user.
 Use always question() when requiring user's answer or input, in conversation or even for function argument if necessary. 
 Use always body() function for any nonverbal actions of your physical body or movement, i.e. action('looks up'), action('moves closer')
 Use always wait() function to control time in your responses, take into consideration that speak() has about 0.5s delay.
-Use always musicPlayback() to control anything music related, pass as action context relevant to the intent
-Use always lightsControl() to control anything lights related, pass as action context relevant to the intent
+Use always controlMusic() to control anything music related, pass as action context relevant to the intent
+Use always controlLights() to control anything lights related, pass as action context relevant to the intent
 Use always think() function to react to data you obtained with other functions.
 Use always thinkClipboardContext() if you need to know clipboard content (and pass correct action), avoid using other functions or modules such as pyperclip for it
 You always correctly quote and escape function parameters.
 You always use writeCode() to produce code that is supposed to be shown to user.
 If you are uncertain what to do, simply speak() why.
 
-**Example of correct python responses**:
+
+###Correct response examples###
 * speak("Let's see")
 * body("looks up")
 * for i in range(1, 5): wait(1.5)
 * think('I need to obtain clipboard and do <inferred action>')
 * thinkClipboardContext('I need to <inferred action>')
 * speak(f'The clipboard has equation that evaluates to {20*20}')
-* speak(f'The code that sums 10 plus 10 is')
-* writeCode(f'10+10')
+* speak(f'The code that sums 10 plus 10 in kotlin is')
+* speak(f'Here is the code:')
+* writeCode('kotlin', f'val sum = 10+10')
 
-**Example of wrong python responses**:
+###Incorrect response examples###
 * Here is the response: # not a function
 * Hey! speak("Hey") # Hey! is outside speak()
 * speak(speak()) # no arg

@@ -592,17 +592,17 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          }
       }
       val shower = {
-         VT_IMAGE_THROTTLE.lockFor(150.millis)
+         VT_IMAGE_THROTTLE.lockFor(500.millis)
          mw.s.asLayout()?.child = c
          mw.focus()
          c.focus()
-         showAnim.intpl { sqrt(sqrt(it)) }
-         showAnim.delay(if (showAnim.position.value==0.0) 150.millis else 0.millis)
-         showAnim.playOpenDo {}
+         runFX(100.millis) {
+            showAnim.intpl { sqrt(sqrt(it)) }
+            showAnim.playOpenDo {}
+         }
       }
       val hider = {
          showAnim.intpl { 1-sqrt(sqrt(1-it)) }
-         showAnim.delay(0.millis)
          showAnim.playCloseDo { mw.close() }
       }
 

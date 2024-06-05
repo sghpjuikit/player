@@ -393,13 +393,13 @@ class CommandExecutorMain(CommandExecutor):
             llm(ChatProceed(llmSysPrompt, "Describe the following content:\n" + text.removeprefix("do-describe ")))
             return handled
         elif text == 'start conversation':
-            assist.startChat("User")
+            assist.startChat("User", "PC")
             return handled
         elif text == 'restart conversation':
-            assist.restartChat("User")
+            assist.restartChat("User", "PC")
             return handled
         elif text == 'stop conversation':
-            assist.stopChat("User")
+            assist.stopChat("User", "PC")
             return handled
         else:
             return text
@@ -410,7 +410,7 @@ executorPython = PythonExecutor(
     tts, llm,
     lambda sp, up, ms: llm(ChatIntentDetect.python(sp, up, ms)),
     lambda code: llm(ChatIntentDetect.pythonFix(code)),
-    write, llmSysPrompt, ', '.join(voices)
+    write, llmSysPrompt, commandExecutor, ', '.join(voices)
 )
 
 class AssistBasic:
@@ -431,7 +431,7 @@ class AssistBasic:
         while True:
             time.sleep(1.0)
             if self.restartChatDelay < (time.time() - self.activity_last_at) and len(executorPython.ms)>0:
-                self.restartChat(react=False)
+                self.restartChat("User", "PC", react=False)
 
     def needsWakeWord(self, speech: SpeechText) -> bool:
         return self.isChat is False and executorPython.isQuestion is False and (speech.start - self.last_announcement_at).total_seconds() > self.wake_word_delay
@@ -481,36 +481,36 @@ class AssistBasic:
         elif text == "stop conversation":
             commandExecutor.execute("stop conversation")
         elif text.startswith("generate "):
-            write(f'COM: {speech.user}:' + commandExecutor.execute(text))
+            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text))
         elif text.startswith("count "):
-            write(f'COM: {speech.user}:' + commandExecutor.execute(text))
+            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text))
         # do command - python
         elif usePythonCommands:
             executorPython.generatePythonAndExecute(speech.user, speech.location, speech.text)
         # do command
         else:
-            write(f'COM: {speech.user}:' + commandExecutor.execute(text))
+            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text))
 
-    def startChat(self, speaker: str, react: bool = True):
+    def startChat(self, speaker: str, location: str, react: bool = True):
         if self.isChat: return
         self.isChat = True
-        write(f"COM: {speaker}:start conversation")
+        write(f"COM: {speaker}:{location}:start conversation")
         if (react): llm(ChatReact(llmSysPrompt, "User started conversation with you. Greet him", "Conversing"))
         for mic in mics: mic.set_pause_threshold_talk()
 
-    def restartChat(self, speaker: str, react: bool = True):
+    def restartChat(self, speaker: str, location: str, react: bool = True):
         tts.skip()
         llm.generating = False
-        write(f"COM: {speaker}:restart conversation")
+        write(f"COM: {speaker}:{location}:restart conversation")
         if (react): llm(ChatReact(llmSysPrompt, "User erased his conversation with you from your memory.", "Ok"))
         executorPython.ms = []
 
-    def stopChat(self, speaker: str, react: bool = True):
+    def stopChat(self, speaker: str, location: str, react: bool = True):
         if self.isChat is False: return
         self.isChat = False
         tts.skip()
         llm.generating = False
-        write(f"COM: {speaker}:stop conversation")
+        write(f"COM: {speaker}:{location}:stop conversation")
         if (react): llm(ChatReact(llmSysPrompt, "User stopped conversation with you", "Ok"))
         for mic in mics: mic.set_pause_threshold_normal()
 

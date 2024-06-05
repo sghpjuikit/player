@@ -634,7 +634,8 @@ class VoiceAssistant: PluginBase() {
    private suspend fun handleSpeech(text: String, user: Boolean = false, command: Boolean = false, orDetectIntent: Boolean = false) {
       if (!isRunning) return
       var speaker = text.substringBefore(":")
-      var textSanitized = text.substringAfter(":").replace("_", " ").sanitize(sttBlacklistWords_)
+      var location = text.substringAfter(":").substringBefore(":")
+      var textSanitized = text.substringAfter(":").substringAfter(":").replace("_", " ").sanitize(sttBlacklistWords_)
       if (user) speakingTextW.value = textSanitized
       if (!command) return
 
@@ -643,11 +644,11 @@ class VoiceAssistant: PluginBase() {
       logger.info { "Speech ${if (orDetectIntent) "event" else "intent"} handled by command `${c?.name}`, request=`${speaker}:${textSanitized}`" }
       if (result==null) {
          if (!orDetectIntent)
-            if (usePythonCommands.value) writeComPytInt(speaker, textSanitized)
+            if (usePythonCommands.value) writeComPytInt(speaker, location, textSanitized)
             else speak("Unrecognized command: $textSanitized")
          else {
             if (usePythonCommands.value)
-               writeComPytInt(speaker, textSanitized)
+               writeComPytInt(speaker, location, textSanitized)
             else
                intent(voiceCommandsPrompt(), textSanitized).ifError {
                   logger.error(it) { "Failed to understand command $textSanitized" }
@@ -682,7 +683,7 @@ class VoiceAssistant: PluginBase() {
 
    fun writeComPyt(speaker: String, command: String): Unit = write("COM-PYT: ${speaker}:PC:${command.encodeBase64()}")
 
-   fun writeComPytInt(speaker: String, command: String): Unit = write("COM-PYT-INT: ${speaker}:PC:${command.encodeBase64()}")
+   fun writeComPytInt(speaker: String, location: String, command: String): Unit = write("COM-PYT-INT: ${speaker}:${location}:${command.encodeBase64()}")
 
    fun writeChat(speaker: String, text: String) = write("CHAT: ${speaker}:PC:${text.encodeBase64()}")
 

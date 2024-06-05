@@ -513,7 +513,7 @@ This script prints:
 - system log in format`SYS: $message`
 - recognized user speech in format `RAW: $speech`
 - recognized user speech, sanitized, in format `USER: $speech`
-- recognized user command, in format `COM: $command`
+- recognized user command, in format `COM: $SPEAKER:$LOCATION:$command`
 
 All multiline content has newlines replaced by `\u2028`, an unicode newline character.
 This allows `\n` newlines to define individual output boundaries, instead of defining custom special char/sequence.

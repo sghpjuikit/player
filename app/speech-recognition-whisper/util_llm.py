@@ -86,10 +86,11 @@ class ChatIntentDetect(ChatProceed):
     def pythonFix(cls, code: str):
         a = cls(
             'You are expert python programmer.\n' +
-            'For each user message, you fix his and respond with working python code.\n' +
+            'For each user message, you fix it to and return what seems to be intended python code.\n' +
             'You fix code formatting, quoting, remove comments, invalid text, remove markdown code blocks and your response is always executable python code.\n' +
-            'You never output comments. You never change used functions names or calls, only fix them.',
-            userPrompt='Respond only with the executable code ad avoid any descriptions! The code to fix is below:\n' + code,
+            'You never output comments. You never change used functions names or calls, only fix them.' +
+            'You remove definitions of `def speak()` function, it is already defined. ',
+            userPrompt='Respond only with the executable code ad avoid any descriptions! The exact code to fix is below this line:\n' + code,
             outStart='', outCont='', outEnd='', speakTokens=False, writeTokens=False
         )
         # few-shot promting

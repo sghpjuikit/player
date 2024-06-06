@@ -605,17 +605,8 @@ However it is slower, has problems speaking numbers and short sentences, and som
 pip install torch
 pip install TTS
 ```
-- document making voices 22050 input
-    - `ffmpeg -i dramatic.wav -ar 22050 dramatic2.wav`
 
-##### Voice cloning
-- Create a voice sample recording (cleanest possible)
-    - Make it into 3-20s `22050Hz` wav, `ffmpeg -i <input_file>.extension -ss 00:00:00 -t 00:00:15 -c:a pcm_s16le -ar 22050 <output_file>.wav`
-        - using different sampling rate will degrade speech output quality
-- Place it into [voices-coqui](voices-coqui) dirctory
-- Change voice using assistant ui widget or simply by talking to the assistant.
-    - No restart necessary
-    - Voice loading is slower 1st time, the generated data are saved to disk.
+Guide to create/clone/configure voices is in [voices-coqui/REaDME.md](voices-coqui/README.md)
 
 #### TtsFastPitch
 Fastpitch is the fastest and most quality tts available here.

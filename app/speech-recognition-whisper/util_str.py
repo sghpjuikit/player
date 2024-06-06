@@ -1,5 +1,6 @@
 import re
 import sys
+from imports import print_exc
 
 def contains_any(text: str, fragments: [str], ignore_case: bool = False) -> bool:
     def sanitize(s): return s.lower() if ignore_case else s
@@ -36,18 +37,27 @@ def wake_words_and_name(s: str) -> (str, [str]):
     name = wake_words[0][0].upper() + wake_words[0][1:]
     return (name, wake_words)
 
-def arg(arg_name: str, fallback: str) -> str:
-    a = next((x for x in sys.argv if x.startswith(arg_name + '=')), None)
-    if a is None:
-        return fallback
-    else:
-        return prop(a, arg_name, fallback)
+class ArgProp:
+    def __init__(self, name: str, fallback: str, converter):
+        self.name = name
+        self.fallback = fallback
+        self.converter = converter
 
-def prop(text: str, arg_name: str, fallback: str) -> str:
-    if text.startswith(arg_name + '='):
-        return text.split("=", 1)[-1]
-    else:
-        return fallback
+    def isArg(self, text: str) -> bool:
+        return text.startswith(self.name + '=')
+
+    def __call__(self, text: str) -> object:
+        try:
+            return self.converter(text.removeprefix(self.name).removeprefix('='))
+        except Exception as e:
+            print_exc()
+            return self.converter(self.fallback)
+
+def arg(arg_name: str, fallback: str, converter = lambda x: x) -> (ArgProp, object):
+    prop = ArgProp(arg_name, fallback, converter)
+    a = next((x for x in sys.argv if prop.isArg(x)), None)
+    if a is None: return (prop, prop(fallback))
+    else: return (prop, prop(a))
 
 
 def int_to_words(num: int) -> str:

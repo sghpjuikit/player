@@ -237,54 +237,54 @@ Args:
     quit()
 
 # args
-(name, wake_words) = wake_words_and_name(arg('wake-word', 'system'))
+(argWake, (name, wake_words)) = arg('wake-word', 'system', wake_words_and_name)
 write(name + " booting up...")
-sysParentProcess = int(arg('parent-process', -1))
+(argSysParentProcess, sysParentProcess) = arg('parent-process', -1, lambda it: int(it))
 sysTerminating = False
 sysCacheDir = "cache"
 if not os.path.exists(sysCacheDir): os.makedirs(sysCacheDir)
 
-micDef = arg('mics', "")
-micEnabled = arg('mic-enabled', "true")=="true"
-micName = arg('mic-name', '')
-micEnergy = int(arg('mic-energy', "120"))
-micVerbose = arg('mic-verbose', "false")=="true"
-micVoiceDetect = arg('mic-voice-detect', "false")=="true"
-micVoiceDetectDevice = arg('mic-voice-detect-device', "cpu")
-micVoiceDetectTreshold = float(arg('mic-voice-detect-prop', "0.6"))
-micVoiceDetectVerbose = arg('mic-voice-detect-debug', "false")=="true"
+(argMicDef, micDef) = arg('mics', "")
+(argMicEnabled, micEnabled) = arg('mic-enabled', "true", lambda it: it=="true")
+(argMicName, micName) = arg('mic-name', '')
+(argMicEnergy, micEnergy) = arg('mic-energy', "120", lambda it: int(it))
+(argMicVerbose, micVerbose) = arg('mic-verbose', "false", lambda it: it=="true")
+(argMicVoiceDetect, micVoiceDetect) = arg('mic-voice-detect', "false", lambda it: it=="true")
+(argMicVoiceDetectDevice, micVoiceDetectDevice) = arg('mic-voice-detect-device', "cpu")
+(argMicVoiceDetectTreshold, micVoiceDetectTreshold) = arg('mic-voice-detect-prop', "0.6", lambda it: float(it))
+(argMicVoiceDetectVerbose, micVoiceDetectVerbose) = arg('mic-voice-detect-debug', "false", lambda it: it=="true")
 
-sttEngineType = arg('stt-engine', 'whisper')
-sttWhisperDevice = arg('stt-whisper-device', '')
-sttWhisperModel = arg('stt-whisper-model', 'base.en')
-sttFasterWhisperDevice = arg('stt-fasterwhisper-device', '')
-sttFasterWhisperModel = arg('stt-fasterwhisper-model', 'small.en')
-sttWhispers2tDevice = arg('stt-whispers2t-device', '')
-sttWhispers2tModel = arg('stt-whispers2t-model', 'small.en')
-sttNemoDevice = arg('stt-nemo-device', '')
-sttNemoModel = arg('stt-nemo-model', 'nvidia/parakeet-ctc-1.1b')
-sttHttpUrl = arg('stt-http-url', 'localhost:1235')
+(argSttEngineType, sttEngineType) = arg('stt-engine', 'whisper')
+(argSttWhisperDevice, sttWhisperDevice) = arg('stt-whisper-device', '')
+(argSttWhisperModel, sttWhisperModel) = arg('stt-whisper-model', 'base.en')
+(argSttFasterWhisperDevice, sttFasterWhisperDevice) = arg('stt-fasterwhisper-device', '')
+(argSttFasterWhisperModel, sttFasterWhisperModel) = arg('stt-fasterwhisper-model', 'small.en')
+(argSttWhispers2tDevice, sttWhispers2tDevice) = arg('stt-whispers2t-device', '')
+(argSttWhispers2tModel, sttWhispers2tModel) = arg('stt-whispers2t-model', 'small.en')
+(argSttNemoDevice, sttNemoDevice) = arg('stt-nemo-device', '')
+(argSttNemoModel, sttNemoModel) = arg('stt-nemo-model', 'nvidia/parakeet-ctc-1.1b')
+(argSttHttpUrl, sttHttpUrl) = arg('stt-http-url', 'localhost:1235')
 
-ttsOn = arg('speech-on', "true") == "true"
-ttsEngineType = arg('speech-engine', 'os')
-ttsCoquiVoice = arg('coqui-voice', 'Ann_Daniels.flac')
-ttsCoquiCudaDevice = arg('coqui-cuda-device', '')
-ttsTacotron2Device = arg('tacotron2-cuda-device', '')
-ttsHttpUrl = arg('speech-server', 'localhost:1236')
+(argTtsOn, ttsOn) = arg('speech-on', "true", lambda it: it=="true")
+(argTtsEngineType, ttsEngineType) = arg('speech-engine', 'os')
+(argTtsCoquiVoice, ttsCoquiVoice) = arg('coqui-voice', 'Ann_Daniels.flac')
+(argTtsCoquiCudaDevice, ttsCoquiCudaDevice) = arg('coqui-cuda-device', '')
+(argTtsTacotron2Device, ttsTacotron2Device) = arg('tacotron2-cuda-device', '')
+(argTtsHttpUrl, ttsHttpUrl) = arg('speech-server', 'localhost:1236')
 
-llmEngine = arg('llm-engine', 'none')
-llmGpt4AllModelName = arg('llm-gpt4all-model', 'none')
-llmOpenAiUrl = arg('llm-openai-url', 'none')
-llmOpenAiBearer = arg('llm-openai-bearer', 'none')
-llmOpenAiModelName = arg('llm-openai-model', 'none')
-llmSysPrompt = arg('llm-chat-sys-prompt', 'You are helpful chat bot. You are voiced by text-to-speech, so you are extremly concise.')
-llmChatMaxTokens = int(arg('llm-chat-max-tokens', '400'))
-llmChatTemp = float(arg('llm-chat-temp', '0.5'))
-llmChatTopp = float(arg('llm-chat-topp', '0.95'))
-llmChatTopk = int(arg('llm-chat-topk', '40'))
+(argLlmEngine, llmEngine) = arg('llm-engine', 'none')
+(argLlmGpt4AllModelName, llmGpt4AllModelName) = arg('llm-gpt4all-model', 'none')
+(argLlmOpenAiUrl, llmOpenAiUrl) = arg('llm-openai-url', 'none')
+(argLlmOpenAiBearer, llmOpenAiBearer) = arg('llm-openai-bearer', 'none')
+(argLlmOpenAiModelName, llmOpenAiModelName) = arg('llm-openai-model', 'none')
+(argLlmSysPrompt, llmSysPrompt) = arg('llm-chat-sys-prompt', 'You are helpful chat bot. You are voiced by text-to-speech, so you are extremly concise.')
+(argLlmChatMaxTokens, llmChatMaxTokens) = arg('llm-chat-max-tokens', '400', lambda it: int(it))
+(argLlmChatTemp, llmChatTemp) = arg('llm-chat-temp', '0.5', lambda it: float(it))
+(argLlmChatTopp, llmChatTopp) = arg('llm-chat-topp', '0.95', lambda it: float(it))
+(argLlmChatTopk, llmChatTopk) = arg('llm-chat-topk', '40', lambda it: int(it))
 
-httpUrl = arg('http-url', 'localhost:1236')
-usePythonCommands = arg('use-python-commands', 'false')=="true"
+(argHttpUrl, httpUrl) = arg('http-url', 'localhost:1236')
+(argUsePythonCommands, usePythonCommands) = arg('use-python-commands', 'false', lambda it: it=="true")
 
 
 # speak engine actor, non-blocking
@@ -379,8 +379,8 @@ class CommandExecutorMain(CommandExecutor):
                         tts.tts.voice = voice
                         voiceNew = ttsCoquiVoice
                         llm(ChatReact(llmSysPrompt, f"User changed your voice from:\n```\n{voiceOld}\n```\n\nto:\n```\n{voiceNew}\n```", name + " voice changed"))
-                else:
-                    tts(f"No voice {voice} available")
+                else: llm(ChatReact(llmSysPrompt, f"User tried to change voice to {voice}, but such voice is not available", f"No voice {voice} available"))
+            else: llm(ChatReact(llmSysPrompt, f"User tried to change voice, but current voice generation does not support changing voice", "Current voice generation does not support changing voice"))
             return handled
         if text.startswith("generate from clipboard "):
             tts("Ok")
@@ -713,11 +713,11 @@ while not sysTerminating:
             commandExecutor.execute(text)
 
         # changing settings commands
-        elif m.startswith("wake-word="):
-            (name, wake_words) = wake_words_and_name(prop(m, 'wake-word', 'system'))
+        elif argWake.isArg(m):
+            (name, (name, wake_words)) = argWake(m)
 
-        elif m.startswith("mic-enabled="):
-            e = prop(m, "mic-enabled", "true").lower() == "true"
+        elif argMicEnabled.isArg(m):
+            e = argMicEnabled(m)
             micEnabledOld = micEnabled
             micEnabled = e
             for mic in mics: mic.enabled = e
@@ -725,52 +725,53 @@ while not sysTerminating:
             if micEnabledOld!=e:
                 llm(ChatReact(llmSysPrompt, f"User turned {'on' if e else 'off'} microphone input", "Microphone {'on' if e else 'off'}"))
 
-        elif m.startswith("mic-energy="):
-            micEnergy = int(prop(m, "mic-energy", "120"))
+        elif argMicEnergy.isArg(m):
+            micEnergy = argMicEnergy(m)
             for mic in mics: mic.energy_threshold = micEnergy
 
-        elif m.startswith("mic-verbose="):
-            micVerbose = prop(m, "mic-verbose", "false").lower() == "true"
+        elif argMicVerbose.isArg(m):
+            micVerbose = argMicVerbose(m)
             for mic in mics: mic.energy_debug = micVerbose
 
-        elif m.startswith("mic-voice-detect-prop="):
-            micVoiceDetectTreshold = float(prop(m, "mic-voice-detect-prop", "0.6"))
+        elif argMicVoiceDetectTreshold.isArg(m):
+            micVoiceDetectTreshold = argMicVoiceDetectTreshold(m)
             for mic in mics:
                 if micVoiceDetect: mic.speaker_diar.speaker_treshold = micVoiceDetectTreshold
 
-        elif m.startswith("mic-voice-detect-debug="):
-            micVoiceDetectVerbose = prop(m, "mic-voice-detect-debug", "false").lower() == "true"
+        elif argMicVoiceDetectVerbose.isArg(m):
+            micVoiceDetectVerbose = argMicVoiceDetectVerbose(m)
             for mic in mics:
                 if micVoiceDetect: mic.speaker_diar.verbose = micVoiceDetectVerbose
 
-        elif m.startswith("speech-on="):
-            tts.enabled = prop(m, "speech-on", "true").lower() == "true"
+        elif argTtsOn.isArg(m):
+            ttsOn = argTtsOn(m)
+            tts.enabled = ttsOn
 
-        elif m.startswith("coqui-voice=") and isinstance(tts.tts, TtsCoqui):
-            commandExecutor.execute("change voice " + prop(m, "coqui-voice", ttsCoquiVoice))
+        elif argTtsCoquiVoice.isArg(m):
+            commandExecutor.execute("change voice " + argTtsCoquiVoice(m))
 
-        elif m.startswith("llm-chat-sys-prompt="):
+        elif argLlmSysPrompt.isArg(m):
             promptOld = llmSysPrompt
-            llmSysPrompt = prop(m, 'llm-chat-sys-prompt', 'You are helpful voice assistant. You are voiced by tts, be extremly short.')
+            llmSysPrompt = argLlmSysPrompt(m)
             llm.sysPrompt = llmSysPrompt
             if promptOld!=llmSysPrompt:
                 llm(ChatReact(llmSysPrompt, f"User changed your system prompt from:\n```\n{promptOld}\n```\n\nto:\n```\n{llmSysPrompt}\n```", name + " prompt changed"))
 
-        elif m.startswith("llm-chat-max-tokens="):
-            llm.maxTokens = int(prop(m, "llm-chat-max-tokens", "300"))
+        elif argLlmChatMaxTokens.isArg(m):
+            llm.maxTokens = argLlmChatMaxTokens(m)
 
-        elif m.startswith("llm-chat-temp="):
-            llm.temp = float(prop(m, "llm-chat-temp", "0.5"))
+        elif argLlmChatTemp.isArg(m):
+            llm.temp = argLlmChatTemp(m)
 
-        elif m.startswith("llm-chat-topp="):
-            llm.topp = float(prop(m, "llm-chat-topp", "0.95"))
+        elif argLlmChatTopp.isArg(m):
+            llm.topp = argLlmChatTopp(m)
 
-        elif m.startswith("llm-chat-topk="):
-            llm.topk = int(prop(m, "llm-chat-topk", "40"))
+        elif argLlmChatTopk.isArg(m):
+            llm.topk = argLlmChatTopk(m)
 
-        elif m.startswith("use-python-commands="):
+        elif argUsePythonCommands.isArg(m):
             usePythonCommandsOld = usePythonCommands
-            usePythonCommands = prop(m, "use-python-commands", "false")=="true"
+            usePythonCommands = argUsePythonCommands(m)
             if usePythonCommandsOld!=usePythonCommands:
                 llm(ChatReact(llmSysPrompt, f"User {'increased' if usePythonCommands else 'decreased'} your output expressivity", name + " prompt changed"))
 

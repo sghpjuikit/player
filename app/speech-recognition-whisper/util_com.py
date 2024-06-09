@@ -215,14 +215,17 @@ class PythonExecutor:
                 speak(question)
                 raise CommandNextException()
             def questionBlocking(question: str) -> str | None:
-                self.onBlockingQuestionDone = Future()
-                self.isBlockingQuestion = True
-                self.isBlockingQuestionSpeaker = speaker
-                speak(question)
                 try:
-                    return self.onBlockingQuestionDone.result().rstrip('.')
+                    self.onBlockingQuestionDone = Future()
+                    self.isBlockingQuestion = True
+                    self.isBlockingQuestionSpeaker = speaker
+                    speak(question)
+                    try:
+                        return self.onBlockingQuestionDone.result().rstrip('.')
+                    except Exception as e:
+                        speak("Unable to continue, error during answer")
+                        raise e
                 except:
-                    speak("Unable to continue, error during answer")
                     return None
                 finally:
                     self.isBlockingQuestion = False

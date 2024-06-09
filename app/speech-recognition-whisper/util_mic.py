@@ -127,7 +127,7 @@ class Mic(Actor):
         ds = sd.query_devices()
         # windows has 31 name limit, if name is cut off, the matching will fail
         for d in ds:
-            if name[:31] == d['name']:
+            if name[:31] == d['name'] and d['max_input_channels'] > 0:
                 return d['index']
         for d in ds:
             if name == d['name']:
@@ -137,7 +137,7 @@ class Mic(Actor):
     def get_microphone_names(self) -> [str]:
         names = []
         for d in sd.query_devices():
-            if d['name'] is not None:
+            if d['name'] is not None and d['max_input_channels'] > 0:
                 names.append(d['name'])
         return names
 

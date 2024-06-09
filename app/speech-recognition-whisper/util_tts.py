@@ -215,7 +215,7 @@ class TtsBase(Actor):
                     # tts
                     yield (text, skippable, f)
                     # update cache
-                    if cache_used and text:
+                    if cache_used and text and f.exception() is None:
                         try: torchaudio.save(audio_file, save(f.result()), sample_rate)
                         except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
                 except Exception as e:
@@ -412,6 +412,8 @@ class TtsCoqui(TtsBase):
                 loadVoice()
                 self._loaded = True
             except Exception as x:
+                self.model = None
+                self._stop = True
                 self.write(f"ERR: Failed to load TTS model {x}")
 
         # load model asynchronously (so we do not block speaking from cache)
@@ -426,6 +428,8 @@ class TtsCoqui(TtsBase):
                         # init
                         loadModelThread.join()
                         loadVoiceIfNew()
+                        if self.model is None: f.set_exception(Exception(f'{self.name} model failed to load'))
+                        if self.model is None: continue
                         # generate
                         audio_chunks = self._gen(text)
                         consumer, audio_play, audio_save = teeThreadSafeEager(audio_chunks, 2)

@@ -3,7 +3,6 @@ from time import sleep, time
 from util_tts import Tts
 from util_wrt import Writer
 from itertools import chain
-import nemo.collections.asr as nemo_asr
 from util_vad import SileroVoiceActivityDetectorWithCuda
 from collections import deque
 from datetime import datetime
@@ -415,6 +414,7 @@ class MicVoiceDetectNvidia:
 
     def loadSpeakerModel(self):
         try:
+            import nemo.collections.asr as nemo_asr
             m = nemo_asr.models.EncDecSpeakerLabelModel.from_pretrained("nvidia/speakerverification_en_titanet_large")
             m.to(torch.device(self.device))
             return m

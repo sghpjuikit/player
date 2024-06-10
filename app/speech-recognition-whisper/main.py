@@ -582,8 +582,8 @@ def stop(*args):  # pylint: disable=unused-argument
     global sysTerminating
     if not sysTerminating:
         sysTerminating = True
-        tts(name + ' offline')
-
+        tts.skip()
+        tts(name + ' offline', None).exception()
         llm.stop()
         for mic in mics: mic.stop()
         stt.stop()

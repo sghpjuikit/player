@@ -1,5 +1,6 @@
 package logger
 
+import java.util.regex.Pattern
 import javafx.event.EventHandler
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.scene.control.TextArea
@@ -8,6 +9,7 @@ import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
+import kotlin.Double.Companion.MAX_VALUE
 import mu.KLogging
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
@@ -24,6 +26,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.runLater
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
@@ -37,6 +40,7 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.system.open
+import sp.it.util.text.concatApplyBackspace
 import sp.it.util.ui.appendTextSmart
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
@@ -51,10 +55,11 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
    private val area = TextArea()
    private var customText = false
    private val wrapText by cv(false, { area.wrapTextProperty().apply { value = it } }).def(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
+   private val stdoutReaderHandler = EventReducer.toEvery<String>(30.0, String::plus) { area.appendText(it.ansi()) }
    private val stdoutReader = Subscribed {
       area.text = APP.systemOut.text()
-      area.scrollTop = Double.MAX_VALUE
-      APP.systemOut.addListener { area.appendTextSmart(it) }
+      area.scrollTop = MAX_VALUE
+      APP.systemOut.addListener(stdoutReaderHandler::push)
    }
 
    init {
@@ -73,10 +78,10 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
          }
       }
 
+      onClose += stdoutReader::unsubscribe
       onClose += area.sceneProperty().attach1IfNonNull {
          if (!customText) stdoutReader.subscribe()
-         if (!customText) runLater { area.scrollTop = Double.MAX_VALUE }
-         Subscription(stdoutReader::unsubscribe)
+         if (!customText) runLater { area.scrollTop = MAX_VALUE }
       } on onClose
    }
 
@@ -98,5 +103,11 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
       override val contributor = ""
       override val tags = setOf(UTILITY, DEVELOPMENT)
       override val summaryActions = listOf<ShortcutPane.Entry>()
+      
+      /** Ansi escape sequence pattern */
+      private val ansi = Pattern.compile("\\x1B\\[[0-?]*[ -/]*[@-~]")
+
+      /** @return this string without ansi escape sequences */
+      private fun String.ansi() = ansi.matcher(this).replaceAll("")
    }
 }

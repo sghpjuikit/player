@@ -57,7 +57,7 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
    private val wrapText by cv(false, { area.wrapTextProperty().apply { value = it } }).def(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
    private val stdoutReaderHandler = EventReducer.toEvery<String>(30.0, String::plus) { area.appendText(it.ansi()) }
    private val stdoutReader = Subscribed {
-      area.text = APP.systemOut.text()
+      area.text = APP.systemOut.text().ansi()
       area.scrollTop = MAX_VALUE
       APP.systemOut.addListener(stdoutReaderHandler::push)
    }

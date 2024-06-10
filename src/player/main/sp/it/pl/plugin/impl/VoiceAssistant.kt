@@ -43,6 +43,7 @@ import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.invokeTry
 import sp.it.util.async.coroutine.launch
+import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runOn
@@ -75,6 +76,7 @@ import sp.it.util.conf.uiPaginated
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
+import sp.it.util.dev.printStacktrace
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.json.JsBool
@@ -114,6 +116,7 @@ import sp.it.util.text.split2
 import sp.it.util.text.splitTrimmed
 import sp.it.util.text.useStrings
 import sp.it.util.type.atomic
+import sp.it.util.units.div
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
 
@@ -198,7 +201,7 @@ class VoiceAssistant: PluginBase() {
                         pythonOutStd.value = pythonOutStd.value.concatApplyBackspace(e)
                         if (state!=null && state!="") pythonOutEvent.value = pythonOutEvent.value.concatApplyBackspace(e)
                         if (state=="USER" || state=="SYS") pythonOutSpeak.value = pythonOutSpeak.value.concatApplyBackspace(e)
-                        onLocalInput(e to state)
+                        onLocalInputReducer.push(e to state)
                      },
                      { e, state ->
                         handleInput(e, state)
@@ -218,7 +221,7 @@ class VoiceAssistant: PluginBase() {
                .filter { it.isNotBlank() }
                .onEach { runFX {
                   pythonOutStd.value = pythonOutStd.value + it
-                  onLocalInput(it to null)
+                  onLocalInputReducer.push(it to null)
                } }
                .joinToString("")
          }
@@ -373,9 +376,15 @@ class VoiceAssistant: PluginBase() {
    val pythonStdOutOpen by cr { APP.widgetManager.widgets.find(speechRecognitionWidgetFactory, ANY) }
       .def(name = "Output console", info = "Shows console output of the python process")
 
+   private val onLocalInputReducer = EventReducer.toEvery<Pair<String, String?>>(30.0, { a, b ->
+      // agregate subsequent events of same state
+      if (a.second==b.second) (a.first.concatApplyBackspace(b.first)) to a.second
+      // else emit last and starts new agregation
+      else { onLocalInput(a); b }
+   }) { onLocalInput(it) }
    /** Invoked for every voice assistant local process input token. */
    val onLocalInput = Handler1<Pair<String, String?>>()
-
+   
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
    val wakeUpWord by cv("system")
       .def(name = "Wake up word", info = "Optional wake words or phrases (separated by ',') that activate voice recognition. Case-insensitive.\nThe first wake word will be used as name for the system")

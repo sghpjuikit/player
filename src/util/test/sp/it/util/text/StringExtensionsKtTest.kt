@@ -25,6 +25,7 @@ class StringExtensionsKtTest: FreeSpec({
          "a".concatApplyBackspace("\r") shouldBe "\r"
          "abc".concatApplyBackspace("\r") shouldBe "\r"
          "\nabc".concatApplyBackspace("\r") shouldBe "\n"
+         "abc\n".concatApplyBackspace("\r") shouldBe "abc\n"
          "abc\ndef".concatApplyBackspace("\r") shouldBe "abc\n"
          "abc\ndef".concatApplyBackspace("\r\r") shouldBe "abc\n"
          "abc\ndef".concatApplyBackspace("fgi\rjkl\r") shouldBe "abc\n"

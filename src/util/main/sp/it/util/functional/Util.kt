@@ -41,7 +41,7 @@ operator fun <T> Supplier<T>.invoke() = get()
 
 operator fun Runnable.invoke() = run()
 
-operator fun EventReducer<Void>.invoke() = push(null)
+operator fun EventReducer<Unit>.invoke() = push(Unit)
 
 /** @return [Unit], effectively ignoring this value */
 fun Any?.toUnit() = Unit

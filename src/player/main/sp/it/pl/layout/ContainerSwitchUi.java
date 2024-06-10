@@ -200,11 +200,11 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
             // 2 `ui.widthProperty().addListener(o -> ui.setTranslateX(-getTabX(currTab())));`  // this forces integer position during resize:
             // 3 The below works by referencing position before resize to compute proper value
             var uiI = new V<>(-currTabAsDouble());
-            var uiIObserver = EventReducer.toLast(200, it -> {
+            var uiIObserver = EventReducer.toLast(200, consumer(it -> {
                 uiI.setValue(-currTabAsDouble());
                 if (align.getValue()) alignTabs();
                 else snapTabs();
-            });
+            }));
             var uiTObserver = new Subscribed(it -> attach(ui.translateXProperty(), consumer(v -> uiI.setValue(-currTabAsDouble()))));
             uiTObserver.subscribe(true);
             ui.widthProperty().addListener(o -> {

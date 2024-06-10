@@ -270,7 +270,7 @@ class WidgetManager {
       val skinFile = widgetDir/"skin.css"
       val srcDir = widgetDir/"src"
       val compileDir = widgetDir/"out"
-      val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
+      val scheduleCompilation = EventReducer.toLast<Unit>(500.0) { compileFx() }
 
       /** @return primary source file (either Kotlin or Java) or null if none exists */
       fun findSrcFile() = findSrcFiles().find { it.nameWithoutExtension == widgetName }?.takeIf { it.exists() }

@@ -315,10 +315,10 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
 
       // sync outputs
-      val selectedItemsReducer = EventReducer.toLast<Void>(100.0) {
+      val selectedItemsReducer = EventReducer.toLast<Unit>(100.0) {
          outputSelectedGroup.value = table.selectedItemsCopy
       }
-      table.selectedItems.onChange { if (!selIgnore) selectedItemsReducer.push(null) } on onClose
+      table.selectedItems.onChange { if (!selIgnore) selectedItemsReducer() } on onClose
       table.selectionModel.selectedItemProperty() attach { selLast = it?.getValueS("") ?: "null" } on onClose
       root.sync1IfInScene { inputItems.bindDefaultIf1stLoad(APP.db.songs) } on onClose
 

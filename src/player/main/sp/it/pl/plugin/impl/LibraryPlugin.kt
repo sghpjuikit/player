@@ -78,7 +78,7 @@ class LibraryPlugin: PluginBase() {
    }
    private val toBeAdded = HashSet<File>()
    private val toBeRemoved = HashSet<File>()
-   private val update = EventReducer.toLast<Void>(2000.0) { updateLibraryFromEvents() }
+   private val update = EventReducer.toLast<Unit>(2000.0) { updateLibraryFromEvents() }
 
    override fun start() {
       dirMonitoring.subscribe()

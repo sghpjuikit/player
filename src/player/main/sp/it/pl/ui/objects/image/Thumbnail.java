@@ -243,7 +243,7 @@ public class Thumbnail {
 
 		var hoverState = new V<>(false);
             hoverState.attachC(it -> animationPlayPause(it));
-		var hoverRaw = EventReducer.toLast(150.0, hoverState::setValue);
+		var hoverRaw = EventReducer.toLast(150.0, consumer(hoverState::setValue));
 		root.addEventFilter(MOUSE_ENTERED, e -> hoverRaw.push(true));
 		root.addEventFilter(MOUSE_EXITED, e -> hoverRaw.push(false));
 		root.addEventFilter(MOUSE_EXITED, e -> hoverState.setValue(false));

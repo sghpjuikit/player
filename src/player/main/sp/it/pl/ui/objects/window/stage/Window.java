@@ -395,7 +395,7 @@ public class Window extends WindowBase {
 		});
 
 		// hide header on long mouse exit if specified so
-		var headerContainerMouseExited = EventReducer.<Boolean>toLast(1000, v -> { if (!v) applyHeaderVisible(false); });
+		var headerContainerMouseExited = EventReducer.<Boolean>toLast(1000, consumer(v -> { if (!v) applyHeaderVisible(false); }));
 		root.addEventFilter(MOUSE_EXITED, e -> { if (!isHeaderVisible.get()) headerContainerMouseExited.push(false); } );
 		headerContainer.addEventFilter(MOUSE_ENTERED_TARGET, e -> headerContainerMouseExited.push(true) );
 		headerContainer.addEventFilter(MOUSE_EXITED_TARGET, e -> { if ((!isHeaderVisible.get() || fullscreen.getValue()) && !moving.get() && resizing.get()==NONE && (!root.isHover() || e.getY()>=20)) headerContainerMouseExited.push(false); });

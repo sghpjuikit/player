@@ -115,6 +115,7 @@ import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.consumer
+import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
@@ -897,20 +898,20 @@ object AppAnimator: AnimationBuilder() {
 class DelayAnimator: AnimationBuilder() {
    override val key = "ANIMATION_OPEN_CLOSE_DELAYED"
    private val animDelay = AtomicLong(0)
-   private val animDelayResetter = EventReducer.toLast<Void>(200.0) { animDelay.set(0) }
+   private val animDelayResetter = EventReducer.toLast<Unit>(200.0) { animDelay.set(0) }
 
    override fun computeDelay(): Duration = (animDelay.get()*300.0).millis
 
    override fun closeAndDo(n: Node, action: (() -> Unit)?): Anim {
       val a = super.closeAndDo(n, action)
-      animDelayResetter.push(null)
+      animDelayResetter()
       return a
    }
 
    override fun openAndDo(n: Node, action: (() -> Unit)?): Anim {
       val a = super.openAndDo(n, action)
       animDelay.incrementAndGet()
-      animDelayResetter.push(null)
+      animDelayResetter()
       return a
    }
 

@@ -194,7 +194,7 @@ public final class Seeker extends AnchorPane {
 	}
 
 	private void onHoverChanged(Consumer<? super Boolean> handler) {
-		var reducer = EventReducer.<Boolean>toLast(50, handler);
+		var reducer = EventReducer.<Boolean>toLast(50, consumer(handler));
 		hoverProperty().addListener((o, ov, nv) -> reducer.push(nv || isHover()));
 	}
 

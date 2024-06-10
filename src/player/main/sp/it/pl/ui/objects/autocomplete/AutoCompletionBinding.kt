@@ -35,7 +35,7 @@ import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.StringConverter
 import sp.it.util.access.v
 import sp.it.util.async.executor.EventReducer
-import sp.it.util.async.executor.EventReducer.toLast
+import sp.it.util.async.executor.EventReducer.Companion.toLast
 import sp.it.util.async.runFX
 import sp.it.util.async.runLater
 import sp.it.util.async.runVT

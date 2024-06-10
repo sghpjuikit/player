@@ -67,6 +67,7 @@ import sp.it.util.functional.Option.Some
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.invoke
 import sp.it.util.functional.orNull
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
@@ -167,10 +168,10 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       }
 
       // sync outputs
-      val selectedItemsReducer = EventReducer.toLast<Void>(100.0) {
+      val selectedItemsReducer = EventReducer.toLast<Unit>(100.0) {
          outputSelected.value = grid.selectedItem.value?.items
       }
-      grid.selectedItem attach { if (!selIgnore) selectedItemsReducer.push(null) } on onClose
+      grid.selectedItem attach { if (!selIgnore) selectedItemsReducer() } on onClose
       grid.selectedItem attach { selLast = it?.name ?: "null" } on onClose
       root.sync1IfInScene { inputSongs.bindDefaultIf1stLoad(APP.db.songs) } on onClose
 

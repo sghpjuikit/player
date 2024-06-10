@@ -31,6 +31,7 @@ import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runVT;
 import static sp.it.util.dev.FailKt.noNull;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.units.FactoriesKt.uri;
@@ -47,7 +48,7 @@ public class Playlist extends ObservableListWrapper<PlaylistSong> {
 	 * Needs to be invoked when {@link PlaylistSong#update()} on any song in this playlist is invoked.
 	 * Prefer {@link #updateItem(sp.it.pl.audio.Song)} and {@link #updateItems()}.
 	 */
-	public final EventReducer<Void> durationUpdater = EventReducer.toLast(50, d -> durationWrapper.setValue(computeDuration()));
+	public final EventReducer<Void> durationUpdater = EventReducer.toLast(50, consumer(d -> durationWrapper.setValue(computeDuration())));
 
 	public Playlist() {
 		this(UUID.randomUUID());

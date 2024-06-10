@@ -210,7 +210,7 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
          }
          paneLabels.opacity = animPos3
       }.applyAt(0.0)
-      val avReducer = EventReducer.toLast<Any>(100.0) {
+      val avReducer = EventReducer.toLast<Any?>(100.0) {
          if (APP.ui.layoutMode.value)
             av.dur(900.millis).playOpen()
       }

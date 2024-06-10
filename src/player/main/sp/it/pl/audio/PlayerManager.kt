@@ -51,7 +51,7 @@ import sp.it.util.access.toggleNext
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.async.executor.EventReducer
-import sp.it.util.async.executor.EventReducer.toLast
+import sp.it.util.async.executor.EventReducer.Companion.toLast
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO

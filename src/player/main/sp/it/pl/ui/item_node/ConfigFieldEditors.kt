@@ -790,6 +790,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
       init {
          pane.editable syncFrom isEditable on disposer
          pane.ui syncFrom APP.ui.formLayout on disposer
+         pane.editorOrder = ConfigPane.compareByDeclaration
          pane.onChange = {}
          pane.configure(lc.toConfigurable(value))
       }

@@ -6,6 +6,7 @@ from datetime import datetime
 from util_actor import Actor
 from util_wrt import Writer
 from util_fut import *
+from util_ctx import *
 from time import sleep
 from io import BytesIO
 import whisper.audio
@@ -23,6 +24,9 @@ class SpeechText:
     user: str
     location: str
     text: str
+
+    def asCtx(self) -> Ctx:
+        return Ctx(self.user, self.location)
 
 
 @dataclass

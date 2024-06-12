@@ -3,6 +3,7 @@ package sp.it.pl.plugin.impl
 import io.ktor.client.request.get
 import java.time.Instant
 import javafx.geometry.HPos
+import javafx.geometry.NodeOrientation.RIGHT_TO_LEFT
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.VPos
 import javafx.scene.Cursor.HAND
@@ -32,7 +33,6 @@ import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.loadIn
 import sp.it.pl.main.APP
-import sp.it.pl.main.Double01
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
@@ -48,7 +48,6 @@ import sp.it.pl.ui.ValueToggleButtonGroup
 import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.window.NodeShow
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.pane.ConfigPane
 import sp.it.pl.ui.pane.ConfigPane.Layout.MINI
@@ -73,9 +72,6 @@ import sp.it.util.conf.noUi
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
-import sp.it.util.file.children
-import sp.it.util.file.div
-import sp.it.util.file.hasExtension
 import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsFalse
 import sp.it.util.file.json.JsNull
@@ -93,11 +89,9 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.supplyIf
-import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Subscribed.Companion.subBetween
 import sp.it.util.reactive.Subscribed.Companion.subscribedIff
-import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.map
 import sp.it.util.reactive.onEventDown
@@ -126,7 +120,6 @@ import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.em
-import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -141,8 +134,8 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       .def(name = "Tab", info = "Type of shown output.")
    private val submit by cv(Submit.CHAT).noUi()
       .def(name = "Submit", info = "Type of input to send.")
-   private val speaker by cv("User")
-      .valuesUnsealed { listOf("User") + (VoiceAssistant.dir / "voices-verified").children().filter { it hasExtension "wav" }.map { it.nameWithoutExtension } }.noUi()
+   private val speaker by cv(VoiceAssistant.mainSpeakerInitial)
+      .valuesUnsealed { VoiceAssistant.obtainSpeakers() }.noUi()
       .uiNoOrder()
       .def(name = "Speaker", info = "Speaker.")
 
@@ -174,7 +167,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            ConfigPane(
                               ListConfigurable.heterogeneous(
                                  plugin.value
-                                    ?.net { listOf(it::ttsOn, it::ttsOn, it::ttsEngine, it::ttsEngineCoquiVoice, it::ttsEngineCoquiCudaDevice, it::ttsEngineHttpUrl) }
+                                    ?.net { listOf(it::audioOuts, it::ttsOn, it::ttsOn, it::ttsEngine, it::ttsEngineCoquiVoice, it::ttsEngineCoquiCudaDevice, it::ttsEngineHttpUrl) }
                                     .orEmpty()
                                     .map { it.getDelegateConfig() }
                               )
@@ -461,7 +454,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       CHAT("Chat", "Send the text to the Voice Assistant as if user spoke it", { speaker, text -> writeChat(speaker, text) }),
       SPEAK("Speak", "Narrates the specified text using synthesized voice", { _, text -> speak(text) }),
       COM("Command", "Send command and execute it", { _, text -> writeCom(text) }),
-      COM_PYT("Python command", "Send python command and execute it", { speaker, text -> writeComPyt(speaker, text) }),
+      COM_PYT("Python command", "Send python command and execute it", { speaker, text -> writeComPyt(speaker, null, text) }),
    }
    enum class Out(
       override val nameUi: String,

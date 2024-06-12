@@ -2,17 +2,18 @@ from imports import *
 from datetime import datetime
 from util_llm import ChatIntentDetect
 from util_fut import *
+from util_ctx import *
 
 class CommandExecutor:
-    def execute(self, text: str) -> str:
+    def execute(self, text: str, ctx: Ctx = CTX) -> str:
         pass
 
 class CommandExecutorAsIs(CommandExecutor):
-    def execute(self, text: str) -> str:
+    def execute(self, text: str, ctx: Ctx = CTX) -> str:
         return text
 
 class CommandExecutorDoNothing(CommandExecutor):
-    def execute(self, text: str) -> str:
+    def execute(self, text: str, ctx: Ctx = CTX) -> str:
         return "ignore"
 
 def preprocess_command(text: str) -> str:
@@ -36,14 +37,14 @@ class PythonExecutor:
         self.onBlockingQuestionDone = Future()
         self.speakerLast: str | None = None
 
-    def showEmote(self, emotionInput: str):
+    def showEmote(self, emotionInput: str, ctx: Ctx):
         def showEmoteDo():
             try:
                 import os
                 import random
                 directory_path = 'emotes'
                 directories = [d for d in os.listdir(directory_path) if os.path.isdir(os.path.join(directory_path, d))]
-                if len(directories)==0: self.write(f'COM: User:show emote none')
+                if len(directories)==0: self.write(f'COM: {ctx.speaker}:{ctx.location}:show emote none')
                 if len(directories)==0: return
                 directoriesS = ''.join(map(lambda x: f'\n* {x}', directories))
                 f = self.llm(ChatIntentDetect(
@@ -52,17 +53,17 @@ class PythonExecutor:
                 ))
                 try: (text, canceled) = f.result()
                 except Exception: (text, canceled) = (None, None)
-                if text is None: self.write(f'COM: User:show emote none')
+                if text is None: self.write(f'COM: {ctx.speaker}:{ctx.location}:show emote none')
                 if text is None: return
                 text = text.rstrip('.!?').strip().lower()
-                if text not in directories: self.write(f'COM: User:show emote none')
+                if text not in directories: self.write(f'COM: {ctx.speaker}:{ctx.location}:show emote none')
                 if text not in directories: return
                 d = os.path.join(directory_path, text)
                 files = os.listdir(d)
                 if len(files)==0: self.write(f'COM: User:PC:show emote none')
                 if len(files)==0: return
                 file = os.path.join(directory_path, text, random.choice(files))
-                if os.path.exists(file): self.write(f'COM: User:PC:show emote {file}')
+                if os.path.exists(file): self.write(f'COM: {ctx.speaker}:{ctx.location}:show emote {file}')
             except Exception:
                 print_exc()
         Thread(name='Emote-Processor', target=showEmoteDo, daemon=True).start()
@@ -82,7 +83,7 @@ class PythonExecutor:
     def cancelActiveCommand(self):
         self.id = self.id+1
 
-    def generatePythonAndExecute(self, speaker: str, location: str, textOriginal: str, history: bool = True):
+    def generatePythonAndExecute(self, speaker: str, location: Location, textOriginal: str, history: bool = True):
         try:
             self.cancelActiveCommand()
             idd = self.id
@@ -102,16 +103,16 @@ class PythonExecutor:
 
             sp = self.prompt()
             up = 'Assignment: You are expert programmer. Output must be in valid python code!\nInstruction:\n' + textOriginal
-            futureOnDone(self.generatePython(sp, up, self.ms), on_done)
+            futureOnDone(self.generatePython(sp, up, self.ms, Ctx(speaker, location)), on_done)
         except Exception:
             self.write("ERR: Failed to respond")
             print_exc()
 
-    def execute(self, speaker: str, location: str, text: str):
+    def execute(self, speaker: str, location: Location, text: str):
         self.cancelActiveCommand()
         self.executeImpl(speaker, location, text, self.id)
 
-    def executeImpl(self, speaker: str, location: str, text: str, textOriginal: str, idd: str, fix: bool = True):
+    def executeImpl(self, speaker: str, location: Location, text: str, textOriginal: str, idd: str, fix: bool = True):
         try:
             import ast
             import datetime
@@ -171,7 +172,7 @@ class PythonExecutor:
             def speak(t: str):
                 if t is None: return;
                 assertSkip()
-                self.tts.skippable(t.removeprefix('"').removesuffix('"')).result()
+                self.tts.skippable(t.removeprefix('"').removesuffix('"'), location).result()
             def body(t: str):
                 assertSkip()
                 self.write(f'SYS: *{t}*')
@@ -237,7 +238,7 @@ class PythonExecutor:
                 return code
             def showEmote(emotionInput: str):
                 assertSkip()
-                self.showEmote(emotionInput)
+                self.showEmote(emotionInput, Ctx(speaker, location))
             def showWarning(text: str):
                 assertSkip()
                 command(f"show warning {text}")
@@ -282,7 +283,7 @@ class PythonExecutor:
                     f'You are voice selector. Available voices are: {self.voices}',
                     f'Respond with exactly one closest voice, or \'none\' if no such voice is close, for the input: {voice}', '', '', '', False, False
                 ))
-                self.commandExecutor.execute('change voice ' + f.result()[0])
+                self.commandExecutor.execute('change voice ' + f.result()[0], Ctx(speaker, location))
 
             def commandOpen(widget_name: str):
                 'estimated name widget_name, in next step you will get exact list of widgets to choose'

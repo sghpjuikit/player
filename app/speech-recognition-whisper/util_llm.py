@@ -12,6 +12,7 @@ from util_wrt import Writer
 from util_tts import Tts
 from util_fut import *
 from util_str import *
+from util_ctx import *
 
 class ChatProceed:
     def __init__(self, sysPrompt: str, userPrompt: str | None):
@@ -120,6 +121,7 @@ class ChatReact(ChatProceed):
         self.writeTokens = False
         self.fallback = fallback
 
+
 class ChatPaste(ChatProceed):
     def __init__(self, userPrompt: str):
         super().__init__(
@@ -147,9 +149,9 @@ class Llm(Actor):
         self.speak = speak
         self.api = None
         self.generating = False
-        self.commandExecutor: Callable[[str, str], str] = None
+        self.commandExecutor: Callable[[str, Ctx], str] = None
 
-    def __call__(self, e: ChatProceed) -> Future[str]:
+    def __call__(self, e: ChatProceed, ctx: Ctx = CTX) -> Future[str]:
         ef = EventLlm(e, Future())
         self.queue.put(ef)
 
@@ -159,19 +161,19 @@ class Llm(Actor):
 
             # speak generated text or fallback if error
             if isinstance(e, ChatReact):
-                self.speak(e.fallback if text is None else text)
-                self.api.showEmote(e.userPromptRaw)
+                self.speak(e.fallback if text is None else text, ctx.location)
+                self.api.showEmote(e.userPromptRaw, ctx)
 
             # run generated command or unidentified if error
             if isinstance(e, ChatIntentDetect) and e.writeTokens:
                 if text is None:
-                    self.commandExecutor('unidentified')
+                    self.commandExecutor('unidentified', ctx)
                 else:
                     command = text.strip()
                     command = command.replace('unidentified', e.userPrompt)
                     command = 'unidentified' if len(command.strip())==0 else command
                     command = 'unidentified' if canceled else command
-                    command = self.commandExecutor(command)
+                    command = self.commandExecutor(command, ctx)
 
         futureOnDone(ef.future, on_done)
         return ef.future
@@ -241,7 +243,7 @@ class LlmGpt4All(Llm):
                             consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(tokens, 4)
                             if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
                             if isCommandWrite: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
-                            if e.speakTokens: self.speak(tokensSpeech)
+                            if e.speakTokens: self.speak(tokensSpeech, CTX.location)
                             e.processTokens(tokensAlt)
                             consumer()
                             canceled = self.generating is False
@@ -300,7 +302,7 @@ class LlmHttpOpenAi(Llm):
                         consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(process(), 4)
                         if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
                         if isCommandWrite: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
-                        if e.speakTokens: self.speak(tokensSpeech)
+                        if e.speakTokens: self.speak(tokensSpeech, CTX.location)
                         e.processTokens(tokensAlt)
                         consumer()
                         canceled = self.generating is False

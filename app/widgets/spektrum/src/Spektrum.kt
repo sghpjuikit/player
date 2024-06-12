@@ -38,7 +38,7 @@ import kotlin.math.sqrt
 import mu.KLogging
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator
-import sp.it.pl.audio.microphoneNames
+import sp.it.pl.audio.audioInputDeviceNames
 import sp.it.pl.core.InfoUi
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
@@ -92,7 +92,7 @@ import spektrum.WeightWindow.dBZ
 class Spektrum(widget: Widget): SimpleController(widget) {
 
    val inputDevice by cv("Primary Sound Capture").attach { audioEngine.restartOnNewThread() } // support refresh on audio device add/remove, see https://stackoverflow.com/questions/29667565/jna-detect-audio-device-arrival-remove
-      .valuesUnsealed { microphoneNames() }
+      .valuesUnsealed { audioInputDeviceNames() }
       .uiNoCustomUnsealedValue()
       .def(name = "Audio input device", info = "")
    val audioFormatChannels by c(2).readOnly().noPersist()

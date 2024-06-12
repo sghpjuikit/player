@@ -16,6 +16,7 @@ from itertools import chain
 from util_wrt import Writer
 from util_str import *
 from util_fut import *
+from util_ctx import *
 from util_num import *
 from imports import *
 
@@ -23,14 +24,20 @@ from imports import *
 class TtsPause:
     ms: int
 
+@dataclass
+class TtsHistory:
+    text: str
+    skippable: bool
+    location: Location
+
 class Tts(Actor):
-    def __init__(self, speakOn: bool, tts, write: Writer):
+    def __init__(self, speakOn: bool, tts, audioOutDef: str, write: Writer):
         super().__init__("tts-preprocessor", 'Tts-preprocessor', None, write, True)
         self.tts = tts
-        self.play = SdActor(write)
+        self.play = SdActor(audioOutDef, write)
         self.speakOn = speakOn
         self._skip = False
-        self.history = []
+        self.history: [TtsHistory] = []
 
     def start(self):
         super().start()
@@ -49,55 +56,62 @@ class Tts(Actor):
     def skipWithoutSound(self):
         self.tts.skip()
 
-    def skippable(self, event: str) -> Future[None]:
+    def skippable(self, event: str, location: Location) -> Future[None]:
+        location = self._locationOrLast(location)
         f = Future()
         if not self.speakOn:
             f.set_result(None)
         else:
             self.write('SYS: ' + event)
-            self.queue.put((words(event), True, False, f))
+            self.queue.put((words(event), True, False, location, f))
         return f
 
     def repeatLast(self):
         if self.history and self.speakOn:
-            text, skippable = self.history[-1]
+            text, skippable, location = self.history[-1]
             self.write('SYS: ' + text)
-            self.queue.put((words(text), skippable, True, Future()))
+            self.queue.put((words(text), skippable, True, location, Future()))
 
-    def __call__(self, event: str | Iterator) -> Future[None]:
+    def __call__(self, event: str | Iterator, location: Location) -> Future[None]:
+        location = self._locationOrLast(location)
         f = Future()
         if not self.speakOn:
             f.set_result(None)
         elif isinstance(event, str):
             self.write('SYS: ' + event)
-            self.queue.put((words(event), False, False, f))
+            self.queue.put((words(event), False, False, location, f))
         elif isinstance(event, Iterator):
-            self.queue.put((event, True, False, f))
+            self.queue.put((event, True, False, location, f))
         return f
 
     def speakPause(self, ms: int) -> Future[None]:
         f = Future()
-        self.queue.put((TtsPause(ms), True, False, f))
+        self.queue.put((TtsPause(ms), True, False, None, f))
+
+    def _locationOrLast(self, location: Location) -> Location:
+        if len(location)>0: return location
+        if len(self.history)>0: self.history[-1].location
+        return CTX.location
 
     def _loop(self):
         from stream2sentence import generate_sentences
             
         with (self._looping()):
             while not self._stop:
-                with self._loopProcessEvent() as (event, skippable, repeated, f):
+                with self._loopProcessEvent() as (event, skippable, repeated, location, f):
                     if isinstance(event, TtsPause):
-                        futureOnDone(self.play.playEvent(SdEvent.pause(event.ms, True)), complete_also(f))
+                        futureOnDone(self.play.playEvent(SdEvent.pause(event.ms, True), location), complete_also(f))
                     else:
                         text = ''
                         try:
                             # start
                             self.tts.gen(None, skippable=False)
-                            self.play.playEvent(SdEvent.boundary())
+                            self.play.playEvent(SdEvent.boundary(), location)
                             fAll = []
                             # sentences tts
                             for sentence in generate_sentences(event, cleanup_text_links=True, cleanup_text_emojis=True):
                                 text = text + sentence
-                                if (len(sentence)>0): fAll.append(flatMap(self.tts.gen(sentence, skippable=skippable), self.play.playEvent))
+                                if (len(sentence)>0): fAll.append(flatMap(self.tts.gen(sentence, skippable=skippable), lambda it: self.play.playEvent(it, location)))
 
                             # join tts results
                             if len(fAll)>0: fResult = fAll[-1]
@@ -106,10 +120,10 @@ class Tts(Actor):
                             # end
                             futureOnDone(fResult, complete_also(f))
                             self.tts.gen(None, skippable=False)
-                            self.play.playEvent(SdEvent.boundary())
+                            self.play.playEvent(SdEvent.boundary(), location)
                             
                             # history
-                            if not repeated: self.history.append((text, skippable))
+                            if not repeated: self.history.append(TtsHistory(text, skippable, location))
                             
                         except Exception as e:
                             f.set_exception(e)
@@ -234,9 +248,6 @@ class TtsNone(TtsBase):
 
     def _loop(self):
         self._loopLoadAndIgnoreEvents()
-
-    def speak(self, text: str, skippable: bool): # pylint: disable=unused-argument
-        pass
 
 
 class TtsOs(TtsBase):

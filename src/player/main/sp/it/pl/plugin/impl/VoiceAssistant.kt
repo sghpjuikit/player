@@ -9,7 +9,8 @@ import java.lang.ProcessBuilder.Redirect.PIPE
 import java.util.regex.Pattern
 import kotlinx.coroutines.invoke
 import mu.KLogging
-import sp.it.pl.audio.microphoneNames
+import sp.it.pl.audio.audioInputDeviceNames
+import sp.it.pl.audio.audioOutputDeviceNames
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.core.bodyAsJs
@@ -18,15 +19,9 @@ import sp.it.pl.core.orMessage
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.main.APP
-import sp.it.pl.main.Double01
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
 import sp.it.pl.main.IconMA
-import sp.it.pl.main.Int01
-import sp.it.pl.main.Long01
-import sp.it.pl.main.Short01
-import sp.it.pl.main.UInt01
 import sp.it.pl.main.isAudio
-import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
@@ -76,9 +71,9 @@ import sp.it.util.conf.uiPaginated
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
-import sp.it.util.dev.printStacktrace
 import sp.it.util.file.children
 import sp.it.util.file.div
+import sp.it.util.file.hasExtension
 import sp.it.util.file.json.JsBool
 import sp.it.util.file.json.JsNumber
 import sp.it.util.file.json.JsObject
@@ -95,7 +90,6 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
-import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.attach
@@ -116,7 +110,6 @@ import sp.it.util.text.split2
 import sp.it.util.text.splitTrimmed
 import sp.it.util.text.useStrings
 import sp.it.util.type.atomic
-import sp.it.util.units.div
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
 
@@ -128,29 +121,35 @@ class VoiceAssistant: PluginBase() {
       fun doOnError(eText: String, e: Throwable?, details: String?) = logger.error(e) { "$eText\n${details.wrap()}" }.toUnit()
       return runOn(NEW("SpeechRecognition-python-starter")) {
          val python = dir / "main.py"
-         fun mics(): String =
-            if (mics.isEmpty())
-               ""
-            else
-               JsObject(
-                  mics.map {
-                     it.name.value.orEmpty() to JsObject(
-                        "location" to JsString(it.location.value),
-                        "energy" to JsNumber(it.energy.value),
-                        "verbose" to JsBool(it.verbose.value),
-                     )
-                  }
-               ).toCompactS()
+         fun audioIns(): String =
+            if (mics.isEmpty()) ""
+            else JsObject(
+               mics.map {
+                  it.name.value.orEmpty() to JsObject(
+                     "location" to JsString(it.location.value),
+                     "energy" to JsNumber(it.energy.value),
+                     "verbose" to JsBool(it.verbose.value),
+                  )
+               }
+            ).toCompactS()
+         fun audioOuts(): String =
+            if (audioOuts.isEmpty()) ""
+            else JsObject(
+               audioOuts.associate { it.name.value.orEmpty() to JsString(it.location.value) }
+            ).toCompactS()
 
          val commandRaw = listOf(
             "python", python.absolutePath,
             "wake-word=${wakeUpWord.value}",
-            "mics=${mics().replace("\"", "\\\"")}",
+            "main-speaker=${mainSpeaker.value}",
+            "main-location=${mainLocation.value}",
+            "mics=${audioIns().replace("\"", "\\\"")}",
             "mic-enabled=${micEnabled.value}",
             "mic-voice-detect=${micVoiceDetect.value}",
             "mic-voice-detect-device=${micVoiceDetectDevice.value}",
             "mic-voice-detect-prop=${micVoiceDetectProb.value}",
             "mic-voice-detect-debug=${micVoiceDetectProbDebug.value}",
+            "audio-out=${audioOuts().replace("\"", "\\\"")}",
             "parent-process=${ProcessHandle.current().pid()}",
             "speech-on=${ttsOn.value}",
             "speech-engine=${ttsEngine.value.code}",
@@ -298,20 +297,30 @@ class VoiceAssistant: PluginBase() {
    /** Last spoken text */
    val speakingText = speakingTextW.readOnly()
 
+   /** Speaker sent to assistant as context when none other available. Speaker is usually determined from name of the matched voice from verified voices. */
+   val mainSpeaker by cv<String>(mainSpeakerInitial)
+      .valuesUnsealed { obtainSpeakers() }
+      .uiNoOrder()
+      .def(name = "Main speaker", info = "Speaker sent to assistant as context when none other available. Speaker is usually determined from name of the matched voice from verified voices.")
+
+   /** Location sent to assistant as context when none other available. Location is usually determined from microphone location. */
+   val mainLocation by cv<String>(mainLocationInitial)
+      .def(name = "Main location", info = "Location sent to assistant as context when none other available. Location is usually determined from microphone location.")
+
    /** Preferred song order for certain song operations, such as adding songs to playlist */
-   val mics by cList<Mic>({ Mic() }, { it }, Mic()).uiPaginated(false).def(
+   val mics by cList<AudioIn>({ AudioIn() }, { it }, AudioIn()).uiPaginated(false).def(
       name = "Microphones",
-      info = "Preferred song order for certain song operations, such as adding songs to playlist"
+      info = "Audio input devices configuration"
    )
 
-   class Mic: ConfigurableBase<Any?>() {
+   class AudioIn: ConfigurableBase<Any?>() {
       /** Microphone to be used. Null causes automatic microphone selection */
       val name by cvn<String>(null)
-         .valuesUnsealed { microphoneNames() }
+         .valuesUnsealed { audioInputDeviceNames() }
          .uiNoCustomUnsealedValue()
          .def(name = "Name", info = "Microphone to be used. Null causes automatic microphone selection.")
       /** Location sent to assistant as context. */
-      val location by cv<String>("PC")
+      val location by cv<String>(mainLocationInitial)
          .def(name = "Location", info = "Location sent to assistant as context.")
       /** Microphone verbose event logging. */
       val verbose by cv(false)
@@ -331,7 +340,7 @@ class VoiceAssistant: PluginBase() {
    val micEnabled by cv(true)
       .def(name = "Microphone enabled", info = "Whether microphone listening is allowed. In general, this also prevents initial loading of speech-to-text AI model until enabled.")
 
-   val micChanges = v(uuid()).apply {
+   private val micChanges = v(uuid()).apply {
       mics.onChange { value = uuid() }
       mics.onItemAdded {
          it.name attach { value = uuid() }
@@ -362,6 +371,31 @@ class VoiceAssistant: PluginBase() {
          name = "Microphone > voice detect treshold > debug",
          info = "Optional bool whether microphone should be printing real-time `Microphone > voice detect treshold`. Use only to determine optimal `Microphone > voice detect treshold`."
       )
+
+   /** Preferred song order for certain song operations, such as adding songs to playlist */
+   val audioOuts by cList<AudioOut>({ AudioOut() }, { it }, AudioOut()).uiPaginated(false).def(
+      name = "Audio output devices",
+      info = "Audio output devices configuration"
+   )
+
+   private val audioOutChanges = v(uuid()).apply {
+      audioOuts.onChange { value = uuid() }
+      audioOuts.onItemAdded {
+         it.name attach { value = uuid() }
+         it.location attach { value = uuid() }
+      }
+   }
+
+   class AudioOut: ConfigurableBase<Any?>() {
+      /** Speaker to be used. Null causes automatic speaker selection */
+      val name by cvn<String>(null)
+         .valuesUnsealed { audioOutputDeviceNames() }
+         .uiNoCustomUnsealedValue()
+         .def(name = "Name", info = "Speaker to be used. Null causes automatic speaker selection.")
+      /** Location of the speaker. */
+      val location by cv<String>(mainLocationInitial)
+         .def(name = "Location", info = "Location of the speaker.")
+   }
 
    /** Console output - all */
    val pythonOutStd = v<String>("")
@@ -558,6 +592,8 @@ class VoiceAssistant: PluginBase() {
       val p5 = 5.seconds
       // @formatter:off
                wakeUpWord.chan().throttleToLast(p2) subscribe { write("wake-word=$it") }
+              mainSpeaker.chan().throttleToLast(p2) subscribe { write("main-speaker=$it") }
+             mainLocation.chan().throttleToLast(p2) subscribe { write("main-location=$it") }
                micEnabled.chan().throttleToLast(p2) subscribe { write("mic-enabled=$it") }
        micVoiceDetectProb.chan().throttleToLast(p2) subscribe { write("mic-voice-detect-prop=$it") }
   micVoiceDetectProbDebug.chan().throttleToLast(p2) subscribe { write("mic-voice-detect-debug=$it") }
@@ -573,7 +609,7 @@ class VoiceAssistant: PluginBase() {
 
       // restart-requiring properties
       val processChangeVals = listOf<V<*>>(
-         micChanges, micVoiceDetect, micVoiceDetectDevice,
+         micChanges, micVoiceDetect, micVoiceDetectDevice, audioOutChanges,
          sttEngine, sttWhisperModel, sttWhisperDevice, sttWhisperSt2Model, sttWhisperSt2Device, sttFasterWhisperModel, sttFasterWhisperDevice, sttNemoModel, sttNemoDevice, sttHttpUrl,
          ttsEngine, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl,
          llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
@@ -649,7 +685,7 @@ class VoiceAssistant: PluginBase() {
       if (!command) return
 
       var handlersViable = handlers.asSequence().filter { it.type==SpeakHandler.Type.KOTLN || !usePythonCommands.value }
-      var (c, result) = handlersViable.firstNotNullOfOrNull { SpeakContext(it, this@VoiceAssistant)(textSanitized)?.let { r -> it to r } } ?: (null to null)
+      var (c, result) = handlersViable.firstNotNullOfOrNull { SpeakContext(it, this@VoiceAssistant, speaker, location)(textSanitized)?.let { r -> it to r } } ?: (null to null)
       logger.info { "Speech ${if (orDetectIntent) "event" else "intent"} handled by command `${c?.name}`, request=`${speaker}:${textSanitized}`" }
       if (result==null) {
          if (!orDetectIntent)
@@ -690,11 +726,11 @@ class VoiceAssistant: PluginBase() {
    
    fun writeCom(command: String): Unit = write("COM: ${command.encodeBase64()}")
 
-   fun writeComPyt(speaker: String, command: String): Unit = write("COM-PYT: ${speaker}:PC:${command.encodeBase64()}")
+   fun writeComPyt(speaker: String, location: String?, command: String): Unit = write("COM-PYT: ${speaker}:${location.orEmpty()}:${command.encodeBase64()}")
 
-   fun writeComPytInt(speaker: String, location: String, command: String): Unit = write("COM-PYT-INT: ${speaker}:${location}:${command.encodeBase64()}")
+   fun writeComPytInt(speaker: String, location: String?, command: String): Unit = write("COM-PYT-INT: ${speaker}:${location.orEmpty()}:${command.encodeBase64()}")
 
-   fun writeChat(speaker: String, text: String) = write("CHAT: ${speaker}:PC:${text.encodeBase64()}")
+   fun writeChat(speaker: String, text: String) = write("CHAT: ${speaker}:${null.orEmpty()}:${text.encodeBase64()}")
 
    @IsAction(name = "Speak text", info = "Identical to \"Narrate text\"")
    fun synthesize() = speak()
@@ -755,7 +791,7 @@ class VoiceAssistant: PluginBase() {
    }
 
    /** [SpeakHandler] action context. */
-   data class SpeakContext(val handler: SpeakHandler, val plugin: VoiceAssistant, val intent: Boolean = true) {
+   data class SpeakContext(val handler: SpeakHandler, val plugin: VoiceAssistant, val speaker: String, val location: String, val intent: Boolean = true) {
 
       /** @return result of handler action, i.e., `handler.regex.matches(text)` */
       suspend operator fun invoke(text: String): Try<String?, String?>? = invoke(text, handler.action)
@@ -843,6 +879,12 @@ class VoiceAssistant: PluginBase() {
       override val isEnabledByDefault = false
 
       val dir by lazy { APP.location / "speech-recognition-whisper" }
+
+      val mainLocationInitial = "PC"
+
+      val mainSpeakerInitial = "User"
+
+      fun obtainSpeakers(): List<String> = listOf(mainSpeakerInitial) + (dir / "voices-verified").children().filter { it hasExtension "wav" }.map { it.nameWithoutExtension }
 
       val speechRecognitionWidgetFactory by lazy { WidgetFactory("VoiceAssistant", VoiceAssistantWidget::class, APP.location.widgets/"VoiceAssistant") }
 

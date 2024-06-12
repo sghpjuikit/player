@@ -1,3 +1,4 @@
+import util_ctx
 from imports import print_exc
 from datetime import datetime
 from threading import Timer
@@ -17,6 +18,7 @@ from util_com import *
 from util_now import *
 from util_str import *
 from util_num import *
+from util_ctx import *
 import faulthandler
 import threading
 import traceback
@@ -47,7 +49,7 @@ This script outputs to stdout (token by token):
     - system log in format`SYS: $message`
     - recognized user speech in format `RAW: $speech`
     - recognized user speech, sanitized, in format `USER: $speech`
-    - recognized user command, in format `COM: $command`
+    - recognized user command, in format `COM: $SPEAKER:$LOCATION:$command`
 
 This script takes (optional) input:
     - `SAY-LINE: $line-of-text` and speaks it (if `speech-engine` is not `none`)
@@ -62,6 +64,14 @@ It is possible to exit gracefully (on any platform) by writing 'EXIT' to stdin
 
 Args:
 
+  main-speaker=$txt
+    Speaker sent to assistant as context when none other available.
+    Speaker is usually determined from name of the matched voice from verified voices.
+    Default: 'User'
+
+  main-location=$txt
+    Location sent to assistant as context when none other available. Location is usually determined from microphone location.
+    Default: 'PC'
 
   mic-enabled=$bool
     Optional bool whether microphone listening should be allowed.
@@ -72,7 +82,8 @@ Args:
   mics=$json
     Use to define multiple microphones.
     Overrides below microphone settins.
-    Structure: `{ "exactMicNameOrEmptyForDefaultMic": { "energy": float, "location": "location name", "verbose": boolean }, ... }`
+    Structure: `{ "exactMicNameOrEmptyForDefaultMic": { "energy": float, "location": "location name", "verbose": boolean }, ... }`    
+    Default ''
   
   mic-energy=$int(0,32767)
     Microphone energy treshold. ANything above this volume is considered potential voice.
@@ -99,10 +110,16 @@ Args:
     Microphone voice detection treshold. Anything above this value is considered matched voice.
     Use `mic-voice-detect-debug` to determine optimal value.
     Default: 0.6
+
   mic-voice-detect-debug=$bool
     Optional bool whether microphone should be printing real-time `mic-voice-detect-prop`.
     Use only to determine optimal `mic-voice-detect-prop`.
     Default: False
+
+  audio-out=$json
+    Use to define multiple audio output devices
+    Structure: `{ "exactMicNameOrEmptyForDefaultMic": "locationOfThisMictophone", ... }`
+    Default ''
 
   parent-process=$pid
     Optional parent process pid. This script terminates when the specified process terminates
@@ -244,6 +261,10 @@ sysTerminating = False
 sysCacheDir = "cache"
 if not os.path.exists(sysCacheDir): os.makedirs(sysCacheDir)
 
+(argMainSpeaker, mainSpeaker) = arg('main-speaker', "User")
+CTX.speaker = mainSpeaker
+(argMainLocation, mainLocation) = arg('main-location', "PC")
+CTX.location = mainLocation
 (argMicDef, micDef) = arg('mics', "")
 (argMicEnabled, micEnabled) = arg('mic-enabled', "true", lambda it: it=="true")
 (argMicName, micName) = arg('mic-name', '')
@@ -253,6 +274,7 @@ if not os.path.exists(sysCacheDir): os.makedirs(sysCacheDir)
 (argMicVoiceDetectDevice, micVoiceDetectDevice) = arg('mic-voice-detect-device', "cpu")
 (argMicVoiceDetectTreshold, micVoiceDetectTreshold) = arg('mic-voice-detect-prop', "0.6", lambda it: float(it))
 (argMicVoiceDetectVerbose, micVoiceDetectVerbose) = arg('mic-voice-detect-debug', "false", lambda it: it=="true")
+(argAudioOutDef, audioOutDef) = arg('audio-out', "false")
 
 (argSttEngineType, sttEngineType) = arg('stt-engine', 'whisper')
 (argSttWhisperDevice, sttWhisperDevice) = arg('stt-whisper-device', '')
@@ -308,7 +330,7 @@ elif ttsEngineType == 'fastpitch':
     speakEngine = TtsFastPitch("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, write)
 else:
     speakEngine = TtsNone(write)
-tts = Tts(ttsOn, speakEngine, write)
+tts = Tts(ttsOn, speakEngine, audioOutDef, write)
 
 
 # llm actor, non-blocking
@@ -349,7 +371,7 @@ assist = Assist()
 # commands
 class CommandExecutorMain(CommandExecutor):
 
-    def execute(self, text: str) -> str:
+    def execute(self, text: str, ctx: Ctx = CTX) -> str:
         global assist
         handled = "ignore"
 
@@ -359,14 +381,14 @@ class CommandExecutorMain(CommandExecutor):
         if text.startswith("speak "):
             return text
         if text.startswith("do-speak "):
-            tts(text.removeprefix("do speak "))
+            tts(text.removeprefix("do speak "), ctx.location)
             return handled
         if text == "list available voices":
-            tts("The available voices are: " + ', '.join(voices))
+            tts("The available voices are: " + ', '.join(voices), ctx.location)
             return handled
         if text.startswith("greeting "):
             g = text.removeprefix("greeting ").capitalize()
-            llm(ChatReact(llmSysPrompt, "User greeted you with " + g, g))
+            llm(ChatReact(llmSysPrompt, "User greeted you with " + g, g), ctx)
             return handled
         if text.startswith("change voice "):
             voice = text.removeprefix("change voice ")
@@ -378,29 +400,29 @@ class CommandExecutorMain(CommandExecutor):
                         ttsCoquiVoice = voice
                         tts.tts.voice = voice
                         voiceNew = ttsCoquiVoice
-                        llm(ChatReact(llmSysPrompt, f"User changed your voice from:\n```\n{voiceOld}\n```\n\nto:\n```\n{voiceNew}\n```", name + " voice changed"))
-                else: llm(ChatReact(llmSysPrompt, f"User tried to change voice to {voice}, but such voice is not available", f"No voice {voice} available"))
-            else: llm(ChatReact(llmSysPrompt, f"User tried to change voice, but current voice generation does not support changing voice", "Current voice generation does not support changing voice"))
+                        llm(ChatReact(llmSysPrompt, f"User changed your voice from:\n```\n{voiceOld}\n```\n\nto:\n```\n{voiceNew}\n```", name + " voice changed"), ctx)
+                else: llm(ChatReact(llmSysPrompt, f"User tried to change voice to {voice}, but such voice is not available", f"No voice {voice} available"), ctx)
+            else: llm(ChatReact(llmSysPrompt, f"User tried to change voice, but current voice generation does not support changing voice", "Current voice generation does not support changing voice"), ctx)
             return handled
         if text.startswith("generate from clipboard "):
-            tts("Ok")
+            tts("Ok", ctx.location)
             llm(ChatPaste("generate " + text.removeprefix("generate from clipboard ") + "\nClipboard:\n```" + get_clipboard_text() + "\n```"))
             return handled
         if text.startswith("generate "):
-            tts("Ok")
+            tts("Ok", ctx.location)
             llm(ChatPaste(text))
             return handled
         if text.startswith("do-describe "):
             llm(ChatProceed(llmSysPrompt, "Describe the following content:\n" + text.removeprefix("do-describe ")))
             return handled
         elif text == 'start conversation':
-            assist.startChat("User", "PC")
+            assist.startChat(ctx)
             return handled
         elif text == 'restart conversation':
-            assist.restartChat("User", "PC")
+            assist.restartChat(ctx)
             return handled
         elif text == 'stop conversation':
-            assist.stopChat("User", "PC")
+            assist.stopChat(ctx)
             return handled
         else:
             return text
@@ -409,7 +431,7 @@ commandExecutor = CommandExecutorMain()
 llm.commandExecutor = commandExecutor.execute
 executorPython = PythonExecutor(
     tts, llm,
-    lambda sp, up, ms: llm(ChatIntentDetect.python(sp, up, ms)),
+    lambda sp, up, ms, ctx: llm(ChatIntentDetect.python(sp, up, ms), ctx),
     lambda code: llm(ChatIntentDetect.pythonFix(code)),
     write, llmSysPrompt, commandExecutor, ', '.join(voices)
 )
@@ -432,7 +454,7 @@ class AssistBasic:
         while True:
             time.sleep(1.0)
             if self.restartChatDelay < (time.time() - self.activity_last_at) and len(executorPython.ms)>0:
-                self.restartChat("User", "PC", react=False)
+                self.restartChat(CTX, react=False)
 
     def needsWakeWord(self, speech: SpeechText) -> bool:
         return self.isChat is False and executorPython.isQuestion is False and (speech.start - self.last_announcement_at).total_seconds() > self.wake_word_delay
@@ -446,15 +468,15 @@ class AssistBasic:
         # announcement
         if len(text) == 0:
             self.last_announcement_at = datetime.now()
-            if self.isChat: llm(ChatReact(llmSysPrompt, "User said your name - say you are still conversing. Say 2 words at most", "Yes, we are talking"))
-            else: llm(ChatReact(llmSysPrompt, "User said your name - are you there? Say 2 words at most", "Yes"))
+            if self.isChat: llm(ChatReact(llmSysPrompt, "User said your name - say you are still conversing. Say 2 words at most", "Yes, we are talking"), speech.asCtx())
+            else: llm(ChatReact(llmSysPrompt, "User said your name - are you there? Say 2 words at most", "Yes"), speech.asCtx())
         # cancel
         elif text == "ok" or text == "okey" or text == "whatever" or text == "stop":
             tts.skip()
             llm.generating = False
         # do greeting
         elif (text == "hi" or text == "hello" or text == "greetings") and not usePythonCommands:
-            commandExecutor.execute(f"greeting {text}")
+            commandExecutor.execute(f"greeting {text}", speech.asCtx())
         # do help
         elif text == "help":
             if self.isChat:
@@ -462,57 +484,59 @@ class AssistBasic:
                     "Yes, we are in the middle of a conversation. Simply speak to me. "
                     "To end the conversation, say stop, or end conversation."
                     "To restart the conversation, say restart or reset conversation."
-                    "To cancel ongoing reply, say okey, whatever or stop."
+                    "To cancel ongoing reply, say okey, whatever or stop.",
+                    speech.location
                 )
             else:
                 tts.skippable(
                     f'I am an AI assistant. Talk to me by calling {name}. ' +
                     f'Start conversation by saying, start conversation. ' +
                     f'Ask for help by saying, help. ' +
-                    f'Run command by saying the command.'
+                    f'Run command by saying the command.',
+                    speech.location
                 )
-                commandExecutor.execute("help") # allows application to customize the help output
+                commandExecutor.execute("help", speech.asCtx()) # allows application to customize the help output
 
         elif text == "repeat":
-            commandExecutor.execute(text)
+            commandExecutor.execute(text, speech.asCtx())
         elif text == "start conversation":
-            commandExecutor.execute("start conversation")
+            commandExecutor.execute("start conversation", speech.asCtx())
         elif text == "restart conversation" or text == "reset conversation":
-            commandExecutor.execute("restart conversation")
+            commandExecutor.execute("restart conversation", speech.asCtx())
         elif text == "stop conversation":
-            commandExecutor.execute("stop conversation")
+            commandExecutor.execute("stop conversation", speech.asCtx())
         elif text.startswith("generate "):
-            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text))
+            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text, speech.asCtx()))
         elif text.startswith("count "):
-            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text))
+            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text, speech.asCtx()))
         # do command - python
         elif usePythonCommands:
             executorPython.generatePythonAndExecute(speech.user, speech.location, speech.text)
         # do command
         else:
-            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text))
+            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text, speech.asCtx()))
 
-    def startChat(self, speaker: str, location: str, react: bool = True):
+    def startChat(self, ctx: Ctx, react: bool = True):
         if self.isChat: return
         self.isChat = True
-        write(f"COM: {speaker}:{location}:start conversation")
-        if (react): llm(ChatReact(llmSysPrompt, "User started conversation with you. Greet him", "Conversing"))
+        write(f"COM: {ctx.speaker}:{ctx.location}:start conversation")
+        if (react): llm(ChatReact(llmSysPrompt, "User started conversation with you. Greet him", "Conversing"), ctx)
         for mic in mics: mic.set_pause_threshold_talk()
 
-    def restartChat(self, speaker: str, location: str, react: bool = True):
+    def restartChat(self, ctx: Ctx, react: bool = True):
         tts.skip()
         llm.generating = False
-        write(f"COM: {speaker}:{location}:restart conversation")
-        if (react): llm(ChatReact(llmSysPrompt, "User erased his conversation with you from your memory.", "Ok"))
+        write(f"COM: {ctx.speaker}:{ctx.location}:restart conversation")
+        if (react): llm(ChatReact(llmSysPrompt, "User erased his conversation with you from your memory.", "Ok"), ctx)
         executorPython.ms = []
 
-    def stopChat(self, speaker: str, location: str, react: bool = True):
+    def stopChat(self, ctx: Ctx, react: bool = True):
         if self.isChat is False: return
         self.isChat = False
         tts.skip()
         llm.generating = False
-        write(f"COM: {speaker}:{location}:stop conversation")
-        if (react): llm(ChatReact(llmSysPrompt, "User stopped conversation with you", "Ok"))
+        write(f"COM: {ctx.speaker}:{ctx.location}:stop conversation")
+        if (react): llm(ChatReact(llmSysPrompt, "User stopped conversation with you", "Ok"), ctx)
         for mic in mics: mic.set_pause_threshold_normal()
 
 assist = AssistBasic()
@@ -566,7 +590,7 @@ def callback(speech: SpeechText):
     except Exception as e:
         write(f"ERR: {e}")
         print_exc()
-        tts(name + " encountered an error. Please speak again or check logs for details.")
+        tts(name + " encountered an error. Please speak again or check logs for details.", speech.location)
 
 def start_exit_invoker():
     if sysParentProcess==-1: return
@@ -583,7 +607,7 @@ def stop(*args):  # pylint: disable=unused-argument
     if not sysTerminating:
         sysTerminating = True
         tts.skip()
-        tts(name + ' offline', None).exception()
+        tts(name + ' offline', CTX.location).exception()
         llm.stop()
         for mic in mics: mic.stop()
         stt.stop()
@@ -676,22 +700,23 @@ while not sysTerminating:
     try:
         m = input()
         def speakerAndLocAndText(text: str) -> (str, str, str):
-            speaker = "User" if ":" not in text else text.split(":")[0]
-            location = "PC" if ":" not in text else text.split(":")[1]
+            speaker = CTX.speaker if ":" not in text else text.split(":")[0]
+            location = CTX.location if ":" not in text else text.split(":")[1]
             text = text if ":" not in text else text.split(":")[2]
             text = base64.b64decode(text).decode('utf-8')
             text = remove_any_prefix(text, wake_words)
+            print(location)
             return (speaker, location, text)
 
         # talk command
         if m.startswith("SAY-LINE: "):
             text = m[10:]
-            tts.skippable(text)
+            tts.skippable(text, CTX.location)
 
         # talk command
         if m.startswith("SAY: "):
             text = base64.b64decode(m[5:]).decode('utf-8')
-            tts.skippable(text)
+            tts.skippable(text, CTX.location)
 
         # chat command
         if m.startswith("CHAT: "):
@@ -715,6 +740,14 @@ while not sysTerminating:
         # changing settings commands
         elif argWake.isArg(m):
             (name, (name, wake_words)) = argWake(m)
+
+        elif argMainSpeaker.isArg(m):
+            mainSpeaker = argMainSpeaker(m)
+            CTX.speaker = mainSpeaker
+
+        elif argMainLocation.isArg(m):
+            mainLocation = argMainLocation(m)
+            CTX.location = mainLocation
 
         elif argMicEnabled.isArg(m):
             e = argMicEnabled(m)
@@ -784,3 +817,4 @@ while not sysTerminating:
         stop()
     except Exception as e:
         write("ERR: Error occurred:" + str(e))
+        print_exc()

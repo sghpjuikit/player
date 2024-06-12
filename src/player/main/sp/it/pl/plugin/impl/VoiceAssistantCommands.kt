@@ -432,7 +432,8 @@ suspend fun SpeakContext.voiceCommandCountTo(text: String): ComMatch =
       val (from, to) = pattern.find(text)!!.destructured.net { (a,b) -> (a.toIntOrNull() ?: 1) to (b.toIntOrNull() ?: 10) }
       VT {
          APP.plugins.get<VoiceAssistant>()?.writeComPyt(
-            "User",
+            speaker,
+            location,
             """
             for i in range($from, $to):
                wait(0.5)

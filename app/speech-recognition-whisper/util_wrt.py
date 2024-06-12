@@ -23,9 +23,11 @@ class Writer(Actor):
 
     @contextmanager
     def suppressed(self):
-        self.suppress.var = True
-        yield
-        self.suppress.var = False
+        try:
+            self.suppress.var = True
+            yield
+        finally:
+            self.suppress.var = False
 
     def suppressOutput(self, suppress: bool):
         self.suppress.var = suppress

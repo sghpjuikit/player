@@ -372,7 +372,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            }
                            onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) insertNewline() else run() }
                         }
-                        lay(NEVER) += ConfigEditor.create(::speaker.getDelegateConfig()).editor
+                        lay(NEVER) += ConfigEditor.create(::speaker.getDelegateConfig()).editor.apply { nodeOrientation = RIGHT_TO_LEFT }
                         lay(NEVER) += Icon(IconFA.SEND).onClickDo { run() }.apply {
                            mode sync { tooltip(it.runDesc) }
                         }

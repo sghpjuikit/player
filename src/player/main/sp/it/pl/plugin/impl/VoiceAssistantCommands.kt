@@ -324,7 +324,7 @@ suspend fun SpeakContext.voiceType(text: String): ComMatch =
 
 fun SpeakContext.availableWidgets() =
    (plugin.commandWidgetNames.keys + APP.widgetManager.factories.getComponentFactories().map { it.name })
-      .map { "- ${it.lowercase()}" }
+      .map { "* ${it.lowercase()}" }
       .joinToString("\n")
 
 suspend fun SpeakContext.voiceCommandOpenWidget(text: String): ComMatch =
@@ -335,7 +335,7 @@ suspend fun SpeakContext.voiceCommandOpenWidget(text: String): ComMatch =
       if (f!=null) ComponentLoaderStrategy.DOCK.loader(f)
       if (f!=null) Ok("Ok")
       else if (!intent) Error("No widget $fNameRaw available.")
-      else intent(text, "${availableWidgets()}\n- unidentified // no recognized function", fNameRaw) { this("open widget $it") }
+      else intent(text, "${availableWidgets()}\n* unidentified # no recognized widget", fNameRaw) { this("open widget $it") }
    } else {
       if (!intent) Error("No such widget available.")
       else null

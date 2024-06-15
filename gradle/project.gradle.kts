@@ -105,7 +105,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "23-ea+20"
+         val version = "23-ea+22"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -183,8 +183,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.9.0")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.9.0")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.9.1")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.9.1")
       }
 
       "Db" group {

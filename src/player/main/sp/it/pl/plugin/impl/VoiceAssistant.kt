@@ -71,6 +71,7 @@ import sp.it.util.conf.uiPaginated
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
+import sp.it.util.dev.markUsed
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
@@ -822,8 +823,15 @@ class VoiceAssistant: PluginBase() {
       public suspend fun confirming(confirmText: String, commandUi: String, ui: Boolean = false, action: suspend (String) -> Try<String?, String?>): Ok<Nothing?> =
          FX {
             var n = null as Notification?
-            val c = SpeakConfirmer(commandUi) { matches, text -> n?.hide(); if (matches) action(text) else null }
-                n = if (!ui) null else APP.plugins.get<Notifier>()?.showWarningNotification("", confirmText) { plugin.confirmers -= c }
+            val c = SpeakConfirmer(commandUi) { matches, text ->
+               n?.hide()
+               matches.markUsed("Use AI as matcher")
+               intent(text, "User is asked a yes or no question. Detect if he answers positively and respond with `yes` or `no`.", text) {
+                  if (it=="yes") action(text)
+                  else null
+               }
+            }
+            n = if (!ui) null else APP.plugins.get<Notifier>()?.showWarningNotification("", confirmText) { plugin.confirmers -= c }
             plugin.confirmers += c
             plugin.speak(confirmText)
             Ok(null)

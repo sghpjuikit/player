@@ -188,7 +188,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
 
       var caretB: Icon? = null
       var caretA: Anim? = null
-      val isCaretSupported = !config.type.type.raw.isObject && !config.hasConstraint<Constraint.NoUiDefaultButton>()
+      val isCaretSupported = !config.type.type.raw.isObject && !config.hasConstraint<Constraint.NoUiDefaultButton>() && this !is ConfigurableCE
       if (isCaretSupported) {
          val configHover = v(false)
          val configMenuVisible = v(false)

@@ -167,7 +167,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            ConfigPane(
                               ListConfigurable.heterogeneous(
                                  plugin.value
-                                    ?.net { listOf(it::audioOuts, it::ttsOn, it::ttsOn, it::ttsEngine, it::ttsEngineCoquiVoice, it::ttsEngineCoquiCudaDevice, it::ttsEngineHttpUrl) }
+                                    ?.net { listOf(it::audioOuts, it::ttsOn, it::ttsOn, it::ttsEngine, it::ttsEngineDetails) }
                                     .orEmpty()
                                     .map { it.getDelegateConfig() }
                               )
@@ -192,7 +192,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            ConfigPane(
                               ListConfigurable.heterogeneous(
                                  plugin.value
-                                    ?.net { listOf(it::micEnabled, it::mics, it::micVoiceDetect, it::micVoiceDetectDevice, it::micVoiceDetectProb, it::micVoiceDetectProbDebug) }
+                                    ?.net { listOf(it::micEnabled, it::mics, it::micVoiceDetectDetails) }
                                     .orEmpty()
                                     .map { it.getDelegateConfig() }
                               )
@@ -482,9 +482,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             listOf(
                it::ttsOn,
                it::ttsEngine,
-               it::ttsEngineCoquiVoice,
-               it::ttsEngineCoquiCudaDevice,
-               it::ttsEngineHttpUrl
+               it::ttsEngineDetails,
             )
          }
       ),

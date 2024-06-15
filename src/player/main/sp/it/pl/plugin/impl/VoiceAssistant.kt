@@ -45,20 +45,24 @@ import sp.it.util.async.runOn
 import sp.it.util.collections.list.DestructuredList
 import sp.it.util.collections.observableList
 import sp.it.util.collections.setTo
+import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
 import sp.it.util.conf.Constraint.RepeatableAction
 import sp.it.util.conf.EditMode
+import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.between
 import sp.it.util.conf.cList
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
+import sp.it.util.conf.getDelegateConfig
 import sp.it.util.conf.min
 import sp.it.util.conf.multiline
 import sp.it.util.conf.noPersist
+import sp.it.util.conf.noUi
 import sp.it.util.conf.nonBlank
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
@@ -100,6 +104,7 @@ import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.plus
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
 import sp.it.util.text.applyBackspace
@@ -323,9 +328,6 @@ class VoiceAssistant: PluginBase() {
       /** Location sent to assistant as context. */
       val location by cv<String>(mainLocationInitial)
          .def(name = "Location", info = "Location sent to assistant as context.")
-      /** Microphone verbose event logging. */
-      val verbose by cv(false)
-         .def(name = "Verbose", info = "Verbose event logging.")
       /** Volume above this number is considered speech. Set so ambient energy level is below. */
       val energy by cv<Int>(120)
          .between(0, 32767).uiGeneral()
@@ -335,6 +337,9 @@ class VoiceAssistant: PluginBase() {
          .uiConverter { it.map { it.toUi() }.orMessage().getAny() }
          .noPersist().def(editable = EditMode.APP)
          .def(name = "Energy current", info = "Current volume. Between 0..32767 Useful to tune energy treshold.")
+      /** Microphone verbose event logging. */
+      val verbose by cv(false)
+         .def(name = "Verbose", info = "Verbose event logging.")
    }
 
    /** Whether microphone listening is allowed. */
@@ -351,27 +356,36 @@ class VoiceAssistant: PluginBase() {
       }
    }
 
-   val micVoiceDetect by cv(false)
-      .def(
-         name = "Microphone > voice detect",
-         info = "Microphone voice detection. If true, detects voice from verified voices and ignores others. Verified voices must be 16000Hz wav in `voices-verified` directory. Use `Microphone > voice detect treshold` to set up sensitivity."
-      )
+   val micVoiceDetect by cv(false).noUi().def(
+      name = "Enabled",
+      info = "Microphone voice detection. If true, detects voice from verified voices and ignores others. Verified voices must be 16000Hz wav in `voices-verified` directory. Use `Microphone > voice detect treshold` to set up sensitivity."
+   )
 
-   val micVoiceDetectDevice by cv("cpu")
-      .readOnlyUnless(micVoiceDetect)
-      .def(name = "Microphone > voice detect device", info = "Microphone voice detection torch device, e.g., cpu, cuda:0, cuda:1. Default 'cpu'.")
+   val micVoiceDetectDevice by cv("cpu").noUi().def(
+      name = "Device",
+      info = "Microphone voice detection torch device, e.g., cpu, cuda:0, cuda:1. Default 'cpu'."
+   )
 
-   val micVoiceDetectProb by cv(0.6).between(0.0, 1.0)
-      .def(
-         name = "Microphone > voice detect treshold",
-         info = "Microphone voice detection treshold. Anything above this value is considered matched voice. Use `Microphone > voice detect treshold > debug` to determine optimal value."
-      )
+   val micVoiceDetectProb by cv(0.6).between(0.0, 1.0).noUi().def(
+      name = "Treshold",
+      info = "Microphone voice detection treshold. Anything above this value is considered matched voice. Use `Microphone > voice detect treshold > debug` to determine optimal value."
+   )
 
-   val micVoiceDetectProbDebug by cv(false)
-      .def(
-         name = "Microphone > voice detect treshold > debug",
-         info = "Optional bool whether microphone should be printing real-time `Microphone > voice detect treshold`. Use only to determine optimal `Microphone > voice detect treshold`."
+   val micVoiceDetectProbDebug by cv(false).noUi().def(
+      name = "Debug",
+      info = "Optional bool whether microphone should be printing real-time `Microphone > voice detect treshold`. Use only to determine optimal `Microphone > voice detect treshold`."
+   )
+
+   internal val micVoiceDetectDetails by cv(
+      ListConfigurable.heterogeneous(
+         this::micVoiceDetect.getDelegateConfig(),
+         this::micVoiceDetectDevice.getDelegateConfig(),
+         this::micVoiceDetectProb.getDelegateConfig(),
+         this::micVoiceDetectProbDebug.getDelegateConfig()
       )
+   ).noPersist().def(
+      name = "Microphone > voice detect"
+   )
 
    /** Preferred song order for certain song operations, such as adding songs to playlist */
    val audioOuts by cList<AudioOut>({ AudioOut() }, { it }, AudioOut()).uiPaginated(false).def(
@@ -417,6 +431,7 @@ class VoiceAssistant: PluginBase() {
       // else emit last and starts new agregation
       else { onLocalInput(a); b }
    }) { onLocalInput(it) }
+
    /** Invoked for every voice assistant local process input token. */
    val onLocalInput = Handler1<Pair<String, String?>>()
    
@@ -432,57 +447,73 @@ class VoiceAssistant: PluginBase() {
    val sttWhisperModel by cv("base.en")
       .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large", "large-v1", "large-v2", "large-v3") }
       .uiNoOrder()
-      .readOnlyUnless(sttEngine.map { it==SttEngine.WHISPER })
-      .def(name = "Speech recognition > Whisper model", info = "Whisper model for speech recognition.")
+      .noUi()
+      .def(name = "Model", info = "Whisper model for speech recognition.")
 
    /** [SttEngine.WHISPER] torch device used to transcribe voice to text */
    val sttWhisperDevice by cv("")
-      .readOnlyUnless(sttEngine.map { it==SttEngine.WHISPER })
-      .def(name = "Speech recognition > Whisper device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which falls back to 'cpu'.")
+      .noUi()
+      .def(name = "Device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which falls back to 'cpu'.")
 
    /** [SttEngine.FASTER_WHISPER] AI model used to transcribe voice to text */
    val sttFasterWhisperModel by cv("small.en")
       .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large", "large-v1", "large-v2", "large-v3", "distil-small.en", "distil-medium.en", "distil-large-v2", "distil-large-v3") }
       .uiNoOrder()
-      .readOnlyUnless(sttEngine.map { it==SttEngine.FASTER_WHISPER })
-      .def(name = "Speech recognition > FasterWhisper model", info = "Whisper model for speech recognition. Distill models are faster versions of original models.")
+      .noUi()
+      .def(name = "Model", info = "Whisper model for speech recognition. Distill models are faster versions of original models.")
 
    /** [SttEngine.FASTER_WHISPER] torch device used to transcribe voice to text */
    val sttFasterWhisperDevice by cv("")
-      .readOnlyUnless(sttEngine.map { it==SttEngine.FASTER_WHISPER })
-      .def(name = "Speech recognition > FasterWhisper device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which falls back to 'cpu'.")
+      .noUi()
+      .def(name = "Device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which falls back to 'cpu'.")
 
    /** [SttEngine.WHISPER_S2T] AI model used to transcribe voice to text */
    val sttWhisperSt2Model by cv("small.en")
       .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large", "large-v1", "large-v2", "large-v3") }
       .uiNoOrder()
-      .readOnlyUnless(sttEngine.map { it==SttEngine.WHISPER_S2T })
-      .def(name = "Speech recognition > WhisperS2T model", info = "Whisper model for speech recognition.")
+      .noUi()
+      .def(name = "Model", info = "Whisper model for speech recognition.")
 
    /** [SttEngine.WHISPER_S2T] torch device used to transcribe voice to text */
    val sttWhisperSt2Device by cv("")
-      .readOnlyUnless(sttEngine.map { it==SttEngine.WHISPER_S2T })
-      .def(name = "Speech recognition > WhisperS2T device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which falls back to 'cpu'.")
+      .noUi()
+      .def(name = "Device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which falls back to 'cpu'.")
 
    /** [SttEngine.NEMO] AI model used to transcribe voice to text */
    val sttNemoModel by cv("nvidia/parakeet-ctc-1.1b")
       .values { listOf("nvidia/parakeet-tdt-1.1b", "nvidia/parakeet-ctc-1.1b", "nvidia/parakeet-ctc-0.6b") }
       .uiNoOrder()
-      .readOnlyUnless(sttEngine.map { it==SttEngine.NEMO })
-      .def(name = "Speech recognition > Nemo model", info = "Nemo model for speech recognition.")
+      .noUi()
+      .def(name = "Model", info = "Nemo model for speech recognition.")
 
    /** [SttEngine.NEMO] torch device used to transcribe voice to text */
    val sttNemoDevice by cv("")
-      .readOnlyUnless(sttEngine.map { it==SttEngine.NEMO })
-      .def(name = "Speech recognition > Nemo device", info = "Nemo torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
+      .noUi()
+      .def(name = "Device", info = "Nemo torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which attempts to use cuda if available.")
 
    /** [SttEngine.HTTP] torch device used to transcribe voice to text */
    val sttHttpUrl by cv("localhost:1235")
-      .readOnlyUnless(sttEngine.map { it==SttEngine.HTTP })
-      .def(name = "Speech recognition > Http url", info = "Voice recognition server address and port.")
+      .noUi()
+      .def(name = "Url", info = "Voice recognition server address and port.")
+
+   /** Settings for currently speech recognition engine */
+   private val sttEngineDetails by cvn<Configurable<*>>(null).noPersist().def(name = "Speech recognition >", info = "Settings for currently speech recognition engine")
+   init {
+      sttEngine sync { e ->
+         sttEngineDetails.value = when (e) {
+            SttEngine.NONE, null -> ListConfigurable.heterogeneous<Any?>()
+            SttEngine.WHISPER -> ListConfigurable.heterogeneous(this::sttWhisperModel.getDelegateConfig(), this::sttWhisperDevice.getDelegateConfig())
+            SttEngine.FASTER_WHISPER -> ListConfigurable.heterogeneous(this::sttFasterWhisperModel.getDelegateConfig(),this::sttFasterWhisperDevice.getDelegateConfig())
+            SttEngine.WHISPER_S2T -> ListConfigurable.heterogeneous(this::sttWhisperSt2Model.getDelegateConfig(), this::sttWhisperSt2Device.getDelegateConfig())
+            SttEngine.NEMO -> ListConfigurable.heterogeneous(this::sttNemoModel.getDelegateConfig(), this::sttNemoDevice.getDelegateConfig())
+            SttEngine.HTTP -> ListConfigurable.heterogeneous(this::sttHttpUrl.getDelegateConfig())
+         }
+      }
+   }
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
    val sttBlacklistWords by cList("a", "the", "please")
+      .noUi()
       .def(
          name = "Blacklisted words",
          info = "Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive."
@@ -501,12 +532,12 @@ class VoiceAssistant: PluginBase() {
    val ttsEngine by cv(TtsEngine.SYSTEM).uiNoOrder()
       .def(name = "Speech engine", info = "Engine used to generate voice. May require additional configuration")
 
-   /** Access token for character.ai account used when speech engine is Character.ai */
+   /** [TtsEngine.COQUI] voice. Sample file of the voice to be used. */
    val ttsEngineCoquiVoice by cv("Ann_Daniels.flac")
       .valuesUnsealed { (dir / "voices-coqui").children().filter { it.isAudio() }.map { it.name }.toList() }
-      .readOnlyUnless(ttsEngine.map { it==TtsEngine.COQUI })
+      .noUi()
       .def(
-         name = "Speech engine > coqui > voice",
+         name = "Voice",
          info = "" +
             "Voice when using ${TtsEngine.COQUI.nameUi} speech engine. " +
             "Sample file of the voice to be used. User can add more audio samples to ${(dir / "voices-coqui").absolutePath}. " +
@@ -515,19 +546,31 @@ class VoiceAssistant: PluginBase() {
 
    /** [TtsEngine.COQUI] torch device used to transcribe voice to text */
    val ttsEngineCoquiCudaDevice by cv("")
-      .readOnlyUnless(ttsEngine.map { it==TtsEngine.COQUI })
+      .noUi()
       .def(
-         name = "Speech engine > coqui > device",
+         name = "Device",
          info = "Torch device for speech generation when using ${TtsEngine.COQUI.nameUi} speech engine."
       )
 
    /** Speech server address and port to connect to. */
    val ttsEngineHttpUrl by cv("localhost:1236")
-      .readOnlyUnless(ttsEngine.map { it==TtsEngine.HTTP })
+      .noUi()
       .def(
-         name = "Speech engine > http > url",
+         name = "Url",
          info = "Speech server address and port to connect to when using ${TtsEngine.HTTP.nameUi} speech engine."
       )
+
+   /** Settings for currently active speech engine */
+   internal val ttsEngineDetails by cvn<Configurable<*>>(null).noPersist().def(name = "Speech engine >", info = "Settings for currently active speech engine")
+   init {
+      ttsEngine sync { e ->
+         ttsEngineDetails.value = when (e) {
+            TtsEngine.COQUI -> ListConfigurable.heterogeneous(this::ttsEngineCoquiVoice.getDelegateConfig(), this::ttsEngineCoquiCudaDevice.getDelegateConfig())
+            TtsEngine.HTTP -> ListConfigurable.heterogeneous(this::ttsEngineHttpUrl.getDelegateConfig())
+            null, TtsEngine.NONE, TtsEngine.SYSTEM, TtsEngine.TACOTRON2, TtsEngine.SPEECHBRAIN, TtsEngine.FASTPITCH -> ListConfigurable.heterogeneous<Any?>()
+         }
+      }
+   }
 
    /** Whether [llmEngine] conversation is active */
    var llmOn by atomic(false)
@@ -540,23 +583,35 @@ class VoiceAssistant: PluginBase() {
    /** Model for gpt4all. Must be in models-gpt4all. */
    val llmGpt4AllModel by cv("none")
       .valuesUnsealed { dir.div("models-gpt4all").children().map { it.name }.filter { it.endsWith("gguf") }.toList() + "none" }
-      .readOnlyUnless(llmEngine.map { it==LlmEngine.GPT4ALL })
+      .noUi()
       .def(name = "Llm engine > gpt4all > model", info = "Model for gpt4all. Must be in ${(dir / "models-gpt4all").absolutePath}")
 
    /** Url of the OpenAI or OpenAI-compatible server */
    val llmOpenAiUrl by cv("http://localhost:1234/v1")
-      .readOnlyUnless(llmEngine.map { it==LlmEngine.OPENAI })
+      .noUi()
       .def(name = "Llm engine > openai > url", info = "Url of the OpenAI or OpenAI-compatible server")
 
    /** The user authorization of the OpenAI or OpenAI-compatible server */
    val llmOpenAiBearer by cv("ABC123xyz789").password()
-      .readOnlyUnless(llmEngine.map { it==LlmEngine.OPENAI })
+      .noUi()
       .def(name = "Llm engine > openai > bearer", info = "The user authorization of the OpenAI or OpenAI-compatible server. Server may ignore this.")
 
    /** The llm model of the OpenAI or OpenAI-compatible server */
    val llmOpenAiModel by cv("")
-      .readOnlyUnless(llmEngine.map { it==LlmEngine.OPENAI })
+      .noUi()
       .def(name = "Llm engine > openai > model", info = "The llm model of the OpenAI or OpenAI-compatible server. Server may ignore this.")
+
+   /** Settings for currently active llm engine */
+   internal val llmEngineDetails by cvn<Configurable<*>>(null).noPersist().def(name = "Llm engine >", info = "Settings for currently active llm engine")
+   init {
+      llmEngine sync { e ->
+         llmEngineDetails.value = when (e) {
+            LlmEngine.OPENAI -> ListConfigurable.heterogeneous(this::llmOpenAiUrl.getDelegateConfig(), this::llmOpenAiBearer.getDelegateConfig(), this::llmOpenAiModel.getDelegateConfig())
+            LlmEngine.GPT4ALL -> ListConfigurable.heterogeneous(this::llmGpt4AllModel.getDelegateConfig())
+            LlmEngine.NONE, null -> ListConfigurable.heterogeneous<Any?>()
+         }
+      }
+   }
 
    /** System prompt telling llm to assume role, or exhibit behavior */
    val llmChatSysPrompt by cv("You are helpful voice assistant. You are voiced by tts, be extremly short.").multiline(10).nonBlank()

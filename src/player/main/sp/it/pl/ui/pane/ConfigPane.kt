@@ -75,6 +75,7 @@ class ConfigPane<T: Any?>: VBox {
    val ui: StyleableObjectProperty<Layout> by sv(UI)
    var onChange: (() -> Unit)? = null
    var onChangeOrConstraint: (() -> Unit)? = null
+   var editorShowNoUi = false
    var editorOrder: Comparator<Config<*>>? = compareByDefault
       set(value) {
          field = value
@@ -109,7 +110,7 @@ class ConfigPane<T: Any?>: VBox {
       isFillWidth = false
 
       editors = configurable?.getConfigs().orEmpty().asSequence()
-         .filter { !it.hasConstraint<Constraint.NoUi>() }
+         .filter { editorShowNoUi || !it.hasConstraint<Constraint.NoUi>() }
          .map {
             ConfigEditor.create(it).apply {
                onChange = onChangeRaw

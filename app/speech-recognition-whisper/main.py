@@ -601,6 +601,19 @@ def start_exit_invoker():
 
     Thread(name='Process-Monitor', target=waitAndStopWithParentProcess, daemon=True).start()
 
+def install_dangling_thread_monitor():
+    'Debug threads if application does not exit'
+    def print_threads():
+        time.sleep(5.0)
+        for thread in threading.enumerate():
+            if thread != threading.main_thread() and not thread.daemon:
+                frame = sys._current_frames()[thread.ident]
+                print(f"Thread ID: {thread.ident}")
+                traceback.print_stack(frame)
+                print("\n")
+
+    if False:
+        Thread(name='dangling-thread-monitor', target=print_threads, daemon=True).start()
 
 def stop(*args):  # pylint: disable=unused-argument
     global sysTerminating
@@ -613,7 +626,8 @@ def stop(*args):  # pylint: disable=unused-argument
         stt.stop()
         tts.stop()
         http.stop()
-        write.stop()
+        write.stop_with_app()
+        install_dangling_thread_monitor()
 
 def install_exit_handler():
     atexit.register(stop)
@@ -622,12 +636,13 @@ def install_exit_handler():
     signal.signal(signal.SIGBREAK, stop)
     signal.signal(signal.SIGABRT, stop)
 
-def _onBootup():
+def install_on_bootup_invoke():
     wait_until(0.1, lambda: all(actor.state_active() for actor in actors))
     llm(ChatReact(llmSysPrompt, "You booted up. Use 4 words or less.", f"{name} online"))
 
 def install_on_bootup():
-    Thread(name='on-bootup', target=_onBootup, daemon=True).start()
+    Thread(name='on-bootup', target=install_on_bootup_invoke, daemon=True).start()
+
 
 try:
 

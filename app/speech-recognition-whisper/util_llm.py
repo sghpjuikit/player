@@ -146,14 +146,14 @@ class EventLlm:
 class Llm(Actor):
     def __init__(self, name: str, deviceName: str, write: Writer, speak: Tts):
         super().__init__("llm", name,  deviceName, write, True)
+        self._daemon = False
+        self._stop_event = EventLlm(None, None)
         self.speak = speak
         self.api = None
         self.generating = False
         self.commandExecutor: Callable[[str, Ctx], str] = None
 
     def __call__(self, e: ChatProceed, ctx: Ctx = CTX) -> Future[str]:
-        ef = EventLlm(e, Future())
-        self.queue.put(ef)
 
         def on_done(future):
             try: (text, canceled) = future.result()
@@ -175,11 +175,19 @@ class Llm(Actor):
                     command = 'unidentified' if canceled else command
                     command = self.commandExecutor(command, ctx)
 
-        futureOnDone(ef.future, on_done)
-        return ef.future
+        if self._stop:
+            f = futureFailed(Exception(f"{self.group} stopped"))
+            futureOnDone(f, on_done)
+            return f
+        else:
+            ef = EventLlm(e, Future())
+            self.queue.put(ef)
+            futureOnDone(ef.future, on_done)
+            return ef.future
 
     def _get_event_text(self, e: EventLlm) -> str:
         return f"{e.event.__class__.__name__}:{e.event.userPrompt}"
+
 
 class LlmNone(Llm):
     def __init__(self, speak: Tts, write: Writer):
@@ -187,10 +195,15 @@ class LlmNone(Llm):
 
     def _loop(self):
         self._loaded = True
+
         while not self._stop:
             with self._loopProcessEvent() as (e, f):
-                f.set_exception(Exception("Illegal"))
-        self._clear_queue()
+                if e is None: break
+                f.set_exception(Exception(f"{self.group} disabled"))
+
+        while not self.queue.empty():
+            e, f = self.queue.get()
+            f.set_exception(Exception(f"{self.group} stopped"))
 
 
 # home: https://github.com/nomic-ai/gpt4all
@@ -220,9 +233,11 @@ class LlmGpt4All(Llm):
                 llm_prompt_template = f.read()
 
         # loop
-        with (self._looping()):
+        with self._looping():
             while not self._stop:
                 with self._loopProcessEvent() as (e, f):
+                    if e is None: break
+
                     isCommand = isinstance(e, ChatIntentDetect)
                     isCommandWrite = isCommand and cast(ChatIntentDetect, e).writeTokens
                     try:
@@ -281,6 +296,8 @@ class LlmHttpOpenAi(Llm):
         with self._looping():
             while not self._stop:
                 with self._loopProcessEvent() as (e, f):
+                    if e is None: break
+
                     isCommand = isinstance(e, ChatIntentDetect)
                     isCommandWrite = isCommand and cast(ChatIntentDetect, e).writeTokens
                     try:

@@ -75,6 +75,18 @@ class SttNone(Stt):
     def _loop(self):
         self._loopLoadAndIgnoreEvents()
 
+    def _loop(self):
+        self._loaded = True
+
+        while not self._stop:
+            with self._loopProcessEvent() as a:
+                if a is None: break
+                a.future.set_exception(Exception(f"{self.group} disabled"))
+
+        while not self.queue.empty():
+            a = self.queue.get()
+            a.future.set_exception(Exception(f"{self.group} stopped"))
+
 
 # home https://github.com/openai/whisper
 class SttWhisper(Stt):
@@ -99,6 +111,7 @@ class SttWhisper(Stt):
         with self._looping():
             while not self._stop:
                 with self._loopProcessEvent() as a:
+                    if a is None: break
                     try:
                         # prepare data
                         wav_bytes = a.audio.get_wav_data()  # must be 16kHz
@@ -144,6 +157,7 @@ class SttWhisperS2T(Stt):
         with self._looping():
             while not self._stop:
                 with self._loopProcessEvent() as a:
+                    if a is None: break
                     try:
                         # prepare data
                         wav_bytes = a.audio.get_wav_data()  # must be 16kHz
@@ -195,6 +209,7 @@ class SttFasterWhisper(Stt):
         with self._looping():
             while not self._stop:
                 with self._loopProcessEvent() as a:
+                    if a is None: break
                     try:
                         # prepare data
                         wav_bytes = a.audio.get_wav_data()  # must be 16kHz
@@ -245,6 +260,7 @@ class SttNemo(Stt):
         with (self._looping()):
             while not self._stop:
                 with self._loopProcessEvent() as a:
+                    if a is None: break
                     try:
                         # gather data
                         wav_bytes = a.audio.get_wav_data()  # must be 16kHz
@@ -285,6 +301,7 @@ class SttHttp(Stt):
         with self._looping():
             while not self._stop:
                 with self._loopProcessEvent() as a:
+                    if a is None: break
                     try:
                         # gather data
                         audio_data = a.audio.frame_data

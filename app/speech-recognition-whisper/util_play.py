@@ -97,6 +97,7 @@ class SdStreams:
 class SdActor(Actor):
     def __init__(self, streamDef: str, write: Writer):
         super().__init__('play', 'SdActor', "cpu", write, True)
+        self._daemon = False
         self._skip = False
         self.sentence_break = 0.8
         self.sample_rate = 24000
@@ -132,6 +133,8 @@ class SdActor(Actor):
                 while not self._stop:
                     with self._loopProcessEvent() as event:
                         try:
+                            if event is None: break
+
                             # skip
                             if self._skip and event.skippable:
                                 event.future.set_result(None)

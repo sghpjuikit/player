@@ -88,6 +88,7 @@ class Mic(Actor):
         vad, micSpeakerDetector
     ):
         super().__init__(f"Mic({micName})", f"Mic({micName})", micName, write, enabled)
+        self._daemon = False
         self.listening = None
         self.group = micName
         self.name = micName
@@ -159,7 +160,7 @@ class Mic(Actor):
             while not self._stop and source is None:
                 loop = loop+1
                 loopInit = loop==1
-                wait_until(1.0, lambda: self.enabled)
+                wait_until(1.0, lambda: self.enabled or self._stop)
 
                 try:
                     if self.micName is None:
@@ -191,13 +192,11 @@ class Mic(Actor):
                 if source is None: sleep(1)
                 if source is None: continue
 
-            if self._stop: break
-
             # listen to microphone
             try:
-                while True:
-                    wait_until(1.0, lambda: self.enabled or self._stop)
-                    if self._stop: break
+                if self._stop: break
+                wait_until(1.0, lambda: self.enabled or self._stop)
+                if self._stop: break
 
                     # listen to mic (record to queue)
                     blocksize = int(0.0625 * self.sample_rate)
@@ -265,14 +264,13 @@ class Mic(Actor):
         isEnoughEnergyAndCorrectSpeech = False
         speechStart = None
         user = None
-        while True:
+        while not self._stop and self.enabled:
             frames = deque()
             isEnoughEnergyAndSpeech = False
             isEnoughEnergyAndCorrectSpeech = False
 
             # store audio input until the phrase starts
-            while True:
-                if self._stop or not self.enabled: return None
+            while not self._stop and self.enabled:
 
                 # handle waiting too long for phrase by raising an exception
                 elapsed_time += seconds_per_buffer
@@ -302,8 +300,7 @@ class Mic(Actor):
             pause_count, phrase_count = 0, 0
             phrase_start_time = elapsed_time
             isEnoughEnergyAndCorrectSpeechEvaluated = False
-            while True:
-                if self._stop or not self.enabled: return None
+            while not self._stop and self.enabled:
 
                 # handle phrase being too long by cutting off the audio
                 elapsed_time += seconds_per_buffer

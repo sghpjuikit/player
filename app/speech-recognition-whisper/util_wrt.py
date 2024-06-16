@@ -42,7 +42,9 @@ class Writer(Actor):
         with self._looping():
             while not self._stop:
                 with self._loopProcessEvent() as event:
-                    if isinstance(event, str):
+                    if event is None:
+                        break
+                    elif isinstance(event, str):
                         print(event.replace('\n', '\u2028'), end='\n')
                     elif isinstance(event, Iterator):
                         for eventPart in event:
@@ -53,7 +55,6 @@ class Writer(Actor):
 
     def stop(self):
         self.stdout.switchStdoutBack()
-
 
     class StdoutWrapper:
         def __init__(self, queue):

@@ -16,6 +16,8 @@ class Actor:
         if isinstance(self.write, Callable): self.write(f"RAW: {self.name} starting...")
         self.queue = Queue()
         self.events_processed: [str] = []
+        self._daemon: bool = True
+        self._stop_event = None
         self._stop: bool = False
         self._loaded: bool = False
         self.enabled: bool = enabled
@@ -32,31 +34,30 @@ class Actor:
         self.start_time = time.time()
 
     def queued(self) -> list:
-        """
-        Returns all currently queued events as list
-        """
+        'Returns all currently queued events as list'
         return list(self.queue.queue)
 
     def _clear_queue(self):
-        """
-        Clears all currently queued events..
-        """
+        'Clears all currently queued events.'
         while not self.queue.empty(): self.queue.get()
 
     def start(self):
-        """
-        Start processing all future elements in queue, on newly started thread. Asynchronous
-        """
-        Thread(name=self.name, target=self._loopEx, daemon=True).start()
+        'Start processing all future elements in queue, on newly started thread. Asynchronous'
+        Thread(name=self.name, target=self._loopEx, daemon=self._daemon).start()
 
     def stop(self):
-        """
-        Stop processing all elements, stop the loop,, release all resources and end thread when done. Asynchronous
-        """
+        'Stop processing all elements, stop the loop,, release all resources and end thread when done. Asynchronous'
         self._stop = True
 
+    def stop_with_app(self):
+        'Stop that does nothing, lets this actor run until application shuts down, as this uses daemon thread, prevents skipping events'
+        pass
+
     def _get_next_event(self) -> object:
-        return self.queue.get()
+        while not self._stop:
+            try: return self.queue.get(timeout=0.2)
+            except Empty: continue
+        return self._stop_event
 
     def _get_event_text(self, e) -> str | None:
         if e is None: return e
@@ -64,17 +65,11 @@ class Actor:
         else: return "n/a"
 
     def _loop(self):
-        """
-        Loop that loads necessary resources, loops events until stop is called and releases resources.
-        Override in implementation.
-        """
+        'Loop that loads necessary resources, loops events until stop is called and releases resources. Override in implementation.'
         pass
 
     def _loopEx(self):
-        """
-        Convenience method for thread to run, calls _loop
-        Catches and logs exceptions.
-        """
+        'Convenience method for thread to run, calls _loop. Catches and logs exceptions.'
         try:
             self._loop()
         except ImportError as e:
@@ -109,14 +104,14 @@ class Actor:
         Catches and logs exceptions.
         """
         try:
-            # if self._stop or not self.enabled: return
-            # try: event = self.queue.get(timeout=0.1)
-            # except Empty: return
-            # if self._stop or not self.enabled: return
+            if self._stop or not self.enabled:
+                yield self._stop_event
 
-            if self._stop or not self.enabled: return
             event = self._get_next_event()
-            if self._stop or not self.enabled: return
+
+            if self._stop or not self.enabled:
+                yield self._stop_event
+                return
 
             try:
                 self.processing_event = event

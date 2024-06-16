@@ -37,6 +37,7 @@ class Tts(Actor):
         self.play = SdActor(audioOutDef, write)
         self.speakOn = speakOn
         self._skip = False
+        self._stop_event = (None, None, None, None, None)
         self.history: [TtsHistory] = []
 
     def start(self):
@@ -99,7 +100,9 @@ class Tts(Actor):
         with (self._looping()):
             while not self._stop:
                 with self._loopProcessEvent() as (event, skippable, repeated, location, f):
-                    if isinstance(event, TtsPause):
+                    if event is None:
+                        break
+                    elif isinstance(event, TtsPause):
                         futureOnDone(self.play.playEvent(SdEvent.pause(event.ms, True), location), complete_also(f))
                     else:
                         text = ''
@@ -135,6 +138,7 @@ class TtsBase(Actor):
         super().__init__("tts", name, None, write, True)
         self.max_text_length = 400
         self._skip = False
+        self._stop_event = (None, None, None)
         self._loopResult = None
 
     def skip(self):
@@ -222,24 +226,27 @@ class TtsBase(Actor):
     @contextmanager
     def _loopProcessEventFut(self, cacheName: str, sample_rate: int, save):
         with self._loopProcessEvent() as (text, skippable, f):
-            audio_file, audio_file_exists, cache_used = self._cache_file_try(cacheName, text)
-            # use tts
-            if not cache_used or not audio_file_exists:
-                try: 
-                    # tts
-                    yield (text, skippable, f)
-                    # update cache
-                    if cache_used and text and f.exception() is None:
-                        try: torchaudio.save(audio_file, save(f.result()), sample_rate)
-                        except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
-                except Exception as e:
-                    f.set_exception(e)
-                    print_exc()
-                    raise e
-            # use cache
+            if text is None:
+                yield self._stop_event
             else:
-                yield (None, None, None)
-                f.set_result(SdEvent.file(text, audio_file, skippable))
+                audio_file, audio_file_exists, cache_used = self._cache_file_try(cacheName, text)
+                # use tts
+                if not cache_used or not audio_file_exists:
+                    try:
+                        # tts
+                        yield (text, skippable, f)
+                        # update cache
+                        if cache_used and text and f.exception() is None:
+                            try: torchaudio.save(audio_file, save(f.result()), sample_rate)
+                            except Exception as e: self.write(f"ERR: error saving cache file='{audio_file}' text='{text}' error={e}")
+                    except Exception as e:
+                        f.set_exception(e)
+                        print_exc()
+                        raise e
+                # use cache
+                else:
+                    yield (None, None, None)
+                    f.set_result(SdEvent.file(text, audio_file, skippable))
 
 
 class TtsNone(TtsBase):
@@ -279,6 +286,7 @@ class TtsOs(TtsBase):
         with self._looping():
             while not self._stop:
                 with self._loopProcessEvent() as (text, skippable, f):
+                    if text is None: break
                     audio_file, audio_file_exists = cache_file(text, cache_dir)
                     cache_used = len(text) < 100
                     if not cache_used or not audio_file_exists:
@@ -470,6 +478,7 @@ class TtsHttp(TtsBase):
         with self._looping():
             while not self._stop:
                 with self._loopProcessEvent() as (text, skippable, f):
+                    if text is None: break
                     try:
                         text = text.encode('utf-8')
                         with Conn(self.url, self.port) as con:

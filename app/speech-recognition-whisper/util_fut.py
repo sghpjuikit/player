@@ -41,6 +41,13 @@ def futureCompleted(result) -> Future:
     future.set_result(result)
     return future
 
+def futureFailed(exception: Exception) -> Future:
+    "Returns future failed with the exception."
+
+    future = Future()
+    future.set_exception(exception)
+    return future
+
 def futureOnDone(future, onDone):
     if future.done(): onDone(future)
     else: future.add_done_callback(onDone)

@@ -29,11 +29,11 @@
 
 package sp.it.pl.ui.objects.autocomplete
 
+import com.sun.javafx.scene.control.Properties.COMBO_BOX_STYLE_CLASS
 import javafx.collections.FXCollections.observableArrayList
 import javafx.scene.Node
 import javafx.scene.control.PopupControl
 import javafx.util.StringConverter
-import sp.it.util.JavaLegacy.COMBO_BOX_STYLE_CLASS
 import sp.it.util.access.v
 import sp.it.util.dev.fail
 import sp.it.util.dev.printIt

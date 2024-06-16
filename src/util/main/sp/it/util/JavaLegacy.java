@@ -14,8 +14,6 @@ import sp.it.util.type.Util;
 /** Umbrella for unsupported or inaccessible modules. */
 public class JavaLegacy {
 
-	public static String COMBO_BOX_STYLE_CLASS = "combo-box-popup"; // com.sun.javafx.scene.control.Properties.COMBO_BOX_STYLE_CLASS
-
 	private static final Text fontMeasuringText = new Text();
 	private static final Scene fontMeasuringScene = new Scene(new Group(fontMeasuringText));
 

@@ -265,7 +265,7 @@ if not os.path.exists(sysCacheDir): os.makedirs(sysCacheDir)
 CTX.speaker = mainSpeaker
 (argMainLocation, mainLocation) = arg('main-location', "PC")
 CTX.location = mainLocation
-(argMicDef, micDef) = arg('mics', "")
+(argMicDef, micDef) = arg('mics', '')
 (argMicEnabled, micEnabled) = arg('mic-enabled', "true", lambda it: it=="true")
 (argMicName, micName) = arg('mic-name', '')
 (argMicEnergy, micEnergy) = arg('mic-energy', "120", lambda it: int(it))
@@ -274,7 +274,7 @@ CTX.location = mainLocation
 (argMicVoiceDetectDevice, micVoiceDetectDevice) = arg('mic-voice-detect-device', "cpu")
 (argMicVoiceDetectTreshold, micVoiceDetectTreshold) = arg('mic-voice-detect-prop', "0.6", lambda it: float(it))
 (argMicVoiceDetectVerbose, micVoiceDetectVerbose) = arg('mic-voice-detect-debug', "false", lambda it: it=="true")
-(argAudioOutDef, audioOutDef) = arg('audio-out', "false")
+(argAudioOutDef, audioOutDef) = arg('audio-out', '')
 
 (argSttEngineType, sttEngineType) = arg('stt-engine', 'whisper')
 (argSttWhisperDevice, sttWhisperDevice) = arg('stt-whisper-device', '')

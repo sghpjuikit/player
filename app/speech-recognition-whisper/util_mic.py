@@ -15,8 +15,6 @@ import sounddevice as sd
 import soundfile as sf
 import numpy as np
 import librosa
-import pyaudio
-import audioop
 import struct
 import torch
 import wave
@@ -109,7 +107,6 @@ class Mic(Actor):
         self.vad = vad
         # speaker detection
         self.speaker_diar = micSpeakerDetector
-        self.p = pyaudio.PyAudio()
 
     def set_pause_threshold_normal(self):
         self.pause_threshold = 0.7
@@ -176,16 +173,16 @@ class Mic(Actor):
 
                     # notify of error
                     loopInitFail = source is None and loopInit
-                    if loopInitFail: self.speak(f"Failed to use microphone {self.location}. See log for details")
                     if loopInitFail: self.write(chain([f'ERR: no microphone {self.micName} found. Use one of:'], map(lambda name: '\n\t' + name, self.get_microphone_names())))
+                    if loopInitFail: self.speak(f"Failed to use microphone {self.location}. See log for details", CTX.location)
                 except Exception as e:
                     # notify of error
-                    if loopInit: self.speak(f"Failed to use microphone {self.location}. See log for details")
+                    if loopInit: self.speak(f"Failed to use microphone {self.location}. See log for details", CTX.location)
                     if loopInit: print_exc()
 
                 # notify mic started/connected
                 if source is not None and loopInit: self.write(f"RAW: Using microphone: {self.micName}")
-                if source is not None and not loopInit: self.speak(f"Microphone {self.location} back online.")
+                if source is not None and not loopInit: self.speak(f"Microphone {self.location} back online.", CTX.location)
                 if source is not None: break
 
                 # keep reconnecting microphone
@@ -198,24 +195,19 @@ class Mic(Actor):
                 wait_until(1.0, lambda: self.enabled or self._stop)
                 if self._stop: break
 
-                    # listen to mic (record to queue)
-                    blocksize = int(0.0625 * self.sample_rate)
-                    blocksize = 1024
-                    stream = self.p.open(format=pyaudio.paInt16, channels=1, rate=self.sample_rate, input=True, frames_per_buffer=blocksize, input_device_index=source)
-                    while not self._stop and self.enabled and not stream.is_stopped():
+                # listen to mic (record to queue)
+                blocksize = 1024
+                with sd.RawInputStream(device=source, channels=1, samplerate=self.sample_rate, blocksize=blocksize, dtype='int16') as stream:
+                    while not self._stop and self.enabled and not stream.stopped:
                         speech = self.listen(stream)
                         if not self._stop and self.enabled and speech is not None: self.onSpeechEnd(speech)
-                    stream.stop_stream()
-                    stream.close()
-                    self.p.terminate()
-
 
             # go reconnect mic
             except OSError as e:
                 source = None
                 if e.errno == -9988:
                     # notify mic disconnected
-                    self.speak("Microphone offline. Check your microphone connection please.")
+                    self.speak("Microphone offline. Check your microphone connection please.", CTX.location)
                 else:
                     self.write("ERR: Other OSError occurred:" + str(e))
                     print_exc()
@@ -275,7 +267,7 @@ class Mic(Actor):
                 # handle waiting too long for phrase by raising an exception
                 elapsed_time += seconds_per_buffer
 
-                buffer = stream.read(CHUNK_SIZE)
+                buffer, _ = stream.read(CHUNK_SIZE)
                 # dnp = np.frombuffer(buffer, dtype=np.int16).astype(np.float32) / 32767
                 # energy = np.sqrt(np.sum(dnp)**2 / CHUNK_SIZE)
                 energy = audioop.rms(buffer, SAMPLE_WIDTH)
@@ -307,7 +299,7 @@ class Mic(Actor):
                 if phrase_time_limit and elapsed_time - phrase_start_time > phrase_time_limit and self.energy_debug: self.write(f'{self.name} phrase_time_limit({elapsed_time})')
                 if phrase_time_limit and elapsed_time - phrase_start_time > phrase_time_limit: break
 
-                buffer = stream.read(CHUNK_SIZE)
+                buffer, _ = stream.read(CHUNK_SIZE)
                 # dnp = np.frombuffer(buffer, dtype=np.int16).astype(np.float32) / 32767
                 # energy = np.sqrt(np.sum(dnp)**2 / CHUNK_SIZE)
                 energy = audioop.rms(buffer, SAMPLE_WIDTH)
@@ -348,10 +340,7 @@ class Mic(Actor):
                     speech = Speech(speechStart.start, AudioData(b"".join(frames), SAMPLE_RATE, SAMPLE_WIDTH), datetime.now(), user, self.location)
                     if self.energy_debug: self.write(f'{self.name} {speech}')
 
-
-
-                    # debug
-                    # sometimes this audio stutters, as if every other frame was silence, always happens after 1st speech
+                    # debug audio
                     # try:
                     #     # prepare data
                     #     from io import BytesIO
@@ -364,8 +353,6 @@ class Mic(Actor):
                     #     sf.write(file, audio_array, sampling_rate)
                     # except Exception as e:
                     #     print_exc()
-
-
 
                     return speech
                 # silence marks end of non-speech - restart

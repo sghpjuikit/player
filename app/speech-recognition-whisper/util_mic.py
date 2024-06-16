@@ -22,7 +22,6 @@ import time
 import math
 import os
 import io
-import audioop
 
 @dataclass
 class SpeechStart:
@@ -138,6 +137,13 @@ class Mic(Actor):
             if d['name'] is not None and d['max_input_channels'] > 0:
                 names.append(d['name'])
         return names
+
+    def rms(self, buffer, sample_width) -> float:
+        if sample_width == 1: fmt = "<%dB" % len(buffer)
+        elif sample_width == 2: fmt = "<%dh" % (len(buffer) // 2)
+        else: raise ValueError("Unsupported sample width")
+        samples = np.array(struct.unpack(fmt, buffer))
+        return math.sqrt(np.mean(samples ** 2))
 
     def _loop(self):
         self._loaded = True
@@ -268,9 +274,7 @@ class Mic(Actor):
                 elapsed_time += seconds_per_buffer
 
                 buffer, _ = stream.read(CHUNK_SIZE)
-                # dnp = np.frombuffer(buffer, dtype=np.int16).astype(np.float32) / 32767
-                # energy = np.sqrt(np.sum(dnp)**2 / CHUNK_SIZE)
-                energy = audioop.rms(buffer, SAMPLE_WIDTH)
+                energy = self.rms(buffer, SAMPLE_WIDTH)
                 self.last_energy = energy
                 if len(buffer) == 0 and self.energy_debug: self.write(f'{self.name} end of stream')
                 if len(buffer) == 0: return None # reached end of the stream
@@ -300,9 +304,7 @@ class Mic(Actor):
                 if phrase_time_limit and elapsed_time - phrase_start_time > phrase_time_limit: break
 
                 buffer, _ = stream.read(CHUNK_SIZE)
-                # dnp = np.frombuffer(buffer, dtype=np.int16).astype(np.float32) / 32767
-                # energy = np.sqrt(np.sum(dnp)**2 / CHUNK_SIZE)
-                energy = audioop.rms(buffer, SAMPLE_WIDTH)
+                energy = self.rms(buffer, SAMPLE_WIDTH)
                 self.last_energy = energy
                 if len(buffer) == 0 and self.energy_debug: self.write(f'{self.name} end of stream')
                 if len(buffer) == 0: return None # reached end of the stream

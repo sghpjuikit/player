@@ -19,7 +19,7 @@ import sp.it.util.access.sv
 import sp.it.util.access.svMetaData
 import sp.it.util.collections.setToOne
 import sp.it.util.reactive.sync
-import sp.it.util.system.Windows
+import sp.it.util.system.Os
 import sp.it.util.ui.pseudoClassChanged
 
 /** Component for controlling pc with actions such as shutdown, restart, etc. */
@@ -33,12 +33,12 @@ class PcControls: StackPane() {
       orientation sync { pseudoClassChanged("vertical", it==VERTICAL) }
 
       val icons = arrayOf(
-         Icon(IconWH.MOON_27).onClickDo { Windows.sleep().ifErrorDefault() }.withText(LEFT, "Sleep"),
-         Icon(IconWH.MOON_THIRD_QUARTER).onClickDo { Windows.hibernate().ifErrorDefault() }.withText(LEFT, "Hibernate"),
-         Icon(IconWH.MOON_14).onClickDo { Windows.shutdown().ifErrorDefault() }.withText(LEFT, "Shutdown"),
-         Icon(IconWH.MOON_0).onClickDo { Windows.restart().ifErrorDefault() }.withText(LEFT, "Restart"),
-         Icon(IconFA.LOCK).onClickDo { Windows.lock().ifErrorDefault() }.withText(LEFT, "Lock"),
-         Icon(IconMD.LOGOUT).onClickDo { Windows.logOff().ifErrorDefault() }.withText(LEFT, "Log off"),
+         Icon(IconWH.MOON_27).onClickDo { Os.sleep().ifErrorDefault() }.withText(LEFT, "Sleep"),
+         Icon(IconWH.MOON_THIRD_QUARTER).onClickDo { Os.hibernate().ifErrorDefault() }.withText(LEFT, "Hibernate"),
+         Icon(IconWH.MOON_14).onClickDo { Os.shutdown().ifErrorDefault() }.withText(LEFT, "Shutdown"),
+         Icon(IconWH.MOON_0).onClickDo { Os.restart().ifErrorDefault() }.withText(LEFT, "Restart"),
+         Icon(IconFA.LOCK).onClickDo { Os.lock().ifErrorDefault() }.withText(LEFT, "Lock"),
+         Icon(IconMD.LOGOUT).onClickDo { Os.logOff().ifErrorDefault() }.withText(LEFT, "Log off"),
       )
 
       orientation sync {

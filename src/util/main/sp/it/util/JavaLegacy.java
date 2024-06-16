@@ -50,31 +50,4 @@ public class JavaLegacy {
 		if (i!=null) Util.setField(i, "pixelaccessor", null);
 	}
 
-	public static class WindowsSuspend {
-		@SuppressWarnings("UnusedReturnValue")
-		public static native boolean SetSuspendState(boolean hibernate, boolean forceCritical, boolean disableWakeEvent);
-
-		static {
-			if (Platform.isWindows())
-				Native.register("powrprof");
-		}
-	}
-
-	public interface JnaWallpaper extends StdCallLibrary {
-
-		/** Field to load USER32 library. loadLibrary deprecated, use load instead */
-		JnaWallpaper INSTANCE = Native.load("user32", JnaWallpaper.class);
-
-		/**
-		 * Map function (Based on JNA/Microsoft document).
-		 * @param theUiAction Action to perform on UI
-		 * @param theUiParam Not used
-		 * @param thePath Path of a picture for desktop wallpaper
-		 * @param theFWinIni Not used
-		 * @return a boolean, not used
-		 */
-		@SuppressWarnings("UnusedReturnValue")
-		boolean SystemParametersInfoA(int theUiAction, int theUiParam, String thePath, int theFWinIni) throws LastErrorException;
-	}
-
 }

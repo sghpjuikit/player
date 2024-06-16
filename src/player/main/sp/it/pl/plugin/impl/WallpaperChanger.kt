@@ -17,7 +17,6 @@ import sp.it.util.conf.only
 import sp.it.util.file.FileType.FILE
 import sp.it.util.reactive.Subscribed
 import sp.it.util.system.Os
-import sp.it.util.system.Windows
 import sp.it.util.type.volatile
 import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.image.ImageSize
@@ -43,7 +42,7 @@ class WallpaperChanger: PluginBase() {
    private fun load(f: File?) {
       val size = largestScreenSize()
       runVT {
-         if (f!=null && isRunning) Windows.changeWallpaper(f)
+         if (f!=null && isRunning) Os.changeWallpaper(f)
          ImageStandardLoader.memoized(cacheId)(f, size, OUTSIDE, true)
       } ui {
          wallpaperImageW.value = it

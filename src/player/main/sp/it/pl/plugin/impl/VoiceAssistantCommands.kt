@@ -43,7 +43,6 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.system.Os
 import sp.it.util.system.Os.WINDOWS
-import sp.it.util.system.Windows
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.equalsNc
 import sp.it.util.text.keys
@@ -91,12 +90,12 @@ internal fun VoiceAssistant.voiceCommands(): List<SpeakHandler> {
       sh(KOTLN,               "Search text", "search for? \$text")                                                     { voiceSearch(it) },
       sh(KOTLN,                 "Type text", "type \$text")                                                            { voiceType(it) },
       sh(KOTLN,       "Open widget by name", "open|show widget? \$widget_name widget?")                                { voiceCommandOpenWidget(it) },
-      sh(KOTLN,               "Shutdown OS", "shut down system|pc|computer|os")                                        { voiceCommandOsShutdown(it) }.takeIf { WINDOWS.isCurrent },
-      sh(KOTLN,                "Restart OS", "restart system|pc|computer|os")                                          { voiceCommandOsRestart(it) }.takeIf { WINDOWS.isCurrent },
-      sh(KOTLN,              "Hibernate OS", "hibernate system|pc|computer|os")                                        { voiceCommandOsHibernate(it) }.takeIf { WINDOWS.isCurrent },
-      sh(KOTLN,                  "Sleep OS", "sleep system|pc|computer|os")                                            { voiceCommandOsSleep(it) }.takeIf { WINDOWS.isCurrent },
-      sh(KOTLN,                   "Lock OS", "lock system|pc|computer|os")                                             { voiceCommandOsLock(it) }.takeIf { WINDOWS.isCurrent },
-      sh(KOTLN,                "Log off OS", "log off system|pc|computer|os")                                          { voiceCommandOsLogOff(it) }.takeIf { WINDOWS.isCurrent },
+      sh(KOTLN,               "Shutdown OS", "shut down system|pc|computer|os")                                        { voiceCommandOsShutdown(it) },
+      sh(KOTLN,                "Restart OS", "restart system|pc|computer|os")                                          { voiceCommandOsRestart(it) },
+      sh(KOTLN,              "Hibernate OS", "hibernate system|pc|computer|os")                                        { voiceCommandOsHibernate(it) },
+      sh(KOTLN,                  "Sleep OS", "sleep system|pc|computer|os")                                            { voiceCommandOsSleep(it) },
+      sh(KOTLN,                   "Lock OS", "lock system|pc|computer|os")                                             { voiceCommandOsLock(it) },
+      sh(KOTLN,                "Log off OS", "log off system|pc|computer|os")                                          { voiceCommandOsLogOff(it) },
       sh(KOTLN,              "Set reminder", "set reminder in|at \$time \$text")                                       { voiceCommandSetReminder(it) },
       sh(DEFER,                      "Wait", "wait \$time // units: s")                                                { voiceCommandWait(it) },
       sh(DEFER,               "Count to...", "count from \$from to \$to")                                              { voiceCommandCountTo(it) }.takeUnless { usePythonCommands.value },
@@ -343,33 +342,27 @@ suspend fun SpeakContext.voiceCommandOpenWidget(text: String): ComMatch =
 
 suspend fun SpeakContext.voiceCommandOsShutdown(text: String): ComMatch =
    if (!matches(text)) null
-   else if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
-   else confirming("Do you really wish to shut down computer?", "yes", ui = true) { Windows.shutdown().map { null }.mapError { it.localizedMessage } }
+   else confirming("Do you really wish to shut down computer?", "yes", ui = true) { Os.shutdown().map { null }.mapError { it.localizedMessage } }
 
 suspend fun SpeakContext.voiceCommandOsRestart(text: String): ComMatch =
    if (!matches(text)) null
-   else if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
-   else confirming("Do you really wish to restart computer?", "yes", ui = true) { Windows.restart().map { null }.mapError { it.localizedMessage } }
+   else confirming("Do you really wish to restart computer?", "yes", ui = true) { Os.restart().map { null }.mapError { it.localizedMessage } }
 
 suspend fun SpeakContext.voiceCommandOsSleep(text: String): ComMatch =
    if (!matches(text)) null
-   else if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
-   else confirming("Do you really wish to sleep computer?", "yes", ui = true) { Windows.sleep().map { null }.mapError { it.localizedMessage } }
+   else confirming("Do you really wish to sleep computer?", "yes", ui = true) { Os.sleep().map { null }.mapError { it.localizedMessage } }
 
 suspend fun SpeakContext.voiceCommandOsHibernate(text: String): ComMatch =
    if (!matches(text)) null
-   else if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
-   else confirming("Do you really wish to hibernate computer?", "yes", ui = true) { Windows.hibernate().map { null }.mapError { it.localizedMessage } }
+   else confirming("Do you really wish to hibernate computer?", "yes", ui = true) { Os.hibernate().map { null }.mapError { it.localizedMessage } }
 
 suspend fun SpeakContext.voiceCommandOsLogOff(text: String): ComMatch =
    if (!matches(text)) null
-   else if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
-   else confirming("Do you really wish to logOff computer?", "yes", ui = true) { Windows.logOff().map { null }.mapError { it.localizedMessage } }
+   else confirming("Do you really wish to logOff computer?", "yes", ui = true) { Os.logOff().map { null }.mapError { it.localizedMessage } }
 
 fun SpeakContext.voiceCommandOsLock(text: String): ComMatch =
    if (!matches(text)) null
-   else if (!Os.WINDOWS.isCurrent) Error("Unsupported on this platform")
-   else Windows.lock().map { null }.mapError { it.localizedMessage }
+   else Os.lock().map { null }.mapError { it.localizedMessage }
 
 fun SpeakContext.voiceCommandSetReminder(text: String): ComMatch =
    if (handler.regex.matches(text)) {

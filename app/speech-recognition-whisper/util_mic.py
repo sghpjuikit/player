@@ -1,3 +1,4 @@
+import errno
 from collections.abc import Iterator
 from time import sleep, time
 from util_tts import Tts
@@ -9,6 +10,7 @@ from datetime import datetime
 from util_actor import Actor
 from threading import Lock
 from util_now import *
+from util_ctx import *
 from imports import *
 from threading import current_thread
 import sounddevice as sd
@@ -163,7 +165,11 @@ class Mic(Actor):
             while not self._stop and source is None:
                 loop = loop+1
                 loopInit = loop==1
-                wait_until(1.0, lambda: self.enabled or self._stop)
+
+                # wait till enabled, break if stopped, retry with exponential backoff
+                wait_until(lambda: self.enabled or self._stop)
+                wait_loop_exp(1.0, 2.0, loop, lambda: self._stop)
+                if self._stop: break
 
                 try:
                     if self.micName is None:
@@ -197,38 +203,31 @@ class Mic(Actor):
 
             # listen to microphone
             try:
+                # wait till enabled, break if stopped
                 if self._stop: break
-                wait_until(1.0, lambda: self.enabled or self._stop)
+                wait_until(lambda: self.enabled or self._stop)
                 if self._stop: break
 
-                # listen to mic (record to queue)
-                blocksize = 1024
-                with sd.RawInputStream(device=source, channels=1, samplerate=self.sample_rate, blocksize=blocksize, dtype='int16') as stream:
-                    while not self._stop and self.enabled and not stream.stopped:
-                        speech = self.listen(stream)
-                        if not self._stop and self.enabled and speech is not None: self.onSpeechEnd(speech)
-
-            # go reconnect mic
-            except OSError as e:
-                source = None
-                if e.errno == -9988:
-                    # notify mic disconnected
-                    self.speak("Microphone offline. Check your microphone connection please.", CTX.location)
-                else:
-                    self.write("ERR: Other OSError occurred:" + str(e))
-                    print_exc()
-                pass
+                # do listen
+                self.listen(source)
 
             # go reconnect mic
             except Exception as e:
-                self.write("ERR: Error occurred:" + str(e))
-                print_exc()
-                pass
+                is_disconnect = (isinstance(e, sd.PortAudioError) and e.args[1] == -9999) or (isinstance(e, OSError) and e.errno in (-9988, errno.EINTR, errno.EIO))
+                if is_disconnect: self.speak(f"Microphone {self.location} connection lost.", CTX.location)
+                if not is_disconnect: self.write(f"ERR: Microphone {self.micName} error occurred:" + str(e))
+                if not is_disconnect: print_exc()
+                continue
 
         self.processing_event = None
         self.processing = False
         self.processing_start = None
 
+    def listen(self, deviceIndex: int):
+        with sd.RawInputStream(device=deviceIndex, channels=1, samplerate=self.sample_rate, blocksize=1024, dtype='int16') as stream:
+            while not self._stop and self.enabled and not stream.stopped:
+                speech = self.listenOnce(stream)
+                if not self._stop and self.enabled and speech is not None: self.onSpeechEnd(speech)
 
     # This class is derived work of Recognizer class from speech_recognition,
     # which is under BSD 3-Clause "New" or "Revised" License (https://github.com/Uberi/speech_recognition/blob/master/LICENSE.txt)
@@ -239,7 +238,7 @@ class Mic(Actor):
     # 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
     # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
     # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-    def listen(self, stream) -> Speech | None:
+    def listenOnce(self, stream) -> Speech | None:
         assert self.pause_threshold >= self.non_speaking_duration >= 0
 
         # CHUNK_SIZE = int(0.0625 * self.sample_rate)

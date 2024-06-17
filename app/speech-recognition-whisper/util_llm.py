@@ -330,10 +330,10 @@ class LlmHttpOpenAi(Llm):
                         f.set_exception(e)
                         if isinstance(e, openai.APIConnectionError):
                             self.write(f"ERR: {self.name} event processing error: server could not be reached: {e.__cause__}")
-                            print_exc()
                         elif isinstance(e, openai.APIStatusError):
-                            self.write(f"ERR: {self.name} event processing error: server returned {e.status_code} status code with response {e.response}")
+                            self.write(f"ERR: {self.name} event processing error: server returned {e.status_code}: {e.message}")
+                        else:
                             print_exc()
-                        else: raise e
+                            raise e
                     finally:
                         self.generating = False

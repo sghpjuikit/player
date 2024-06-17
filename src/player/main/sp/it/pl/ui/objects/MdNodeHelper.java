@@ -197,14 +197,13 @@ public class MdNodeHelper extends VBox {
 			var text = code.getText().normalizeEOL();
 			Text label = new Text(text);
 			label.getStyleClass().add("markdown-code");
-
 			Region bgr1 = new Region();
 			bgr1.setManaged(false);
 			bgr1.getStyleClass().add("markdown-code-background");
 			label.boundsInParentProperty().addListener((p, oldV, newV) -> {
-				bgr1.setTranslateX(newV.getMinX());
-				bgr1.setTranslateY(newV.getMinY() - 4);
-				bgr1.resize(newV.getWidth() + 4, newV.getHeight() + 4);
+				bgr1.setTranslateX(newV.getMinX() - 4);
+				bgr1.setTranslateY(newV.getMinY() - 3);
+				bgr1.resize(newV.getWidth() + 2*4, newV.getHeight() + 2);
 			});
 			onEventDown(label, MOUSE_CLICKED, PRIMARY, true, consumer(it -> Clipboard.getSystemClipboard().setContent(Map.of(PLAIN_TEXT, text))));
 
@@ -349,7 +348,6 @@ public class MdNodeHelper extends VBox {
 			if(!shouldShowContent()) return;
 
 			String text = isListOrdered ? (" " + (orderedListCounter+1) + ". ") : " • ";
-
 			visitListItem(text,listItem);
 		}
 
@@ -359,6 +357,7 @@ public class MdNodeHelper extends VBox {
 			isListOrdered = false;
 			VBox oldRoot = root;
 			root = new VBox();
+			root.getStyleClass().add("markdown-list");
 			root.setAlignment(Pos.BOTTOM_LEFT);
 			oldRoot.getChildren().add(root);
 			visitor.visitChildren(bulletList);
@@ -371,6 +370,7 @@ public class MdNodeHelper extends VBox {
 			isListOrdered = true;
 			VBox oldRoot = root;
 			root = new VBox();
+			root.getStyleClass().add("markdown-list");
 			root.setAlignment(Pos.BOTTOM_LEFT);
 			oldRoot.getChildren().add(root);
 			visitor.visitChildren(orderedList);

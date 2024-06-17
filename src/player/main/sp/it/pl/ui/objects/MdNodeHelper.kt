@@ -23,10 +23,12 @@ package sp.it.pl.ui.objects
 
 import com.vladsch.flexmark.ast.FencedCodeBlock
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
+import javafx.event.EventDispatchChain
 import javafx.geometry.Pos.BOTTOM_RIGHT
 import javafx.scene.Node
 import javafx.scene.input.Clipboard
 import javafx.scene.input.DataFormat.PLAIN_TEXT
+import javafx.scene.layout.StackPane
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
@@ -51,10 +53,16 @@ fun FencedCodeBlock.toNode(): Node {
    }
 
    val s = Subscribed {
-      val ip = stackPane {
-         isPickOnBounds = true
-         styleClass += "markdown-codeblock-box-icon-box"
-         lay(BOTTOM_RIGHT) += Icon(FontAwesomeIcon.COPY).onClickDo { Clipboard.getSystemClipboard()[PLAIN_TEXT] = text }
+      val ip = object: StackPane() {
+         init {
+            isPickOnBounds = true
+            styleClass += "markdown-codeblock-box-icon-box"
+            lay(BOTTOM_RIGHT) += Icon(FontAwesomeIcon.COPY).onClickDo { Clipboard.getSystemClipboard()[PLAIN_TEXT] = text }
+         }
+         override fun computeMinHeight(width: Double) =  0.0
+         override fun computeMinWidth(height: Double) = 0.0
+         override fun computePrefHeight(width: Double) =  0.0
+         override fun computePrefWidth(height: Double) = 0.0
       }
       vbox.lay += ip
       Subscription { vbox.lay -= ip }

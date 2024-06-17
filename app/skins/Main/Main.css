@@ -4237,7 +4237,7 @@ TextFlow > * {
 }
 
 .markdown-normal-flow {
-    -fx-padding: 0.5em 0 0.5em 0;
+    -fx-padding: 0.5em;
 }
 
 .markdown-text {
@@ -4282,7 +4282,12 @@ TextFlow > * {
 .markdown-link-hover {
     -fx-underline: true;
 }
-
+.markdown-list {
+    -fx-padding: 0 0 0 2em;
+}
+.markdown-list .markdown-list {
+    -fx-padding: 0;
+}
 .markdown-paragraph-list {
     -fx-spacing: 0em;
     -fx-padding: 0em;
@@ -4293,6 +4298,7 @@ TextFlow > * {
     -fx-padding: 0.5em 0 0.5em 0;
 }
 
+/* inherits Text */
 .markdown-code {
     -fx-cursor: HAND;
     -fx-padding: 0 0.5em 0 0.5em;
@@ -4304,17 +4310,23 @@ TextFlow > * {
     -fx-font-size: 1em;
 }
 .markdown-codeblock-box {
-    -fx-padding: 0 0.5em 0 0.5em;
+    -fx-padding: 0.5em;
     -fx-alignment: CENTER_LEFT;
 }
 .markdown-codeblock-box,
 .markdown-code-background {
-    -fx-padding: 1em;
     -fx-border-radius: 0.5em;
     -fx-border-color: -mdfx-bq-color-border;
     -fx-border-width: 0.5;
     -fx-background-radius: 0.5em;
     -fx-background-color: #FFFFFF05;
+}
+.markdown-codeblock-box {
+    -fx-background-insets: 0.5em;
+    -fx-border-insets: 0.5em;
+}
+.markdown-codeblock-box {
+    -fx-padding: 1em;
 }
 
 .markdown-code-anti-padding {

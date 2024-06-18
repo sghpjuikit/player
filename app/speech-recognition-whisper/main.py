@@ -256,7 +256,7 @@ Args:
 # args
 (argWake, (name, wake_words)) = arg('wake-word', 'system', wake_words_and_name)
 write(name + " booting up...")
-(argSysParentProcess, sysParentProcess) = arg('parent-process', -1, lambda it: int(it))
+(argSysParentProcess, sysParentProcess) = arg('parent-process', '-1', lambda it: int(it))
 sysTerminating = False
 sysCacheDir = "cache"
 if not os.path.exists(sysCacheDir): os.makedirs(sysCacheDir)

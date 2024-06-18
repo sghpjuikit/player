@@ -134,11 +134,11 @@ class Mic(Actor):
         return None
 
     def get_microphone_names(self) -> [str]:
-        names = []
+        names = set()
         for d in sd.query_devices():
             if d['name'] is not None and d['max_input_channels'] > 0:
-                names.append(d['name'])
-        return names
+                names.add(d['name'])
+        return list(names)
 
     def rms(self, buffer, sample_width) -> float:
         if sample_width == 1: fmt = "<%dB" % len(buffer)

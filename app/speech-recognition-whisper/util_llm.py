@@ -167,7 +167,7 @@ class Llm(Actor):
 
             # speak generated text or fallback if error
             if isinstance(e, ChatReact):
-                self.speak(e.fallback if text is None else text, ctx.location)
+                self.speak(e.fallback if text is None else text.strip('\'" '), ctx.location)
                 self.api.showEmote(e.userPromptRaw, ctx)
 
             # run generated command or unidentified if error

@@ -67,24 +67,16 @@ def chain(*iterators):
     return ichain(*iterators)
 
 
-def progress(iterator_has_started: Callable[[], bool], iterator):
-    """Returns the specified iterator with prepended elements for progress until first element is evaluated"""
+def progress():
+    """Returns the iterator with progress indicator elements"""
     bs = 0
-    while not iterator_has_started():
-        for _ in range(10):
-            if not iterator_has_started(): sleep(0.0125)
-            else: break
-        if bs>0: yield '\b\b\b'
+    while True:
         bs = bs + 1
         if bs % 5 == 1: yield '.  '
         if bs % 5 == 2: yield '.. '
         if bs % 5 == 3: yield '...'
         if bs % 5 == 4: yield ' ..'
         if bs % 5 == 0: yield '  .'
-
-    if bs>0: yield '\b\b\b'
-    yield from iterator
-
 
 def words(text: str):
     words = iter(text.split(' '))

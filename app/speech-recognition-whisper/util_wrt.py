@@ -1,8 +1,10 @@
 from typing import TextIO, AnyStr, List
-from contextlib import contextmanager
 from collections.abc import Iterator
 from util_actor import Actor
 from imports import *
+from util_itr import progress
+from util_now import wait_until
+from time import sleep
 import threading
 import sys
 
@@ -16,10 +18,22 @@ class Writer(Actor):
         self.stdout.switchStdout()
         self.write = self
         self.write(f"RAW: {self.name} starting")
+        self.busy_status = set()
+        self._progress_suffix = ''
+        self._last_progress_suffix = ''
 
     def __call__(self, event: str | Iterator | object):
         if not getattr(self.suppress, 'var', False):
             self.queue.put(event)
+
+    @contextmanager
+    def active(self):
+        try:
+            id = object()
+            self.busy_status.add(id)
+            yield
+        finally:
+            self.busy_status.remove(id)
 
     @contextmanager
     def suppressed(self):
@@ -32,15 +46,42 @@ class Writer(Actor):
     def suppressOutput(self, suppress: bool):
         self.suppress.var = suppress
 
+    def start(self):
+        super().start()
+        Thread(target=self._progress_loop, daemon=True).start()
+
+    def _progress_loop(self):
+        progress_bar = progress()
+        while True:
+            if self.busy_status:
+                try: self._progress_suffix = next(progress_bar)
+                except StopIteration: break
+            else:
+                self._progress_suffix = ''
+            sleep(0.125)
+
     def _loop(self):
 
         def print(s, end):
-            self.stdout.stdout.write(s)
-            self.stdout.stdout.write(end)
+            ps = self._progress_suffix
+            self.stdout.stdout.write('\b'*len(self._last_progress_suffix) + s + end + ps)
             self.stdout.stdout.flush()
+            self._last_progress_suffix = ps
 
         with self._looping():
+            progress_bar = progress()
+
             while not self._stop:
+                wait_until(lambda: self.busy_status or not self.queue.empty())
+
+                if self.queue.empty():
+                    print('', '')
+                    while self.busy_status and self.queue.empty():
+                        try: print('', '')
+                        except StopIteration: break
+                        sleep(0.125)
+                    print('', '')
+
                 with self._loopProcessEvent() as event:
                     if event is None:
                         break
@@ -52,6 +93,7 @@ class Writer(Actor):
                         print('', end='\n')
                     else:
                         print(str(event), end='\n')
+
 
     def stop(self):
         self.stdout.switchStdoutBack()

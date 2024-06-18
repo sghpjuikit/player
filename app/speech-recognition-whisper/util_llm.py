@@ -1,18 +1,16 @@
-import os.path
-import sys
-import traceback
 
-from imports import *
-from util_paste import pasteTokens
-from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
 import gpt4all.gpt4all
-from util_itr import teeThreadSafe, teeThreadSafeEager, progress, chain
+import os.path
+from gpt4all import GPT4All  # https://docs.gpt4all.io/index.html
+from util_itr import teeThreadSafe, teeThreadSafeEager, chain
+from util_paste import pasteTokens
 from util_actor import Actor
 from util_wrt import Writer
 from util_tts import Tts
 from util_fut import *
 from util_str import *
 from util_ctx import *
+from imports import *
 
 class ChatProceed:
     def __init__(self, sysPrompt: str, userPrompt: str | None):
@@ -153,6 +151,14 @@ class Llm(Actor):
         self.generating = False
         self.commandExecutor: Callable[[str, Ctx], str] = None
 
+    @contextmanager
+    def _active(self):
+        try:
+            self.generating = True
+            yield
+        finally:
+            self.generating = False
+
     def __call__(self, e: ChatProceed, ctx: Ctx = CTX) -> Future[str]:
 
         def on_done(future):
@@ -237,38 +243,34 @@ class LlmGpt4All(Llm):
             while not self._stop:
                 with self._loopProcessEvent() as (e, f):
                     if e is None: break
-
-                    isCommand = isinstance(e, ChatIntentDetect)
-                    isCommandWrite = isCommand and cast(ChatIntentDetect, e).writeTokens
                     try:
-                        with llm.chat_session():
-                            llm._history = e.messages   # overwrite system prompt & history
-                            self.generating = True
-                            stop = []
-                            text = ''
-                            def process(token_id, token_string):
-                                nonlocal text, stop
-                                text = text + token_string
-                                return not self._stop and self.generating and not contains_any(text, stop, False)
-                            tokens = llm.generate(
-                                e.userPrompt, streaming=True,
-                                max_tokens=self.maxTokens, top_p=self.topp, top_k=self.topk, temp=self.temp,
-                                callback=process
-                            )
-                            consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(tokens, 4)
-                            if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
-                            if isCommandWrite: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
-                            if e.speakTokens: self.speak(tokensSpeech, CTX.location)
-                            e.processTokens(tokensAlt)
-                            consumer()
-                            canceled = self.generating is False
-                            text = ''.join(tokensText)
-                            f.set_result((text, canceled))
+                        with self._active():
+                            with self.write.active():
+                                with llm.chat_session():
+                                    llm._history = e.messages   # overwrite system prompt & history
+                                    self.generating = True
+                                    stop = []
+                                    text = ''
+                                    def process(token_id, token_string):
+                                        nonlocal text, stop
+                                        text = text + token_string
+                                        return not self._stop and self.generating and not contains_any(text, stop, False)
+                                    tokens = llm.generate(
+                                        e.userPrompt, streaming=True,
+                                        max_tokens=self.maxTokens, top_p=self.topp, top_k=self.topk, temp=self.temp,
+                                        callback=process
+                                    )
+                                    consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(tokens, 4)
+                                    if e.writeTokens: self.write(chain([e.outStart], [e.outCont], tokensWrite, [e.outEnd]))
+                                    if e.speakTokens: self.speak(tokensSpeech, CTX.location)
+                                    e.processTokens(tokensAlt)
+                                    consumer()
+                                    canceled = self.generating is False
+                                    text = ''.join(tokensText)
+                                    f.set_result((text, canceled))
                     except Exception as x:
                         f.set_exception(x)
                         raise x
-                    finally:
-                        self.generating = False
 
 
 # home https://github.com/openai/openai-python
@@ -297,34 +299,31 @@ class LlmHttpOpenAi(Llm):
             while not self._stop:
                 with self._loopProcessEvent() as (e, f):
                     if e is None: break
-
-                    isCommand = isinstance(e, ChatIntentDetect)
-                    isCommandWrite = isCommand and cast(ChatIntentDetect, e).writeTokens
                     try:
-                        self.generating = True
+                        with self._active():
+                            with self.write.active():
 
-                        def process():
-                            stream = client.chat.completions.create(
-                                model=self.modelName, messages=e.messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
-                                stream=True, timeout=Timeout(5.0),
-                                stop = [],
-                            )
-                            try:
-                                for chunk in stream:
-                                    if self._stop or not self.generating: break
-                                    if chunk.choices[0].delta.content is not None: yield chunk.choices[0].delta.content
-                            finally:
-                                stream.response.close()
+                                def process():
+                                    stream = client.chat.completions.create(
+                                        model=self.modelName, messages=e.messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
+                                        stream=True, timeout=Timeout(5.0),
+                                        stop = [],
+                                    )
+                                    try:
+                                        for chunk in stream:
+                                            if self._stop or not self.generating: break
+                                            if chunk.choices[0].delta.content is not None: yield chunk.choices[0].delta.content
+                                    finally:
+                                        stream.response.close()
 
-                        consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(process(), 4)
-                        if not isCommand and e.writeTokens: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
-                        if isCommandWrite: self.write(chain([e.outStart], progress(consumer.hasStarted, chain([e.outCont], tokensWrite)), [e.outEnd]))
-                        if e.speakTokens: self.speak(tokensSpeech, CTX.location)
-                        e.processTokens(tokensAlt)
-                        consumer()
-                        canceled = self.generating is False
-                        text = ''.join(tokensText)
-                        f.set_result((text, canceled))
+                                consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(process(), 4)
+                                if e.writeTokens: self.write(chain([e.outStart], [e.outCont], tokensWrite, [e.outEnd]))
+                                if e.speakTokens: self.speak(tokensSpeech, CTX.location)
+                                e.processTokens(tokensAlt)
+                                consumer()
+                                canceled = self.generating is False
+                                text = ''.join(tokensText)
+                                f.set_result((text, canceled))
 
                     except Exception as e:
                         f.set_exception(e)
@@ -335,5 +334,3 @@ class LlmHttpOpenAi(Llm):
                         else:
                             print_exc()
                             raise e
-                    finally:
-                        self.generating = False

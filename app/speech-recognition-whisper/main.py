@@ -37,6 +37,7 @@ faulthandler.enable()
 # print engine actor, non-blocking
 write = Writer()
 write.start()
+write.busy_status.add(1)
 
 # help
 showHelp = '--help' in sys.argv or '-h' in sys.argv
@@ -334,9 +335,8 @@ tts = Tts(ttsOn, speakEngine, audioOutDef, write)
 
 
 # llm actor, non-blocking
-llm = LlmNone(tts, write)
 if llmEngine == 'none':
-    pass
+    llm = LlmNone(tts, write)
 elif llmEngine == "gpt4all":
     llm = LlmGpt4All(
         llmGpt4AllModelName, "models-gpt4all",
@@ -350,7 +350,7 @@ elif llmEngine == "openai":
         llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
     )
 else:
-    pass
+    llm = LlmNone(tts, write)
 
 
 # assist
@@ -637,7 +637,8 @@ def install_exit_handler():
     signal.signal(signal.SIGABRT, stop)
 
 def install_on_bootup_invoke():
-    wait_until(0.1, lambda: all(actor.state_active() for actor in actors))
+    wait_until(lambda: all(actor.state_active() for actor in actors))
+    write.busy_status.remove(1)
     llm(ChatReact(llmSysPrompt, "You booted up. Use 4 words or less.", f"{name} online"))
 
 def install_on_bootup():

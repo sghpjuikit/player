@@ -1,7 +1,6 @@
 package sp.it.pl.ui.objects.window.stage
 
-import sp.it.util.ui.screenXy
-import sp.it.pl.core.CoreMouse.onMouseMoveStop
+import sp.it.pl.core.CoreMouse.onNextMouseMoveStop
 import javafx.stage.Window as WindowFx
 import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
 import sp.it.pl.main.AppSettings.ui.window as confWindow
@@ -23,7 +22,6 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
-import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
@@ -444,7 +442,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             fun showing() = showValue
             fun hide() = if (showValue==1.0) hider() else Unit
             fun show() = if (showValue==0.0 && windowsFx.none { it.isOverlayWindow() } && osHasWindowExclusiveFullScreen()!=TRUE) shower() else Unit
-            fun showWithDelay() = if (showValue==0.0) onMouseMoveStop(150.millis, dockHoverDelay.value) { if (!it) show() } else Unit
+            fun showWithDelay() = if (showValue==0.0) onNextMouseMoveStop(150.millis, dockHoverDelay.value) { if (!it) show() } else Unit
             fun showInitially() = showAnim.applyAt(0.0).toUnit()
 
             init {

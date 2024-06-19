@@ -1,36 +1,30 @@
 package sp.it.pl.core
 
-import com.sun.javafx.embed.swing.SwingNodeHelper
+import java.util.Objects
 import javafx.geometry.Point2D
-import sp.it.util.math.P
-import sp.it.util.math.max
-import sp.it.util.ui.toP
+import javafx.scene.input.MouseButton
 import javafx.scene.robot.Robot
 import javafx.stage.Screen
 import javafx.util.Duration
 import kotlin.math.PI
-import sp.it.util.async.coroutine.FX
-import sp.it.util.async.coroutine.launch
 import kotlin.math.atan2
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
-import sp.it.pl.core.CoreMouse.mousePosition
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.executor.FxTimer
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.util.async.runFX
+import sp.it.util.collections.materialize
 import sp.it.util.collections.readOnly
+import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfNotFxThread
+import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
-import sp.it.util.reactive.on
 import sp.it.util.reactive.Subscription
-import sp.it.util.functional.runTry
+import sp.it.util.reactive.on
 import sp.it.util.units.div
 import sp.it.util.units.seconds
-import sp.it.util.collections.materialize
 
-/** Provides access to mouse position and mouse speed. By default, lazy, i.e., consumes resources only if observed. */
+/** API to access mouse. Use only on `JavaFX Application Thread` unless specified otherwise. */
 object CoreMouse: Core {
    private const val pulseFrequency = 10 // Hz
    private var pulse: FxTimer? = null
@@ -42,6 +36,31 @@ object CoreMouse: Core {
 
    /** @return mouse position in screen coordinates */
    val mousePosition: Point2D get() = robot.mousePosition
+
+   /** [Robot.mouseMove] */
+   fun mouseMove(location: Point2D) {
+      robot.mouseMove(location)
+   }
+
+   /** [Robot.mousePress] */
+   fun mousePress(vararg buttons: MouseButton) {
+      robot.mousePress(*buttons)
+   }
+
+   /** [Robot.mouseRelease] */
+   fun mouseRelease(vararg buttons: MouseButton) {
+      robot.mouseRelease(*buttons)
+   }
+
+   /** [Robot.mouseClick] */
+   fun mouseClick(vararg buttons: MouseButton) {
+      robot.mouseClick(*buttons)
+   }
+
+   /** [Robot.mouseWheel] */
+   fun mouseWheel(wheelAmt: Int) {
+      robot.mouseWheel(wheelAmt)
+   }
 
    /** Observe mouse position in screen coordinates. */
    fun observeMousePosition(action: (Point2D) -> Unit): Subscription {
@@ -107,7 +126,8 @@ object CoreMouse: Core {
     * During initial [delayStart] the mouse movement is ignored, this gives user time to stabilize mouse position.
     * The behavior is delayed not shorter than [delayStart].
     */
-   fun onMouseMoveStop(delayStart: Duration, delayStop: Duration, block: (Boolean) -> Unit) {
+   @ThreadSafe
+   fun onNextMouseMoveStop(delayStart: Duration, delayStop: Duration, block: (Boolean) -> Unit) {
       launch(FX) {
          delay(delayStart.toMillis().toLong())
          val p = mousePosition

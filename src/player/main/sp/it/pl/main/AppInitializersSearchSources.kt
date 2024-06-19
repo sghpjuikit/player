@@ -18,7 +18,6 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.sync1If
-import sp.it.util.system.Os
 import sp.it.util.type.isEnum
 import sp.it.util.type.raw
 import sp.it.util.ui.hBox
@@ -31,12 +30,12 @@ fun AppSearch.initApp() = APP.apply {
 
    data class OsAction(val name: String, val icon: Glyph, val action: () -> Unit)
    val osActions = sequenceOf(
-      OsAction("Sleep",     IconWH.MOON_27)            { Os.sleep().ifErrorDefault() },
-      OsAction("Hibernate", IconWH.MOON_THIRD_QUARTER) { Os.hibernate().ifErrorDefault() },
-      OsAction("Shutdown",  IconWH.MOON_14)            { Os.shutdown().ifErrorDefault() },
-      OsAction("Restart",   IconWH.MOON_0)             { Os.restart().ifErrorDefault() },
-      OsAction("Lock",      IconFA.LOCK)               { Os.lock().ifErrorDefault() },
-      OsAction("Log off",   IconMD.LOGOUT)             { Os.logOff().ifErrorDefault() },
+      OsAction("Sleep",     IconWH.MOON_27)            { APP.os.sleep().ifErrorDefault() },
+      OsAction("Hibernate", IconWH.MOON_THIRD_QUARTER) { APP.os.hibernate().ifErrorDefault() },
+      OsAction("Shutdown",  IconWH.MOON_14)            { APP.os.shutdown().ifErrorDefault() },
+      OsAction("Restart",   IconWH.MOON_0)             { APP.os.restart().ifErrorDefault() },
+      OsAction("Lock",      IconFA.LOCK)               { APP.os.lock().ifErrorDefault() },
+      OsAction("Log off",   IconMD.LOGOUT)             { APP.os.logOff().ifErrorDefault() },
    )
    sources += AppSearch.Source("Os actions") { osActions } by { it.name } toSource {
       Entry.of(

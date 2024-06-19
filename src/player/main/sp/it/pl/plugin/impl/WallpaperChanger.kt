@@ -42,7 +42,7 @@ class WallpaperChanger: PluginBase() {
    private fun load(f: File?) {
       val size = largestScreenSize()
       runVT {
-         if (f!=null && isRunning) Os.changeWallpaper(f)
+         if (f!=null && isRunning) APP.os.changeWallpaper(f)
          ImageStandardLoader.memoized(cacheId)(f, size, OUTSIDE, true)
       } ui {
          wallpaperImageW.value = it

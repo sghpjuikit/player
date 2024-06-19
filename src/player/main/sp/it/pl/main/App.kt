@@ -27,6 +27,7 @@ import sp.it.pl.core.CoreInstances
 import sp.it.pl.core.CoreLogging
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
+import sp.it.pl.core.CoreOs
 import sp.it.pl.core.CoreOshi
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerJson
@@ -242,12 +243,14 @@ class App: Application(), GlobalConfigDelegator {
    val instanceInfo = InstanceDescription()
    /** Instance description fields core. */
    val classFields = ObjectFieldMap.DEFAULT
-   /** Context menus core. */
-   val contextMenus = CoreMenus
+   /** OS core. */
+   val os = CoreOs
    /** Mouse core. */
    val mouse = CoreMouse
    /** Object functions core. */
    val functors = CoreFunctors
+   /** Context menus core. */
+   val contextMenus = CoreMenus
 
    /** Listener for system events, such as USB add/remove. */
    val sysEvents = AppSystemEvents()

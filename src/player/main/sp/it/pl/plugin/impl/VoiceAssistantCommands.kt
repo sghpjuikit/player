@@ -41,8 +41,6 @@ import sp.it.util.functional.flatten
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
-import sp.it.util.system.Os
-import sp.it.util.system.Os.WINDOWS
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.equalsNc
 import sp.it.util.text.keys
@@ -342,27 +340,27 @@ suspend fun SpeakContext.voiceCommandOpenWidget(text: String): ComMatch =
 
 suspend fun SpeakContext.voiceCommandOsShutdown(text: String): ComMatch =
    if (!matches(text)) null
-   else confirming("Do you really wish to shut down computer?", "yes", ui = true) { Os.shutdown().map { null }.mapError { it.localizedMessage } }
+   else confirming("Do you really wish to shut down computer?", "yes", ui = true) { APP.os.shutdown().map { null }.mapError { it.localizedMessage } }
 
 suspend fun SpeakContext.voiceCommandOsRestart(text: String): ComMatch =
    if (!matches(text)) null
-   else confirming("Do you really wish to restart computer?", "yes", ui = true) { Os.restart().map { null }.mapError { it.localizedMessage } }
+   else confirming("Do you really wish to restart computer?", "yes", ui = true) { APP.os.restart().map { null }.mapError { it.localizedMessage } }
 
 suspend fun SpeakContext.voiceCommandOsSleep(text: String): ComMatch =
    if (!matches(text)) null
-   else confirming("Do you really wish to sleep computer?", "yes", ui = true) { Os.sleep().map { null }.mapError { it.localizedMessage } }
+   else confirming("Do you really wish to sleep computer?", "yes", ui = true) { APP.os.sleep().map { null }.mapError { it.localizedMessage } }
 
 suspend fun SpeakContext.voiceCommandOsHibernate(text: String): ComMatch =
    if (!matches(text)) null
-   else confirming("Do you really wish to hibernate computer?", "yes", ui = true) { Os.hibernate().map { null }.mapError { it.localizedMessage } }
+   else confirming("Do you really wish to hibernate computer?", "yes", ui = true) { APP.os.hibernate().map { null }.mapError { it.localizedMessage } }
 
 suspend fun SpeakContext.voiceCommandOsLogOff(text: String): ComMatch =
    if (!matches(text)) null
-   else confirming("Do you really wish to logOff computer?", "yes", ui = true) { Os.logOff().map { null }.mapError { it.localizedMessage } }
+   else confirming("Do you really wish to logOff computer?", "yes", ui = true) { APP.os.logOff().map { null }.mapError { it.localizedMessage } }
 
 fun SpeakContext.voiceCommandOsLock(text: String): ComMatch =
    if (!matches(text)) null
-   else Os.lock().map { null }.mapError { it.localizedMessage }
+   else APP.os.lock().map { null }.mapError { it.localizedMessage }
 
 fun SpeakContext.voiceCommandSetReminder(text: String): ComMatch =
    if (handler.regex.matches(text)) {

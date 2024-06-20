@@ -50,7 +50,7 @@ import sp.it.util.type.typeOrNothing
  *
  * @param <T> type of value of this config
  */
-abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Config<T>> {
+abstract class Config<T>: WritableValue<T>, Configurable<T>, ConstrainedRead<T>, Constrained<T, Config<T>> {
 
    abstract override fun getValue(): T
 
@@ -102,7 +102,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
       !type.raw.net { it==Void::class || it==Nothing::class || (type.isNotNull && (it==Unit::class || it==Nothing::class || it.isObject)) }
 
    /** Limits put on this value or markers that signify certain treatment of it. */
-   abstract val constraints: Set<Constraint<T>>
+   abstract override val constraints: Set<Constraint<T>>
 
    @Experimental("Expert API, mutates state")
    abstract fun addConstraints(vararg constraints: Constraint<T>): Config<T>

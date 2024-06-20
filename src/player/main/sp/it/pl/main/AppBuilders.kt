@@ -98,6 +98,7 @@ import sp.it.util.collections.materialize
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.ConstrainedRead
 import sp.it.util.conf.Constraint.RepeatableAction
 import sp.it.util.conf.ValueConfig
 import sp.it.util.conf.nonEmpty
@@ -113,6 +114,7 @@ import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Option
 import sp.it.util.functional.Try
+import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.consumer
 import sp.it.util.functional.invoke
@@ -754,7 +756,7 @@ fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_
       }.apply {
          editorUi syncBiFrom APP.ui.formLayout on onHidden.asDisposer()
          onExecuteDone = {
-            val needsClose = it.isOk && isShowing && !(this@configure is Config<*> && this@configure.hasConstraint<RepeatableAction>())
+            val needsClose = it.isOk && isShowing && this@configure.asIf<ConstrainedRead<*>>()?.constraints?.any { it is RepeatableAction }==false
             if (needsClose) hide()
          }
       }

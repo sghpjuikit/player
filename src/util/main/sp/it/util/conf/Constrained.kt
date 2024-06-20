@@ -40,6 +40,11 @@ import sp.it.util.file.FileType
 import sp.it.util.functional.toUnit
 import sp.it.util.type.InstanceMap
 
+interface ConstrainedRead<T> {
+   /** Limits put on this value or markers that signify certain treatment of it. */
+   val constraints: Set<Constraint<T>>
+}
+
 interface Constrained<T, THIS: Any> {
    fun addConstraint(constraint: Constraint<T>): THIS
    fun constrain(block: ConstrainedDsl<T>.() -> Unit): THIS {

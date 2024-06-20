@@ -61,19 +61,29 @@ class Stt(Actor):
     def _get_event_text(self, e: EventStt) -> str | None:
         return f"AudioData({e.start}, {e.stop})"
 
-    def _loopWaitTillReady(self):
+    def _loopWaitTillReady(self) -> bool:
         while not self.enabled:
-            self._clear_queue()
-            if self._stop: return
+            self._complete_queued_as_stopped()
+            if self._stop: return True
             sleep(0.1)
+        return False
 
+    def _complete_queued_as_stopped(self):
+        while not self.queue.empty():
+            a = self.queue.get()
+            a.future.set_exception(Exception(f"{self.group} stopped"))
 
 class SttNone(Stt):
     def __init__(self, write: Writer, enabled: bool):
         super().__init__('SttNone', "cpu", write, enabled, 16000)
 
     def _loop(self):
-        self._loopLoadAndIgnoreEvents()
+        self._loaded = True
+        while not self._stop:
+            with self._loopProcessEvent() as a:
+                if e is None: break
+                f.set_exception(Exception(f"{self.group} disabled"))
+        self._complete_queued_as_stopped()
 
     def _loop(self):
         self._loaded = True
@@ -96,7 +106,7 @@ class SttWhisper(Stt):
         self.device = device
 
     def _loop(self):
-        self._loopWaitTillReady()
+        if self._loopWaitTillReady(): return
 
         # initialize
         import whisper
@@ -135,7 +145,7 @@ class SttWhisperS2T(Stt):
         self.device = device
 
     def _loop(self):
-        self._loopWaitTillReady()
+        if self._loopWaitTillReady(): return
 
         # initialize
         import whisper_s2t
@@ -191,7 +201,7 @@ class SttFasterWhisper(Stt):
         self.device = device
 
     def _loop(self):
-        self._loopWaitTillReady()
+        if self._loopWaitTillReady(): return
 
         # initialize
         from faster_whisper import WhisperModel
@@ -239,7 +249,7 @@ class SttNemo(Stt):
         self.device = device
 
     def _loop(self):
-        self._loopWaitTillReady()
+        if self._loopWaitTillReady(): return
 
         # initialize
         import nemo.utils as nemo_utils
@@ -293,7 +303,7 @@ class SttHttp(Stt):
         self.port = port
 
     def _loop(self):
-        self._loopWaitTillReady()
+        if self._loopWaitTillReady(): return
 
         # initialize
         import io, http.client

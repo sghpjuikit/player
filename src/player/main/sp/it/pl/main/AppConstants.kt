@@ -118,7 +118,9 @@ object Events {
          data object AppUnHidden: AppHidingEvent
       }
       sealed interface SystemSleepEvent: AppEvent {
-         /** [java.awt.desktop.SystemSleepListener.systemAboutToSleep]. Raised on FX thread. */
+         /** Happens just before [java.awt.desktop.SystemSleepListener.systemAboutToSleep] if sleep is invoked from this application. Allows reacting to sleep before it happens. Raised on FX thread. */
+         data object Pre: SystemSleepEvent
+         /** [java.awt.desktop.SystemSleepListener.systemAboutToSleep]. May be raised after wake-up, see [Pre]. Raised on FX thread. */
          data object Start: SystemSleepEvent
          /** [java.awt.desktop.SystemSleepListener.systemAwoke]. Raised on FX thread. */
          data object Stop: SystemSleepEvent

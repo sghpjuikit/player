@@ -4,37 +4,23 @@ import com.sun.jna.LastErrorException
 import com.sun.jna.Native
 import com.sun.jna.win32.StdCallLibrary
 import java.io.File
+import org.jetbrains.annotations.Blocking
+import sp.it.pl.main.APP
+import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
+import sp.it.util.async.future.awaitFxOrBlock
+import sp.it.util.async.runFX
 import sp.it.util.dev.fail
 import sp.it.util.functional.Try
 import sp.it.util.functional.runTry
 import sp.it.util.system.Os
-import sp.it.util.system.Os.JnaWallpaper
-import sp.it.util.system.Os.OSX
-import sp.it.util.system.Os.UNIX
-import sp.it.util.system.Os.UNKNOWN
-import sp.it.util.system.Os.WINDOWS
 import sp.it.util.system.execRaw
 
+/** API to access OS. Use only on `JavaFX Application Thread` unless specified otherwise. */
 object CoreOs: Core {
 
-   /** @return the current operating system */
-   val current: Os = run {
-      val prop = { propertyName: String -> System.getProperty(propertyName) }
-      val osName = prop("os.name").lowercase()
-      when {
-         osName.indexOf("win")!=-1 -> WINDOWS
-         osName.indexOf("mac")!=-1 -> OSX
-         osName.startsWith("SunOS") -> UNIX
-         osName.indexOf("nix")!=-1 -> UNIX
-         osName.indexOf("freebsd")!=-1 -> UNIX
-         osName.indexOf("nux")!=-1 && "android"!=prop("javafx.platform") && "Dalvik"!=prop("java.vm.name") -> {
-            UNIX    // Linux without Android
-         }
-         else -> UNKNOWN
-      }
-   }
-
+   /** Sleeps OS. Fires [SystemSleepEvent.Pre] and waits till listeners complete, the sleeps and fires [SystemSleepEvent.Start]. */
    fun sleep(): Try<Unit, Throwable> = runTry {
+      runFX { APP.actionStream(SystemSleepEvent.Pre) }.awaitFxOrBlock()
       when (Os.current) {
          Os.WINDOWS -> Runtime.getRuntime().execRaw("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
          Os.OSX -> Runtime.getRuntime().execRaw("pmset sleepnow")
@@ -43,7 +29,9 @@ object CoreOs: Core {
       }
    }
 
+   /** Hibernates OS. Fires [SystemSleepEvent.Pre] and waits till listeners complete, the sleeps and fires [SystemSleepEvent.Start]. */
    fun hibernate(): Try<Unit, Throwable> = runTry {
+      runFX { APP.actionStream(SystemSleepEvent.Pre) }.awaitFxOrBlock()
       when (Os.current) {
          Os.WINDOWS -> Runtime.getRuntime().execRaw("rundll32.exe powrprof.dll,SetSuspendState Hibernate")
          Os.OSX -> Runtime.getRuntime().execRaw("pmset hibernatemode 25; pmset sleepnow")
@@ -52,6 +40,7 @@ object CoreOs: Core {
       }
    }
 
+   /** Shuts down OS. */
    fun shutdown(): Try<Unit, Throwable> = runTry {
       when (Os.current) {
          Os.WINDOWS -> Runtime.getRuntime().execRaw("shutdown /s /t 0")
@@ -61,6 +50,7 @@ object CoreOs: Core {
       }
    }
 
+   /** Restarts OS. */
    fun restart(): Try<Unit, Throwable> = runTry {
       when (Os.current) {
          Os.WINDOWS -> Runtime.getRuntime().execRaw("shutdown -r -t 0")
@@ -70,6 +60,7 @@ object CoreOs: Core {
       }
    }
 
+   /** Logs off OS user. */
    fun logOff(): Try<Unit, Throwable> = runTry {
       when (Os.current) {
          Os.WINDOWS -> Runtime.getRuntime().execRaw("shutdown -l -t 0")
@@ -79,6 +70,7 @@ object CoreOs: Core {
       }
    }
 
+   /** Locks OS screen. */
    fun lock(): Try<Unit, Throwable> = runTry {
       when (Os.current) {
          Os.WINDOWS -> Runtime.getRuntime().execRaw("Rundll32.exe user32.dll,LockWorkStation")
@@ -88,6 +80,8 @@ object CoreOs: Core {
       }
    }
 
+   /** Changes OS screewallpaper. */
+   @Blocking
    @Suppress("LocalVariableName", "SpellCheckingInspection")
    fun changeWallpaper(file: File): Try<Unit, Throwable> = runTry {
       when (Os.current) {

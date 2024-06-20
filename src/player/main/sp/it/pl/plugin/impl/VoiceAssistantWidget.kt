@@ -167,7 +167,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            ConfigPane(
                               ListConfigurable.heterogeneous(
                                  plugin.value
-                                    ?.net { listOf(it::audioOuts, it::ttsOn, it::ttsOn, it::ttsEngine, it::ttsEngineDetails) }
+                                    ?.net { listOf(it::ttsOn, it::ttsEngine, it::ttsEngineDetails, it::audioOuts) }
                                     .orEmpty()
                                     .map { it.getDelegateConfig() }
                               )

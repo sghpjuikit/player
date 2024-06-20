@@ -755,11 +755,16 @@ while not sysTerminating:
 
         # changing settings commands
         elif argWake.isArg(m):
-            (name, (name, wake_words)) = argWake(m)
+            wake_wordsOld = ', '.join(wake_words)
+            name, wake_words = argWake(m)
+            wake_wordsNew = ', '.join(wake_words)
+            if wake_wordsOld!=wake_wordsNew:
+                llm(ChatReact(llmSysPrompt, f"User changed how he calls you from `{wake_wordsOld}` to `{wake_wordsNew}`", 'Wake word changed'))
 
         elif argMainSpeaker.isArg(m):
             mainSpeaker = argMainSpeaker(m)
             CTX.speaker = mainSpeaker
+            llm(ChatReact(llmSysPrompt, f"User turned {'on' if e else 'off'} microphone input", "Microphone {'on' if e else 'off'}"))
 
         elif argMainLocation.isArg(m):
             mainLocation = argMainLocation(m)

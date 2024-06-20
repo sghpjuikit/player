@@ -368,29 +368,38 @@ fun String.decapital() = replaceFirstChar { it.lowercase() }
 
 fun String.decapitalUpper() = uppercase().replaceFirstChar { it.lowercase(Locale.getDefault()) }
 
-/** @return this string with eny backspace characters applied (see [String.concatApplyBackspace]) */
+/** @return this string with any backspace characters applied (see [String.concatApplyBackspace]) */
 fun String.applyBackspace(): String = "".concatApplyBackspace(this)
 
 /** @return concatenation of the two stirngs with `\b` (backspace) and `\r` (remove line) characters in the 2nd applied */
-fun String.concatApplyBackspace(str: String): String {
-   val result = StringBuilder(this)
+fun String.concatApplyBackspace(str: String): String =
+   StringBuilder(this).concatApplyBackspace(str).toString()
+
+/** @return this string with any backspace characters applied (see [String.concatApplyBackspace]) */
+fun StringBuilder.applyBackspace(): StringBuilder {
+   val s = toString()
+   return clear().concatApplyBackspace(s)
+}
+
+/** @return concatenation of the two stirngs with `\b` (backspace) and `\r` (remove line) characters in the 2nd applied */
+fun StringBuilder.concatApplyBackspace(str: String): StringBuilder {
    val b = "\b".codePointAt(0)
    val r = "\r".codePointAt(0)
    str.chars32().map { it.value }.forEach {
       if (it == b) {
-         val e = result.isEmpty()
-         if (!e) result.deleteCharAt(result.length - 1)
-         else result.appendCodePoint(it)
+         val e = this.isEmpty()
+         if (!e) this.deleteCharAt(this.length - 1)
+         else this.appendCodePoint(it)
       }
       if (it == r) {
-         val n = result.lastIndexOf('\n')
-         if (n>=0) result.deleteRange(n+1, result.length)
-         if (n<0) result.clear().appendCodePoint(it)
+         val n = this.lastIndexOf('\n')
+         if (n >= 0) this.deleteRange(n + 1, this.length)
+         if (n < 0) this.clear().appendCodePoint(it)
       }
-      if (it!=b && it!=r)
-         result.appendCodePoint(it)
+      if (it != b && it != r)
+         this.appendCodePoint(it)
    }
-   return result.toString()
+   return this
 }
 
 /** @return String with each [Char32] transformed with [Char32.toPrintableNonWhitespace] */

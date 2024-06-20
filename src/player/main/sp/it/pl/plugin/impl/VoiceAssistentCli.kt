@@ -1,5 +1,8 @@
 package sp.it.pl.plugin.impl
 
+import sp.it.util.text.concatApplyBackspace
+import sp.it.util.text.toPrintableNonWhitespace
+
 class VoiceAssistentCliReader {
    var state = ""
    var str = StringBuilder("")
@@ -20,19 +23,19 @@ class VoiceAssistentCliReader {
       if ("\n" in s) {
          s.split("\n").dropLast(1).forEach { processSingle(it.un(), onS, onE) }
          str.clear()
-         str.append(s.substringAfterLast("\n").un())
+         str.concatApplyBackspace(s.substringAfterLast("\n").un())
          s.substringAfterLast("\n").un().onS(onS)
       } else {
          val strOld = str.toString()
          str.clear()
-         str.append(strOld + s.un())
+         str.concatApplyBackspace(strOld + s.un())
          state = str.determineState()
          s.un().onS(onS)
       }
    }
 
    fun processSingle(s: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
-      str.append(s)
+      str.concatApplyBackspace(s)
       state = str.determineState()
       if (state.isNotEmpty()) onE(str.toString().substringAfter(": "), state)
       str.clear()

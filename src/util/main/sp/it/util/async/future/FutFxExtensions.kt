@@ -4,6 +4,7 @@ import javafx.application.Platform
 import sp.it.util.async.FX
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.functional.Try
+import sp.it.util.units.uuid
 
 /**
  * Blocks curent [FX] execution after this future completes and returns result or throws exception.
@@ -12,8 +13,11 @@ import sp.it.util.functional.Try
 @Suppress("UNCHECKED_CAST")
 fun <T> Fut<T>.awaitFx(): T {
    failIfNotFxThread()
-   val k = object: Any() {}
-   onDone(FX) { Platform.exitNestedEventLoop(k, it.toTryRaw()) }
+   if (isDone()) return blockAndGetOrThrow()
+   val k = uuid()
+   Platform.runLater {
+      onDone(FX) { Platform.exitNestedEventLoop(k, it.toTryRaw()) }
+   }
    return (Platform.enterNestedEventLoop(k) as Try<T, Throwable>).orThrow
 }
 

@@ -5,6 +5,7 @@ from imports import *
 from util_itr import progress
 from util_now import wait_until
 from time import sleep
+from threading import Lock
 import threading
 import sys
 
@@ -19,7 +20,9 @@ class Writer(Actor):
         self.write = self
         self.write(f"RAW: {self.name} starting")
         self.busy_status = set()
+        self._print_lock = Lock()
         self._progress_suffix = ''
+        self._progress_thread = Thread(target=self._progress_loop, daemon=True)
         self._last_progress_suffix = ''
 
     def __call__(self, event: str | Iterator | object):
@@ -28,6 +31,7 @@ class Writer(Actor):
 
     @contextmanager
     def active(self):
+        'yield action and print progress indicator until it is done'
         try:
             id = object()
             self.busy_status.add(id)
@@ -37,6 +41,7 @@ class Writer(Actor):
 
     @contextmanager
     def suppressed(self):
+        'yield action and avoid logging on current thread until it is done'
         try:
             self.suppress.var = True
             yield
@@ -48,55 +53,53 @@ class Writer(Actor):
 
     def start(self):
         super().start()
-        Thread(target=self._progress_loop, daemon=True).start()
+        self._progress_thread.start()
+        Thread(target=self._loop_progress, daemon=True).start()
 
-    def _progress_loop(self):
-        progress_bar = progress()
-        while True:
-            if self.busy_status:
-                try: self._progress_suffix = next(progress_bar)
-                except StopIteration: break
-            else:
-                self._progress_suffix = ''
-            sleep(0.125)
+    def stop(self):
+        super().stop()
+        self.stdout.switchStdoutBack()
 
-    def _loop(self):
-
-        def print(s, end):
+    def _print(self, s, end):
+        with self._print_lock:
             ps = self._progress_suffix
             self.stdout.stdout.write('\b'*len(self._last_progress_suffix) + s + end + ps)
             self.stdout.stdout.flush()
             self._last_progress_suffix = ps
 
+    def _loop_progress(self):
+        # generate progress suffixes
+        progress_suffixes = progress()
+        # update progress regularly
+        while not self._stop:
+            # update progress suffix
+            if self.busy_status:
+                try: self._progress_suffix = next(progress_suffixes)
+                except StopIteration: break
+            else:
+                self._progress_suffix = ''
+            # update progress
+            if self._last_progress_suffix!=self._progress_suffix: self._print('', end='')
+            # next cycle
+            sleep(0.125)
+        # clear progress
+        self._progress_suffix = ''
+        self._print('', end='')
+
+    def _loop(self):
         with self._looping():
-            progress_bar = progress()
-
             while not self._stop:
-                wait_until(lambda: self.busy_status or not self.queue.empty())
-
-                if self.queue.empty():
-                    print('', '')
-                    while self.busy_status and self.queue.empty():
-                        try: print('', '')
-                        except StopIteration: break
-                        sleep(0.125)
-                    print('', '')
-
                 with self._loopProcessEvent() as event:
                     if event is None:
                         break
                     elif isinstance(event, str):
-                        print(event.replace('\n', '\u2028'), end='\n')
+                        self._print(event.replace('\n', '\u2028'), end='\n')
                     elif isinstance(event, Iterator):
-                        for eventPart in event:
-                            print(eventPart.replace('\n', '\u2028'), end='')
-                        print('', end='\n')
+                        for eventPart in event: self._print(eventPart.replace('\n', '\u2028'), end='')
+                        self._print('', end='\n')
                     else:
-                        print(str(event), end='\n')
+                        self._print(str(event), end='\n')
 
-
-    def stop(self):
-        self.stdout.switchStdoutBack()
 
     class StdoutWrapper:
         def __init__(self, queue):

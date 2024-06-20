@@ -11,11 +11,9 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
-import javafx.scene.paint.Color
 import javafx.scene.paint.Color.BLACK
 import javafx.stage.Screen
 import javafx.stage.Stage
-import javafx.stage.StageStyle
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST
 import javax.imageio.ImageIO
@@ -97,7 +95,6 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.Os
 import sp.it.util.system.browse
-import sp.it.util.system.runCommand
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.type.type
@@ -333,20 +330,6 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
             properties[APP_SEARCH] = APP_SEARCH
             show(SCREEN_ACTIVE(CENTER))
          }
-      }
-   }
-
-   @IsAction(name = "Run system command", info = "Runs command just like in a system's shell's command line.", global = true)
-   fun runCommand() {
-      configureString("Run system command", "Command") {
-         runCommand(it)
-      }
-   }
-
-   @IsAction(name = "Run as app argument", info = "Equivalent of launching this application with the command as a parameter.")
-   fun runAppCommand() {
-      configureString("Run app command", "Command") {
-         APP.parameterProcessor.process(listOf(it))
       }
    }
 

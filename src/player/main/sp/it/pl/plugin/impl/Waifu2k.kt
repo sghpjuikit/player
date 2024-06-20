@@ -4,7 +4,7 @@ import java.io.File
 import sp.it.pl.main.APP
 import sp.it.pl.main.configure
 import sp.it.pl.main.isImage
-import sp.it.pl.main.runAsAppProgram
+import sp.it.pl.main.runAsProgramWithOutput
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.objects.form.Validated
@@ -63,7 +63,7 @@ class Waifu2k: PluginBase() {
             else -> Try.ok()
          }
       }.configure("Upscale image (waifu2k)...") { c ->
-         waiffuDir.value?.runAsAppProgram(
+         waiffuDir.value?.runAsProgramWithOutput(
             """Upscale image "${c.source.value?.absolutePath}"""",
             "-i", c.source.value!!.absolutePath,
             "-o", c.destination.value!!.absolutePath,

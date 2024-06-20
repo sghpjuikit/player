@@ -102,15 +102,11 @@ fun File.runAsProgram(vararg arguments: String, then: (ProcessBuilder) -> Unit =
  * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
  */
 @ThreadSafe @JvmOverloads
-fun runCommand(command: String, then: (Process) -> Unit = {}): Fut<Try<Process, Exception>> {
+fun runCommand(command: String, then: (Process) -> Unit = {}): Fut<Process> {
    return runVT {
-      try {
-         val process = Runtime.getRuntime().execRaw(command).apply(then)
-         Try.ok(process)
-      } catch (e: IOException) {
-         logger.error(e) { "Error running command '$command'" }
-         Try.error(e)
-      }
+      Runtime.getRuntime().execRaw(command).apply(then)
+   }.onError {
+      logger.error(it) { "Error running command '$command'" }
    }
 }
 

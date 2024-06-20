@@ -17,7 +17,7 @@ import oshi.hardware.CentralProcessor
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.configure
-import sp.it.pl.main.runAsAppProgram
+import sp.it.pl.main.runAsProgramWithOutput
 import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.icon.Icon
@@ -197,7 +197,7 @@ class GpuNvidiaInfo: StackPane() {
       val gpu = gpu.get()
       if (nvidia!=null && !gpusInitialized) {
          nvidia
-            .runAsAppProgram(
+            .runAsProgramWithOutput(
                "Obtain gpu count",
                "--query-gpu=count",
                "--format=csv,noheader"
@@ -212,7 +212,7 @@ class GpuNvidiaInfo: StackPane() {
       val v = when {
          nvidia==null || !gpusInitialized || gpu !in 0..(gpuCount-1) -> null
          else -> nvidia
-            .runAsAppProgram(
+            .runAsProgramWithOutput(
                "Obtain gpu info",
                "--id=$gpu",
                "--query-gpu=clocks.mem,clocks.max.mem,clocks.sm,clocks.max.sm,clocks.gr,clocks.max.gr,memory.used,memory.total,driver_version,gpu_name,power.draw,power.limit,utilization.gpu",

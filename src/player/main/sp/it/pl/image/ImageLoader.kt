@@ -29,7 +29,7 @@ import sp.it.pl.main.downloadFile
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.reportFor
-import sp.it.pl.main.runAsAppProgram
+import sp.it.pl.main.runAsProgramWithOutput
 import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.util.Util.filenamizeString
 import sp.it.util.async.coroutine.VT
@@ -250,7 +250,7 @@ private fun extractThumb(videoFilename: String, thumbFilename: String, at: Durat
    val ffprobe = ffprobe.getDone().toTry().orNull() ?: fail { "ffprobe not available" }
 
    val durArgs = arrayOf("-v", "quiet", "-print_format", "compact=print_section=0:nokey=1:escape=csv", "-show_entries", "format=duration", videoFilename)
-   val durMax = ffprobe.runAsAppProgram("Obtaining video length", *durArgs).getDone().toTry().orThrow.toDouble().seconds
+   val durMax = ffprobe.runAsProgramWithOutput("Obtaining video length", *durArgs).getDone().toTry().orThrow.toDouble().seconds
       .takeIf { it.toMillis()>0 } ?: Double.MAX_VALUE.millis
    val atClipped = at min durMax
    val args = arrayOf(
@@ -258,7 +258,7 @@ private fun extractThumb(videoFilename: String, thumbFilename: String, at: Durat
       "${atClipped.toHours().toInt()}:${atClipped.toMinutes().toInt()}:${atClipped.toSeconds().toInt()}",
       "-f", "mjpeg", "-an", thumbFilename
    )
-   ffmpeg.runAsAppProgram("Extracting video cover of $videoFilename", *args).getDone()
+   ffmpeg.runAsProgramWithOutput("Extracting video cover of $videoFilename", *args).getDone()
 }
 
 private val ffmpeg by lazy {

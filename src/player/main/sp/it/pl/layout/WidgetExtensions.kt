@@ -10,7 +10,7 @@ import sp.it.pl.layout.ComponentLoaderStrategy.DOCK
 import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.pl.main.configure
-import sp.it.pl.main.runAsAppProgram
+import sp.it.pl.main.runAsProgramWithOutput
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.launch
 import sp.it.util.collections.materialize
@@ -74,7 +74,7 @@ fun ComponentFactory<*>.loadIn(
       NEW_PROCESS -> {
          val f = if (Os.WINDOWS.isCurrent) APP.location.spitplayer_com else APP.location.spitplayer_sh
          val fArgs = (APP.location/"SpitPlayer.l4j.ini").readLines().filter { it.isNotBlank() && !it.startsWith("#") }.toTypedArray()
-         f.runAsAppProgram(
+         f.runAsProgramWithOutput(
             "Launching component ${c.name} in new process",
             *fArgs, "--singleton=false", "--stateless=true", "open-component", c.name
          )
@@ -94,7 +94,7 @@ fun Component.openIn(strategy: ComponentLoaderStrategy, process: ComponentLoader
       NEW_PROCESS -> {
          val f = if (Os.WINDOWS.isCurrent) APP.location.spitplayer_com else APP.location.spitplayer_sh
          val fArgs = (APP.location/"SpitPlayer.l4j.ini").readLines().filter { it.isNotBlank() && !it.startsWith("#") }.toTypedArray()
-         f.runAsAppProgram(
+         f.runAsProgramWithOutput(
             "Launching component ${c.name} in new process",
             *fArgs, "--singleton=false", "--stateless=true", "open-component", c.name
          )

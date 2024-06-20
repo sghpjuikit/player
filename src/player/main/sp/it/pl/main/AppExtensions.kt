@@ -2,7 +2,11 @@ package sp.it.pl.main
 
 import java.io.File
 import java.io.InputStream
+import java.lang.ProcessBuilder.Redirect.DISCARD
+import java.lang.ProcessBuilder.Redirect.INHERIT
 import java.lang.ProcessBuilder.Redirect.PIPE
+import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import javafx.scene.input.DragEvent
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.TransferMode
@@ -37,7 +41,10 @@ import sp.it.util.file.div
 import sp.it.util.functional.ifFalse
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
+import sp.it.util.functional.runTry
+import sp.it.util.system.execRaw
 import sp.it.util.system.runAsProgram
+import sp.it.util.system.runCommand
 import sp.it.util.units.toEM
 
 private val logger = KotlinLogging.logger {}
@@ -161,8 +168,8 @@ fun App.run1AppReady(block: suspend () -> Unit) {
    }
 }
 
-/** Invokes [File.runAsProgram] and if error occurs logs and reports using [AppEventLog]. Returns process result (stdout) or error. */
-fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (ProcessBuilder) -> Unit = {}): Fut<String> {
+/** Invokes [File.runAsProgram] and if error occurs logs and reports using [AppEventLog]. Returns process output. */
+fun File.runAsProgramWithOutput(actionName: String, vararg arguments: String, then: (ProcessBuilder) -> Unit = {}): Fut<String> {
    fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"
    fun doOnError(e: Throwable?, text: String?) {
       logger.error(e) { "$actionName failed.\n${text.wrap()}" }
@@ -181,6 +188,28 @@ fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (Pr
       val success = p.waitFor()
       stdoutListener.block()
       stderrListener.block()
+      if (success!=0) doOnError(null, stdout + stderr)
+      if (success!=0) fail { "Process failed and returned $success" }
+      stdout
+   }
+}
+
+/** Invokes [command] with [Runtime.execRaw] and if error occurs logs and reports using [AppEventLog]. Returns process output. */
+fun runCommandWithOutput(command: String, then: (Process) -> Unit = {}): Fut<String> {
+   fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"
+   fun doOnError(e: Throwable?, text: String?) {
+      logger.error(e) { "`$command` failed.\n${text.wrap()}" }
+      AppEventLog.push("`$command` failed.", text.wrap())
+   }
+
+   return runIO {
+      Runtime.getRuntime().execRaw(command).apply(then)
+   }.onError(IO) {
+      doOnError(it, it.message)
+   }.then(IO) { p: Process ->
+      var stdout = p.inputStream.bufferedReader(UTF_8).readText()
+      var stderr = p.errorStream.bufferedReader(UTF_8).readText()
+      val success = p.waitFor()
       if (success!=0) doOnError(null, stdout + stderr)
       if (success!=0) fail { "Process failed and returned $success" }
       stdout

@@ -19,6 +19,7 @@ import sp.it.pl.core.orMessage
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.main.APP
+import sp.it.pl.main.Bool
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.isAudio
@@ -40,6 +41,7 @@ import sp.it.util.async.coroutine.invokeTry
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
+import sp.it.util.async.future.awaitFxOrBlock
 import sp.it.util.async.runFX
 import sp.it.util.async.runOn
 import sp.it.util.collections.list.DestructuredList
@@ -66,7 +68,6 @@ import sp.it.util.conf.noUi
 import sp.it.util.conf.nonBlank
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
-import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiConverter
 import sp.it.util.conf.uiGeneral
 import sp.it.util.conf.uiNoCustomUnsealedValue
@@ -107,6 +108,7 @@ import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
+import sp.it.util.text.appendSent
 import sp.it.util.text.applyBackspace
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.concatApplyBackspace
@@ -123,9 +125,14 @@ import sp.it.util.units.uuid
 class VoiceAssistant: PluginBase() {
    private val onClose = Disposer()
    private var setup: Fut<Process>? = null
-   private fun setup(): Fut<Process> {
+
+   private fun setup(runLlmServerCommand: String?): Fut<Process> {
+
       fun doOnError(eText: String, e: Throwable?, details: String?) = logger.error(e) { "$eText\n${details.wrap()}" }.toUnit()
       return runOn(NEW("SpeechRecognition-python-starter")) {
+
+         llmOpenAiServerStart(runLlmServerCommand)
+
          val python = dir / "main.py"
          fun audioIns(): String =
             if (mics.isEmpty()) ""
@@ -378,10 +385,10 @@ class VoiceAssistant: PluginBase() {
 
    internal val micVoiceDetectDetails by cv(
       ListConfigurable.heterogeneous(
-         this::micVoiceDetect.getDelegateConfig(),
-         this::micVoiceDetectDevice.getDelegateConfig(),
-         this::micVoiceDetectProb.getDelegateConfig(),
-         this::micVoiceDetectProbDebug.getDelegateConfig()
+         ::micVoiceDetect.getDelegateConfig(),
+         ::micVoiceDetectDevice.getDelegateConfig(),
+         ::micVoiceDetectProb.getDelegateConfig(),
+         ::micVoiceDetectProbDebug.getDelegateConfig()
       )
    ).noPersist().def(
       name = "Microphone > voice detect"
@@ -502,11 +509,11 @@ class VoiceAssistant: PluginBase() {
       sttEngine sync { e ->
          sttEngineDetails.value = when (e) {
             SttEngine.NONE, null -> ListConfigurable.heterogeneous<Any?>()
-            SttEngine.WHISPER -> ListConfigurable.heterogeneous(this::sttWhisperModel.getDelegateConfig(), this::sttWhisperDevice.getDelegateConfig())
-            SttEngine.FASTER_WHISPER -> ListConfigurable.heterogeneous(this::sttFasterWhisperModel.getDelegateConfig(),this::sttFasterWhisperDevice.getDelegateConfig())
-            SttEngine.WHISPER_S2T -> ListConfigurable.heterogeneous(this::sttWhisperSt2Model.getDelegateConfig(), this::sttWhisperSt2Device.getDelegateConfig())
-            SttEngine.NEMO -> ListConfigurable.heterogeneous(this::sttNemoModel.getDelegateConfig(), this::sttNemoDevice.getDelegateConfig())
-            SttEngine.HTTP -> ListConfigurable.heterogeneous(this::sttHttpUrl.getDelegateConfig())
+            SttEngine.WHISPER -> ListConfigurable.heterogeneous(::sttWhisperModel.getDelegateConfig(), ::sttWhisperDevice.getDelegateConfig())
+            SttEngine.FASTER_WHISPER -> ListConfigurable.heterogeneous(::sttFasterWhisperModel.getDelegateConfig(),::sttFasterWhisperDevice.getDelegateConfig())
+            SttEngine.WHISPER_S2T -> ListConfigurable.heterogeneous(::sttWhisperSt2Model.getDelegateConfig(), ::sttWhisperSt2Device.getDelegateConfig())
+            SttEngine.NEMO -> ListConfigurable.heterogeneous(::sttNemoModel.getDelegateConfig(), ::sttNemoDevice.getDelegateConfig())
+            SttEngine.HTTP -> ListConfigurable.heterogeneous(::sttHttpUrl.getDelegateConfig())
          }
       }
    }
@@ -565,8 +572,8 @@ class VoiceAssistant: PluginBase() {
    init {
       ttsEngine sync { e ->
          ttsEngineDetails.value = when (e) {
-            TtsEngine.COQUI -> ListConfigurable.heterogeneous(this::ttsEngineCoquiVoice.getDelegateConfig(), this::ttsEngineCoquiCudaDevice.getDelegateConfig())
-            TtsEngine.HTTP -> ListConfigurable.heterogeneous(this::ttsEngineHttpUrl.getDelegateConfig())
+            TtsEngine.COQUI -> ListConfigurable.heterogeneous(::ttsEngineCoquiVoice.getDelegateConfig(), ::ttsEngineCoquiCudaDevice.getDelegateConfig())
+            TtsEngine.HTTP -> ListConfigurable.heterogeneous(::ttsEngineHttpUrl.getDelegateConfig())
             null, TtsEngine.NONE, TtsEngine.SYSTEM, TtsEngine.TACOTRON2, TtsEngine.SPEECHBRAIN, TtsEngine.FASTPITCH -> ListConfigurable.heterogeneous<Any?>()
          }
       }
@@ -601,13 +608,61 @@ class VoiceAssistant: PluginBase() {
       .noUi()
       .def(name = "Llm engine > openai > model", info = "The llm model of the OpenAI or OpenAI-compatible server. Server may ignore this.")
 
+   /** Cli command to start llm server. Use if you want to automatize starting local AI server. Invoked on plugin start or waking from hibernation. */
+   val llmOpenAiServerStartCommand by cvn<String>(null).nonEmpty()
+      .noUi()
+      .def(name = "Llm server start command", info = buildString {
+         appendSent("Cli command to start llm server. Use if you want to automatize starting local AI server.")
+         appendSent("Invoked on plugin start or waking from hibernation. Can refer to '${::llmOpenAiModel.getDelegateConfig().nameUi}' using '\$model'.")
+         appendSent("Command must be idempotent - have no effect if ran multiple times.")
+         appendSent("Example for `LmStudio` on `Windows`: `cmd /c lms ps | findstr \$model > nul || lms load --gpu max --yes --exact --quiet \$model`.")
+      })
+
+   /** Cli command to stop llm server. Use if you want to automatize stopping local AI server. Invoked on plugin stop or hibernation. */
+   val llmOpenAiServerStopCommand by cvn<String>(null).nonEmpty()
+      .noUi()
+      .def(name = "Llm server stop command", info = buildString {
+         appendSent("Cli command to start llm server. Use if you want to automatize stopping local AI server. Invoked on plugin stop or hibernation.")
+         appendSent("Can refer to '${::llmOpenAiModel.getDelegateConfig().nameUi}' using '\$model'")
+         appendSent("Command must be idempotent - have no effect if ran multiple times.")
+         appendSent("Example for `LmStudio` on `Windows`: `cmd /c lms ps | findstr \$model > nul && lms unload --yes --quiet --no-launch \$model`.")
+      })
+
+   val llmOpenAiServerStopCommandRunOnStop by cv(true)
+      .noUi()
+      .def(
+         name = "Llm server stop command run on plugin stop",
+         info = "When disabled, the command does not run when plugin stops, i.e., llm server will remain running. Recommended when application starts and closes frequently."
+      )
+
+   private fun llmOpenAiServerStartCommandCompute(on: Bool) =
+      llmOpenAiServerStartCommand.value.takeIf { on && llmEngine.value==LlmEngine.OPENAI }?.replace("\$model", llmOpenAiModel.value)
+
+   private fun llmOpenAiServerStopCommandCompute(on: Bool) =
+      llmOpenAiServerStopCommand.value.takeIf { on && llmEngine.value==LlmEngine.OPENAI }?.replace("\$model", llmOpenAiModel.value)
+
+   private fun llmOpenAiServerStart(command: String?) =
+      runTry {
+         command.ifNotNull { runCommandWithOutput(it).withAppProgress("Start LLM server").awaitFxOrBlock() }
+      }
+
+   private fun llmOpenAiServerStop(on: Bool) = llmOpenAiServerStopCommandCompute(on).ifNotNull { c ->
+      runTry {
+         runCommandWithOutput(c).withAppProgress("Stop LLM server").awaitFxOrBlock()
+      }
+   }
+
    /** Settings for currently active llm engine */
    internal val llmEngineDetails by cvn<Configurable<*>>(null).noPersist().def(name = "Llm engine >", info = "Settings for currently active llm engine")
    init {
       llmEngine sync { e ->
          llmEngineDetails.value = when (e) {
-            LlmEngine.OPENAI -> ListConfigurable.heterogeneous(this::llmOpenAiUrl.getDelegateConfig(), this::llmOpenAiBearer.getDelegateConfig(), this::llmOpenAiModel.getDelegateConfig())
-            LlmEngine.GPT4ALL -> ListConfigurable.heterogeneous(this::llmGpt4AllModel.getDelegateConfig())
+            LlmEngine.OPENAI -> ListConfigurable.heterogeneous(
+               ::llmOpenAiUrl.getDelegateConfig(), ::llmOpenAiBearer.getDelegateConfig(),
+               ::llmOpenAiModel.getDelegateConfig(),
+               ::llmOpenAiServerStartCommand.getDelegateConfig(), ::llmOpenAiServerStopCommand.getDelegateConfig(), ::llmOpenAiServerStopCommandRunOnStop.getDelegateConfig()
+            )
+            LlmEngine.GPT4ALL -> ListConfigurable.heterogeneous(::llmGpt4AllModel.getDelegateConfig())
             LlmEngine.NONE, null -> ListConfigurable.heterogeneous<Any?>()
          }
       }
@@ -661,7 +716,8 @@ class VoiceAssistant: PluginBase() {
               llmChatTopP.chan().throttleToLast(p2) subscribe { write("llm-chat-topp=$it") }
               llmChatTopK.chan().throttleToLast(p2) subscribe { write("llm-chat-topk=$it") }
       // @formatter:on
-      startSpeechRecognition()
+
+      startSpeechRecognition(true)
 
       // restart-requiring properties
       val processChangeVals = listOf<V<*>>(
@@ -675,32 +731,38 @@ class VoiceAssistant: PluginBase() {
       processChange.throttleToLast(2.seconds).subscribe { restart() } on onClose
 
       // turn off during hibernate
-      installHibernationTermination()
+      // due to:
+      // - 1 the python process may not recover from sleep properly
+      // - 2 AI models slow down sleep and wear hw considerably
+      // the closing must prevent hibernate until ai termination is complete, see
+      // the startup is delayed so system is ready, which avoids starup issues
+      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Pre) { stopSpeechRecognition(true) }
+      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Stop) { runFX(5.seconds) { startSpeechRecognition(true) } }
 
       isRunning = true
    }
 
    override fun stop() {
       isRunning = false
-      stopSpeechRecognition()
+      stopSpeechRecognition(llmOpenAiServerStopCommandRunOnStop.value)
       writing.closeAndWait()
       onClose()
    }
 
-   private fun startSpeechRecognition() {
-      stopSpeechRecognition()
-      setup = setup()
+   private fun startSpeechRecognition(runLlmServerCommand: Bool) {
+      stopSpeechRecognition(false)
+      setup = setup(llmOpenAiServerStartCommandCompute(runLlmServerCommand))
    }
 
-   private fun stopSpeechRecognition() {
+   private fun stopSpeechRecognition(runLlmServerCommand: Bool) {
       write("EXIT")
       setup = null
    }
 
    @IsAction(name = "Restart Voice Assistant", info = "Restarts Voice Assistant python program")
    fun restart() {
-      stopSpeechRecognition()
-      startSpeechRecognition()
+      stopSpeechRecognition(false)
+      startSpeechRecognition(false)
    }
 
    private fun installHibernationTermination() {

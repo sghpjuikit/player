@@ -22,7 +22,6 @@ class Writer(Actor):
         self.busy_status = set()
         self._print_lock = Lock()
         self._progress_suffix = ''
-        self._progress_thread = Thread(target=self._progress_loop, daemon=True)
         self._last_progress_suffix = ''
 
     def __call__(self, event: str | Iterator | object):
@@ -53,7 +52,6 @@ class Writer(Actor):
 
     def start(self):
         super().start()
-        self._progress_thread.start()
         Thread(target=self._loop_progress, daemon=True).start()
 
     def stop(self):

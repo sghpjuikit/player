@@ -5,6 +5,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.function.Consumer
+import javafx.application.Platform
 import javafx.util.Duration
 import mu.KLogging
 import org.jetbrains.annotations.Blocking
@@ -16,8 +17,10 @@ import sp.it.util.async.future.Fut.Result.ResultFail
 import sp.it.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.util.async.future.Fut.Result.ResultOk
 import sp.it.util.async.sleep
+import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.getAny
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.invoke
@@ -102,9 +105,11 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
    @Blocking
    fun block(): Fut<T> = apply { getDone() }
 
+   /** Blocks current thread until [isDone]. Returns [Result]. */
    @Blocking
    fun blockAndGet(): Result<T> = getDone()
 
+   /** Blocks current thread until [isDone]. Returns [T] or throws exception. */
    @Blocking
    fun blockAndGetOrThrow(): T = block().getDone().toTryRaw().orThrow
 

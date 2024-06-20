@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.javafx.JavaFx
 import mu.KotlinLogging
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.Futs
 import sp.it.util.collections.materialize
@@ -154,43 +155,43 @@ fun <T> runOn(executor: Executor, block: () -> T) = fut(null).then(executor) { b
 fun <T> runNew(block: () -> T) = runOn(NEW, block)
 
 /** Legacy version of [runNew] for Java taking a [Runnable]. */
-fun runNew(block: Runnable) = runNew(block.kt)
+fun runNew(block: Runnable): Fut<Unit> = runNew(block.kt)
 
 /** Calls [runOn] using [AWT] and the specified block. */
 fun <T> runAwt(block: () -> T) = runOn(AWT, block)
 
 /** Legacy version of [runAwt] for Java taking a [Runnable]. */
-fun runAwt(block: Runnable) = runAwt(block.kt)
+fun runAwt(block: Runnable): Fut<Unit> = runAwt(block.kt)
 
 /** Calls [runOn] using [FX] and the specified block. */
 fun <T> runFX(block: () -> T) = runOn(FX, block)
 
 /** Legacy version of [runFX] for Java taking a [Runnable]. */
-fun runFX(block: Runnable) = runFX(block.kt)
+fun runFX(block: Runnable): Fut<Unit> = runFX(block.kt)
 
 /** Calls [runOn] using [FX] with the specified delay and the specified block. */
 fun <T> runFX(delay: Duration, block: () -> T) = runOn(FX.delayed(delay), block)
 
 /** Legacy version of [runFX] for Java taking a [Runnable]. */
-fun runFX(delay: Duration, block: Runnable) = runFX(delay, block.kt)
+fun runFX(delay: Duration, block: Runnable): Fut<Unit> = runFX(delay, block.kt)
 
 /** Calls [runOn] using [FX_LATER] with the specified thread name and the specified block. */
 fun <T> runLater(block: () -> T) = runOn(FX_LATER, block)
 
 /** Legacy version of [runLater] for Java taking a [Runnable]. */
-fun runLater(block: Runnable) = runLater(block.kt)
+fun runLater(block: Runnable): Fut<Unit> = runLater(block.kt)
 
 /** Calls [runOn] using [IO] and the specified block. */
 fun <T> runIO(block: () -> T) = runOn(IO, block)
 
 /** Legacy version of [runIO] for Java taking a [Runnable]. */
-fun runIO(block: Runnable) = runIO(block.kt)
+fun runIO(block: Runnable): Fut<Unit> = runIO(block.kt)
 
 /** Calls [runOn] using [VT] and the specified block. */
 fun <T> runVT(block: () -> T) = runOn(VT, block)
 
 /** Legacy version of [runVT] for Java taking a [Runnable]. */
-fun runVT(block: Runnable) = runVT(block.kt)
+fun runVT(block: Runnable): Fut<Unit> = runVT(block.kt)
 
 /** Runs the specified block for each specified item using the max specified parallelism, blocks until finish and returns results.  */
 @Experimental("does not handle errors correctly")

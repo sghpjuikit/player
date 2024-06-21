@@ -111,7 +111,9 @@ class ChatReact(ChatProceed):
     def __init__(self, sys_prompt: str, event_to_react_to: str, fallback: str):
         super().__init__(
             f"{sys_prompt}",
-            f"React to provided event with single short sentence. Event:\n {event_to_react_to}."
+            f"React to provided event with single short sentence. React in such a way that user will understand what event happened.\n" +
+            f"Standard response would be: ```\n{fallback}\n```\n" +
+            f"Event:\n {event_to_react_to}."
         )
         self.userPromptRaw = event_to_react_to
         self.outStart = 'SYS: '

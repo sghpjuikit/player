@@ -401,6 +401,7 @@ class TtsCoqui(TtsBase):
                     self.speed = clip_float(voice_props.get("speed", 1.0), 0.5, 1.5)
                     self.speaker_embedding = (torch.tensor(voice_props["speaker_embedding"]).unsqueeze(0).unsqueeze(-1))
                     self.gpt_cond_latent = (torch.tensor(voice_props["gpt_cond_latent"]).reshape((-1, 1024)).unsqueeze(0))
+                    self._voice = self.voice
             # latents !exist, generate & load
             else:
                 self.gpt_cond_latent, self.speaker_embedding = self.model.get_conditioning_latents(audio_path=[voiceFile])

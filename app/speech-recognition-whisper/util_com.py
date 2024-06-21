@@ -302,7 +302,8 @@ class PythonExecutor:
             if self.isValidPython(text):
                 self.historyAppend({ "role": "system", "content": text })
                 text = f'TIME="{datetime.datetime.now().isoformat()}"\nSPEAKER="{speaker}"\nLOCATION=\"{location}\"\n\n{text}'
-                exec(text)
+                d = dict(locals(), **globals()) # special python mumbo jumbo to make funcstions above accessible in functions declared inside the executed code
+                exec(text, d, d)
 
             # try to fix code to be valid and exec again
             elif fix:

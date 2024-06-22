@@ -1,9 +1,11 @@
 package sp.it.pl.plugin.impl
 
+import sp.it.pl.main.Bool
+import sp.it.util.access.V
 import sp.it.util.text.concatApplyBackspace
 import sp.it.util.text.toPrintableNonWhitespace
 
-class VoiceAssistentCliReader {
+class VoiceAssistentCliReader(val isProgress: V<Bool>) {
    var state = ""
    var str = StringBuilder("")
    fun String.onS(onS: (String, String?) -> Unit) = if (isNotEmpty()) onS(this, state) else Unit
@@ -19,6 +21,21 @@ class VoiceAssistentCliReader {
       }
    }
    fun process(t: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
+      if (t.isEmpty())
+         return
+      if ("COM: System::activity-start" in t) {
+         process(t.substringBefore("COM: System::activity-start"), onS, onE)
+         isProgress.value = true
+         process(t.substringAfter("COM: System::activity-start"), onS, onE)
+         return
+      }
+      if ("COM: System::activity-stop" in t) {
+         process(t.substringBefore("COM: System::activity-stop"), onS, onE)
+         isProgress.value = false
+         process(t.substringAfter("COM: System::activity-stop"), onS, onE)
+         return
+      }
+
       var s = t.replace("\r\n", "\n")
       if ("\n" in s) {
          s.split("\n").dropLast(1).forEach { processSingle(it.un(), onS, onE) }

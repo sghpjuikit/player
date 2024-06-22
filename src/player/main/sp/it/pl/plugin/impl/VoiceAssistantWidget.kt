@@ -2,6 +2,8 @@ package sp.it.pl.plugin.impl
 
 import io.ktor.client.request.get
 import java.time.Instant
+import javafx.animation.Interpolator.LINEAR
+import javafx.animation.Transition.INDEFINITE
 import javafx.geometry.HPos
 import javafx.geometry.NodeOrientation.RIGHT_TO_LEFT
 import javafx.geometry.Pos.CENTER
@@ -9,6 +11,7 @@ import javafx.geometry.VPos
 import javafx.scene.Cursor.HAND
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane
+import javafx.scene.control.TextArea
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -17,10 +20,13 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.layout.VBox
+import javafx.scene.text.TextAlignment
 import javafx.util.Duration
 import kotlin.Double.Companion.NEGATIVE_INFINITY
 import kotlin.Double.Companion.POSITIVE_INFINITY
-import kotlin.reflect.KProperty0
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.invoke
 import org.jetbrains.kotlin.utils.findIsInstanceAnd
@@ -41,6 +47,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.errorLabel
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.toUi
+import sp.it.pl.plugin.impl.VoiceAssistant.LlmEngine
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Event
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Line
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.View
@@ -54,8 +61,10 @@ import sp.it.pl.ui.pane.ConfigPane.Layout.MINI
 import sp.it.pl.ui.pane.ConfigPaneScrolPane
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
+import sp.it.util.access.vAlways
 import sp.it.util.access.visible
 import sp.it.util.access.vn
+import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.invokeTry
@@ -88,11 +97,13 @@ import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
-import sp.it.util.functional.supplyIf
+import sp.it.util.math.abs
 import sp.it.util.math.min
 import sp.it.util.reactive.Subscribed.Companion.subBetween
 import sp.it.util.reactive.Subscribed.Companion.subscribedIff
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.flatMap
 import sp.it.util.reactive.map
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
@@ -100,7 +111,7 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.syncWhile
 import sp.it.util.reactive.zip
-import sp.it.util.reactive.zip2
+import sp.it.util.text.capitalLower
 import sp.it.util.text.nameUi
 import sp.it.util.ui.appendTextSmart
 import sp.it.util.ui.flowPane
@@ -109,7 +120,6 @@ import sp.it.util.ui.insertNewline
 import sp.it.util.ui.isNewlineOnShiftEnter
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
-import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.setTextSmart
@@ -320,80 +330,76 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                errorProperty sync { children setToOne if (it != null) contentEr else contentOk }
             }
 
-            lay += hBox(5.emScaled, CENTER) {
+            lay += vBox(5.emScaled, CENTER) {
                visible syncFrom mode.map { it != Out.HW && it != Out.EVENTS }
 
-               lay(ALWAYS) += vBox(5.emScaled, CENTER) {
-                  lay(ALWAYS) += textArea.apply {
-                     id = "output"
-                     isEditable = false
-                     isFocusTraversable = false
-                     wrapTextProperty() syncFrom mode.map { it==Out.SPEAK }
-                     prefColumnCount = 100
+               lay(ALWAYS) += textArea.apply {
+                  id = "output"
+                  isEditable = false
+                  isFocusTraversable = false
+                  wrapTextProperty() syncFrom mode.map { it==Out.SPEAK }
+                  prefColumnCount = 100
 
-                     onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
-                     mode syncWhile { m ->
-                        setTextSmart(plugin.value?.net(m.initText(this@VoiceAssistantWidget)) ?: "")
-                        plugin.syncNonNullWhile { p ->
-                           p.onLocalInput attach { (it, state) ->
-                              when (m!!) {
-                                 Out.DEBUG -> appendTextSmart(it)
-                                 Out.INFO -> if (state!=null && state!="") appendTextSmart(it)
-                                 Out.SPEAK -> if (state=="SYS" || state=="USER") appendTextSmart(it)
-                                 Out.HW -> Unit
-                                 Out.EVENTS -> Unit
-                              }
+                  onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
+                  mode syncWhile { m ->
+                     setTextSmart(plugin.value?.net(m.initText(this@VoiceAssistantWidget)) ?: "")
+                     plugin.syncNonNullWhile { p ->
+                        p.onLocalInput attach { (it, state) ->
+                           when (m!!) {
+                              Out.DEBUG -> appendTextSmart(it)
+                              Out.INFO -> if (state!=null && state!="") appendTextSmart(it)
+                              Out.SPEAK -> if (state=="SYS" || state=="USER") appendTextSmart(it)
+                              Out.HW -> Unit
+                              Out.EVENTS -> Unit
                            }
-                        }
-                     }
-                  }
-                  lay += stackPane {
-                     lay(CENTER) += hBox(null, CENTER) {
-                        lay(ALWAYS) += textArea {
-                           id = "input"
-                           isWrapText = true
-                           isNewlineOnShiftEnter = true
-                           prefColumnCount = 100
-                           promptText = "${ENTER.nameUi} to send, ${SHIFT.nameUi} + ${ENTER.nameUi} for new line"
-                           singLineProperty() sync {
-                              styleclassToggle("text-area-singlelined", !it)
-                              prefRowCount = if (it) 10 else 1
-                           }
-
-                           run = {
-                              plugin.value.ifNotNull { submit.value.run(it, speaker.value, text) }
-                           }
-                           onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) insertNewline() else run() }
-                        }
-                        lay(NEVER) += ConfigEditor.create(::speaker.getDelegateConfig()).editor.apply { nodeOrientation = RIGHT_TO_LEFT }
-                        lay(NEVER) += Icon(IconFA.SEND).onClickDo { run() }.apply {
-                           mode sync { tooltip(it.runDesc) }
-                        }
-
-
-                        lay(NEVER) += ConfigEditor.create(::submit.getDelegateConfig()).editor
-                        lay(NEVER) += CheckIcon(chatSettings).icons(IconFA.COG, IconFA.COG).apply {
-                           mode sync { tooltip("${it.nameUi} settings") }
                         }
                      }
                   }
                }
                lay += stackPane {
-                  chatSettings zip plugin zip2 mode map { (showSettings, active, mode) -> mode to (showSettings && active!=null && mode!=Out.HW) } sync { (m, show) ->
-                     lay.children.forEach { it.onNodeDispose() }
-                     lay.clear()
-                     lay += supplyIf(show) {
-                        ConfigPaneScrolPane(
-                           ConfigPane(
-                              ListConfigurable.Companion.heterogeneous(
-                                 plugin.value?.net { m.configs(this@VoiceAssistantWidget, it).map { it.getDelegateConfig() } }.orEmpty()
-                              )
-                           ).apply {
-                              ui.value = MINI
-                              editorOrder = ConfigPane.compareByDeclaration
+                  lay(CENTER) += hBox(null, CENTER) {
+                     lay(ALWAYS) += stackPane {
+                        val promptVisible = v(true)
+
+                        lay += textArea {
+                           id = "user-input"
+                           isWrapText = true
+                           isNewlineOnShiftEnter = true
+                           prefColumnCount = 100
+                           textProperty() sync { promptVisible.value = it.orEmpty().isEmpty() }
+
+                           // reactive height
+                           singLineProperty() sync {
+                              styleclassToggle("text-area-singlelined", !it)
+                              prefRowCount = if (it) 10 else 1
                            }
-                        )
+
+                           // progress
+                           installActivityIndicator()
+
+                           // action
+                           run = { plugin.value.ifNotNull { submit.value.run(it, speaker.value, text) } }
+                           onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) insertNewline() else run() }
+                        }
+
+                        lay += label {
+                           id = "user-input-prompt-label"
+                           style = "-fx-text-fill: -skin-prompt-font-color;"
+                           textAlignment = TextAlignment.CENTER
+                           this.isMouseTransparent = true
+                           visibleProperty() syncFrom promptVisible
+                           textProperty() syncFrom (plugin flatMap {
+                              val p = "${ENTER.nameUi} to send, ${SHIFT.nameUi} + ${ENTER.nameUi} for new line"
+                              if (it==null) vAlways(p)
+                              else it.wakeUpWord.zip(it.llmOn).map { (_, chat) -> "Speak ${if (chat) "normally" else "`"+it.wakeUpWordPrimary.capitalLower()+"`"} or $p" }
+                           })
+                        }
                      }
+                     lay(NEVER) += ConfigEditor.create(::speaker.getDelegateConfig()).editor.apply { nodeOrientation = RIGHT_TO_LEFT }
+                     lay(NEVER) += Icon(IconFA.SEND).onClickDo { run() }.apply {
+                        mode sync { tooltip(it.runDesc) }
+                     }
+                     lay(NEVER) += ConfigEditor.create(::submit.getDelegateConfig()).editor
                   }
                }
             }
@@ -402,6 +408,22 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
    }
 
    override fun focus() = textArea.requestFocus()
+
+   private fun TextArea.installActivityIndicator() {
+      val a = anim(8.seconds) { at ->
+         val a = at*2*PI
+         val s = 100 + 100*((1 - at).abs min at.abs)
+         val f = (cos(a) x sin(a))*s
+         val t = (cos(a + PI) x sin(a + PI))*s
+         style =
+            "-fx-border-color: linear-gradient(from ${(width/2 + f.x).toInt()}px ${height/2 + f.y.toInt()}px to ${width/2 + t.x.toInt()}px ${height/2 + t.y.toInt()}px, transparent 25%, -fx-focus-color 50%, transparent 75%); -fx-border-width:2;"
+      }.apply {
+         interpolator = LINEAR
+         cycleCount = INDEFINITE
+      }
+
+      plugin flatMap { it?.isProgress ?: vAlways(false) } attach { if (it) a.play() else a.pause() }
+   }
 
    private inner class ActorState(val type: String): VBox() {
       init {
@@ -459,44 +481,32 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
    enum class Out(
       override val nameUi: String,
       val initText: VoiceAssistantWidget.(VoiceAssistant) -> String,
-      val runDesc: String,
-      val configs: VoiceAssistantWidget.(VoiceAssistant) -> List<KProperty0<*>>,
+      val runDesc: String
    ): NameUi {
       DEBUG(
          "Trace",
          { it.pythonOutStd.value },
          "Show debug console output",
-         { listOf() }
       ),
       INFO(
          "Info",
          { it.pythonOutEvent.value },
          "Show info console output",
-         { listOf() }
       ),
       SPEAK(
          "Speak",
          { it.pythonOutSpeak.value },
          "Show user & system speech",
-         {
-            listOf(
-               it::ttsOn,
-               it::ttsEngine,
-               it::ttsEngineDetails,
-            )
-         }
       ),
       HW(
          "Hw",
          { "" },
          "Show system state",
-         { listOf() }
       ),
       EVENTS(
          "Events",
          { "" },
          "Show system event timeline",
-         { listOf() }
       ),
    }
 

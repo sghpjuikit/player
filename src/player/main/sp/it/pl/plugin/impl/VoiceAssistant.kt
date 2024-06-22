@@ -23,7 +23,9 @@ import sp.it.pl.main.Bool
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.isAudio
+import sp.it.pl.main.runCommandWithOutput
 import sp.it.pl.main.toUi
+import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
@@ -66,6 +68,7 @@ import sp.it.util.conf.multiline
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.noUi
 import sp.it.util.conf.nonBlank
+import sp.it.util.conf.nonEmpty
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
@@ -115,6 +118,7 @@ import sp.it.util.text.concatApplyBackspace
 import sp.it.util.text.encodeBase64
 import sp.it.util.text.lines
 import sp.it.util.text.split2
+import sp.it.util.text.splitNoEmpty
 import sp.it.util.text.splitTrimmed
 import sp.it.util.text.useStrings
 import sp.it.util.type.atomic
@@ -125,6 +129,7 @@ import sp.it.util.units.uuid
 class VoiceAssistant: PluginBase() {
    private val onClose = Disposer()
    private var setup: Fut<Process>? = null
+   private val isProgressWritable = v(false)
 
    private fun setup(runLlmServerCommand: String?): Fut<Process> {
 
@@ -201,10 +206,10 @@ class VoiceAssistant: PluginBase() {
          var stdout = ""
          var stderr = ""
          val stdoutListener = process.inputStream.consume("SpeechRecognition-stdout") {
-            val reader = VoiceAssistentCliReader()
+            val reader = VoiceAssistentCliReader(isProgressWritable)
             // capture stdout
             stdout = it
-               .map { it.ansi() }
+               .map { it.noAnsiProgress().ansi() }
                .filter { it.isNotEmpty() }
                .onEach { runFX {
                   reader.process(
@@ -255,6 +260,13 @@ class VoiceAssistant: PluginBase() {
       }
    }
 
+   /** Whether voice assistent is busy with computation computing. */
+   val isProgress = isProgressWritable.readOnly()
+
+   /**
+    * Alternative names for widgets for voice control, either for customization or easier recognition.
+    * Comma separated names, widget per line, i.e.: `My widget = name1, name2, ..., nameN`
+    */
    var commandWidgetNames = mapOf<String, String>()
       private set
 
@@ -443,8 +455,12 @@ class VoiceAssistant: PluginBase() {
    val onLocalInput = Handler1<Pair<String, String?>>()
    
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
-   val wakeUpWord by cv("system")
+   val wakeUpWord by cv("system").nonBlank()
       .def(name = "Wake up word", info = "Optional wake words or phrases (separated by ',') that activate voice recognition. Case-insensitive.\nThe first wake word will be used as name for the system")
+
+   /** [wakeUpWord]'s first, i.e., primary word. */
+   val wakeUpWordPrimary: String get() =
+      wakeUpWord.value.splitNoEmpty(",").firstOrNull() ?: "system"
 
    /** Engine used to recognize speech. May require additional configuration */
    val sttEngine by cv(SttEngine.WHISPER).uiNoOrder()
@@ -580,8 +596,7 @@ class VoiceAssistant: PluginBase() {
    }
 
    /** Whether [llmEngine] conversation is active */
-   var llmOn by atomic(false)
-      internal set
+   val llmOn = v(false)
 
    /** Engine used to generate voice. May require additional configuration */
    val llmEngine by cv(LlmEngine.NONE).uiNoOrder()
@@ -757,20 +772,13 @@ class VoiceAssistant: PluginBase() {
    private fun stopSpeechRecognition(runLlmServerCommand: Bool) {
       write("EXIT")
       setup = null
+      llmOpenAiServerStop(runLlmServerCommand)
    }
 
    @IsAction(name = "Restart Voice Assistant", info = "Restarts Voice Assistant python program")
    fun restart() {
       stopSpeechRecognition(false)
       startSpeechRecognition(false)
-   }
-
-   private fun installHibernationTermination() {
-      // the python process !recover from hibernating properly and the AI is very heavy to be used in hibernate anyway
-      // the closing must prevent hibernate until ai termination is complete, see
-      // the startup is delayed so system is ready, which avoids starup issues
-      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Start) { stopSpeechRecognition() }
-      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Stop) { runFX(5.seconds) { startSpeechRecognition()} }
    }
 
    private val confirmers = mutableListOf<SpeakConfirmer>()
@@ -801,7 +809,6 @@ class VoiceAssistant: PluginBase() {
       var textSanitized = text.substringAfter(":").substringAfter(":").replace("_", " ").sanitize(sttBlacklistWords_)
       if (user) speakingTextW.value = textSanitized
       if (!command) return
-
       var handlersViable = handlers.asSequence().filter { it.type==SpeakHandler.Type.KOTLN || !usePythonCommands.value }
       var (c, result) = handlersViable.firstNotNullOfOrNull { SpeakContext(it, this@VoiceAssistant, speaker, location)(textSanitized)?.let { r -> it to r } } ?: (null to null)
       logger.info { "Speech ${if (orDetectIntent) "event" else "intent"} handled by command `${c?.name}`, request=`${speaker}:${textSanitized}`" }
@@ -1012,12 +1019,6 @@ class VoiceAssistant: PluginBase() {
       fun obtainSpeakers(): List<String> = listOf(mainSpeakerInitial) + (dir / "voices-verified").children().filter { it hasExtension "wav" }.map { it.nameWithoutExtension }
 
       val speechRecognitionWidgetFactory by lazy { WidgetFactory("VoiceAssistant", VoiceAssistantWidget::class, APP.location.widgets/"VoiceAssistant") }
-
-      /** Ansi escape sequence pattern */
-      private val ansi = Pattern.compile("\\x1B\\[[0-?]*[ -/]*[@-~]")
-
-      /** @return this string without ansi escape sequences */
-      private fun String.ansi() = ansi.matcher(this).replaceAll("")
 
       /** @return this string with newline prepended or empty string if blank */
       private fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"

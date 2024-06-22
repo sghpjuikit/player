@@ -20,9 +20,11 @@ class Writer(Actor):
         self.write = self
         self.write(f"RAW: {self.name} starting")
         self.busy_status = set()
+        self._busy_lock = Lock()
         self._print_lock = Lock()
         self._progress_suffix = ''
         self._last_progress_suffix = ''
+        self._last_progress_active = False
 
     def __call__(self, event: str | Iterator | object):
         if not getattr(self.suppress, 'var', False):
@@ -33,10 +35,10 @@ class Writer(Actor):
         'yield action and print progress indicator until it is done'
         try:
             id = object()
-            self.busy_status.add(id)
+            with self._busy_lock: self.busy_status.add(id)
             yield
         finally:
-            self.busy_status.remove(id)
+            with self._busy_lock: self.busy_status.remove(id)
 
     @contextmanager
     def suppressed(self):
@@ -61,9 +63,24 @@ class Writer(Actor):
     def _print(self, s, end):
         with self._print_lock:
             ps = self._progress_suffix
-            self.stdout.stdout.write('\b'*len(self._last_progress_suffix) + s + end + ps)
+            active = len(ps)>0
+
+            # notify activity started
+            if self._last_progress_active!=active and active:
+                self.stdout.stdout.write('COM: System::activity-start')
+                self.stdout.stdout.flush()
+
+            self.stdout.stdout.write('\033[1;32m' + '\b'*(len(self._last_progress_suffix)+len('\033[1;32m\033[0m')) + '\033[0m')
+
+            # notify activity ended
+            if self._last_progress_active!=active and not active:
+                self.stdout.stdout.write('COM: System::activity-stop')
+                self.stdout.stdout.flush()
+
+            self.stdout.stdout.write(s + end + '\033[1;32m' + ps + '\033[0m')
             self.stdout.stdout.flush()
             self._last_progress_suffix = ps
+            self._last_progress_active = active
 
     def _loop_progress(self):
         # generate progress suffixes

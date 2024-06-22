@@ -57,7 +57,7 @@
     -skin-def-font-color: rgb(160, 160, 180);
     -skin-def-font-color-hover: #ffcc66;
     -skin-sel-font-color: rgb(175, 175, 176);
-    -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
+    -skin-prompt-font-color: rgba(165, 165, 165, 0.5);
     -skin-color-darker: rgba(0,0,0,0.2);
     -skin-color-lighter: rgba(180,200,255,0.08);
     -skin-pane-color: rgba(20,25,50,0.7); /* Default color for panels such as header or widget area or other areas. */
@@ -730,7 +730,7 @@ TextFlow > * {
     -fx-background-radius: 0;
     -fx-padding: 0.25em;
     -fx-text-fill: -skin-def-font-color;
-    -fx-prompt-text-fill: derive(-skin-def-font-color,-30%);
+    -fx-prompt-text-fill: -skin-prompt-font-color;
     -fx-highlight-fill: -skin-focus-bgr-color;
     -fx-highlight-text-fill: -fx-focus-color;
     -fx-effect: null;
@@ -750,7 +750,7 @@ TextFlow > * {
     -fx-background-radius: 0;
     -fx-padding: 0.25em;
     -fx-text-fill: -skin-def-font-color;
-    -fx-prompt-text-fill: derive(-skin-def-font-color,-30%);
+    -fx-prompt-text-fill: -skin-prompt-font-color;
     -fx-highlight-fill: -skin-focus-bgr-color;
     -fx-highlight-text-fill: -fx-focus-color;
     -fx-effect: null;

@@ -50,6 +50,9 @@ import javafx.scene.shape.Path
 import javafx.scene.shape.Rectangle
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -92,6 +95,8 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
 import sp.it.pl.ui.pane.ConfigPane.Layout.MINI
 import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.util.Util
+import sp.it.util.Util.pyth
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.access.vx
@@ -165,6 +170,8 @@ import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
+import sp.it.util.math.abs
+import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.flatMap
@@ -195,6 +202,7 @@ import sp.it.util.ui.separator
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.styleclassAdd
+import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
@@ -203,6 +211,12 @@ import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
+import sp.it.util.animation.Anim.Companion.mapTo01
+import sp.it.util.math.max
+import sp.it.util.reactive.attach
+import sp.it.util.ui.center
+import sp.it.util.ui.centre
+import sp.it.util.ui.size
 
 @Suppress("RemoveExplicitTypeArguments", "RemoveRedundantBackticks", "RemoveExplicitTypeArguments")
 class Tester(widget: Widget): SimpleController(widget) {
@@ -259,6 +273,8 @@ class Tester(widget: Widget): SimpleController(widget) {
       io.i.create<MutableList<in Number>>("List<in Number>", mutableListOf()) {}
       io.o.create<Int>("Int", 5)
       io.o.create<Number?>("Number?", 5)
+
+      groupSelected sync { s -> groups.forEach { it.select(it.name==s) } }
    }
 
    override fun close() {
@@ -268,7 +284,7 @@ class Tester(widget: Widget): SimpleController(widget) {
 
    override fun focus() {
       if (!root.isFocusWithin)
-         groupSelected.sync { s -> groups.forEach { it.select(it.name==s) } }
+         groups.forEach { it.select(it.name==groupSelected.value) }
    }
 
    fun testInputs() {
@@ -512,7 +528,22 @@ class Tester(widget: Widget): SimpleController(widget) {
 
       onContentChange()
       content.children setToOne fittingScrollPane {
-         content = vBox(0.0, CENTER) {
+         content = vBox(5.emScaled, CENTER) {
+
+            lay += textArea {
+               anim(5.seconds) {
+                  val a = it * 2 * PI
+                  val s = 100 + 100*((1-it).abs min it.abs)
+                  val f = (cos(a) x sin(a)) * s
+                  val t = (cos(a + PI) x sin(a + PI)) * s
+                  style = "-fx-border-color: linear-gradient(from ${(width/2+f.x).toInt()}px ${height/2+f.y.toInt()}px to ${width/2+t.x.toInt()}px ${height/2+t.y.toInt()}px, transparent 25%, -fx-focus-color 50%, transparent 75%); -fx-border-width:2;"
+               }.apply {
+                  interpolator = LINEAR
+                  cycleCount = INDEFINITE
+                  onContentChange += ::stop
+                  onClose += ::stop
+               }.playOpen()
+            }
             lay += stackPane {
                lay += Group().apply {
                   children += Rectangle(0.0, 0.0, 220.0, 220.0).apply {
@@ -683,18 +714,37 @@ class Tester(widget: Widget): SimpleController(widget) {
                   lay += labelTop("above\n(no mouse)")
                }
             }
-            lay += label("Implemented using MOUSE_ENTERED/MOUSE_EXITED events:")
+            lay += label("Implemented using onHoverOrInDrag():")
             lay += hBox(10.emScaled) {
                padding = Insets(0.0, 0.0, 0.0, 25.emScaled)
                lay += stackPane {
                   isPickOnBounds = false
+                  val c = circle(50.emScaled, BLACK)
+                  onHoverOrInDrag { c.fill = if (it) GRAY else BLACK }
+                  lay += c
+                  lay += circleTop()
+                  lay += labelTop("within")
+               }
+               lay += stackPane {
+                  isPickOnBounds = false
                   lay += circle(50.emScaled, BLACK) {
-                     onEventDown(MOUSE_EXITED) { fill = BLACK }
-                     onEventDown(MOUSE_ENTERED) { fill = GRAY }
+                     onHoverOrInDrag { fill = if (it) GRAY else BLACK }
                   }
                   lay += circleTop()
                   lay += labelTop("above")
                }
+               lay += stackPane {
+                  isPickOnBounds = false
+                  lay += circle(50.emScaled, BLACK) {
+                     onHoverOrInDrag { fill = if (it) GRAY else BLACK }
+                  }
+                  lay += circleTop().mt()
+                  lay += labelTop("above\n(no mouse)")
+               }
+            }
+            lay += label("Implemented using MOUSE_ENTERED/MOUSE_EXITED events:")
+            lay += hBox(10.emScaled) {
+               padding = Insets(0.0, 0.0, 0.0, 25.emScaled)
                lay += stackPane {
                   isPickOnBounds = false
                   val c = circle(50.emScaled, BLACK)
@@ -703,6 +753,15 @@ class Tester(widget: Widget): SimpleController(widget) {
                   lay += c
                   lay += circleTop()
                   lay += labelTop("within")
+               }
+               lay += stackPane {
+                  isPickOnBounds = false
+                  lay += circle(50.emScaled, BLACK) {
+                     onEventDown(MOUSE_EXITED) { fill = BLACK }
+                     onEventDown(MOUSE_ENTERED) { fill = GRAY }
+                  }
+                  lay += circleTop()
+                  lay += labelTop("above")
                }
                lay += stackPane {
                   isPickOnBounds = false

@@ -36,6 +36,8 @@ import sp.it.pl.core.bodyAsJs
 import sp.it.pl.core.to
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.WidgetSource
+import sp.it.pl.layout.WidgetUse
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.loadIn
 import sp.it.pl.main.APP
@@ -166,6 +168,11 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             }
             lay += label("   ")
 
+            lay += Icon(IconMA.PERSON).apply {
+               onClickDo {
+                  APP.widgetManager.widgets.find(VoiceAssistant.voiceAssistantPersonasWidgetFactory, WidgetUse.ANY)
+               }
+            }
             lay += CheckIcon().icons(IconMD.SERVER, IconMD.SERVER_OFF).apply {
                selected syncFrom plugin.flatMap { it!!.llmEngine }.map { it!=LlmEngine.NONE }.orElse(false)
                disableProperty() syncFrom plugin.map { it==null }

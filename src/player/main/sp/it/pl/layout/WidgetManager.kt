@@ -45,12 +45,12 @@ import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppError
-import sp.it.pl.main.AppScheduler
 import sp.it.pl.main.AppScheduler.scheduleWidgetFactory
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.thenWithAppProgress
-import sp.it.pl.plugin.impl.VoiceAssistant.Companion.speechRecognitionWidgetFactory
+import sp.it.pl.plugin.impl.VoiceAssistant.Companion.voiceAssistantPersonasWidgetFactory
+import sp.it.pl.plugin.impl.VoiceAssistant.Companion.voiceAssistantWidgetFactory
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
@@ -175,7 +175,8 @@ class WidgetManager {
       registerFactory(nodeWidgetFactory)
       registerFactory(introWidgetFactory)
       registerFactory(initialTemplateFactory)
-      registerFactory(speechRecognitionWidgetFactory)
+      registerFactory(voiceAssistantWidgetFactory)
+      registerFactory(voiceAssistantPersonasWidgetFactory)
       registerFactory(scheduleWidgetFactory)
 
       // external factories

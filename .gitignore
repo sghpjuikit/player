@@ -29,6 +29,9 @@ app/speech-recognition-whisper/voices-coqui/**
 !app/speech-recognition-whisper/voices-coqui/README.md
 app/speech-recognition-whisper/voices-verified/**
 !app/speech-recognition-whisper/voices-verified/README.md
+app/speech-recognition-whisper/personas/**
+!app/speech-recognition-whisper/personas/README.md
+!app/speech-recognition-whisper/personas/System.txt
 private/
 *.log
 

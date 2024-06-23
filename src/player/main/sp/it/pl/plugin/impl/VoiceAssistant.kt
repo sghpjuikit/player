@@ -6,7 +6,6 @@ import io.ktor.client.statement.bodyAsText
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
-import java.util.regex.Pattern
 import kotlinx.coroutines.invoke
 import mu.KLogging
 import sp.it.pl.audio.audioInputDeviceNames
@@ -33,6 +32,7 @@ import sp.it.pl.ui.pane.action
 import sp.it.util.access.V
 import sp.it.util.access.readOnly
 import sp.it.util.access.v
+import sp.it.util.access.valueTry
 import sp.it.util.access.vn
 import sp.it.util.action.IsAction
 import sp.it.util.async.NEW
@@ -89,6 +89,7 @@ import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.toCompactS
+import sp.it.util.file.readTextTry
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
@@ -121,7 +122,6 @@ import sp.it.util.text.split2
 import sp.it.util.text.splitNoEmpty
 import sp.it.util.text.splitTrimmed
 import sp.it.util.text.useStrings
-import sp.it.util.type.atomic
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
 
@@ -441,7 +441,7 @@ class VoiceAssistant: PluginBase() {
    val pythonOutSpeak = v<String>("")
 
    /** Opens console output */
-   val pythonStdOutOpen by cr { APP.widgetManager.widgets.find(speechRecognitionWidgetFactory, ANY) }
+   val pythonStdOutOpen by cr { APP.widgetManager.widgets.find(voiceAssistantWidgetFactory, ANY) }
       .def(name = "Output console", info = "Shows console output of the python process")
 
    private val onLocalInputReducer = EventReducer.toEvery<Pair<String, String?>>(30.0, { a, b ->
@@ -685,7 +685,14 @@ class VoiceAssistant: PluginBase() {
 
    /** System prompt telling llm to assume role, or exhibit behavior */
    val llmChatSysPrompt by cv("You are helpful voice assistant. You are voiced by tts, be extremly short.").multiline(10).nonBlank()
-      .def(name = "Llm chat > system prompt", info = "System prompt telling llm to assume role, or exhibit behavior")
+      .noPersist()
+      .def(name = "Llm chat > system prompt", info = "System prompt telling llm to assume role, or exhibit behavior", editable = EditMode.APP)
+
+   /** System prompt telling llm to assume role, or exhibit behavior */
+   val llmChatSysPromptFile by cv(dirPersonas / "System.txt").valuesUnsealed { dirPersonas.children { it hasExtension "txt" }.toList() }
+      .uiConverter { it.nameWithoutExtension }
+      .def(name = "Llm chat > system prompt file", info = "System prompt telling llm to assume role, or exhibit behavior")
+      .sync { llmChatSysPrompt valueTry it.readTextTry() }
 
    /** Maximum number of tokens in the reply. Further tokens will be cut off (by llm) */
    val llmChatMaxTokens by cvn(400).min(1)
@@ -725,7 +732,7 @@ class VoiceAssistant: PluginBase() {
   micVoiceDetectProbDebug.chan().throttleToLast(p2) subscribe { write("mic-voice-detect-debug=$it") }
                     ttsOn.chan().throttleToLast(p2) subscribe { write("speech-on=$it") }
       ttsEngineCoquiVoice.chan().throttleToLast(p2) subscribe { write("coqui-voice=$it") }
-         llmChatSysPrompt.chan().throttleToLast(p5) subscribe { write("llm-chat-sys-prompt=${it.replace('\n', ' ')}") }
+         llmChatSysPrompt.chan().throttleToLast(p5) subscribe { write("llm-chat-sys-prompt=${it.replace('\n', ' ').replace('\r', ' ')}") }
          llmChatMaxTokens.chan().throttleToLast(p2) subscribe { write("llm-chat-max-tokens=$it") }
               llmChatTemp.chan().throttleToLast(p2) subscribe { write("llm-chat-temp=$it") }
               llmChatTopP.chan().throttleToLast(p2) subscribe { write("llm-chat-topp=$it") }
@@ -1011,6 +1018,7 @@ class VoiceAssistant: PluginBase() {
       override val isEnabledByDefault = false
 
       val dir by lazy { APP.location / "speech-recognition-whisper" }
+      val dirPersonas by lazy { dir / "personas" }
 
       val mainLocationInitial = "PC"
 
@@ -1018,7 +1026,9 @@ class VoiceAssistant: PluginBase() {
 
       fun obtainSpeakers(): List<String> = listOf(mainSpeakerInitial) + (dir / "voices-verified").children().filter { it hasExtension "wav" }.map { it.nameWithoutExtension }
 
-      val speechRecognitionWidgetFactory by lazy { WidgetFactory("VoiceAssistant", VoiceAssistantWidget::class, APP.location.widgets/"VoiceAssistant") }
+      val voiceAssistantWidgetFactory by lazy { WidgetFactory("VoiceAssistant", VoiceAssistantWidget::class, APP.location.widgets/"VoiceAssistant") }
+
+      val voiceAssistantPersonasWidgetFactory by lazy { WidgetFactory("Voice Assistant persona editor", VoiceAssistantPersona::class, APP.location.widgets/"Voice-Assistant-Persona-Editor") }
 
       /** @return this string with newline prepended or empty string if blank */
       private fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"

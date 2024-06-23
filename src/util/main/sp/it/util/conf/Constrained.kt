@@ -23,6 +23,7 @@ import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.Password
 import sp.it.util.conf.Constraint.PreserveOrder
 import sp.it.util.conf.Constraint.ReadOnlyIf
+import sp.it.util.conf.Constraint.StringFileName
 import sp.it.util.conf.Constraint.StringLength
 import sp.it.util.conf.Constraint.StringNonBlank
 import sp.it.util.conf.Constraint.StringNonEmpty
@@ -94,6 +95,8 @@ fun <T: String?, TN: T?, C: ConstrainedDsl<TN>> C.lengthMin(min: Int) = but(Stri
 fun <T: String?, TN: T?, C: ConstrainedDsl<TN>> C.lengthMax(max: Int) = but(StringLength(0, max))
 /** Adds [StringLength] with min and max filled */
 fun <T: String?, TN: T?, C: ConstrainedDsl<TN>> C.lengthBetween(min: Int, max: Int) = but(StringLength(min, max))
+/** Adds [StringFileName] */
+fun <T: String?, TN: T?, C: ConstrainedDsl<TN>> C.filename() = but(StringFileName)
 /** Adds [NumberMinMax] with min filled */
 fun <T: Number, TN: T?, C: ConstrainedDsl<TN>> C.min(min: T) = but(NumberMinMax.Min(min.toDouble()))
 /** Adds [NumberMinMax] with max filled */

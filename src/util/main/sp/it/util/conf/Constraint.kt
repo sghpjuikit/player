@@ -10,6 +10,8 @@ import javafx.beans.binding.BooleanBinding
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.singletonObservableList
 import javafx.util.Duration
+import sp.it.util.Util
+import sp.it.util.Util.filenamizeString
 import sp.it.util.access.vAlways
 import sp.it.util.conf.ConfigurationContext.toUiConverter
 import sp.it.util.conf.Constraint.ValueSealedSetIfNotIn.Strategy
@@ -140,6 +142,10 @@ interface Constraint<in T> {
       }
       override fun isValid(value: String?) = value==null || value.length in min..max
       override fun message() = "Text must be at least ${toUiConverter.toS(min)} and at most ${toUiConverter.toS(max)} characters long"
+   }
+   object StringFileName(): Constraint<String?> {
+      override fun isValid(value: String?) = value==null || filenamizeString(value)==value
+      override fun message() = "Text must be valid file name"
    }
 
    /** Use password field. Allowed for non-[String] values. */

@@ -165,6 +165,38 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                onClickDo { plugin.value?.restart() }
             }
             lay += label("   ")
+
+            lay += CheckIcon().icons(IconMD.SERVER, IconMD.SERVER_OFF).apply {
+               selected syncFrom plugin.flatMap { it!!.llmEngine }.map { it!=LlmEngine.NONE }.orElse(false)
+               disableProperty() syncFrom plugin.map { it==null }
+               tooltip("Llm settings")
+               onClickDo {
+                  showFloating("Llm settings", DOWN_CENTER(this)) {
+                     it.isAutohide.value = true
+                     vBox {
+                        lay += ConfigPaneScrolPane(
+                           ConfigPane(
+                              ListConfigurable.heterogeneous(
+                                 plugin.value
+                                    ?.net {
+                                       listOf(
+                                          it::llmEngine, it::llmEngineDetails,
+                                          it::llmChatSysPromptFile, it::llmChatSysPrompt, it::llmChatTemp, it::llmChatTopK, it::llmChatTopP, it::llmChatMaxTokens,
+                                          it::llmOpenAiServerStartCommand, it::llmOpenAiServerStopCommand, it::llmOpenAiServerStopCommandRunOnStop
+                                       )
+                                    }
+                                    .orEmpty()
+                                    .map { it.getDelegateConfig() }
+                              )
+                           ).apply {
+                              ui.value = MINI
+                              editorOrder = ConfigPane.compareByDeclaration
+                           }
+                        )
+                     }
+                  }
+               }
+            }
             lay += CheckIcon().icons(IconMD.TEXT_TO_SPEECH, IconMD.TEXT_TO_SPEECH_OFF).apply {
                selected syncFrom plugin.flatMap { it!!.ttsOn }.orElse(false)
                disableProperty() syncFrom plugin.map { it==null }

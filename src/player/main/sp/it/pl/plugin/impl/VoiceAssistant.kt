@@ -606,22 +606,22 @@ class VoiceAssistant: PluginBase() {
    val llmGpt4AllModel by cv("none")
       .valuesUnsealed { dir.div("models-gpt4all").children().map { it.name }.filter { it.endsWith("gguf") }.toList() + "none" }
       .noUi()
-      .def(name = "Llm engine > gpt4all > model", info = "Model for gpt4all. Must be in ${(dir / "models-gpt4all").absolutePath}")
+      .def(name = "Model", info = "Model for gpt4all. Must be in ${(dir / "models-gpt4all").absolutePath}")
 
    /** Url of the OpenAI or OpenAI-compatible server */
    val llmOpenAiUrl by cv("http://localhost:1234/v1")
       .noUi()
-      .def(name = "Llm engine > openai > url", info = "Url of the OpenAI or OpenAI-compatible server")
+      .def(name = "Url", info = "Url of the OpenAI-compatible server")
 
    /** The user authorization of the OpenAI or OpenAI-compatible server */
    val llmOpenAiBearer by cv("ABC123xyz789").password()
       .noUi()
-      .def(name = "Llm engine > openai > bearer", info = "The user authorization of the OpenAI or OpenAI-compatible server. Server may ignore this.")
+      .def(name = "Bearer", info = "The user authorization of the OpenAI-compatible server. Server may ignore this.")
 
    /** The llm model of the OpenAI or OpenAI-compatible server */
    val llmOpenAiModel by cv("")
       .noUi()
-      .def(name = "Llm engine > openai > model", info = "The llm model of the OpenAI or OpenAI-compatible server. Server may ignore this.")
+      .def(name = "Model", info = "The llm model of the OpenAI-compatible server. Server may ignore this.")
 
    /** Cli command to start llm server. Use if you want to automatize starting local AI server. Invoked on plugin start or waking from hibernation. */
    val llmOpenAiServerStartCommand by cvn<String>(null).nonEmpty()

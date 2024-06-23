@@ -99,6 +99,10 @@ fun File.children(filter: FileFilter): Sequence<File> = listFiles(filter)?.asSeq
 @Blocking
 fun File.children(filter: FilenameFilter): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
 
+/** @see File.children */
+@Blocking
+fun File.children(filter: (File) -> Boolean): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
+
 /** @return [File.getParentFile] or self if there is no parent */
 val File.parentDirOrRoot get() = parentFile ?: this
 

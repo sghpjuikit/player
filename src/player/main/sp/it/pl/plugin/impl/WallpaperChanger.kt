@@ -5,6 +5,7 @@ import javafx.scene.image.Image
 import javafx.stage.Screen
 import sp.it.pl.image.ImageStandardLoader
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconMA
 import sp.it.pl.main.isImage
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
@@ -62,6 +63,7 @@ class WallpaperChanger: PluginBase() {
 
    companion object: PluginInfo {
       override val name = "Wallpaper"
+      override val icon = IconMA.WALLPAPER
       override val description = "Provides the ability to change wallpaper. Also improves screen overlay loading speed."
       override val isSupported = Os.WINDOWS.isCurrent
       override val isSingleton = true

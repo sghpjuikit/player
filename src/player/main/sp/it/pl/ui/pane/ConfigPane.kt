@@ -70,6 +70,7 @@ class ConfigPane<T: Any?>: VBox {
    private var needsLabel: Boolean = true
    private val onChangeRaw: () -> Unit = { onChange?.invoke() }
    private val onChangeOrConstraintRaw: () -> Unit = { onChangeOrConstraint?.invoke() }
+   private var configured = false
 
    val editable = v(true)
    val ui: StyleableObjectProperty<Layout> by sv(UI)
@@ -95,7 +96,7 @@ class ConfigPane<T: Any?>: VBox {
       // maintain css
       ui sync { Layout.entries.forEach { l -> pseudoClassChanged(l.name.lowercase(), l == it) } }
       // maintain layout
-      ui attach { buildUi(true) }
+      ui attach { if (configured) buildUi(true) }
       // maintain label wrapping widths
       widthProperty() attach { children.forEach { if (it is Label) it.prefWidth = computeContentWidth() } }
    }
@@ -106,6 +107,7 @@ class ConfigPane<T: Any?>: VBox {
 
 
    fun configure(configurable: Configurable<*>?) {
+
       alignment = CENTER_LEFT
       isFillWidth = false
 
@@ -122,10 +124,11 @@ class ConfigPane<T: Any?>: VBox {
       val isSingletonConfig = editors.size==1 && editors.first().config.hasConstraint<UiSingleton>()
       needsLabel = !isSingletonConfig
 
-      buildUi(false)
+      buildUi(!configured)
    }
 
    private fun buildUi(soft: Boolean) {
+      configured = true
       val editorNodesOld = children.asSequence()
          .mapNotNull {
             if (buildUiKey in it.properties) it

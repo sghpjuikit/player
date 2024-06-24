@@ -151,6 +151,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    private var configSelectionIgnore = false
    private val configsDisposer = Disposer()
    private val appConfigurable = APP.configuration
+   private var configured = false
 
    var showsAppSettings by c(true).noUi()
    var selectedGroupPath by c("").noUi()
@@ -182,7 +183,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
       filterActions attach { configureFiltered() }
 
       onClose += configsDisposer
-      root.sync1IfInScene { refresh() }
+      root.sync1IfInScene { if (!configured) refresh() }
    }
 
    override fun focus() = root.sync1IfInScene { groups.requestFocus() }.toUnit()
@@ -197,6 +198,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    }
 
    override fun configure(configurable: Configurable<*>?, groupToSelect: String?) {
+      configured = true
       configsDisposer()
       showsAppSettings = configurable==appConfigurable
       configs setTo configurable?.getConfigs().orEmpty()

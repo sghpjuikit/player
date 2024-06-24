@@ -39,7 +39,11 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** python commands
 - Implement **Voice assistant** automatic history reset (5min)
 - Implement **Voice assistant** implement multiple microphones & microphone location
+- Implement **Voice assistant** audio output settings & location
 - Implement **Voice assistant** tts over http supports all tts actors
+- Implement **Voice assistant** Improve console output & activity indicator
+- Implement **Voice assistant** loading/unloading on start/os-hibernate, optionally with custom cli command (LmStudio) 
+- Implement **Voice assistant** personas
 - Implement current song voice command
 - Implement log level highlighting
 - Implement **GitProjects** faster and better file sorting
@@ -52,18 +56,23 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `Min`/`Max`/`Between` constraints for big integer/decimal
 - Implement dock not showing on window mouse hover when mouse movement (uses mouse speed monitoring)
 - Implement warn notification and use for voice confirmation
+- Implement better runCommand methods/action to run CLI command through UI
 - Improve shortcut pane layout
 - Improve nullability inference for window properties in settings
 - Improve notification & song info padding
 - Improve window UX (forbid resizing dock/slide window if hidden)
 - Improve `Thumbnail` animation API
+- Improve markdown styling (consistent lists)
+- Improve styling (consistent prompt text color)
 - Fix **Voice assistant** plugin not waking up from hibernate properly
 - Fix **Voice assistant** python process error logging twice
 - Fix **Voice assistant** some settings not taking effect
 - Fix **Voice assistant** boot up message too soon
+- Fix **Voice assistant** widget UI performance when output too fast & handle ansi
 - Fix **Hue** plugin `lights on` command not working as expected
 - Fix **Comet** widget not loading sometimes due to font loading
 - Fix **Weather Info** widget visibility null issue
+- Fix **Logger** widget UI performance when logging too fast & handle ansi
 - Fix `OverlayPane` show stutter due to blur
 - Fix `MdNode` ui stutter due to Parser
 - Fix `MdNode` code block not showing entire text sometimes
@@ -84,6 +93,9 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `DatePickerContent` layout
 - Fix `DatePickerContent` layout alignment with `TimePickerContent`
 - Fix flowPane, tilePane, gridPane vGap, hGap from css not respected
+- Fix window open scale animation causing 0.0 scale and causing issues
+- Fix opening settings too slow sometimes
+- Fix opening popups logging exceptions
 - Fix minor code issues, TODOs and so on
 
 ### Voice Assistant
@@ -135,15 +147,23 @@ SYS: Yes
 USE: command without repeating system name
 ```
 
-
-#### Multiple microphones
-Implement multiple microphones & microphone location
+#### Multiple audio devices
+Assistant can make use of multiple microphone and speaker devices.
+Each can have a location set and user can communicate with the assistant intuitively - assistant will respect speaker's location.
+Each device supports separate settings.
 
 #### Speaker diarization
 Assistant can now identify speaker and only react to one of the verified voices. It now ignores its own voice.
 Registering verified voices has little UI right now, [see](/app/speech-recognition-whisper/README.md#voice-detection---speaker-detection)
 The speaker is no part of llm message, so assistant now reacts to different voices differently.
 This can be achieved by giving the voices personas (using system prompt).
+
+#### Activity indicator
+Progress can be shown for any kind of activity, as it is now global.
+CLI shows cli progress indicator, but the UI now shows animation.
+
+#### Personas
+[See](/app/speech-recognition-whisper/personas/README.md)
 
 #### Monitoring
 There is now **Hw** tab that displays real-time state of all actors. Actors mostly process/run AI events.

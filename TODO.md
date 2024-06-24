@@ -77,6 +77,10 @@
   fixed
 - [x] [JDK-8195750](https://bugs.openjdk.java.net/browse/JDK-8195750) `sp.it.pl.ui.nodeinfo.TableInfo` change throws exception sometimes  
   open, but no longer occurs
+- [ ] [JDK-8334854](https://bugs.java.com/bugdatabase/view_bug?bug_id=JDK-8334854)
+  reported, open
+- [x] [JDK-8334853](https://bugs.java.com/bugdatabase/view_bug?bug_id=JDK-8334853) ScrollPaneSkin null during sizeToScene
+  not a bug, caused by incorrect scale animation setting scaleX/Y to 0.0
 - [x] [KT-41373](https://youtrack.jetbrains.com/issue/KT-41373) Reflection: Anonymous class inspection fails  
   fixed
 - [x] [KT-41310](https://youtrack.jetbrains.com/issue/KT-41310) ReflectionL Creating `KType` from `Java`  

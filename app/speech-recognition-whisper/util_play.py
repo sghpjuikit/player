@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from util_actor import Actor
 from util_wrt import Writer
 from scipy import signal
@@ -11,7 +12,7 @@ import time
 import os
 
 class SdEvent:
-    def __init__(self, type: str, text: str, audio: None | str | np.ndarray | int, skippable: bool, location: Location):
+    def __init__(self, type: str, text: str, audio: None | str | Generator[np.ndarray, None, None] | int, skippable: bool, location: Location):
         self.type = type
         self.text = text
         self.audio = audio
@@ -36,7 +37,7 @@ class SdEvent:
         return cls('f', text, audio, skippable, CTX.location)
 
     @classmethod
-    def wavChunks(cls, text: str, audio: np.ndarray, skippable: bool):
+    def wavChunks(cls, text: str, audio: Generator[np.ndarray, None, None], skippable: bool):
         return cls('b', text, audio, skippable, CTX.location)
 
 @dataclass

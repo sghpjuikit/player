@@ -143,7 +143,7 @@ interface Constraint<in T> {
       override fun isValid(value: String?) = value==null || value.length in min..max
       override fun message() = "Text must be at least ${toUiConverter.toS(min)} and at most ${toUiConverter.toS(max)} characters long"
    }
-   object StringFileName(): Constraint<String?> {
+   object StringFileName: Constraint<String?> {
       override fun isValid(value: String?) = value==null || filenamizeString(value)==value
       override fun message() = "Text must be valid file name"
    }

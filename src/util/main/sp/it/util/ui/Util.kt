@@ -278,8 +278,8 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
    val b = boundsInLocal
    val by = (percent*pxTo + (1.0 - percent)*pxFrom)
    if (b.width>0.0 && b.height>0.0) {
-      scaleX = 1 + by/b.width max 0.0
-      scaleY = 1 + by/b.height max 0.0
+      scaleX = 1 + by/b.width
+      scaleY = 1 + by/b.height
    } else {
       scaleX = 1.0
       scaleY = 1.0

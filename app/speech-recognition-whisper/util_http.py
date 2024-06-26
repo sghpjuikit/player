@@ -34,6 +34,16 @@ class Http:
         class HttpRequestHandler(BaseHTTPRequestHandler):
 
             def do_XXX(self, method: str):
+                # help
+
+                if 'GET' == method and '/' == urlparse(self.path).path:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/plain')
+                    self.end_headers()
+                    for handler in http.handlers:
+                        self.wfile.write(f'{handler.method} {handler.path_to_match}\n'.encode('utf-8'))
+                    return
+
                 # find handler by path and invoke it
                 for handler in http.handlers:
                     if handler.method == method and handler.path_to_match == urlparse(self.path).path:

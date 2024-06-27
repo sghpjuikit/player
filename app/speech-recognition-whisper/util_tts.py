@@ -370,7 +370,7 @@ class TtsCoqui(TtsBase):
     def _gen(self, text: str):
         text_to_gen = replace_numbers_with_words(text)
         text_to_gen = text_to_gen.strip()
-        text_to_gen = text_to_gen.replace("</s>", "").replace("```", "").replace("...", " ")
+        text_to_gen = text_to_gen.replace("</s>", "").replace("```", "").replace("...", ".")
         text_to_gen = re.sub(" +", " ", text_to_gen)
 
         return self.model.inference_stream(text_to_gen, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)

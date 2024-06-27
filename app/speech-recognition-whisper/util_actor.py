@@ -47,6 +47,7 @@ class Actor:
     def stop(self):
         'Stop processing all elements, stop the loop,, release all resources and end thread when done. Asynchronous'
         self._stop = True
+        self.write(f'{self.name} stopping...')
 
     def stop_with_app(self):
         'Stop that does nothing, lets this actor run until application shuts down, as this uses daemon thread, prevents skipping events'

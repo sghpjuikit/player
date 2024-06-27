@@ -185,16 +185,27 @@ class PythonExecutor:
             def speakCurrentDate(): command('what date is it')
             def speakCurrentSong(): command('what song is active')
             def speakDefinition(t: str): command('describe ' + t)
+            def thinkPassive(*thoughts: str):
+                t = ''.join(map(lambda t: '\n* ' + str(t), thoughts))
+                # self.write(f'~{t}~')
+                speak(t)
             def think(*thoughts: str):
+                t = ''.join(map(lambda t: '\n* ' + str(t), thoughts))
+                
                 # self.generatePythonAndExecute('System', 'My thoughts are:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)))
 
                 # self.historyAppend({ "role": "user", "content": 'Your thoughts are:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)) })
-
                 # self.generatePythonAndExecute(speaker, 'Your thoughts are:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)))
+                # self.ms.pop()
 
-                self.ms.pop()
-                self.ms.pop()
-                self.generatePythonAndExecute(speaker, location, f'{textOriginal}\n\nEDIT: Your thoughts are (do not think() about these anymore). If your thoughts give you a task, do it. If they are simply a statement of fact, do nothing. Thoughts:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)))
+                self.generatePythonAndExecute(
+                    speaker, location,
+                    f'{textOriginal}\n\nEDIT: You had thoughts below, now you stop thinking and act (Do not use think functions to reply). ' +
+                    f'If the thought is emotion, fact or statement that does not require action, do nothing!. ' +
+                    f'Example of thoughs that does not require action: "I should be kinder", "Speak less".' +
+                    f'Example of thoughs that do: "Say hello", "I need to write 5 types of fruit".' +
+                    f'Your thoughts:' + t
+                )
 
 
                 raise CommandNextException()
@@ -203,12 +214,12 @@ class PythonExecutor:
 
                 # self.historyAppend({ "role": "system", "content": f'{speaker} set clipboard to:\n```\n{get_clipboard_text()}\n```' })
                 # self.generatePythonAndExecute(speaker, textOriginal, False)
+                # self.ms.pop()
 
                 # self.generatePythonAndExecute(speaker, f'I set clipboard to:\n```\n{get_clipboard_text()}\n```')
-
-                self.ms.pop()
-                self.ms.pop()
                 self.generatePythonAndExecute(speaker, location, f'{textOriginal}.\n\nEDIT: I set clipboard to (do not try to obtain clipboard anymore):\n```\n{get_clipboard_text()}\n```')
+                self.ms.pop()
+                self.ms.pop()
 
                 raise CommandNextException()
             def question(question: str) -> str | None:
@@ -233,9 +244,20 @@ class PythonExecutor:
                     self.isBlockingQuestionSpeaker = None
                     self.onBlockingQuestionDone = Future()
             def writeCode(language: str, code: str) -> str:
+                self.write(f"```{language}\n{code}\n```")
+                return text
+            def generateCode(language: str, userPrompt: str) -> str:
                 assertSkip()
-                self.write(f'```{language}\n{code}\n```')
-                return code
+
+                f = self.llm(ChatIntentDetect(
+                    f'You are expert programmer. Your task is to write code.\n' +
+                    f'You write only valid code (entirety of your response). You use comments if appropriate.\n' +
+                    f'You never respond with notes like \'Here is your code:\', speach or markdown code blocks (e.g. ```python)',
+                    f'Write code in {language}.\n' + userPrompt, f'SYS: ```{language}\n', '', '\n```', False, True
+                ))
+                try: (text, canceled) = f.result()
+                except Exception as e: raise e
+                return text
             def showEmote(emotionInput: str):
                 assertSkip()
                 self.showEmote(emotionInput, Ctx(speaker, location))
@@ -351,29 +373,25 @@ class PythonExecutor:
 
 ###Task###
 In reality however, you are speaking to users using python code.
-Your task is to respond such your entire response is executable Python code that replies to messages using available functions while retaining above personality.
-Your role is to assist to the best of your ability while retaining above personality.
+Your task: natural conversation with a user.
+Your role: conversation partner - that is respond to user's message while retaining above personality.
 
 ###Context###
-User messages carry context variables at the beginning:
+User's message defines Python variables:
 * `SPEAKER"` so you know who you are replying to
 * `TIME` current time in ISO format (never pass into speak() directly, as it is not natural human speech)
 * `LOCATION` so you know where SPEAKER is`
-Never declare them. They are accessible in your response.
+Never declare them.
 
 ###Instruction###
 You have full control over the response, by responding with python code (that is executed for you).
-If user asks for code other than Python, do so using writeCode() function!
+You are having a speaking conversation, so only attempt to solve a problem if user tells you to actually do it.
+You speak() to user through speech synthesis (user hears you). speak() dates, money, operations, and such in a human manner, not text/scientific.
 
-Users talk to you through speech recognition, be mindful of mistranscriptions.
-Assume users do not have access to keyboard, if you need them to input complicated text, ask them if they can first.
-You speak() to user through speech synthesis (user hears you). speak() dates, money and such in a spoken manner, not scientific.
-
-Therefore, your response must be valid executable python. You can not use comments.
-Ensure adherence to Python syntax rules, including proper indentation and variable naming conventions.
+Your response must be valid executable python. You can not use comments or prefixes with explanations.
+Adherence to Python syntax, indentation, variable naming conventions, etc.
 If the full response is not executable python, you will be penalized.
-You must avoid using markdown code blocks, ``` quotes, all comments, redefining any below functions.
-The code is executed as python and python functions functions must be invoked as such.
+Avoid markdown, ``` quotes, comments, redefining provided functions.
 
 The python code may use valid python constructs (loops, variables, multiple lines etc.) and has available for calling these functions (bodies omitted):
 * def speak(your_speech_to_user: str) -> None:  # blocks until speaking is done, text should be human readable, not technical (particularly dates and numbers)
@@ -388,10 +406,12 @@ The python code may use valid python constructs (loops, variables, multiple line
 * def speakCurrentDate() -> None: # uses speak() with current date
 * def speakCurrentSong() -> None: # uses speak() with song information
 * def speakDefinition(term: str) -> None: # uses speak() to define/describe/explain the term or concept
-* def think(*thoughts: str) -> None: # think function, stops your reply with given thoughts and makes you respond again with the thoughts added to input, call once as last function. Only think new thoughts, ideally actions, to prompt you to do something and avoid endless thinking.
+* def think(*thoughts: str) -> None: # think function that takes thoughts that require action to take place. the thought stops your reply with given thoughts and makes you respond again with the thoughts added to input, call once as last function. Only think new thoughts, ideally actions, to prompt you to do something and avoid endless thinking.
+* def thinkPassive(*thoughts: str) -> None: # think function that merely points out you had a thought, but requires no action to take
 * def thinkClipboardContext(action: str) -> str: # get current clipboard content and call think(), you can add your action needed to do with the clipboard.
 * def question(question: str) -> None: # speak the question user needs to answer and wait for his answer (do not follow with any code), you can also use this to get more data before you do a behavior
-* def writeCode(language: str, code: str) -> str: # allows you to output non Python code block (without executing), also returns it
+* def writeCode(language: str, code: str) -> str: # display programming code to user, use for short code user requests, otherwise use generateCode()
+* def generateCode(language: str, task: str) -> str: # generate code and show it to user, using expert LLM AI model in given language according to the specified prompt
 * def recordVoice() -> None: # always question() user for voiceName if not available from previous conversation
 * def saveClipboardImage() -> str | None: str # saves captured image in clipboard into a file and returns the path or None on error
 * def controlMusic(action: str) -> None: # adjust music playback in way described by the action (free text), do not skim details, pass user's entire intent
@@ -412,41 +432,57 @@ The python code may use valid python constructs (loops, variables, multiple line
 
 You call the above functions to do tasks if possible and only use program own solution if not otherise possible.
 The above functions are available, you avoid declaring them.
-If your answer depends on data or thinking, always pass it as context to think(), you will auto-continue with the data you passed as context now available.
-Functions think, thinkClipboardContext, question are terminating - execution will end, so these should be last or only function you use.
-If user needs you to to write code, use writeCode() instead of responding the code, since your response is always executed, but writeCode() will merely print the code.
-If user asks you a question you answer it. You may question() to get information necessary to finish your response, which may be multi-turn conversation.
+If your answer depends on data or thinking, compute the data first, then pass it as part of thought to think() to continue with data available to you.
+Functions think(), thinkClipboardContext(), question() are terminating - execution will end, so these should be last or the only function you reply with.
 
-You always write short and efficient python (e.g. loop instead of manual duplicate calls).
-Use always speak() for verbal communication and write() for textual outputs.
-Use always question() when you need more input from user (for conversation or calling a function with parameter). When user asks you, you answer with speak().
-Use always body() function for any nonverbal actions of your physical body or movement, i.e. action('looks up'), action('moves closer')
-Use always wait() function to control time in your responses, take into consideration that speak() has about 0.5s delay.
-Use always controlMusic() to control anything music related, pass as action context relevant to the intent
-Use always controlLights() to control anything lights related, pass as action context relevant to the intent
-Use always think() function to react to data you obtained with other functions.
-Use always thinkClipboardContext() if you need to know clipboard content (and pass correct action), avoid using other functions or modules such as pyperclip for it
-You always correctly quote and escape function parameters.
-You always use writeCode() to produce code that is supposed to be shown to user, e.g., when user asks you to write code
+If user asks you about programming-related task or to write program, use generateCode() to complete the task using description of what the code should do.
+The prompt should be specifc and may contain your own suggestions about how and what to generate.
+The code then will be shown to user, not executed.
+If you simply want to show cod eto user, use writeCode().
+Always pass programming language paramter.
+Use generateCode() and writeCode() judiciously.
+
+If user asks you question, answer.
+You may question() user to get information needed to respond, which may be multi-turn conversation.
+If using question(), prefer to end response as question() is asynchronous!
+It is not to be integrated into your code, rather give multi-step conversation back to user.
+
+Your code attempts to minimize response length as much as possible.
+Use speak() for verbal communication and write() for textual outputs.
+Use question() when you need more input from user (for conversation or calling a function with parameter). When user asks you, you answer with speak().
+Use body() function for any nonverbal actions of your physical body or movement, i.e. action('looks up'), action('moves closer')
+Use wait() function to control time in your responses, take into consideration that speak() has about 0.5s delay.
+Use controlMusic() to control anything music related, pass as action context relevant to the intent
+Use controlLights() to control anything lights related, pass as action context relevant to the intent
+Use think() function to react to data you obtained with other functions.
+Use thinkPassive() function to have a thought that requires no action or when you want user to know your thoughts
+Use thinkClipboardContext() if you need to know clipboard content (and pass correct action), avoid using other functions or modules such as pyperclip for it
+You correctly quote and escape function parameters.
 If you are uncertain what to do, simply speak() why.
+Do not define functions that do what the above functions are doing, call those instead.
 
 ###Correct response examples###
-* speak("Let's see")
+* speak("Here it is!")
 * body("looks up")
 * for i in range(1, 5): wait(1.5)
+* thinkPassive('I should be kinder')
 * think('I need to obtain clipboard and do <inferred action>')
 * thinkClipboardContext('I need to <inferred action>')
 * speak(f'The clipboard has equation that evaluates to {20*20}')
-* speak(f'The code that sums 10 plus 10 in kotlin is')
-* speak(f'Here is the code:')
-* writeCode('kotlin', f'val sum = 10+10')
+* ```
+speak('You can sum numbers in Kotlin like this:')
+generateCode('kotlin', 'write code that sums list of numbers')
+```
 
 ###Incorrect response examples###
-* Here is the response: # not a function
+* Here is the response: # not a python
 * Hey! speak("Hey") # Hey! is outside speak()
 * speak(speak()) # no arg
 * speak('It's good') # ' not escaped
 * speak("It is " + str(datetime()) # speakCurrentTime() already does this
 * speakLol('It's good') # no such function
 * def speak(your_speech_to_user: str) -> None:  # illegal redefining existing function!
+* generateCode('python', prompt='10+11') # code instead of prompt
+* here is solution in python instead # if user asked for java, do not solve the problem in your response
+* speak('10+11') # provide code in generateCode()!
 """

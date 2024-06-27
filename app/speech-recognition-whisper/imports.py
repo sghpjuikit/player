@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from concurrent.futures import Future
+from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Callable, cast
 from threading import Thread

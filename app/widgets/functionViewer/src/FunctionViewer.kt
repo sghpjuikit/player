@@ -7,7 +7,6 @@ import java.math.BigDecimal.TEN
 import java.math.BigDecimal.ZERO
 import java.math.RoundingMode.UP
 import java.text.NumberFormat
-import javafx.geometry.Insets
 import javafx.geometry.Pos.BOTTOM_RIGHT
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -15,17 +14,13 @@ import javafx.geometry.Pos.TOP_LEFT
 import javafx.scene.Cursor.CROSSHAIR
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
-import javafx.scene.control.ScrollPane
-import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
-import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.input.ScrollEvent.SCROLL
-import javafx.scene.layout.Priority
-import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.paint.Color.AQUA
+import javafx.scene.paint.Color.TRANSPARENT
 import javafx.scene.paint.CycleMethod.NO_CYCLE
 import javafx.scene.paint.LinearGradient
 import javafx.scene.paint.Stop
@@ -40,11 +35,8 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.emScaled
-import sp.it.pl.main.infoIcon
-import sp.it.pl.main.infoIconWith
 import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.labelForWithClick
-import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
@@ -54,7 +46,10 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.conf.uiConverter
 import sp.it.util.conf.uiToggle
+import sp.it.util.functional.Try
+import sp.it.util.functional.getOr
 import sp.it.util.functional.net
+import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
 import sp.it.util.math.StrExF
@@ -67,25 +62,19 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.text.keys
 import sp.it.util.ui.alpha
-import sp.it.util.ui.borderPane
 import sp.it.util.ui.canvas
 import sp.it.util.ui.hBox
 import sp.it.util.ui.initClip
 import sp.it.util.ui.initMouseDrag
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
-import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.ui.prefSize
-import sp.it.util.ui.scrollPane
-import sp.it.util.ui.scrollText
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
-import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
-import sp.it.util.units.em
 import sp.it.util.units.millis
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -272,11 +261,8 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          fun mapX(x: Num): Double = ((x - xMin)/(xMax - xMin)).toDouble()*width
          fun mapY(y: Num): Double = (ONE - (y - yMin)/(yMax - yMin)).toDouble()*height
          val xIncMax = (xMax - xMin)/(1.0 max width).big.setScale(precision, UP)
-//         val xIncDistMax = 4.big*sqrt(2.big*xIncMax.pow(2))
-//         val xIncDistMin = xIncDistMax/4.0
          val xInc = xIncMax
-         var x = xMin + xInc
-         var previousValue: BigP? = null
+         var fPrev: BigP? = null
          var path: Any? = null
          val pathXs = ArrayList<Double>(500)
          val pathYs = ArrayList<Double>(500)
@@ -284,78 +270,48 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
          pathXs += 0.0
          pathYs += pathRoot.height
+         pathGc.globalAlpha = 1.0
+         pathGc.stroke = colorF.fill
+         pathGc.lineWidth = 2.0
+         pathGc.fill = TRANSPARENT
+         pathGc.setLineDashes()
 
          // draw function
-         while (x<xMax) {
+         fSeq(xMin, xMax, xInc, yMin-1.big, yMax+1.big, f).forEach { (x, yTry) ->
             try {
-               val y = f(x)
-//               println("$previousValue $x $y")
+
+               val y = yTry.orThrow
                val isAbove = y > yMax
                val isBelow = y < yMin
                val isOutside = isAbove || isBelow
-               val wasOutside = previousValue?.net { it.y !in yMin..yMax } ?: true
+               val wasOutside = fPrev?.net { it.y !in yMin..yMax } ?: true
+               val moveToNew = P(mapX(fPrev?.x ?: x), mapY(fPrev?.y ?: y))
 
-               if (path==null) {
-                  if (!isOutside) {
-//                     TODO: implement look-around to fix clipping for steep functions like 1/x
-//                     if (previousValue!=null) {
-//                        val xIncDist = previousValue.distance(x, y)
-//                        if (xIncDist>xIncDistMax) {
-//                           x -= xInc
-//                           xInc /= 2.0
-//                           x += xInc
-//                           continue
-//                        }
-//                        if (xIncDist<xIncDistMin) {
-//                           x -= xInc
-//                           xInc *= 2.0
-//                           x += xInc
-//                           continue
-//                        }
-//                     }
-
-                     path = Any()
-                     moveTo = P(mapX(previousValue?.x ?: x), mapY(previousValue?.y ?: y))
-                  }
-                  if (!wasOutside || !isOutside) {
-                     pathGc.globalAlpha = 1.0
-                     pathGc.stroke = colorF.fill
-                     pathGc.lineWidth = 2.0
-                     pathGc.fill = Color.TRANSPARENT
-                     pathGc.setLineDashes()
-                     pathGc.strokeLine(moveTo.x, moveTo.y, mapX(x), mapY(y.clip(yMin, yMax)))
-                  }
-               } else {
-                  if (!wasOutside || !isOutside) {
-                     pathGc.globalAlpha = 1.0
-                     pathGc.stroke = colorF.fill
-                     pathGc.lineWidth = 2.0
-                     pathGc.fill = Color.TRANSPARENT
-                     pathGc.setLineDashes()
-                     pathGc.strokeLine(moveTo.x, moveTo.y, mapX(x), mapY(y.clip(yMin, yMax)))
-                  }
+               if (path==null && !isOutside) {
+                  path = Any()
+                  moveTo = moveToNew
                }
-
+               if (!wasOutside || !isOutside) {
+                  pathGc.strokeLine(moveTo.x, moveTo.y, mapX(x), mapY(y.clip(yMin, yMax)))
+               }
                if (isOutside)
                   path = null
 
-               previousValue = BigP(x, y)
-               moveTo = P(mapX(previousValue.x), mapY(previousValue.y))
+               fPrev = BigP(x, y)
+               moveTo = moveToNew
 
                pathXs += moveTo.x
                pathYs += when { isAbove -> 0.0; isBelow -> pathRoot.height; else -> moveTo.y }
             } catch (e: Throwable) {
-               if (previousValue!=null) {
-                  moveTo = P(mapX(previousValue.x), mapY(previousValue.y))
+               if (fPrev!=null) {
+                  moveTo = P(mapX(fPrev?.x ?: x), mapY(fPrev?.y ?: 0.big))
                   pathXs += moveTo.x
                   pathYs += pathRoot.height
                }
 
-               previousValue = null
+               fPrev = null
                path = null
             }
-
-            x += xInc
          }
 
          if (pathXs.size>3) {
@@ -472,5 +428,41 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
       fun P.invertY() = apply { y = 1 - y }
 
       fun Fun.derive(dx: Num): Fun = { (this(it + dx) - this(it)) / dx }
+
+      data class NumP(val x: Num, val y: Try<Num, Throwable>)
+      
+      data class Fx(val prev: NumP, val curr: NumP, val next: NumP) {
+         fun isContinuous(fd: Fun, fdd: Fun) = runTry {
+            // f'(x) && f''(x) switch sign -> asymptote
+            (curr.y.orThrow - prev.y.orThrow).signum()==(next.y.orThrow - curr.y.orThrow).signum() || fdd(prev.x).signum()==fdd(next.x).signum()
+         }.getOr(true)
+      }
+
+      /** Coordinates between [xMin] and [xMax] with [xDiff] step. Adds one before and one after range. */
+      fun xSeq(xMin: Num, xMax: Num, xDiff: Num) =
+         sequenceOf(xMin - xDiff) + generateSequence(xMin) { it + xDiff }.takeWhile { it<xMax } + sequenceOf(xMax+xDiff)
+
+      /** [xSeq] with associated `f(x)` values using [f] function. I.e. points of the [f] on a graph. */
+      fun fxSeq(xMin: Num, xMax: Num, xDiff: Num, f: Fun) =
+         xSeq(xMin, xMax, xDiff).map { NumP(it, runTry { f(it) }) }
+
+      /** Subsequent triplets of points in [fxSeq] with step 1. I.e. [fxSeq] assiciated with previous and next point. */
+      fun fxTriSeq(xMin: Num, xMax: Num, xDiff: Num, f: Fun) =
+         fxSeq(xMin, xMax, xDiff, f).windowed(3, 1) { Fx(it[0], it[1], it[2]) }
+
+      fun fSeq(xMin: Num, xMax: Num, xDiff: Num, yMin: Num, yMax: Num, f: Fun) = sequence {
+         val dx = (xMax-xMin)/Num(10000)
+         val fd = f.derive(dx)
+         val fdd = fd.derive(dx)
+         for (p in fxTriSeq(xMin, xMax, xDiff, f)) {
+            if (p.isContinuous(fd, fdd)) {
+               yield(p.curr)
+            } else {
+               yield(NumP(p.curr.x, p.prev.y.map { if (it>Num.ZERO) yMax else yMin }))
+               yield(NumP(p.curr.x, p.next.y.map { if (it>Num.ZERO) yMax else yMin }))
+            }
+         }
+      }
+
    }
 }

@@ -14,6 +14,7 @@ from util_http import Http, HttpHandler
 from util_wrt import Writer
 from util_actor import Actor
 from util_paste import *
+from util_api import Api
 from util_com import *
 from util_now import *
 from util_str import *
@@ -362,7 +363,7 @@ class Assist:
 
 if isinstance(tts.tts, TtsCoqui):
     voices_dir = 'voices-coqui'
-    voices = [f for f in os.listdir(voices_dir) if os.path.isfile(os.path.join(voices_dir, f)) and not f.endswith('.txt')]
+    voices = [f for f in os.listdir(voices_dir) if os.path.isfile(os.path.join(voices_dir, f)) and f.endswith('.wav')]
 else:
     voices = []
 
@@ -393,6 +394,7 @@ class CommandExecutorMain(CommandExecutor):
             return handled
         if text.startswith("change voice "):
             voice = text.removeprefix("change voice ")
+            if '.' not in voice: voice = voice + '.wav'
             if isinstance(tts.tts, TtsCoqui):
                 if voice in voices:
                     if tts.tts.voice != voice:
@@ -428,14 +430,10 @@ class CommandExecutorMain(CommandExecutor):
         else:
             return text
 
+api = Api(llm, tts)
 commandExecutor = CommandExecutorMain()
 llm.commandExecutor = commandExecutor.execute
-executorPython = PythonExecutor(
-    tts, llm,
-    lambda sp, up, ms, ctx: llm(ChatIntentDetect.python(sp, up, ms), ctx),
-    lambda code: llm(ChatIntentDetect.pythonFix(code)),
-    write, llmSysPrompt, commandExecutor, ', '.join(voices)
-)
+executorPython = PythonExecutor(api, write, llmSysPrompt, commandExecutor, ', '.join(voices))
 
 class AssistBasic:
     def __init__(self):

@@ -3,6 +3,7 @@ from datetime import datetime
 from util_llm import ChatIntentDetect
 from util_fut import *
 from util_ctx import *
+from util_api import *
 
 class CommandExecutor:
     def execute(self, text: str, ctx: Ctx = CTX) -> str:
@@ -24,12 +25,9 @@ def preprocess_command(text: str) -> str:
     return t
 
 class PythonExecutor:
-    def __init__(self, tts, llm, generatePython, fixPython, write, llmSysPrompt, commandExecutor, voices):
+    def __init__(self, api: Api, write, llmSysPrompt, commandExecutor, voices):
         self.id = 0
-        self.tts = tts
-        self.llm = llm
-        self.generatePython = generatePython
-        self.fixPython = fixPython
+        self.api = api
         self.write = write
         self.llmSysPrompt = llmSysPrompt
         self.commandExecutor = commandExecutor
@@ -51,7 +49,7 @@ class PythonExecutor:
                 if len(directories)==0: self.write(f'COM: {ctx.speaker}:{ctx.location}:show emote none')
                 if len(directories)==0: return
                 directoriesS = ''.join(map(lambda x: f'\n* {x}', directories))
-                f = self.llm(ChatIntentDetect(
+                f = self.api.llm(ChatIntentDetect(
                     f'You are emotion detector. Available emotions are:{directoriesS}',
                     f'Respond with exactly one closest emotion, or \'none\' if no emotion is close, for the event: {emotionInput}', '', '', '', False, False
                 ))
@@ -107,7 +105,7 @@ class PythonExecutor:
 
             sp = self.prompt()
             up = 'Assignment: You are expert programmer. Output must be in valid python code!\nInstruction:\n' + textOriginal
-            futureOnDone(self.generatePython(sp, up, self.ms, Ctx(speaker, location)), on_done)
+            futureOnDone(self.api.llm(ChatIntentDetect.python(sp, up, self.ms), Ctx(speaker, location)), on_done)
         except Exception:
             self.write("ERR: Failed to respond")
             print_exc()
@@ -176,14 +174,14 @@ class PythonExecutor:
             def speak(t: str):
                 if t is None: return;
                 assertSkip()
-                self.tts.skippable(t.removeprefix('"').removesuffix('"'), location).result()
+                self.api.ttsSkippable(t.removeprefix('"').removesuffix('"'), location).result()
             def body(t: str):
                 assertSkip()
                 self.write(f'SYS: *{t}*')
             def wait(t: float):
                 for _ in range(int(t/0.1)):
                     assertSkip()
-                    self.tts.speakPause(100)
+                    self.api.ttsPause(100)
                     time.sleep(0.1)
             def speakCurrentTime(): command('what time is it')
             def speakCurrentDate(): command('what date is it')
@@ -305,9 +303,9 @@ class PythonExecutor:
             def commandListVoices():
                 command(f'list available voices')
             def commandChangeVoice(voice: str):
-                f = self.llm(ChatIntentDetect(
+                f = self.api.llm(ChatIntentDetect(
                     f'You are voice selector. Available voices are: {self.voices}',
-                    f'Respond with exactly one closest voice, or \'none\' if no such voice is close, for the input: {voice}', '', '', '', False, False
+                    f'Respond with exactly one closest voice, exactly as defined, or \'none\' if no such voice is close, for the input: {voice}', '', '', '', False, False
                 ))
                 self.commandExecutor.execute('change voice ' + f.result()[0], Ctx(speaker, location))
 
@@ -335,7 +333,7 @@ class PythonExecutor:
             elif fix:
                 try:
                     self.write('ERR: invalid code, atempting to fix...')
-                    (text, canceled) = self.fixPython(text).result()
+                    (text, canceled) = self.api.llm(ChatIntentDetect.pythonFix(text)).result()
                 except Exception as e:
                     speak('I\'m sorry, I failed to respond: {e}')
                     raise e
@@ -398,41 +396,64 @@ If the full response is not executable python, you will be penalized.
 Avoid markdown, ``` quotes, comments, redefining provided functions.
 
 The python code may use valid python constructs (loops, variables, multiple lines etc.) and has available for calling these functions (bodies omitted):
-* def speak(your_speech_to_user: str) -> None:  # blocks until speaking is done, text should be human readable, not technical (particularly dates and numbers)
-* def body(your_physical_action: str) -> None:
-* def doNothing(reason: str = '') -> None: # does nothing, useful to stop engaging with user, optionally pass reason
-* def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str) -> None: # units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year
-* def setReminderAt(at: datetime.datetime, text_to_remind: str) -> None:
-* def wait(secondsToWait: float) -> None: # wait e.g. to sound more natural
-* def showEmote(emotionInput: str) -> None: # show emote inferred from the short emotion description passed as argument 
-* def showWarning(warning: str) -> None: # show text as warning across screen
-* def speakCurrentTime() -> None: # uses speak() with current time
-* def speakCurrentDate() -> None: # uses speak() with current date
-* def speakCurrentSong() -> None: # uses speak() with song information
-* def speakDefinition(term: str) -> None: # uses speak() to define/describe/explain the term or concept
-* def think(*thoughts: str) -> None: # think function that takes thoughts that require action to take place. the thought stops your reply with given thoughts and makes you respond again with the thoughts added to input, call once as last function. Only think new thoughts, ideally actions, to prompt you to do something and avoid endless thinking.
-* def thinkPassive(*thoughts: str) -> None: # think function that merely points out you had a thought, but requires no action to take
-* def thinkClipboardContext(action: str) -> str: # get current clipboard content and call think(), you can add your action needed to do with the clipboard.
-* def question(question: str) -> None: # speak the question user needs to answer and wait for his answer (do not follow with any code), you can also use this to get more data before you do a behavior
-* def writeCode(language: str, code: str) -> str: # display programming code to user, use for short code user requests, otherwise use generateCode()
-* def generateCode(language: str, task: str) -> str: # generate code and show it to user, using expert LLM AI model in given language according to the specified prompt
-* def recordVoice() -> None: # always question() user for voiceName if not available from previous conversation
-* def saveClipboardImage() -> str | None: str # saves captured image in clipboard into a file and returns the path or None on error
-* def controlMusic(action: str) -> None: # adjust music playback in way described by the action (free text), do not skim details, pass user's entire intent
-* def controlLights(action: str) -> None: # adjust or query lights system in way described by the action (free text providing as much details like room, group, scene, light properties, user's intent, etc as possible)
-* def commandRepeatLastSpeech() -> None:
-* def commandListCommands() -> None:
-* def commandRestartAssistant() -> None:
-* def commandStartConversation() -> None:
-* def commandRestartConversation() -> None:
-* def commandStopConversation() -> None:
-* def commandSystem(action: str) -> None: # action is one of shut_down|restart|hibernate|sleep|lock|log_off
-* def commandListVoices() -> None:
-* def commandChangeVoice(voice: str) -> None:
-* def commandOpen(widget_name: str) -> None:
-* def commandClose() -> None:
-* def commandSearch(text_to_search_for: str) -> None:
-* def commandType(text_to_type: str) -> None:
+```
+def speak(your_speech_to_user: str) -> None:
+ 'text should be speech-like as if read out loud, use phonetic words, ideally single sentence per line, specify terms/signs/values as words, avoid *
+def body(your_physical_action: str) -> None:
+def doNothing(reason: str = '') -> None:
+ 'does nothing, useful to stop engaging with user, optionally pass reason'
+def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str) -> None:
+ 'units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year'
+def setReminderAt(at: datetime.datetime, text_to_remind: str) -> None:
+def wait(secondsToWait: float) -> None:
+ 'wait e.g. to sound more natural'
+def showEmote(emotionInput: str) -> None:
+ 'show emote inferred from the short emotion description passed as argument '
+def showWarning(warning: str) -> None:
+ 'show text as warning across screen'
+def speakCurrentTime() -> None:
+ 'uses speak() with current time'
+def speakCurrentDate() -> None:
+ 'uses speak() with current date'
+def speakCurrentSong() -> None:
+ 'uses speak() with song information'
+def speakDefinition(term: str) -> None:
+ 'uses speak() to define/describe/explain the term or concept'
+def think(*thoughts: str) -> None:
+ 'think function that takes thoughts that require action to take place. the thought stops your reply with given thoughts and makes you respond again with the thoughts added to input, call once as last function. Only think new thoughts, ideally actions, to prompt you to do something and avoid endless thinking.'
+def thinkPassive(*thoughts: str) -> None:
+ 'think function that merely points out you had a thought, but requires no action to take'
+def thinkClipboardContext(action: str) -> str:
+ 'get current clipboard content and call think(), you can add your action needed to do with the clipboard.'
+def question(question: str) -> None:
+ 'speak the question user needs to answer and wait for his answer (do not follow with any code), you can also use this to get more data before you do a behavior'
+def writeCode(language: str, code: str) -> str:
+ 'display programming code to user, use for short code user requests, otherwise use generateCode()'
+def generateCode(language: str, task: str) -> str:
+ 'generate code and show it to user, using expert LLM AI model in given language according to the specified prompt'
+def recordVoice() -> None:
+ 'always question() user for voiceName if not available from previous conversation'
+def saveClipboardImage() -> str | None:
+ 'r # saves captured image from clipboard into a file and returns the path or None on error'
+def controlMusic(action: str) -> None:
+ 'adjust music playback in way described by the action (free text), do not skim details, pass user's entire intent'
+def controlLights(action: str) -> None:
+ 'adjust or query lights system in way described by the action (free text providing as much details like room, group, scene, light properties, user's intent, etc as possible)'
+def commandRepeatLastSpeech() -> None:
+def commandListCommands() -> None:
+def commandRestartAssistant() -> None:
+def commandStartConversation() -> None:
+def commandRestartConversation() -> None:
+def commandStopConversation() -> None:
+def commandSystem(action: str) -> None: # action is one of shut_down|restart|hibernate|sleep|lock|log_off
+def commandListVoices() -> None:
+def commandChangeVoice(voice: str) -> None:
+ 'changes your voice to the arg'
+def commandOpen(widget_name: str) -> None:
+def commandClose() -> None:
+def commandSearch(text_to_search_for: str) -> None:
+def commandType(text_to_type: str) -> None:
+```
 
 You call the above functions to do tasks if possible and only use program own solution if not otherise possible.
 The above functions are available, you avoid declaring them.

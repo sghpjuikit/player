@@ -36,6 +36,7 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint
+import sp.it.util.conf.Constraint.UiNested
 import sp.it.util.conf.Constraint.UiSingleton
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -136,36 +137,42 @@ class ConfigPane<T: Any?>: VBox {
          }
          .associateBy { it.configEditor ?: it.parent?.configEditor!! }
 
+      fun ConfigEditor<*>.needsLabel() =
+         !(this is ConfigurableCE && config.hasConstraint<UiNested>())
       fun ConfigEditor<*>.needsInfo() =
-         config.info.isNotEmpty() && config.nameUi!=config.info
+         config.info.isNotEmpty() && config.nameUi!=config.info && needsLabel()
       fun ConfigEditor<*>.isNested() =
          this is ObservableListCE<*> || this is PaginatedObservableListCE || this is ConfigurableCE || editor is TextArea
-      fun ConfigEditor<*>.buildNameLabel() =
-         label(config.nameUi) {
-            styleClass += "form-config-pane-config-name"
-            isPickOnBounds = false
-            alignment = CENTER_LEFT
-            minWidth = USE_PREF_SIZE
-            labelForWithClick setTo editor
-            if (needsInfo()) {
-               install(configInfoTooltip)
-               onEventUp(MOUSE_MOVED) {
-                  configInfoTooltip.xy = it.screenXy + 1.em.emScaled.x2
+      fun ConfigEditor<*>.buildNameLabel(block: Label.() -> Unit = {}) =
+         if (!needsLabel())
+            null
+         else
+            label(config.nameUi) {
+               styleClass += "form-config-pane-config-name"
+               isPickOnBounds = false
+               alignment = CENTER_LEFT
+               minWidth = USE_PREF_SIZE
+               labelForWithClick setTo editor
+               if (needsInfo()) {
+                  install(configInfoTooltip)
+                  onEventUp(MOUSE_MOVED) {
+                     configInfoTooltip.xy = it.screenXy + 1.em.emScaled.x2
+                  }
+                  onEventUp(MOUSE_ENTERED) {
+                     if (ui.value!=MINI) it.consume()
+                     configInfoTooltip.hide()
+                     configInfoTooltip.text = config.info
+                     configInfoTooltip.xy = it.screenXy + 1.em.emScaled.x2
+                  }
                }
-               onEventUp(MOUSE_ENTERED) {
-                  if (ui.value!=MINI) it.consume()
-                  configInfoTooltip.hide()
-                  configInfoTooltip.text = config.info
-                  configInfoTooltip.xy = it.screenXy + 1.em.emScaled.x2
-               }
+               block()
             }
-         }
       fun ConfigEditor<*>.buildNodeForThis() =
          editorNodesOld[this] ?: buildNode().apply {
             properties[buildUiKey] = buildUiKey
             isEditableAllowed syncFrom this@ConfigPane.editable
          }
-      fun ConfigEditor<*>.buildDescriptionText() =
+      fun ConfigEditor<*>.buildDescriptionText(block: Label.() -> Unit = {}) =
          if (!needsInfo())
             null
          else
@@ -174,6 +181,7 @@ class ConfigPane<T: Any?>: VBox {
                styleClass += "form-config-pane-config-description"
                isWrapText = true
                prefWidth = computeContentWidth()
+               block()
             }
 
       if (!soft)
@@ -187,29 +195,29 @@ class ConfigPane<T: Any?>: VBox {
                      lay += e.buildNodeForThis()
                   }
                )
-               e.isNested() -> listOf(
-                  e.buildNameLabel().apply { pseudoClassChanged("nested", true) },
+               e.isNested() -> listOfNotNull(
+                  e.buildNameLabel { pseudoClassChanged("nested", true) },
                   hBox(20.emScaled, CENTER_LEFT) {
                      lay += e.buildNodeForThis()
                   }
                )
                else -> listOf(
                   hBox(20.emScaled, CENTER_LEFT) {
-                     lay(ALWAYS) += e.buildNameLabel()
+                     lay(ALWAYS) *= e.buildNameLabel()
                      lay += e.buildNodeForThis()
                   }
                )
             }
             NORMAL -> when {
                !needsLabel -> listOfNotNull(
-                  e.buildDescriptionText()?.apply { pseudoClassChanged("single", true) },
+                  e.buildDescriptionText { pseudoClassChanged("single", true) },
                   hBox(20.emScaled, CENTER_LEFT) {
                      lay += e.buildNodeForThis()
                   }
                )
                e.isNested() -> listOfNotNull(
-                  e.buildDescriptionText()?.apply { pseudoClassChanged("nested", true) },
-                  e.buildNameLabel().apply { pseudoClassChanged("nested", true) },
+                  e.buildDescriptionText { pseudoClassChanged("nested", true) },
+                  e.buildNameLabel { pseudoClassChanged("nested", true) },
                   hBox(20.emScaled, CENTER_LEFT) {
                      lay += e.buildNodeForThis()
                   }
@@ -217,14 +225,14 @@ class ConfigPane<T: Any?>: VBox {
                else -> listOfNotNull(
                   e.buildDescriptionText(),
                   hBox(20.emScaled, CENTER_LEFT) {
-                     lay(ALWAYS) += e.buildNameLabel()
+                     lay(ALWAYS) *= e.buildNameLabel()
                      lay += e.buildNodeForThis()
                   }
                )
             }
             EXTENSIVE -> listOfNotNull(
                if (needsLabel) e.buildNameLabel() else null,
-               e.buildDescriptionText()?.apply { pseudoClassChanged("single", !needsLabel) },
+               e.buildDescriptionText { pseudoClassChanged("single", !needsLabel) },
                e.buildNodeForThis()
             )
          }.onEach { n ->

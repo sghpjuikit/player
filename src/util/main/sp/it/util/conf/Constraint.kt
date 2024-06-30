@@ -207,6 +207,9 @@ interface Constraint<in T> {
    /** Avoid persisting the config. Use for 'computed' configs. Configs with [Config.isEditable]==[EditMode.NONE] are not persistent by default. */
    object NoPersist: MarkerConstraint()
 
+   /** Use so editor is nested. Only intended to use automatically by the framework. */
+   object UiNested: MarkerConstraint()
+
    /** Use so editor span entire available space. Applied if the editor is the only config in its group. */
    object UiSingleton: MarkerConstraint()
 

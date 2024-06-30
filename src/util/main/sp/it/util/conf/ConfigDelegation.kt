@@ -26,6 +26,7 @@ import sp.it.util.access.vx
 import sp.it.util.action.Action
 import sp.it.util.action.ActionDb
 import sp.it.util.action.IsAction
+import sp.it.util.conf.Constraint.UiNested
 import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
@@ -34,6 +35,7 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Unsubscriber
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncBiFromWithOverride
@@ -42,10 +44,14 @@ import sp.it.util.type.argOf
 import sp.it.util.type.type
 import sp.it.util.type.typeOrNothing
 
-/** Non-observable non-null configurable value. Backed by [PropertyConfig]. */
+/** Writable non-observable non-null configurable value. Backed by [PropertyConfig]. */
 fun <T: Any> c(initialValue: T): ConfS<T> = ConfS(initialValue).nonNull()
-/** Non-observable nullable configurable value. Backed by [PropertyConfig]. */
+/** Writable non-observable nullable configurable value. Backed by [PropertyConfig]. */
 fun <T: Any> cn(initialValue: T?): ConfS<T?> = ConfS(initialValue)
+/** Read-only non-observable non-null configurable value. Backed by [PropertyConfig]. */
+fun <T: Any> cro(initialValue: T): ConfSRO<T> = ConfSRO(initialValue).nonNull()
+/** Read-only non-observable nullable configurable value. Backed by [PropertyConfig]. */
+fun <T: Any> cnro(initialValue: T?): ConfSRO<T?> = ConfSRO(initialValue)
 /** Writable observable non-null configurable value. Backed by [PropertyConfig]. */
 fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV(initialValue, { v(it) }).nonNull()
 /** Writable observable non-null configurable value supplied by the specified [valueFactory]. Backed by [PropertyConfig]. */
@@ -92,6 +98,10 @@ inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemT
 inline fun <reified T: Any?> cCheckList(vararg initialItems: T): ConfCheckL<T, Boolean> = ConfCheckL(CheckList.nonNull(type(), initialItems.toList())).nonNull()
 /** Observable reified configurable checked list. Backed by [CheckListConfig]. */
 inline fun <reified T: Any?, S: Boolean?> cCheckList(checkList: CheckList<T, S>): ConfCheckL<T, S> = ConfCheckL(checkList).nonNull()
+/** Nested configurable. It nests [c]'s [Configurable.getConfigs] editors under single editor group. If [c] is observable, use [cvNest]. May want to use [noPersist]. */
+fun cNest(c: Configurable<*>) = cro(c)
+/** Nested observable configurable mapped from other observable value. Use when value [c] is observable (showing editor for [c] is caller's responsibility, ideally [c] should be [Config]). Unlike [cNest], the sub-group is dynamic. The [vToC] should return the same object for each same value. May want to use [noPersist]. */
+fun <T> cvNest(c: ObservableValue<T>, vToC: (T) -> Configurable<*>?) = ConfVRO(null as Configurable<*>?, { (c map vToC) }).but(UiNested)
 
 /** Adds the specified constraint for this delegated [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
@@ -307,6 +317,28 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
          @Suppress("UsePropertyAccessSyntax")
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = getValue()
          override fun setValue(thisRef: ConfigDelegator, property: KProperty<*>, value: T) = setValue(value)
+      }.registerConfig(ref)
+   }
+}
+
+class ConfSRO<T: Any?>(private val initialValue: T): Conf<T>() {
+
+   operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, T> {
+      property.makeAccessible()
+      val info = property.obtainConfigMetadata().toDef().copy(editable = EditMode.NONE)
+      val type = VType<T>(property.returnType)
+      val group = info.computeConfigGroup(ref)
+
+      val isFinal = property !is KMutableProperty
+      failIf(!isFinal) { "Property must be immutable" }
+
+      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
+      validateValue(c.value)
+      ref.configurableValueSource.initialize(c)
+      validateValueSoft(c.value).ifError { c.setValueToDefault() }
+
+      return object: PropertyConfig<T>(type, property.name, info, constraints, vx(c.value), initialValue, group), RoProperty<ConfigDelegator, T> {
+         override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = getValue()
       }.registerConfig(ref)
    }
 }

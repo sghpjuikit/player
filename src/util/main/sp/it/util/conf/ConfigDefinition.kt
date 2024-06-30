@@ -26,6 +26,9 @@ interface ConfigDefinition {
    val editable: EditMode
 }
 
+/** @return [ConfigDefinition] represented by this annotation */
+fun ConfigDefinition.toDef() = if (this is ConfigDef) this else ConfigDef(name, info, group, editable)
+
 /** Implementation of [ConfigDefinition] */
 data class ConfigDef(
    override val name: String = "",
@@ -46,6 +49,16 @@ fun <T: Any?, C: Conf<T>> C.def(
    info: String = "",
    group: String = "",
    editable: EditMode = EditMode.USER
+) = apply {
+   def = ConfigDef(name, info, group, editable)
+}
+
+/** Sets the specified [ConfigDefinition] to define this value. Overrides [IsConfig] and previously set [Conf.def] */
+fun <T: Any?, C: ConfVRO<T, *>> C.def(
+   name: String = "",
+   info: String = "",
+   group: String = "",
+   editable: EditMode = EditMode.APP
 ) = apply {
    def = ConfigDef(name, info, group, editable)
 }

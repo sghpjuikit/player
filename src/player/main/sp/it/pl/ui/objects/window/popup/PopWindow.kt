@@ -75,6 +75,7 @@ import sp.it.util.ui.initMouseDrag
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.max
+import sp.it.util.ui.maxSize
 import sp.it.util.ui.min
 import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.minPrefMaxWidth
@@ -375,6 +376,7 @@ open class PopWindow {
                sizeToScene()
                xy = shower(stage).net {
                   val s = Screen.getScreensForRectangle(it.areaBy(1 x 1)).firstOrNull()
+                  if (s!=null) stage.maxSize = s.bounds.size
                   if (s==null) it else it max s.bounds.min min (s.bounds.max - size)
                }
 

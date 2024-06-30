@@ -244,7 +244,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            ConfigPane(
                               ListConfigurable.heterogeneous(
                                  plugin.value
-                                    ?.net { listOf(it::micEnabled, it::mics, it::micVoiceDetectDetails) }
+                                    ?.net { listOf(it::micEnabled, it::mics, it::micVoiceDetectDetails, it::sttEngine, it::sttEngineDetails) }
                                     .orEmpty()
                                     .map { it.getDelegateConfig() }
                               )

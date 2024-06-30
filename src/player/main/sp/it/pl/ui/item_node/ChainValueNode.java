@@ -73,6 +73,8 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 	@SuppressWarnings("rawtypes")
 	public ChainValueNode(REDUCED_VAL initialValue) {
 		super(initialValue);
+		root.getStyleClass().add("chain");
+		rootLinks.getStyleClass().add("chain");
 		editable.attachC(it -> chain.forEach(Link::updateIcons));
 		editable.attachC(it -> root.getChildren().stream().filter(i -> i instanceof ChainValueNode.NullLink).map(k -> (ChainValueNode.NullLink) k).forEach(j -> j.updateIcons()));
 	}

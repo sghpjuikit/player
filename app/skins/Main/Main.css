@@ -3414,6 +3414,11 @@ TextFlow > * {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
 
+/* Inherits: .chain */
+.list-config-editor {
+    -fx-spacing: 0.5em;
+}
+
 /*
  * Default button with an icon for accepting things.
  * inherits: .button

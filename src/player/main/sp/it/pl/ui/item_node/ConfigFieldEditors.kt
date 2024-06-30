@@ -714,6 +714,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
    override val editor = chain.getNode()
 
    init {
+      chain.styleclass("list-config-editor")
       chain.isHeaderVisible = true
 
       // readonly

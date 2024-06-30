@@ -23,6 +23,9 @@ interface Lay {
    /** Lays the specified child onto this */
    operator fun plusAssign(child: Node)
 
+   /** Lays the specified child onto this or does nothing if null */
+   operator fun timesAssign(child: Node?) = if (child!=null) this += child else Unit
+
    /** Lays the specified children onto this */
    operator fun plusAssign(children: Collection<Node>) = children.forEach { this += it }
 

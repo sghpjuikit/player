@@ -313,6 +313,7 @@ private val extractors = setOf(
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::shapeProperty,             type<Property<Shape?>>()),
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::snapToPixelProperty,       type<Property<Boolean>>()),
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::widthProperty,             type<ReadOnlyProperty<Double>>()),
+      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::paddingProperty,           type<Property<Insets>>()),
       Extractor(javafx.scene.layout.Pane::class,     javafx.scene.layout.Pane::backgroundProperty,          type<Property<Background?>>()),
       Extractor(javafx.scene.layout.Pane::class,     javafx.scene.layout.Pane::getChildren,                 type<ObservableList<Node>>()),
       Extractor(javafx.scene.layout.HBox::class,     javafx.scene.layout.HBox::alignmentProperty,           type<Property<Pos>>()),

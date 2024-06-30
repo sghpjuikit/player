@@ -445,10 +445,20 @@ var Window.xy
    get() = P(x, y)
    set(value) { x = value.x; y = value.y }
 
-/** Screen of this window */
+/** [width, height] of this window */
 var Window.size: P
    get() = P(width, height)
    set(value) { width = value.x; height = value.y }
+
+/** [minWidth, minHeight] of this window */
+var Stage.minSize: P
+   get() = P(minWidth, minHeight)
+   set(value) { minWidth = value.x; minHeight = value.y }
+
+/** [minWidth, minHeight] of this window */
+var Stage.maxSize: P
+   get() = P(maxWidth, maxHeight)
+   set(value) { maxWidth = value.x; maxHeight = value.y }
 
 /** Screen coordinates of bounds */
 val Window.bounds: Rectangle2D

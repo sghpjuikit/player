@@ -541,9 +541,6 @@ infix fun P.areaTo(p: P) = Rectangle2D(x min p.x, y min p.y, abs(x - p.x), abs(y
 /** @return rectangle defined by this point and the point shifted by the specified point from this point */
 infix fun P.areaBy(p: P) = Rectangle2D(x min (x + p.x), y min (y + p.y), abs(p.x), abs(p.y))
 
-operator fun Insets.plus(insets: Insets) = Insets(top + insets.top, right + insets.right, bottom + insets.bottom, left + insets.left)
-operator fun Insets.minus(insets: Insets) = Insets(top - insets.top, right - insets.right, bottom - insets.bottom, left - insets.left)
-
 val Insets.width: Double get() = left + right
 val Insets.height: Double get() = top + bottom
 

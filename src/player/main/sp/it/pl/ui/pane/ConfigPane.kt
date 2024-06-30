@@ -13,6 +13,7 @@ import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import sp.it.pl.main.Css
 import sp.it.pl.main.appTooltip
@@ -57,6 +58,7 @@ import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.onNodeDispose
+import sp.it.util.ui.plus
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.screenXy
 import sp.it.util.ui.width
@@ -242,6 +244,7 @@ class ConfigPane<T: Any?>: VBox {
       children setTo editorNodes.sortedByConfigWith(editorOrder)
    }
 
+
    fun isSingleEditor(): Boolean = editors.size==1 && editors.first().config.hasConstraint<UiSingleton>()
 
    private fun computeContentWidth(): Double = (width - padding.width) max 200.0
@@ -285,7 +288,9 @@ class ConfigPane<T: Any?>: VBox {
          val isSingleEditor = isSingleEditor()
          val lastEditor = children.lastOrNull()
          children.fold(padding.top) { h, n ->
-            val p = HBox.getMargin(n) ?: Insets.EMPTY
+            val p1 = HBox.getMargin(n) ?: Insets.EMPTY
+            val p2 = if (n is Region) n.padding else Insets.EMPTY
+            val p = p1 + p2
             if (n is Label) n.prefWidth = contentWidth
             val pH = n.prefHeight(contentWidth).clip(n.minHeight(contentWidth), n.maxHeight(contentWidth))
             if (isSingleEditor && n===lastEditor) n.resizeRelocate(contentLeft, h + p.top, contentWidth, height - h - padding.bottom - p.top)
@@ -331,4 +336,5 @@ class ConfigPane<T: Any?>: VBox {
    }
 
    enum class Layout { MINI, NORMAL, EXTENSIVE }
+
 }

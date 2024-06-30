@@ -3484,11 +3484,11 @@ TextFlow > * {
 .form-config-pane:normal .form-config-pane-config-description,
 .form-config-pane:mini .form-config-pane-config-name:nested,
 .form-config-pane:extensive .form-config-pane-config-name {
-    -fx-padding: 1em 0 0 0;
+    -fx-margin: 0.5em 0 0.5em 0;
 }
 .form-config-pane:normal .form-config-pane-config-name:single {}
 .form-config-pane:normal .form-config-pane-config-description:single {
-    -fx-padding: 0;
+    -fx-margin: 0;
 }
 
 /************************************ SEARCH ***************************************************************************

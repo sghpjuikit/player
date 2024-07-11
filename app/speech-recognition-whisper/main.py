@@ -19,6 +19,7 @@ from util_now import *
 from util_str import *
 from util_num import *
 from util_ctx import *
+from util_laz import *
 import faulthandler
 import threading
 import traceback
@@ -664,12 +665,10 @@ try:
     else:
         pass
     stt.onDone = callback
-
-    micVad = Vad(0.5, stt.sample_rate)
-    if micVoiceDetect: micSpeakerDetector = MicVoiceDetectNvidia(micVoiceDetectTreshold, micVoiceDetectVerbose, micVoiceDetectDevice)
-    else: micSpeakerDetector = MicVoiceDetectNone()
-
-
+    
+    micVad = Lazy(lambda: Vad(0.5, stt.sample_rate))
+    micSpeakerDetector = Lazy(lambda: MicVoiceDetectNvidia(micVoiceDetectTreshold, micVoiceDetectVerbose, micVoiceDetectDevice) if micVoiceDetect else MicVoiceDetectNone())
+        
     mics: [Mic] = []
     if len(micDef)>0:
         for micDefName, att in json.loads(micDef).items():

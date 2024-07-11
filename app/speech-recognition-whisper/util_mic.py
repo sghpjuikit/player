@@ -148,12 +148,18 @@ class Mic(Actor):
         return math.sqrt(np.mean(samples ** 2))
 
     def _loop(self):
+        # wait till enabled, break if stopped
+        wait_until(lambda: self.enabled or self._stop)
+        # load vad, diarization models
+        self.vad()
+        self.speaker_diar()
+        # update state
         self._loaded = True
         self.write(f"RAW: {self.name} loaded")
-
         self.processing_start = time.time()
         self.processing_event = "Microphone audio streaming..."
         self.processing = True
+        # loop
         while not self._stop:
 
             # re/connect microphone
@@ -287,7 +293,7 @@ class Mic(Actor):
 
                 # detect whether speaking has started
                 isEnoughEnergy = energy > self.energy_threshold
-                isEnoughEnergyAndSpeech = isEnoughEnergy and self.vad.is_voice(buffer)
+                isEnoughEnergyAndSpeech = isEnoughEnergy and self.vad().is_voice(buffer)
                 if isEnoughEnergyAndSpeech and self.energy_debug: self.write(f'{self.name} energy treshold reached')
                 if isEnoughEnergyAndSpeech: break
 
@@ -317,11 +323,11 @@ class Mic(Actor):
 
                 # detect speech start
                 isEnoughEnergy = energy > self.energy_threshold
-                isEnoughEnergyAndSpeech_buffer = isEnoughEnergy and self.vad.is_voice(buffer)
+                isEnoughEnergyAndSpeech_buffer = isEnoughEnergy and self.vad().is_voice(buffer)
                 if isEnoughEnergyAndSpeech_buffer and phrase_count >= phrase_buffer_count:
                     if not isEnoughEnergyAndCorrectSpeechEvaluated:
                         isEnoughEnergyAndCorrectSpeechEvaluated = True
-                        user = self.speaker_diar.isCorrectSpeaker(AudioData(b"".join(frames), SAMPLE_RATE, SAMPLE_WIDTH))
+                        user = self.speaker_diar().isCorrectSpeaker(AudioData(b"".join(frames), SAMPLE_RATE, SAMPLE_WIDTH))
                         isEnoughEnergyAndCorrectSpeech = user is not None
                         if isEnoughEnergyAndCorrectSpeech:
                             speechStart = SpeechStart(datetime.now(), user, self.location)

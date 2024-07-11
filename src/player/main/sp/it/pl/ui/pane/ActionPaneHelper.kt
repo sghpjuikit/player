@@ -60,6 +60,7 @@ private typealias Test<T> = (T) -> Boolean
 private typealias Act<T> = ActContext.(T) -> Any?
 
 data class ActContext(val window: Window?, val a: ActionPane?,  val node: Node?, val event: Event?, val progress: WritableValue<Number>?) {
+   constructor(): this(null, null, null, null, null)
    constructor(window: Window): this(window, null, null, null, null)
    constructor(node: Node): this(node.scene?.window, null, node, null, null)
    constructor(node: ActionPane): this(node.scene?.window, null, node, null, node.actionProgress.progressProperty())

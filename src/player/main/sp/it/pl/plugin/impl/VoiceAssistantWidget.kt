@@ -34,6 +34,8 @@ import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.core.bodyAsJs
 import sp.it.pl.core.to
+import sp.it.pl.layout.ComponentLoader
+import sp.it.pl.layout.ComponentLoader.Ctx
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.WidgetSource
@@ -58,6 +60,7 @@ import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
+import sp.it.pl.ui.pane.ActContext
 import sp.it.pl.ui.pane.ConfigPane
 import sp.it.pl.ui.pane.ConfigPane.Layout.MINI
 import sp.it.pl.ui.pane.ConfigPaneScrolPane
@@ -161,7 +164,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             }
             lay += Icon(IconFA.COG).tooltip("All Settings").apply {
                disableProperty() syncFrom plugin.map { it==null }
-               onClickDo { APP.actions.app.openSettings(plugin.value?.configurableGroupPrefix) }
+               onClickDo { APP.actions.app.openSettings(plugin.value?.configurableGroupPrefix, ActContext(it)) }
             }
             lay += Icon(IconFA.REFRESH).tooltip("Restart voice assistent").apply {
                onClickDo { plugin.value?.restart() }
@@ -170,7 +173,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
 
             lay += Icon(IconMA.PERSON).apply {
                onClickDo {
-                  APP.widgetManager.widgets.find(VoiceAssistant.voiceAssistantPersonasWidgetFactory, WidgetUse.ANY)
+                  APP.widgetManager.widgets.find(VoiceAssistant.voiceAssistantPersonasWidgetFactory, WidgetUse.ANY(Ctx(ActContext(it))))
                }
             }
             lay += CheckIcon().icons(IconMD.SERVER, IconMD.SERVER_OFF).apply {

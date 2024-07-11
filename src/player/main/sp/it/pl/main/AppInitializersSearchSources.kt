@@ -11,6 +11,7 @@ import sp.it.pl.layout.loadIn
 import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry.SimpleEntry
+import sp.it.pl.ui.pane.ActContext
 import sp.it.util.access.focused
 import sp.it.util.action.Action
 import sp.it.util.collections.setTo
@@ -84,7 +85,7 @@ fun AppSearch.initApp() = APP.apply {
             textAlignment = TextAlignment.RIGHT
          }
       ) {
-         actions.app.openSettings(it)
+         actions.app.openSettings(it, ActContext())
       }
    }
 

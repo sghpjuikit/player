@@ -17,7 +17,11 @@ class CommandExecutorDoNothing(CommandExecutor):
         return "ignore"
 
 def preprocess_command(text: str) -> str:
-    return text.strip().removeprefix("```python").removeprefix("```").removesuffix("```").strip()
+    t = text.strip()
+    if t.startswith('```python'): return preprocess_command(t.removeprefix("```python"))
+    if t.startswith('```'): return preprocess_command(t.removeprefix("```"))
+    if t.endswith('```'): return preprocess_command(t.removesuffix("```"))
+    return t
 
 class PythonExecutor:
     def __init__(self, tts, llm, generatePython, fixPython, write, llmSysPrompt, commandExecutor, voices):

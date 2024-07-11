@@ -6,6 +6,7 @@ import io.ktor.client.statement.bodyAsText
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
+import javafx.beans.value.ObservableValue
 import kotlinx.coroutines.invoke
 import mu.KLogging
 import sp.it.pl.audio.audioInputDeviceNames
@@ -49,6 +50,8 @@ import sp.it.util.async.runOn
 import sp.it.util.collections.list.DestructuredList
 import sp.it.util.collections.observableList
 import sp.it.util.collections.setTo
+import sp.it.util.conf.ConfV
+import sp.it.util.conf.ConfVRO
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.Multiline
@@ -58,8 +61,10 @@ import sp.it.util.conf.EditMode
 import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.between
 import sp.it.util.conf.cList
+import sp.it.util.conf.cNest
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
+import sp.it.util.conf.cvNest
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateConfig
@@ -69,6 +74,7 @@ import sp.it.util.conf.noPersist
 import sp.it.util.conf.noUi
 import sp.it.util.conf.nonBlank
 import sp.it.util.conf.nonEmpty
+import sp.it.util.conf.nonNull
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
@@ -104,12 +110,14 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.chan
+import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
 import sp.it.util.text.appendSent
@@ -395,7 +403,7 @@ class VoiceAssistant: PluginBase() {
       info = "Optional bool whether microphone should be printing real-time `Microphone > voice detect treshold`. Use only to determine optimal `Microphone > voice detect treshold`."
    )
 
-   internal val micVoiceDetectDetails by cv(
+   internal val micVoiceDetectDetails by cNest(
       ListConfigurable.heterogeneous(
          ::micVoiceDetect.getDelegateConfig(),
          ::micVoiceDetectDevice.getDelegateConfig(),
@@ -403,7 +411,7 @@ class VoiceAssistant: PluginBase() {
          ::micVoiceDetectProbDebug.getDelegateConfig()
       )
    ).noPersist().def(
-      name = "Microphone > voice detect"
+      name = "Microphone > voice detecttion"
    )
 
    /** Preferred song order for certain song operations, such as adding songs to playlist */
@@ -520,19 +528,17 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Url", info = "Voice recognition server address and port.")
 
    /** Settings for currently speech recognition engine */
-   private val sttEngineDetails by cvn<Configurable<*>>(null).noPersist().def(name = "Speech recognition >", info = "Settings for currently speech recognition engine")
-   init {
-      sttEngine sync { e ->
-         sttEngineDetails.value = when (e) {
-            SttEngine.NONE, null -> ListConfigurable.heterogeneous<Any?>()
-            SttEngine.WHISPER -> ListConfigurable.heterogeneous(::sttWhisperModel.getDelegateConfig(), ::sttWhisperDevice.getDelegateConfig())
-            SttEngine.FASTER_WHISPER -> ListConfigurable.heterogeneous(::sttFasterWhisperModel.getDelegateConfig(),::sttFasterWhisperDevice.getDelegateConfig())
-            SttEngine.WHISPER_S2T -> ListConfigurable.heterogeneous(::sttWhisperSt2Model.getDelegateConfig(), ::sttWhisperSt2Device.getDelegateConfig())
-            SttEngine.NEMO -> ListConfigurable.heterogeneous(::sttNemoModel.getDelegateConfig(), ::sttNemoDevice.getDelegateConfig())
-            SttEngine.HTTP -> ListConfigurable.heterogeneous(::sttHttpUrl.getDelegateConfig())
-         }
+   internal val sttEngineDetails by cvNest(sttEngine) {
+      when (it) {
+         SttEngine.NONE, null -> ListConfigurable.heterogeneous<Any?>()
+         SttEngine.WHISPER -> ListConfigurable.heterogeneous(::sttWhisperModel.getDelegateConfig(), ::sttWhisperDevice.getDelegateConfig())
+         SttEngine.FASTER_WHISPER -> ListConfigurable.heterogeneous(::sttFasterWhisperModel.getDelegateConfig(),::sttFasterWhisperDevice.getDelegateConfig())
+         SttEngine.WHISPER_S2T -> ListConfigurable.heterogeneous(::sttWhisperSt2Model.getDelegateConfig(), ::sttWhisperSt2Device.getDelegateConfig())
+         SttEngine.NEMO -> ListConfigurable.heterogeneous(::sttNemoModel.getDelegateConfig(), ::sttNemoDevice.getDelegateConfig())
+         SttEngine.HTTP -> ListConfigurable.heterogeneous(::sttHttpUrl.getDelegateConfig())
       }
-   }
+   }.noPersist()
+      .def(name = "Speech recognition >", info = "Settings for currently speech recognition engine")
 
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
    val sttBlacklistWords by cList("a", "the", "please")
@@ -584,16 +590,14 @@ class VoiceAssistant: PluginBase() {
       )
 
    /** Settings for currently active speech engine */
-   internal val ttsEngineDetails by cvn<Configurable<*>>(null).noPersist().def(name = "Speech engine >", info = "Settings for currently active speech engine")
-   init {
-      ttsEngine sync { e ->
-         ttsEngineDetails.value = when (e) {
-            TtsEngine.COQUI -> ListConfigurable.heterogeneous(::ttsEngineCoquiVoice.getDelegateConfig(), ::ttsEngineCoquiCudaDevice.getDelegateConfig())
-            TtsEngine.HTTP -> ListConfigurable.heterogeneous(::ttsEngineHttpUrl.getDelegateConfig())
-            null, TtsEngine.NONE, TtsEngine.SYSTEM, TtsEngine.TACOTRON2, TtsEngine.SPEECHBRAIN, TtsEngine.FASTPITCH -> ListConfigurable.heterogeneous<Any?>()
-         }
+   internal val ttsEngineDetails by cvNest(ttsEngine) {
+      when (it) {
+         TtsEngine.COQUI -> ListConfigurable.heterogeneous(::ttsEngineCoquiVoice.getDelegateConfig(), ::ttsEngineCoquiCudaDevice.getDelegateConfig())
+         TtsEngine.HTTP -> ListConfigurable.heterogeneous(::ttsEngineHttpUrl.getDelegateConfig())
+         null, TtsEngine.NONE, TtsEngine.SYSTEM, TtsEngine.TACOTRON2, TtsEngine.SPEECHBRAIN, TtsEngine.FASTPITCH -> ListConfigurable.heterogeneous<Any?>()
       }
-   }
+   }.noPersist()
+      .def(name = "Speech engine >", info = "Settings for currently active speech engine")
 
    /** Whether [llmEngine] conversation is active */
    val llmOn = v(false)
@@ -668,20 +672,18 @@ class VoiceAssistant: PluginBase() {
    }
 
    /** Settings for currently active llm engine */
-   internal val llmEngineDetails by cvn<Configurable<*>>(null).noPersist().def(name = "Llm engine >", info = "Settings for currently active llm engine")
-   init {
-      llmEngine sync { e ->
-         llmEngineDetails.value = when (e) {
-            LlmEngine.OPENAI -> ListConfigurable.heterogeneous(
-               ::llmOpenAiUrl.getDelegateConfig(), ::llmOpenAiBearer.getDelegateConfig(),
-               ::llmOpenAiModel.getDelegateConfig(),
-               ::llmOpenAiServerStartCommand.getDelegateConfig(), ::llmOpenAiServerStopCommand.getDelegateConfig(), ::llmOpenAiServerStopCommandRunOnStop.getDelegateConfig()
-            )
-            LlmEngine.GPT4ALL -> ListConfigurable.heterogeneous(::llmGpt4AllModel.getDelegateConfig())
-            LlmEngine.NONE, null -> ListConfigurable.heterogeneous<Any?>()
-         }
+   internal val llmEngineDetails by cvNest(llmEngine) {
+      when (it) {
+         LlmEngine.OPENAI -> ListConfigurable.heterogeneous(
+            ::llmOpenAiUrl.getDelegateConfig(), ::llmOpenAiBearer.getDelegateConfig(),
+            ::llmOpenAiModel.getDelegateConfig(),
+            ::llmOpenAiServerStartCommand.getDelegateConfig(), ::llmOpenAiServerStopCommand.getDelegateConfig(), ::llmOpenAiServerStopCommandRunOnStop.getDelegateConfig()
+         )
+         LlmEngine.GPT4ALL -> ListConfigurable.heterogeneous(::llmGpt4AllModel.getDelegateConfig())
+         LlmEngine.NONE, null -> ListConfigurable.heterogeneous<Any?>()
       }
-   }
+   }.noPersist()
+      .def(name = "Llm engine >", info = "Settings for currently active llm engine")
 
    /** System prompt telling llm to assume role, or exhibit behavior */
    val llmChatSysPrompt by cv("You are helpful voice assistant. You are voiced by tts, be extremly short.").multiline(10).nonBlank()

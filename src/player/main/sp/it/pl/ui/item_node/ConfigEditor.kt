@@ -389,6 +389,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
             EnumerableCE(it.asIs(), cs)
          }
          put<KeyCode> { KeyCodeCE(it.asIs()) }
+         put<Insets> { GeneralCE(it.asIs(), Insets.EMPTY) }
          put<Configurable<*>> { ConfigurableCE(it.asIs()) }
          put<ObservableList<*>> {
             when (it) {

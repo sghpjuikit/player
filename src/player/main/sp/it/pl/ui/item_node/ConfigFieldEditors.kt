@@ -1245,7 +1245,7 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
    }
 }
 
-class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
+class GeneralCE<T>(c: Config<T>, val nullValue: T? = null): ConfigEditor<T>(c) {
    val isCollection = c.type.raw.isSubclassOf<Collection<*>>() || c.type.raw.isSubclassOf<Map<*,*>>()
    val isPassword = c.hasConstraint<Constraint.Password>() || isCollection
    val isMultiline = c.hasConstraint<Constraint.Multiline>() || isCollection
@@ -1257,7 +1257,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    private val converter: (T) -> String = { get().toOption().filter { v -> v==it }.map { editor.text }.getOrSupply { converterRaw(it) } }
    private val isObservable = obv!=null
    private val isNullEvent = Suppressor()
-   private var isNull = config.value==null
+   private var isNull = config.value==nullValue
    private val isValueRefreshing = Suppressor()
    private var isValueRefreshingRaw = true
    private val sealed = config.findConstraint<SealedEnumerator<T>>()
@@ -1316,7 +1316,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
                if (isNullable && editor.text.isEmpty()) {
                   isNullEvent.suppressing {
                      isNull = true
-                     editor.text = null.toUi()
+                     editor.text = nullValue.toUi()
                      showWarnButton(getValid())
                      apply()
                      e.consume()
@@ -1387,13 +1387,13 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    override fun get(): Try<T, String> =
       // isSealed must only use value picked through autocomplete (autocomplete sets editor.userData & editor.text -> refresh() -> getValid() -> here)
       if (isSealed) Ok(editor.userData as T)
-      else if (isNull) Ok(null as T)
+      else if (isNull) Ok(nullValue as T)
       else Config.convertValueFromString(config, editor.text)
 
    override fun refreshValue() {
       isValueRefreshing.suppressingAlways {
          if (isSealed) editor.userData = config.value
-         isNull = config.value==null
+         isNull = config.value==nullValue
          val text = if (isValueRefreshingRaw) converterRaw(config.value) else converter(config.value)
          if (editor is TextField) {
             editor.text = text

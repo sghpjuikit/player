@@ -82,14 +82,16 @@ class ChatIntentDetect(ChatProceed):
         return a
 
     @classmethod
-    def pythonFix(cls, code: str):
+    def pythonFix(cls, api:str, code: str):
         a = cls(
             'You are expert python programmer that fixes broken code to make it executable and do what was intended.\n' +
             'For each user message, you fix it to and return what seems to be intended python code.\n' +
             'Non-code parts like (unmarked) comments should be turned into speak(str) calls.\n' +
             'You fix code formatting, quoting, remove comments, invalid text, remove markdown code blocks and your response is always executable python code.\n' +
-            'You never output comments. You never change used functions names or calls, only fix them. E.g. speak() is valid function.' +
-            'You remove definitions of `def speak()` function, it is already defined. ',
+            'You never output comments. You never change used functions names or calls, only fix them. E.g. speak() is valid function.\n' +
+            'You make sure str args are correctly escaped.\n' +
+            'In addition to python API, this API is available:\n' + api + "\n" +
+            'You remove re-definitions of api functions',
             userPrompt='Respond only with the executable code ad avoid any descriptions! The exact code to fix is below this line:\n' + code,
             outStart='', outCont='', outEnd='', speakTokens=False, writeTokens=False
         )

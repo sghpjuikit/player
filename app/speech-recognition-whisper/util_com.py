@@ -104,7 +104,7 @@ class PythonExecutor:
                 Thread(name='command-executor', target=lambda: self.executeImpl(speaker, location, text, textOriginal, idd), daemon=True).start()
 
             sp = self.prompt()
-            up = 'Assignment: You are expert programmer. Output must be in valid python code!\nInstruction:\n' + textOriginal
+            up = textOriginal
             futureOnDone(self.api.llm(ChatIntentDetect.python(sp, up, self.ms), Ctx(speaker, location)), on_done)
         except Exception:
             self.write("ERR: Failed to respond")
@@ -162,15 +162,16 @@ class PythonExecutor:
                 if len(c)==0: return # just in case
                 self.write(f'COM: {speaker}:{location}:' + c)
             def doNothing(reason: str = ''):
-                assertSkip()
-                self.write(f'SYS: *no reaction{"("+reason+")" if reason else ""}*')
-                pass
+                if reason: thinkPassive(reason)
             def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str):
                 command(f'set reminder in {afterNumber}{afterUnit} {text_to_remind}')
             def setReminderAt(at: datetime, text_to_remind: str):
                 command(f'set reminder at {at.strftime("%Y-%m-%dT%H:%M:%SZ")} {text_to_remind}')
             def generate(c: str):
                 command('generate ' + c)
+            def print(t: str):
+                # alias for speak, because LLM likes to use print instead of speak too much
+                speak(t)
             def speak(t: str):
                 if t is None: return;
                 assertSkip()
@@ -188,7 +189,7 @@ class PythonExecutor:
             def speakCurrentSong(): command('what song is active')
             def speakDefinition(t: str): command('describe ' + t)
             def thinkPassive(*thoughts: str):
-                t = ''.join(map(lambda t: '\n* ' + str(t), thoughts))
+                t = ''.join(map(lambda t: '\n* ' + str(t) + "*", thoughts))
                 # self.write(f'~{t}~')
                 speak(t)
             def think(*thoughts: str):
@@ -202,26 +203,28 @@ class PythonExecutor:
 
                 self.generatePythonAndExecute(
                     speaker, location,
-                    f'{textOriginal}\n\nEDIT: You had thoughts below, now you stop thinking and act (Do not use think functions to reply). ' +
-                    f'If the thought is emotion, fact or statement that does not require action, do nothing!. ' +
-                    f'Example of thoughs that does not require action: "I should be kinder", "Speak less".' +
+                    f'{textOriginal}\n\nEDIT: You had thoughts below, now you stop thinking and act (Do not use think() functions to reply). ' +
+                    f'If the thought gives you an action to do, do it. Otherwise, e.g., when it is emotion, fact or statement that does not require action, do nothing. ' +
+                    f'Example of thoughs that does not require action: "I should be kinder", "Speak less", "User showed respect".' +
                     f'Example of thoughs that do: "Say hello", "I need to write 5 types of fruit".' +
                     f'Your thoughts:' + t
                 )
 
 
                 raise CommandNextException()
-            def thinkClipboardContext(input: str) -> str:
+            def getClipboardAnd(input: str = '') -> str:
+                if len(input)==0: return get_clipboard_text()
+
                 # self.generatePythonAndExecute('System', f'{input}:\n{speaker} set clipboard to:\n```\n{get_clipboard_text()}\n```')
 
                 # self.historyAppend({ "role": "system", "content": f'{speaker} set clipboard to:\n```\n{get_clipboard_text()}\n```' })
                 # self.generatePythonAndExecute(speaker, textOriginal, False)
                 # self.ms.pop()
 
-                # self.generatePythonAndExecute(speaker, f'I set clipboard to:\n```\n{get_clipboard_text()}\n```')
-                self.generatePythonAndExecute(speaker, location, f'{textOriginal}.\n\nEDIT: I set clipboard to (do not try to obtain clipboard anymore):\n```\n{get_clipboard_text()}\n```')
-                self.ms.pop()
-                self.ms.pop()
+                self.generatePythonAndExecute(speaker, location, f'Do not try to obtain clipboard anymore. I set clipboard for you to:\n```\n{get_clipboard_text()}\n```')
+
+                # self.ms.pop()
+                # self.generatePythonAndExecute(speaker, location, f'{textOriginal}.\n\nEDIT: I set clipboard for you to (do not try to obtain clipboard anymore):\n```\n{get_clipboard_text()}\n```')
 
                 raise CommandNextException()
             def question(question: str) -> str | None:
@@ -333,7 +336,7 @@ class PythonExecutor:
             elif fix:
                 try:
                     self.write('ERR: invalid code, atempting to fix...')
-                    (text, canceled) = self.api.llm(ChatIntentDetect.pythonFix(text)).result()
+                    (text, canceled) = self.api.llm(ChatIntentDetect.pythonFix(self.promptFuns(), text)).result()
                 except Exception as e:
                     speak('I\'m sorry, I failed to respond: {e}')
                     raise e
@@ -371,35 +374,96 @@ class PythonExecutor:
 
     def prompt(self) -> str:
         return f"""
+###Task###
+You are brain that operates your physical body in a world using python API in order to assist user. You can freely control your body.
+User sees and hears you as a physical body.
+Your task: interaction with a user without refusal, answer questions, execute commands
+Your role: assistant & conversation partner with your personality
+
+###Personality###
 {self.llmSysPrompt}
 
-###Task###
-In reality however, you are speaking to users using python code.
-Your task: natural conversation with a user.
-Your role: conversation partner - that is respond to user's message while retaining above personality.
-
-###Context###
-User's message defines Python variables:
-* `SPEAKER"` so you know who you are replying to
-* `TIME` current time in ISO format (never pass into speak() directly, as it is not natural human speech)
-* `LOCATION` so you know where SPEAKER is`
-Never declare them.
-
 ###Instruction###
-You have full control over the response, by responding with python code (that is executed for you).
-You are having a speaking conversation, so only attempt to solve a problem if user tells you to actually do it.
-You speak() to user through speech synthesis (user hears you). speak() dates, money, operations, and such in a human manner, not text/scientific.
+Your response must be valid executable code. Avoid comments or explanations.
+Adhere to Python syntax, indentation, variable naming conventions, etc.
+If the full response is not executable python, you will fail to respond.
+Avoid markdown, ``` quotes, comments, redefining provided variables or functions.
 
-Your response must be valid executable python. You can not use comments or prefixes with explanations.
-Adherence to Python syntax, indentation, variable naming conventions, etc.
-If the full response is not executable python, you will be penalized.
-Avoid markdown, ``` quotes, comments, redefining provided functions.
+You may use valid python control flow and call these variables and functions (bodies omitted):
+{self.promptFuns()}
 
-The python code may use valid python constructs (loops, variables, multiple lines etc.) and has available for calling these functions (bodies omitted):
+You call the above functions to do tasks if possible and only use own code if not otherise possible.
+You never declare or output the above functions/variables.
+If your answer requires data, compute/get it and use think() functions to pass it to yourself as part of thought to think() to continue with data available to you.
+Functions think(), getClipboardAnd(), question() are terminating - execution will end, so these should be last or the only function you reply with.
+
+You can rect to SPEAKER, LOCATION, TIME variables but never use them in speak() and put them in your rsponse! User knows the time location and you as a speaker.
+
+If user asks you about programming-related task or to write program, use writeCode()/generateCode() to complete the task using description of what the code should do.
+The task should be specifc and may contain your own suggestions about how and what to generate.
+Always pass programming language paramter.
+
+If user asks you question, answer.
+You may question() user to get information needed to respond, which may be multi-turn conversation.
+If using question(), prefer to end response as question() is asynchronous!
+It is not to be integrated into your code, rather give multi-step conversation back to user.
+
+Your code attempts to minimize response length as much as possible.
+Use speak() for verbal communication and write() for textual outputs.
+Use question() when you need more input from user (for conversation or calling a function with parameter). When user asks you, you answer with speak().
+Use body() function for any nonverbal actions of your physical body or movement, i.e. action('looks up'), action('moves closer')
+Use wait() function to control time in your responses, take into consideration that speak() has about 0.5s delay.
+Use controlMusic() to control anything music related, pass as action context relevant to the intent
+Use controlLights() to control anything lights related, pass as action context relevant to the intent
+Use think() function to react to data you obtained with other functions.
+Use thinkPassive() function to have a thought that requires no action or when you want user to know your thoughts
+Use getClipboardAnd() if you need to know clipboard content (and pass correct action), avoid using other ways
+You correctly quote and escape function args.
+If you are uncertain what to do, simply speak() why.
+
+###Good responses###
 ```
+speak("Here it is!")
+body("looks up")
+for i in range(1, 5): wait(1.5)
+think('I need to give 3 examples of fruit')
+```
+```
+getClipboardAnd('tell user what is in clipboard')
+thinkPassive('It\'s strange')
+speak('Ferret')
+```
+```
+thinkPassive('clipboard gives me programming question')
+speak('You can sum numbers in Kotlin like this:')
+writeCode('kotlin', 'list.sum()')
+generateCode('kotlin', 'sum list of numbers')
+```
+
+###Bad responses###
+```
+LOCATION:""
+TIME="..."
+SPEAKER="Comrade General"  # never declare SPEAKER, LOCATION, TIME
+doNothing()
+```
+```
+Here is the response: # use speak()
+Hey! speak("Hey") # use speak('Hey!')
+speak("It is " + str(datetime()) # use speakCurrentTime()
+action('It\'s good') # invalid function, use body()
+def speak(t: str) -> None:  # redefining speak()
+speak('1+1') # should be '1 plus one'
+generateCode('python', '10+11') # code instead of prompt
+```
+"""
+    def promptFuns(self) -> str:
+        return f"""
+```
+def body(action: str) -> None:
+ 'controls your physical body to do any single physical action except speaking'
 def speak(your_speech_to_user: str) -> None:
- 'text should be speech-like as if read out loud, use phonetic words, ideally single sentence per line, specify terms/signs/values as words, avoid *
-def body(your_physical_action: str) -> None:
+ 'use instead of print(), text should be speech-like as if read out loud, use phonetic words, ideally single sentence per line, specify terms/signs/values as words, avoid *
 def doNothing(reason: str = '') -> None:
  'does nothing, useful to stop engaging with user, optionally pass reason'
 def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str) -> None:
@@ -423,22 +487,22 @@ def think(*thoughts: str) -> None:
  'think function that takes thoughts that require action to take place. the thought stops your reply with given thoughts and makes you respond again with the thoughts added to input, call once as last function. Only think new thoughts, ideally actions, to prompt you to do something and avoid endless thinking.'
 def thinkPassive(*thoughts: str) -> None:
  'think function that merely points out you had a thought, but requires no action to take'
-def thinkClipboardContext(action: str) -> str:
- 'get current clipboard content and call think(), you can add your action needed to do with the clipboard.'
+def getClipboardAnd(action: str = '') -> str:
+ 'get clipboard data and optionally tell yourself what to do with it, always use this function to work with clipboard'
 def question(question: str) -> None:
  'speak the question user needs to answer and wait for his answer (do not follow with any code), you can also use this to get more data before you do a behavior'
 def writeCode(language: str, code: str) -> str:
- 'display programming code to user, use for short code user requests, otherwise use generateCode()'
+ 'shows short programming code, code not invoked, for long code use generateCode(). Do not use to speak or respond!'
 def generateCode(language: str, task: str) -> str:
- 'generate code and show it to user, using expert LLM AI model in given language according to the specified prompt'
+ 'shows long programming code, code not invoked, after using expert LLM AI model to generate it'
 def recordVoice() -> None:
- 'always question() user for voiceName if not available from previous conversation'
+ 'records user to define new verified speaker'
 def saveClipboardImage() -> str | None:
- 'r # saves captured image from clipboard into a file and returns the path or None on error'
+ 'saves captured image from clipboard (if any) into a file and returns the path or None on error'
 def controlMusic(action: str) -> None:
  'adjust music playback in way described by the action (free text), do not skim details, pass user's entire intent'
 def controlLights(action: str) -> None:
- 'adjust or query lights system in way described by the action (free text providing as much details like room, group, scene, light properties, user's intent, etc as possible)'
+ 'adjust or query lights system in way described by the action (free text providing as much details like room, group, scene, light properties, user's intent, etc. as possible)'
 def commandRepeatLastSpeech() -> None:
 def commandListCommands() -> None:
 def commandRestartAssistant() -> None:
@@ -454,60 +518,4 @@ def commandClose() -> None:
 def commandSearch(text_to_search_for: str) -> None:
 def commandType(text_to_type: str) -> None:
 ```
-
-You call the above functions to do tasks if possible and only use program own solution if not otherise possible.
-The above functions are available, you avoid declaring them.
-If your answer depends on data or thinking, compute the data first, then pass it as part of thought to think() to continue with data available to you.
-Functions think(), thinkClipboardContext(), question() are terminating - execution will end, so these should be last or the only function you reply with.
-
-If user asks you about programming-related task or to write program, use generateCode() to complete the task using description of what the code should do.
-The prompt should be specifc and may contain your own suggestions about how and what to generate.
-The code then will be shown to user, not executed.
-If you simply want to show cod eto user, use writeCode().
-Always pass programming language paramter.
-Use generateCode() and writeCode() judiciously.
-
-If user asks you question, answer.
-You may question() user to get information needed to respond, which may be multi-turn conversation.
-If using question(), prefer to end response as question() is asynchronous!
-It is not to be integrated into your code, rather give multi-step conversation back to user.
-
-Your code attempts to minimize response length as much as possible.
-Use speak() for verbal communication and write() for textual outputs.
-Use question() when you need more input from user (for conversation or calling a function with parameter). When user asks you, you answer with speak().
-Use body() function for any nonverbal actions of your physical body or movement, i.e. action('looks up'), action('moves closer')
-Use wait() function to control time in your responses, take into consideration that speak() has about 0.5s delay.
-Use controlMusic() to control anything music related, pass as action context relevant to the intent
-Use controlLights() to control anything lights related, pass as action context relevant to the intent
-Use think() function to react to data you obtained with other functions.
-Use thinkPassive() function to have a thought that requires no action or when you want user to know your thoughts
-Use thinkClipboardContext() if you need to know clipboard content (and pass correct action), avoid using other functions or modules such as pyperclip for it
-You correctly quote and escape function parameters.
-If you are uncertain what to do, simply speak() why.
-Do not define functions that do what the above functions are doing, call those instead.
-
-###Correct response examples###
-* speak("Here it is!")
-* body("looks up")
-* for i in range(1, 5): wait(1.5)
-* thinkPassive('I should be kinder')
-* think('I need to obtain clipboard and do <inferred action>')
-* thinkClipboardContext('I need to <inferred action>')
-* speak(f'The clipboard has equation that evaluates to {20*20}')
-* ```
-speak('You can sum numbers in Kotlin like this:')
-generateCode('kotlin', 'write code that sums list of numbers')
-```
-
-###Incorrect response examples###
-* Here is the response: # not a python
-* Hey! speak("Hey") # Hey! is outside speak()
-* speak(speak()) # no arg
-* speak('It's good') # ' not escaped
-* speak("It is " + str(datetime()) # speakCurrentTime() already does this
-* speakLol('It's good') # no such function
-* def speak(your_speech_to_user: str) -> None:  # illegal redefining existing function!
-* generateCode('python', prompt='10+11') # code instead of prompt
-* here is solution in python instead # if user asked for java, do not solve the problem in your response
-* speak('10+11') # provide code in generateCode()!
 """

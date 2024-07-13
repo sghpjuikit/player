@@ -100,7 +100,6 @@ class PythonExecutor:
                 except Exception: (text, canceled) = (None, None)
 
                 if text is None or canceled: return
-                text = preprocess_command(text)
                 Thread(name='command-executor', target=lambda: self.executeImpl(speaker, location, text, textOriginal, idd), daemon=True).start()
 
             sp = self.prompt()
@@ -115,6 +114,7 @@ class PythonExecutor:
         self.executeImpl(speaker, location, text, self.id)
 
     def executeImpl(self, speaker: str, location: Location, text: str, textOriginal: str, idd: str, fix: bool = True):
+        text = preprocess_command(text)
         try:
             import ast
             import datetime
@@ -328,9 +328,8 @@ class PythonExecutor:
             # invoke command as python
             if self.isValidPython(text):
                 self.historyAppend({ "role": "system", "content": text })
-                text = f'TIME="{datetime.datetime.now().isoformat()}"\nSPEAKER="{speaker}"\nLOCATION=\"{location}\"\n\n{text}'
                 d = dict(locals(), **globals()) # special python mumbo jumbo to make funcstions above accessible in functions declared inside the executed code
-                exec(text, d, d)
+                exec(f'TIME="{datetime.datetime.now().isoformat()}"\nSPEAKER="{speaker}"\nLOCATION=\"{location}\"\n{text}', d, d)
 
             # try to fix code to be valid and exec again
             elif fix:
@@ -376,19 +375,16 @@ class PythonExecutor:
         return f"""
 ###Task###
 You are brain that operates your physical body in a world using python API in order to assist user. You can freely control your body.
-User sees and hears you as a physical body.
-Your task: interaction with a user without refusal, answer questions, execute commands
-Your role: assistant & conversation partner with your personality
+You interact with users (identified as SPEAKER in message) and the world with the body you control.
+Your task: embody the given persona and interact with users without refusal, answer questions, execute commands
+Your role: assistant & conversation partner using your persona, you speak only for yourself, not other users.
 
-###Personality###
+###Persona###
 {self.llmSysPrompt}
 
 ###Instruction###
-Your response must be valid executable code. Avoid comments or explanations.
-Adhere to Python syntax, indentation, variable naming conventions, etc.
-If the full response is not executable python, you will fail to respond.
-Avoid markdown, ``` quotes, comments, redefining provided variables or functions.
-
+Your response must be valid executable Python code without comments.
+Do NOT use explanations, markdown, ```, comments, redefining variables or functions, starred expressions, imports (unless absolutely necessary).
 You may use valid python control flow and call these variables and functions (bodies omitted):
 {self.promptFuns()}
 
@@ -397,7 +393,8 @@ You never declare or output the above functions/variables.
 If your answer requires data, compute/get it and use think() functions to pass it to yourself as part of thought to think() to continue with data available to you.
 Functions think(), getClipboardAnd(), question() are terminating - execution will end, so these should be last or the only function you reply with.
 
-You can rect to SPEAKER, LOCATION, TIME variables but never use them in speak() and put them in your rsponse! User knows the time location and you as a speaker.
+You can react to SPEAKER, LOCATION, TIME variables refering to user you are reacting to, his location and time!
+User knows the time and location and you as a speaker, do not define these.
 
 If user asks you about programming-related task or to write program, use writeCode()/generateCode() to complete the task using description of what the code should do.
 The task should be specifc and may contain your own suggestions about how and what to generate.
@@ -409,15 +406,6 @@ If using question(), prefer to end response as question() is asynchronous!
 It is not to be integrated into your code, rather give multi-step conversation back to user.
 
 Your code attempts to minimize response length as much as possible.
-Use speak() for verbal communication and write() for textual outputs.
-Use question() when you need more input from user (for conversation or calling a function with parameter). When user asks you, you answer with speak().
-Use body() function for any nonverbal actions of your physical body or movement, i.e. action('looks up'), action('moves closer')
-Use wait() function to control time in your responses, take into consideration that speak() has about 0.5s delay.
-Use controlMusic() to control anything music related, pass as action context relevant to the intent
-Use controlLights() to control anything lights related, pass as action context relevant to the intent
-Use think() function to react to data you obtained with other functions.
-Use thinkPassive() function to have a thought that requires no action or when you want user to know your thoughts
-Use getClipboardAnd() if you need to know clipboard content (and pass correct action), avoid using other ways
 You correctly quote and escape function args.
 If you are uncertain what to do, simply speak() why.
 
@@ -426,12 +414,12 @@ If you are uncertain what to do, simply speak() why.
 speak("Here it is!")
 body("looks up")
 for i in range(1, 5): wait(1.5)
-think('I need to give 3 examples of fruit')
+thinkPassive('was the wait too short?')
+think('I need to give an example to the question')
 ```
 ```
-getClipboardAnd('tell user what is in clipboard')
-thinkPassive('It\'s strange')
-speak('Ferret')
+thinkPassive('I need to be concise')
+getClipboardAnd('i need to tell user what is in clipboard')
 ```
 ```
 thinkPassive('clipboard gives me programming question')
@@ -442,16 +430,11 @@ generateCode('kotlin', 'sum list of numbers')
 
 ###Bad responses###
 ```
-LOCATION:""
-TIME="..."
-SPEAKER="Comrade General"  # never declare SPEAKER, LOCATION, TIME
-doNothing()
-```
-```
+SPEAKER="Speaker1"  # never declare SPEAKER, LOCATION, TIME variable
 Here is the response: # use speak()
-Hey! speak("Hey") # use speak('Hey!')
-speak("It is " + str(datetime()) # use speakCurrentTime()
-action('It\'s good') # invalid function, use body()
+Hey! speak("Hey") # use speak('Hey')
+*speak('Hey') # starred expression, use speak('Hey')
+speak("It is " + str(datetime() + 'in) # use speakCurrentTime()
 def speak(t: str) -> None:  # redefining speak()
 speak('1+1') # should be '1 plus one'
 generateCode('python', '10+11') # code instead of prompt
@@ -461,9 +444,9 @@ generateCode('python', '10+11') # code instead of prompt
         return f"""
 ```
 def body(action: str) -> None:
- 'controls your physical body to do any single physical action except speaking'
+ 'controls your physical body to do any single physical action except speaking i.e. body("look up"), body("move closer")'
 def speak(your_speech_to_user: str) -> None:
- 'use instead of print(), text should be speech-like as if read out loud, use phonetic words, ideally single sentence per line, specify terms/signs/values as words, avoid *
+ 'speak speech-like text out loud (use phonetic words, ideally single sentence per line, specify terms/signs/values as words)
 def doNothing(reason: str = '') -> None:
  'does nothing, useful to stop engaging with user, optionally pass reason'
 def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str) -> None:
@@ -483,12 +466,12 @@ def speakCurrentSong() -> None:
  'uses speak() with song information'
 def speakDefinition(term: str) -> None:
  'uses speak() to define/describe/explain the term or concept'
-def think(*thoughts: str) -> None:
- 'think function that takes thoughts that require action to take place. the thought stops your reply with given thoughts and makes you respond again with the thoughts added to input, call once as last function. Only think new thoughts, ideally actions, to prompt you to do something and avoid endless thinking.'
-def thinkPassive(*thoughts: str) -> None:
- 'think function that merely points out you had a thought, but requires no action to take'
+def think(thought: str) -> None:
+ 'think function that takes action-like thought that requires you to follow-up with action. Terminates response, so MUST be last call in response!. Only think new thoughts, ideally plans/actions, to prompt yourself to do something. Avoid endless thinking.'
+def thinkPassive(thought: str) -> None:
+ 'think function that takes passive thought that implies no action to take'
 def getClipboardAnd(action: str = '') -> str:
- 'get clipboard data and optionally tell yourself what to do with it, always use this function to work with clipboard'
+ 'get clipboard data and optionally tell yourself what to do with it, always use this function to work with clipboard'. Terminates response, so MUST be last call in response!
 def question(question: str) -> None:
  'speak the question user needs to answer and wait for his answer (do not follow with any code), you can also use this to get more data before you do a behavior'
 def writeCode(language: str, code: str) -> str:

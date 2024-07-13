@@ -90,7 +90,7 @@ class ChatIntentDetect(ChatProceed):
             'You fix code formatting, quoting, remove comments, invalid text, remove markdown code blocks and your response is always executable python code.\n' +
             'You never output comments. You never change used functions names or calls, only fix them. E.g. speak() is valid function.\n' +
             'You make sure str args are correctly escaped.\n' +
-            'In addition to python API, this API is available:\n' + api + "\n" +
+            'In addition to python API, this API is available (use it if possible):\n' + api + "\n" +
             'You remove re-definitions of api functions',
             userPrompt='Respond only with the executable code ad avoid any descriptions! The exact code to fix is below this line:\n' + code,
             outStart='', outCont='', outEnd='', speakTokens=False, writeTokens=False
@@ -100,12 +100,16 @@ class ChatIntentDetect(ChatProceed):
         a.messages.insert(len(a.messages)-1, { "role": "system", "content": "functionCall()" })
         a.messages.insert(len(a.messages)-1, { "role": "user", "content": "ok:\nfor i in range(1,5):\n  f('I'm here)" })
         a.messages.insert(len(a.messages)-1, { "role": "system", "content": "for i in range(1,5):\n  f('I\'m here')" })
-        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "The response is:\n\nspeak('lol')" })
-        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('lol')" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "The response is:\n\nspeak('Yes')" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('Yes')" })
         a.messages.insert(len(a.messages)-1, { "role": "user", "content": "Here is the python code:\nprint('whatever text')" })
         a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('Here is the python code')\nprint('whatever text')" })
         a.messages.insert(len(a.messages)-1, { "role": "user", "content": "Here is your response:\nx = 10+10" })
         a.messages.insert(len(a.messages)-1, { "role": "system", "content": "x = 10+10" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "*speak('Yes') *body('bow')" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('Yes')\nbody('bow')" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "Hey! *pokes cheek*" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('Hey!')\nbody('pokes cheek')" })
 
         return a
 

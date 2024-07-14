@@ -150,6 +150,7 @@ import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.Constraint.UiConverter
 import sp.it.util.conf.Constraint.UiElementConverter
 import sp.it.util.conf.Constraint.UiInfoConverter
+import sp.it.util.conf.Constraint.UiNested
 import sp.it.util.conf.Constraint.UiNoCustomUnsealedValue
 import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
@@ -1177,7 +1178,8 @@ class ConfigurableCE(c: Config<Configurable<*>?>): ConfigEditor<Configurable<*>?
       v?.attach { editor.configure(it) } on disposer
 
       // readonly
-      isEditable syncTo editor.editable on disposer
+      if (!config.hasConstraint<UiNested>())
+         isEditable syncTo editor.editable on disposer
    }
 
    override fun get() = Try.ok(config.value)

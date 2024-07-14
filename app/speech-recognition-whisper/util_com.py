@@ -1,9 +1,11 @@
 from imports import *
+import platform
 from datetime import datetime
 from util_llm import ChatIntentDetect
 from util_fut import *
 from util_ctx import *
 from util_api import *
+from util_md import *
 
 class CommandExecutor:
     def execute(self, text: str, ctx: Ctx = CTX) -> str:
@@ -17,11 +19,18 @@ class CommandExecutorDoNothing(CommandExecutor):
     def execute(self, text: str, ctx: Ctx = CTX) -> str:
         return "ignore"
 
-def preprocess_command(text: str) -> str:
+def sanitize_python_code(text: str) -> str:
+    # strip whitespace, needed since this is recursive function, so its stirpping mid-content as well
     t = text.strip()
-    if t.startswith('```python'): return preprocess_command(t.removeprefix("```python"))
-    if t.startswith('```'): return preprocess_command(t.removeprefix("```"))
-    if t.endswith('```'): return preprocess_command(t.removesuffix("```"))
+    # some models like to use starred expression with speak, which escapes code validation, this is reasonable fix
+    t = t.replace('*speak(', 'speak(')
+    t = t.replace('*body(', 'body(')
+    t = t.replace(')*', ')')
+    # some models churn out markdown prefixes
+    if t.startswith('```python'): return sanitize_python_code(t.removeprefix("```python"))
+    if t.startswith('```'): return sanitize_python_code(t.removeprefix("```"))
+    if t.endswith('```'): return sanitize_python_code(t.removesuffix("```"))
+    # return code
     return t
 
 class PythonExecutor:
@@ -114,7 +123,7 @@ class PythonExecutor:
         self.executeImpl(speaker, location, text, self.id)
 
     def executeImpl(self, speaker: str, location: Location, text: str, textOriginal: str, idd: str, fix: bool = True):
-        text = preprocess_command(text)
+        text = sanitize_python_code(text)
         try:
             import ast
             import datetime
@@ -165,17 +174,48 @@ class PythonExecutor:
                 if reason: thinkPassive(reason)
             def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str):
                 command(f'set reminder in {afterNumber}{afterUnit} {text_to_remind}')
+            def replyWithDoc(query: str):
+                data = index_md_file('README-ASSISTANT.md')
+                data['What are you > Persona > Current persona'] = self.llmSysPrompt
+                data['What are you > Software > Operating system'] = '' +\
+                        f"* Architecture: {platform.architecture()}\n" +\
+                        f"* Machine: {platform.machine()}\n" +\
+                        f"* Operating System Release: {platform.release()}\n" +\
+                        f"* System Name: {platform.system()}\n" +\
+                        f"* Operating System Version: {platform.version()}\n" +\
+                        f"* Node: {platform.node()}\n" +\
+                        f"* Platform: {platform.platform()}"
+                data_keys = "\n* ".join(data.keys())
+                try:
+                    (key, canceled) = self.api.llm(ChatIntentDetect(
+                        f'You find most relevant knowledge index from the list given. You only pick.',
+                        f'Respond with exactly one, most query-relevant, index. Do not respond anything else. Do not interpret the index or add to it. Your response must be identical to chosen entry. Index entries:\n{data_keys}\n\nquery:\n{query}',
+                        '', '', '', False, False
+                    )).result()
+                    if canceled is not True:
+                        # speak(f'accessing {key}')
+                        # speak(f'from {data_keys}')
+                        for k in data.keys():
+                            if key.strip().lower()==k.strip().lower():
+                                self.historyAppend({ "role": "user", "content": '*waiting*' })
+                                # speak(f'You accesed your documentation and can now reply to the query. Data:\n {data[k]}')
+                                self.generatePythonAndExecute('SYSTEM', 'INTERNAL', f'You accesed your documentation and can now reply to the query. Data:\n {data[k]}')
+                        else:
+                            speak(f'I\'m sorry, I did not find any relevant documentation')
+                except Exception as e:
+                    speak(f'I\'m sorry, I failed to respond: {e}')
+                    raise e
             def setReminderAt(at: datetime, text_to_remind: str):
                 command(f'set reminder at {at.strftime("%Y-%m-%dT%H:%M:%SZ")} {text_to_remind}')
             def generate(c: str):
                 command('generate ' + c)
-            def print(t: str):
+            def print(t: object):
                 # alias for speak, because LLM likes to use print instead of speak too much
                 speak(t)
-            def speak(t: str):
+            def speak(t: object):
                 if t is None: return;
                 assertSkip()
-                self.api.ttsSkippable(t.removeprefix('"').removesuffix('"'), location).result()
+                self.api.ttsSkippable(f'{t}'.removeprefix('"').removesuffix('"'), location).result()
             def body(t: str):
                 assertSkip()
                 self.write(f'SYS: *{t}*')
@@ -384,7 +424,7 @@ Your role: assistant & conversation partner using your persona, you speak only f
 
 ###Instruction###
 Your response must be valid executable Python code without comments.
-Do NOT use explanations, markdown, ```, comments, redefining variables or functions, starred expressions, imports (unless absolutely necessary).
+Do NOT use explanations, markdown, ```, comments, redefining variables or functions, imports (unless absolutely necessary).
 You may use valid python control flow and call these variables and functions (bodies omitted):
 {self.promptFuns()}
 
@@ -400,6 +440,8 @@ If user asks you about programming-related task or to write program, use writeCo
 The task should be specifc and may contain your own suggestions about how and what to generate.
 Always pass programming language paramter.
 
+If you are asked or require information about ourself (your features, capabilities, tech. info, software, operating system, hardware, etc.), use replyWithDoc().
+
 If user asks you question, answer.
 You may question() user to get information needed to respond, which may be multi-turn conversation.
 If using question(), prefer to end response as question() is asynchronous!
@@ -413,12 +455,10 @@ If you are uncertain what to do, simply speak() why.
 ```
 speak("Here it is!")
 body("looks up")
-for i in range(1, 5): wait(1.5)
+```
+```
 thinkPassive('was the wait too short?')
 think('I need to give an example to the question')
-```
-```
-thinkPassive('I need to be concise')
 getClipboardAnd('i need to tell user what is in clipboard')
 ```
 ```
@@ -433,7 +473,6 @@ generateCode('kotlin', 'sum list of numbers')
 SPEAKER="Speaker1"  # never declare SPEAKER, LOCATION, TIME variable
 Here is the response: # use speak()
 Hey! speak("Hey") # use speak('Hey')
-*speak('Hey') # starred expression, use speak('Hey')
 speak("It is " + str(datetime() + 'in) # use speakCurrentTime()
 def speak(t: str) -> None:  # redefining speak()
 speak('1+1') # should be '1 plus one'
@@ -449,6 +488,11 @@ def speak(your_speech_to_user: str) -> None:
  'speak speech-like text out loud (use phonetic words, ideally single sentence per line, specify terms/signs/values as words)
 def doNothing(reason: str = '') -> None:
  'does nothing, useful to stop engaging with user, optionally pass reason'
+def replyWithDoc(query: str) -> None
+ 'gives you access to extensive documentation about you relevant to the short query provided. Let's you respond again with it in mind.
+  The query is free text you pass in to get data you need.
+  Use when user enquiries for any information about you.
+  Terminates response, so MUST be last call in response!'
 def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str) -> None:
  'units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year'
 def setReminderAt(at: datetime.datetime, text_to_remind: str) -> None:
@@ -489,9 +533,13 @@ def controlLights(action: str) -> None:
 def commandRepeatLastSpeech() -> None:
 def commandListCommands() -> None:
 def commandRestartAssistant() -> None:
+ 'restarts your entire process'
 def commandStartConversation() -> None:
+ 'user no longer needs to call you by name every time'
 def commandRestartConversation() -> None:
+ 'restarts your conversation/session history/memory'
 def commandStopConversation() -> None:
+ 'user will need to call you by name every time (default behavior)'
 def commandSystem(action: str) -> None: # action is one of shut_down|restart|hibernate|sleep|lock|log_off
 def commandListVoices() -> None:
 def commandChangeVoice(voice: str) -> None:

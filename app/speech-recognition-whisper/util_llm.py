@@ -98,18 +98,20 @@ class ChatIntentDetect(ChatProceed):
         # few-shot promting
         a.messages.insert(len(a.messages)-1, { "role": "user", "content": "```\npython\nfunctionCall()\n```" })
         a.messages.insert(len(a.messages)-1, { "role": "system", "content": "functionCall()" })
-        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "ok:\nfor i in range(1,5):\n  f('I'm here)" })
-        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "for i in range(1,5):\n  f('I\'m here')" })
-        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "The response is:\n\nspeak('Yes')" })
-        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('Yes')" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "ok:\nfor i in range(1,5):\n  speak('I'm here)" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "for i in range(1,5):\n  speak('I\'m here')" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "The response is:\n\nspeak('23')" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('23')" })
         a.messages.insert(len(a.messages)-1, { "role": "user", "content": "Here is the python code:\nprint('whatever text')" })
         a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('Here is the python code')\nprint('whatever text')" })
         a.messages.insert(len(a.messages)-1, { "role": "user", "content": "Here is your response:\nx = 10+10" })
         a.messages.insert(len(a.messages)-1, { "role": "system", "content": "x = 10+10" })
-        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "*speak('Yes') *body('bow')" })
-        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('Yes')\nbody('bow')" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "*speak('I will') *body('bow')*" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('I will')\nbody('bow')" })
         a.messages.insert(len(a.messages)-1, { "role": "user", "content": "Hey! *pokes cheek*" })
         a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak('Hey!')\nbody('pokes cheek')" })
+        a.messages.insert(len(a.messages)-1, { "role": "user", "content": "13.1 / 88 = 0.148" })
+        a.messages.insert(len(a.messages)-1, { "role": "system", "content": "speak(f'13.1 / 88 = 0.148')" })
 
         return a
 

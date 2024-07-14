@@ -630,7 +630,7 @@ class VoiceAssistant: PluginBase() {
    /** Cli command to start llm server. Use if you want to automatize starting local AI server. Invoked on plugin start or waking from hibernation. */
    val llmOpenAiServerStartCommand by cvn<String>(null).nonEmpty()
       .noUi()
-      .def(name = "Llm server start command", info = buildString {
+      .def(name = "Llm server start command. Prefix with ! to disable.", info = buildString {
          appendSent("Cli command to start llm server. Use if you want to automatize starting local AI server.")
          appendSent("Invoked on plugin start or waking from hibernation. Can refer to '${::llmOpenAiModel.getDelegateConfig().nameUi}' using '\$model'.")
          appendSent("Command must be idempotent - have no effect if ran multiple times.")
@@ -640,19 +640,12 @@ class VoiceAssistant: PluginBase() {
    /** Cli command to stop llm server. Use if you want to automatize stopping local AI server. Invoked on plugin stop or hibernation. */
    val llmOpenAiServerStopCommand by cvn<String>(null).nonEmpty()
       .noUi()
-      .def(name = "Llm server stop command", info = buildString {
+      .def(name = "Llm server stop command. Prefix with ! to disable.", info = buildString {
          appendSent("Cli command to start llm server. Use if you want to automatize stopping local AI server. Invoked on plugin stop or hibernation.")
          appendSent("Can refer to '${::llmOpenAiModel.getDelegateConfig().nameUi}' using '\$model'")
          appendSent("Command must be idempotent - have no effect if ran multiple times.")
          appendSent("Example for `LmStudio` on `Windows`: `cmd /c lms ps | findstr \$model > nul && lms unload --yes --quiet --no-launch \$model`.")
       })
-
-   val llmOpenAiServerStopCommandRunOnStop by cv(true)
-      .noUi()
-      .def(
-         name = "Llm server stop command run on plugin stop",
-         info = "When disabled, the command does not run when plugin stops, i.e., llm server will remain running. Recommended when application starts and closes frequently."
-      )
 
    private fun llmOpenAiServerStartCommandCompute(on: Bool) =
       llmOpenAiServerStartCommand.value.takeIf { on && llmEngine.value==LlmEngine.OPENAI }?.replace("\$model", llmOpenAiModel.value)
@@ -662,14 +655,17 @@ class VoiceAssistant: PluginBase() {
 
    private fun llmOpenAiServerStart(command: String?) =
       runTry {
-         command.ifNotNull { runCommandWithOutput(it).withAppProgress("Start LLM server").awaitFxOrBlock() }
+         val c = command
+         if (c!=null && !c.startsWith("!"))
+            runCommandWithOutput(c).withAppProgress("Start LLM server").awaitFxOrBlock()
       }
 
-   private fun llmOpenAiServerStop(on: Bool) = llmOpenAiServerStopCommandCompute(on).ifNotNull { c ->
+   private fun llmOpenAiServerStop(on: Bool) =
       runTry {
-         runCommandWithOutput(c).withAppProgress("Stop LLM server").awaitFxOrBlock()
+         val c = llmOpenAiServerStopCommandCompute(on)
+         if (c!=null && !c.startsWith("!"))
+            runCommandWithOutput(c).withAppProgress("Stop LLM server").awaitFxOrBlock()
       }
-   }
 
    /** Settings for currently active llm engine */
    internal val llmEngineDetails by cvNest(llmEngine) {
@@ -677,7 +673,7 @@ class VoiceAssistant: PluginBase() {
          LlmEngine.OPENAI -> ListConfigurable.heterogeneous(
             ::llmOpenAiUrl.getDelegateConfig(), ::llmOpenAiBearer.getDelegateConfig(),
             ::llmOpenAiModel.getDelegateConfig(),
-            ::llmOpenAiServerStartCommand.getDelegateConfig(), ::llmOpenAiServerStopCommand.getDelegateConfig(), ::llmOpenAiServerStopCommandRunOnStop.getDelegateConfig()
+            ::llmOpenAiServerStartCommand.getDelegateConfig(), ::llmOpenAiServerStopCommand.getDelegateConfig()
          )
          LlmEngine.GPT4ALL -> ListConfigurable.heterogeneous(::llmGpt4AllModel.getDelegateConfig())
          LlmEngine.NONE, null -> ListConfigurable.heterogeneous<Any?>()
@@ -768,7 +764,7 @@ class VoiceAssistant: PluginBase() {
 
    override fun stop() {
       isRunning = false
-      stopSpeechRecognition(llmOpenAiServerStopCommandRunOnStop.value)
+      stopSpeechRecognition(true)
       writing.closeAndWait()
       onClose()
    }

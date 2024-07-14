@@ -192,7 +192,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                                        listOf(
                                           it::llmEngine, it::llmEngineDetails,
                                           it::llmChatSysPromptFile, it::llmChatSysPrompt, it::llmChatTemp, it::llmChatTopK, it::llmChatTopP, it::llmChatMaxTokens,
-                                          it::llmOpenAiServerStartCommand, it::llmOpenAiServerStopCommand, it::llmOpenAiServerStopCommandRunOnStop
+                                          it::llmOpenAiServerStartCommand, it::llmOpenAiServerStopCommand
                                        )
                                     }
                                     .orEmpty()

@@ -172,6 +172,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             lay += label("   ")
 
             lay += Icon(IconMA.PERSON).apply {
+               tooltip("Manage personas")
                onClickDo {
                   APP.widgetManager.widgets.find(VoiceAssistant.voiceAssistantPersonasWidgetFactory, WidgetUse.ANY(Ctx(ActContext(it))))
                }

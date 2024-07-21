@@ -98,7 +98,7 @@ class WeatherInfo: HBox(15.0) {
    val data = vn<Data>(null)
 
    private val monitor = Subscribed {
-      launch(VT) { flowTimer(0, 600*1000).collect { refresh() } }.toSubscription()
+      launch(VT) { flowTimer(0, 10*60*1000).collect { refresh() } }.toSubscription()
    }
 
    init {

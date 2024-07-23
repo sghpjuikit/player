@@ -93,8 +93,10 @@ class Tts(Actor):
         return CTX.location
 
     def _loop(self):
+        import regex
         from stream2sentence import generate_sentences
-            
+        readable_regex = regex.compile(r'\p{L}|\p{N}')
+
         with (self._looping()):
             while not self._stop:
                 with self._loopProcessEvent() as (event, skippable, repeated, location, f):
@@ -112,7 +114,7 @@ class Tts(Actor):
                             # sentences tts
                             for sentence in generate_sentences(event, cleanup_text_links=True, cleanup_text_emojis=True):
                                 text = text + sentence
-                                if (len(sentence)>0): fAll.append(flatMap(self.tts.gen(sentence, skippable=skippable), lambda it: self.play.playEvent(it, location)))
+                                if readable_regex.search(sentence): fAll.append(flatMap(self.tts.gen(sentence, skippable=skippable), lambda it: self.play.playEvent(it, location)))
 
                             # join tts results
                             if len(fAll)>0: fResult = fAll[-1]

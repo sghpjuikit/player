@@ -169,7 +169,7 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
       personas.find { it.name==selection.value }
 
    fun listPersonas() =
-      VoiceAssistant.dirPersonas.children().filter { it hasExtension "txt" }.map(::Persona)
+      VoiceAssistant.obtainPersonas().map(::Persona)
 
    fun visitPersona(p: Persona) {
       contentTx.text = p.def.readTextTry().getOr("Failed to read persona file")

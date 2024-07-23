@@ -33,6 +33,7 @@ import sp.it.util.async.coroutine.delay
 import sp.it.util.async.coroutine.delayTill
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
+import sp.it.util.dev.printIt
 import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
@@ -63,7 +64,9 @@ internal fun VoiceAssistant.voiceCommands(): List<SpeakHandler> {
       sh(KOTLN,                      "Help", "help")                                                                   { if (matches(it)) Ok("List commands by saying, list commands") else null },
       sh(KOTLN,                "Do nothing", "ignore")                                                                 { if (matches(it)) Ok(null) else null },
       sh(KOTLN,         "Restart Assistant", "restart assistant|yourself")                                             { if (matches(it)) { speak("Ok"); restart(); Ok(null) } else null },
-      sh(KOTLN,             "Help Commands", "list commands")                                                          { if (matches(it)) Ok(handlersHelpText()) else null },
+      sh(KOTLN,             "Help Commands", "list personas")                                                          { voiceCommandPersonaList(it) },
+      sh(KOTLN,             "List Personas", "change persona \$persona")                                               { voiceCommandPersonaChange(it) },
+      sh(KOTLN,            "Change Persona", "list commands")                                                          { if (matches(it)) Ok(handlersHelpText()) else null },
       sh(KOTLN,        "Start conversation", "start conversation")                                                     { if (matches(it)) { llmOn.value = true; Ok(null) } else null },
       sh(KOTLN,      "Restart conversation", "restart conversation")                                                   { if (matches(it)) { llmOn.value = true; Ok(null) } else null },
       sh(KOTLN,         "Stop conversation", "stop conversation")                                                      { if (matches(it)) { llmOn.value = false; Ok(null) } else null },
@@ -229,6 +232,21 @@ fun SpeakContext.voiceCommandShowWarn(text: String): ComMatch =
       Ok(null)
    } else
       null
+
+suspend fun SpeakContext.voiceCommandPersonaList(text: String): ComMatch =
+   if (matches(text)) Ok("My available personas are: ${VoiceAssistant.obtainPersonas().joinToString(", ") { it.nameWithoutExtension }}")
+   else null
+
+suspend fun SpeakContext.voiceCommandPersonaChange(text: String): ComMatch =
+   if (matches(text)) {
+      val pName = text.removePrefix("change persona ")
+      val p = VoiceAssistant.obtainPersonas().find { it.nameWithoutExtension equalsNc pName }
+      if (p!=null) plugin.llmChatSysPromptFile.value = p
+      if (p!=null) Ok(null)
+      else if (!intent) Error("No persona $pName available.")
+      else intent(text, "${VoiceAssistant.obtainPersonas().joinToString("\n") { "* " + it.nameWithoutExtension }}\n* unidentified # no recognized persona", pName) { this("change persona $it") }
+   }
+   else null
 
 fun SpeakContext.voiceCommandCurrentTime(text: String): ComMatch =
    if (matches(text)) Ok(LocalTime.now().net { "Right now it is ${it.toVoiceS()}" })

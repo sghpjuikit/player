@@ -3,6 +3,7 @@ package sp.it.pl.plugin.impl
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
@@ -86,6 +87,7 @@ import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
 import sp.it.util.dev.markUsed
+import sp.it.util.dev.printIt
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
@@ -1023,6 +1025,8 @@ class VoiceAssistant: PluginBase() {
       val mainSpeakerInitial = "User"
 
       fun obtainSpeakers(): List<String> = listOf(mainSpeakerInitial) + (dir / "voices-verified").children().filter { it hasExtension "wav" }.map { it.nameWithoutExtension }
+
+      fun obtainPersonas(): Sequence<File> = dirPersonas.children().filter { it hasExtension "txt" }
 
       val voiceAssistantWidgetFactory by lazy { WidgetFactory("VoiceAssistant", VoiceAssistantWidget::class, APP.location.widgets/"VoiceAssistant") }
 

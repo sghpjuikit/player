@@ -382,6 +382,7 @@ It is simply a service to intelligently convert input into output.
     pip3 install pygetwindow
     pip3 install stream2sentence
     pip3 install torch
+    pip3 install torchaudio
     ```
    - Windows specific
     ```

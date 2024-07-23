@@ -3,8 +3,8 @@ import os
 
 
 def sanitize_filename(text):
-    # Remove any characters that are not alphanumeric
-    sanitized_text = re.sub(r'[^a-zA-Z0-9]', '-', text).strip('-')
+    # Remove any characters that are not legal filename
+    sanitized_text = re.sub(r'[\\/:*?"<>|]', '-', text).strip('-')
     # Convert to lowercase
     sanitized_text = sanitized_text.lower()
 

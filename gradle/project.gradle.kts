@@ -92,7 +92,7 @@ allprojects {
 
       "Kotlin" group {
          // compatibility table https://kotlinlang.org/docs/releases.html#release-details
-         implementation(kotlin("reflect"))
+         implementation(kotlin("reflect", "2.0.20-Beta2"))
          implementation(kotlin("compiler-embeddable"))
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.9.0-RC")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.9.0-RC")
@@ -131,7 +131,7 @@ allprojects {
       }
 
       "Audio" group {
-         implementation("uk.co.caprica", "vlcj", "4.8.2") {
+         implementation("uk.co.caprica", "vlcj", "4.8.3") {
             exclude("net.java.dev.jna", "jna-jpms")
             exclude("net.java.dev.jna", "jna-platform-jpms")
          }
@@ -139,14 +139,14 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "5.3.7")
+         implementation("com.github.f4b6a3", "uuid-creator", "6.0.0")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
-         implementation("com.github.oshi", "oshi-core", "6.6.1")  // https://github.com/oshi/oshi/releases
+         implementation("com.github.oshi", "oshi-core", "6.6.2")  // https://github.com/oshi/oshi/releases
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
          implementation("org.apache.pdfbox", "pdfbox", "3.0.2") // https://pdfbox.apache.org
-         implementation("com.ezylang", "EvalEx", "3.2.0")
+         implementation("com.ezylang", "EvalEx", "3.3.0")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
          implementation("ch.obermuhlner", "big-math", "2.3.2")
       }

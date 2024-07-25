@@ -100,7 +100,7 @@ class PythonExecutor:
             idd = self.id
 
             if history:
-                self.historyAppend({ "role": "user", "content": f"TIME=\"{datetime.now().isoformat()}\"\nSPEAKER=\"{speaker}\"\nLOCATION:\"{location}\"\n\n{textOriginal}"})
+                self.historyAppend({ "role": "user", "content": f"TIME=\"{datetime.now().isoformat()}\"\nSPEAKER=\"{speaker}\"\nLOCATION=\"{location}\"\n\n{textOriginal}"})
 
             def on_done(future):
                 try:

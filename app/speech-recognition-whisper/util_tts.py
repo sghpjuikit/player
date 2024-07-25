@@ -420,8 +420,6 @@ class TtsCoqui(TtsBase):
 
         def loadModel():
             try:
-                import warnings
-                warnings.filterwarnings("ignore", category=UserWarning, module='TTS.tts.layers.xtts.stream_generator', lineno=138)
                 # originally at C:/Users/USER/AppData/Local/tts/tts_models--multilingual--multi-dataset--xtts_v2
                 dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models-coqui')
                 config = XttsConfig()

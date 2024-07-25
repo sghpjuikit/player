@@ -362,6 +362,7 @@ class TtsCoqui(TtsBase):
     def __init__(self, voice: str, device: str, write: Writer):
         super().__init__('TtsCoqui', write)
         self.speed = 1.0
+        self.language = 'en'
         self.voice = voice
         self.device = device
         self.deviceName = device
@@ -370,12 +371,13 @@ class TtsCoqui(TtsBase):
         self.http_handler: HttpHandler | None = None
 
     def _gen(self, text: str):
-        text_to_gen = replace_numbers_with_words(text)
+        text_to_gen = text
+        if self.language == 'en': text_to_gen = replace_numbers_with_words(text)
         text_to_gen = text_to_gen.strip()
         text_to_gen = text_to_gen.replace("</s>", "").replace("```", "").replace("...", ".")
         text_to_gen = re.sub(" +", " ", text_to_gen)
 
-        return self.model.inference_stream(text_to_gen, "en", self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
+        return self.model.inference_stream(text_to_gen, self.language, self.gpt_cond_latent, self.speaker_embedding, temperature=0.7, enable_text_splitting=False, speed=self.speed)
 
     def _loop(self):
         # init

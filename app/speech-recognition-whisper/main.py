@@ -407,13 +407,13 @@ class CommandExecutorMain(CommandExecutor):
                 else: llm(ChatReact(llmSysPrompt, f"User tried to change voice to {voice}, but such voice is not available", f"No voice {voice} available"), ctx)
             else: llm(ChatReact(llmSysPrompt, f"User tried to change voice, but current voice generation does not support changing voice", "Current voice generation does not support changing voice"), ctx)
             return handled
-        if text.startswith("generate from clipboard "):
-            tts("Ok", ctx.location)
-            llm(ChatPaste("generate " + text.removeprefix("generate from clipboard ") + "\nClipboard:\n```" + get_clipboard_text() + "\n```"))
+        if text.startswith("generate from clipboard"):
+            t = get_clipboard_text()
+            if t is not None and len(t)>0: self.execute("generate " + text.removeprefix("generate from clipboard") + "\n" + t, ctx)
             return handled
         if text.startswith("generate "):
             tts("Ok", ctx.location)
-            llm(ChatPaste(text))
+            if len(text.removeprefix("generate "))>0: llm(ChatPaste(text))
             return handled
         if text.startswith("do-describe "):
             llm(ChatProceed(llmSysPrompt, "Describe the following content:\n" + text.removeprefix("do-describe ")))

@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from concurrent.futures import Future
 from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Callable, cast
+from typing import Callable, Iterator, cast
 from threading import Thread
 from queue import Queue
 from util_ctx import *

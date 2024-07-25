@@ -4,10 +4,17 @@ import pyperclip
 import pyautogui
 import pygetwindow
 
-def get_clipboard_text() -> str:
+def get_clipboard_text() -> str | None:
+    'Returns text in clipboard or None if no text available'
     return pyperclip.paste()
 
-def pasteTokens(tokens):
+def pasteTokens(tokens: Iterator[str]):
+    '''
+    Pastes the specified text (to active window) as if user pressed CTRL+V. Does not block thread..
+    Supports streaming (uses 10FPS to maintain interactivity and performance.
+    If active window loses focus, pasting is interrupted until focus is retained or 10s passes (remainer is thrown away)
+    '''
+
     tokens_queue = Queue()
     stop = False
 

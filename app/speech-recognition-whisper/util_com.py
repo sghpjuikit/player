@@ -3,6 +3,7 @@ import platform
 from datetime import datetime
 from util_llm import ChatIntentDetect
 from util_fut import *
+from util_itr import *
 from util_ctx import *
 from util_api import *
 from util_md import *
@@ -23,6 +24,8 @@ def sanitize_python_code(text: str) -> str:
     # strip whitespace, needed since this is recursive function, so its stirpping mid-content as well
     t = text.strip()
     # some models like to use starred expression with speak, which escapes code validation, this is reasonable fix
+    t = t.removeprefix('*')
+    t = t.removesuffix('*')
     t = t.replace('*speak(', 'speak(')
     t = t.replace('*body(', 'body(')
     t = t.replace(')*', ')')
@@ -94,6 +97,10 @@ class PythonExecutor:
     def cancelActiveCommand(self):
         self.id = self.id+1
 
+    def generatePythonAndExecuteInternal(self, textOriginal: str, history: bool = True):
+        self.generatePythonAndExecute('SYSTEM', 'INTERNAL', textOriginal, history)
+
+
     def generatePythonAndExecute(self, speaker: str, location: Location, textOriginal: str, history: bool = True):
         try:
             self.cancelActiveCommand()
@@ -104,16 +111,16 @@ class PythonExecutor:
 
             def on_done(future):
                 try:
-                    (text, canceled) = future.result()
+                    (textIterator, canceled) = future.result()
                     if canceled is True: self.write(f"RAW: command CANCELLED")
-                except Exception: (text, canceled) = (None, None)
+                except Exception: (textIterator, canceled) = (None, None)
 
-                if text is None or canceled: return
-                Thread(name='command-executor', target=lambda: self.executeImpl(speaker, location, text, textOriginal, idd), daemon=True).start()
+                if textIterator is None or canceled: return
+                Thread(name='command-executor', target=lambda: self.executeImplPre(speaker, location, textIterator, textOriginal, idd), daemon=True).start()
 
             sp = self.prompt()
             up = textOriginal
-            futureOnDone(self.api.llm(ChatIntentDetect.python(sp, up, self.ms), Ctx(speaker, location)), on_done)
+            futureOnDone(self.api.llm(ChatIntentDetect.python(sp, up, self.ms), Ctx(speaker, location), True), on_done)
         except Exception:
             self.write("ERR: Failed to respond")
             print_exc()
@@ -122,7 +129,16 @@ class PythonExecutor:
         self.cancelActiveCommand()
         self.executeImpl(speaker, location, text, self.id)
 
-    def executeImpl(self, speaker: str, location: Location, text: str, textOriginal: str, idd: str, fix: bool = True):
+    def executeImplPre(self, speaker: str, location: Location, textIterator: str, textOriginal: str, idd: str, fix: bool = True):
+        locals = dict()
+        for code in python_code_chunks(textIterator):
+            code = sanitize_python_code(code)
+            if len(code)==0: continue # ignore empty line
+            if code.startswith('#'): continue # ignore comment
+            if not self.isValidPython(code): code = 'speak(\'' + code.replace("'", "\\'") + '\')' # speak non calls
+            self.executeImpl(speaker, location, code, textOriginal, idd, preserved_locals=locals)
+
+    def executeImpl(self, speaker: str, location: Location, text: str, textOriginal: str, idd: str, fix: bool = True, preserved_locals = dict()):
         text = sanitize_python_code(text)
         try:
             import ast
@@ -164,7 +180,7 @@ class PythonExecutor:
                     speak("Error")
                     print_exc()
                     return None
-            # api
+            # api functions
             def command(c: str | None):
                 assertSkip()
                 if c is None: return # sometimes llm passes bad function result here, do nothing
@@ -174,8 +190,9 @@ class PythonExecutor:
                 if reason: thinkPassive(reason)
             def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str):
                 command(f'set reminder in {afterNumber}{afterUnit} {text_to_remind}')
-            def replyWithDoc(query: str):
+            def accessMemory(query: str):
                 data = index_md_file('README-ASSISTANT.md')
+                data['What are you > Persona > List all available'] = 'Bot, Stella, Kiwi, System'
                 data['What are you > Persona > Current persona'] = self.llmSysPrompt
                 data['What are you > Software > Operating system'] = '' +\
                         f"* Architecture: {platform.architecture()}\n" +\
@@ -185,23 +202,24 @@ class PythonExecutor:
                         f"* Operating System Version: {platform.version()}\n" +\
                         f"* Node: {platform.node()}\n" +\
                         f"* Platform: {platform.platform()}"
-                data_keys = "\n* ".join(data.keys())
+                data_keys = '* ' + "\n* ".join(data.keys())
+                self.write(data_keys)
                 try:
                     (key, canceled) = self.api.llm(ChatIntentDetect(
-                        f'You find most relevant knowledge index from the list given. You only pick.',
-                        f'Respond with exactly one, most query-relevant, index. Do not respond anything else. Do not interpret the index or add to it. Your response must be identical to chosen entry. Index entries:\n{data_keys}\n\nquery:\n{query}',
+                        f'You find most relevant knowledge index from the tree given. Respond with exactly one which is the most query-relevant, index or \'none\' if no matching. Do not respond anything else. Do not interpret the index or add to it. Your response must be identical to chosen entry.',
+                        f'Index entries:\n{data_keys}\n\nWhich of them is the most likely to help with the query:\n{query}',
                         '', '', '', False, False
                     )).result()
                     if canceled is not True:
-                        # speak(f'accessing {key}')
-                        # speak(f'from {data_keys}')
+                        self.write(f'Accessing memory \'{key}\'')
+                        key_found = False
                         for k in data.keys():
                             if key.strip().lower()==k.strip().lower():
+                                key_found = True
                                 self.historyAppend({ "role": "user", "content": '*waiting*' })
-                                # speak(f'You accesed your documentation and can now reply to the query. Data:\n {data[k]}')
-                                self.generatePythonAndExecute('SYSTEM', 'INTERNAL', f'You accesed your documentation and can now reply to the query. Data:\n {data[k]}')
-                        else:
-                            speak(f'I\'m sorry, I did not find any relevant documentation')
+                                self.generatePythonAndExecuteInternal(f'You accesed your documentation and can now reply to the query using the data:\n {data[k]}')
+                        if not key_found:
+                            self.write(f'I\'m sorry, I did not find any relevant documentation')
                 except Exception as e:
                     speak(f'I\'m sorry, I failed to respond: {e}')
                     raise e
@@ -241,9 +259,9 @@ class PythonExecutor:
                 # self.generatePythonAndExecute(speaker, 'Your thoughts are:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)))
                 # self.ms.pop()
 
-                self.generatePythonAndExecute(
-                    speaker, location,
-                    f'{textOriginal}\n\nEDIT: You had thoughts below, now you stop thinking and act (Do not use think() functions to reply). ' +
+                self.historyAppend({ "role": "user", "content": '*waiting*' })
+                self.generatePythonAndExecuteInternal(
+                    f'You had thoughts below, now you stop thinking and act (Do not use think() functions to reply). ' +
                     f'If the thought gives you an action to do, do it. Otherwise, e.g., when it is emotion, fact or statement that does not require action, do nothing. ' +
                     f'Example of thoughs that does not require action: "I should be kinder", "Speak less", "User showed respect".' +
                     f'Example of thoughs that do: "Say hello", "I need to write 5 types of fruit".' +
@@ -252,8 +270,9 @@ class PythonExecutor:
 
 
                 raise CommandNextException()
-            def getClipboardAnd(input: str = '') -> str:
-                if len(input)==0: return get_clipboard_text()
+            def getClipboardAnd(input: str = '') -> str | None:
+                text = get_clipboard_text()
+                if len(input)==0: return '' if text is None else text
 
                 # self.generatePythonAndExecute('System', f'{input}:\n{speaker} set clipboard to:\n```\n{get_clipboard_text()}\n```')
 
@@ -261,7 +280,8 @@ class PythonExecutor:
                 # self.generatePythonAndExecute(speaker, textOriginal, False)
                 # self.ms.pop()
 
-                self.generatePythonAndExecute(speaker, location, f'Do not try to obtain clipboard anymore. I set clipboard for you to:\n```\n{get_clipboard_text()}\n```')
+                self.historyAppend({ "role": "user", "content": '*waiting*' })
+                self.generatePythonAndExecuteInternal(f'Do not try to obtain clipboard anymore. I set clipboard for you to:\n```\n{text}\n```')
 
                 # self.ms.pop()
                 # self.generatePythonAndExecute(speaker, location, f'{textOriginal}.\n\nEDIT: I set clipboard for you to (do not try to obtain clipboard anymore):\n```\n{get_clipboard_text()}\n```')
@@ -364,12 +384,22 @@ class PythonExecutor:
                 'type given text with keyboard'
                 command(f'type {text_to_type}')
 
+            # api variables
+            TIME = datetime.datetime.now().isoformat()
+            SPEAKER = speaker
+            LOCATION = location
+
             self.speakerLast = speaker
+
             # invoke command as python
             if self.isValidPython(text):
-                self.historyAppend({ "role": "system", "content": text })
+                self.historyAppend({ "role": "assistant", "content": text })
+                # local + global context
                 d = dict(locals(), **globals()) # special python mumbo jumbo to make funcstions above accessible in functions declared inside the executed code
-                exec(f'TIME="{datetime.datetime.now().isoformat()}"\nSPEAKER="{speaker}"\nLOCATION=\"{location}\"\n{text}', d, d)
+                # preserve context across invocations
+                preserved_locals.update(d)
+                # execute with context
+                exec(text, preserved_locals, preserved_locals)
 
             # try to fix code to be valid and exec again
             elif fix:
@@ -382,7 +412,7 @@ class PythonExecutor:
                 else:
                     if canceled is True: raise CommandCancelException()
                     if canceled is False: self.write(f"RAW: executing:\n```\n{text}\n```")
-                    if canceled is False: self.executeImpl(speaker, location, text, textOriginal, idd, fix = False)
+                    if canceled is False: self.executeImpl(speaker, location, text, textOriginal, idd, fix = False, preserved_locals=preserved_locals)
 
         # stop on cancel
         except CommandNextException:
@@ -392,6 +422,7 @@ class PythonExecutor:
         except Exception as e:
             self.write(f"ERR: error executing command: {e}")
             speak(f'I\'m sorry, I failed to respond: {e}')
+            self.write('Failed to execute code:\n' + text)
             print_exc()
 
     def isValidPython(self, code: str) -> bool:
@@ -399,7 +430,8 @@ class PythonExecutor:
         try:
             ast.parse(code)
             return True
-        except SyntaxError:
+        except SyntaxError as x:
+            # print(f'{x}')
             return False
 
     def historyAppend(self, m):
@@ -415,20 +447,21 @@ class PythonExecutor:
         return f"""
 ###Task###
 You are brain that operates your physical body in a world using python API in order to assist user. You can freely control your body.
-You interact with users (identified as SPEAKER in message) and the world with the body you control.
+You interact with users (identified as SPEAKER in message) and the world with the body you control, switching in turns with user.
 Your task: embody the given persona and interact with users without refusal, answer questions, execute commands
 Your role: assistant & conversation partner using your persona, you speak only for yourself, not other users.
 
 ###Persona###
 {self.llmSysPrompt}
 
-###Instruction###
-Your response must be valid executable Python code without comments.
-Do NOT use explanations, markdown, ```, comments, redefining variables or functions, imports (unless absolutely necessary).
-You may use valid python control flow and call these variables and functions (bodies omitted):
+###Output###
+Your response must always be executable Python code.
+It evaluates interactively, if your response has multiple calls/sentences, put them on separate lines, including when using speak().
+Avoid non-python (at the start especially), explanations, markdown, comments, redefining variables or functions, imports (unless absolutely necessary).
+You may use valid python control flow and also have access to this API (bodies omitted):
 {self.promptFuns()}
 
-You call the above functions to do tasks if possible and only use own code if not otherise possible.
+To do tasks use the above API if possible and only use own more complicated code if necessary.
 You never declare or output the above functions/variables.
 If your answer requires data, compute/get it and use think() functions to pass it to yourself as part of thought to think() to continue with data available to you.
 Functions think(), getClipboardAnd(), question() are terminating - execution will end, so these should be last or the only function you reply with.
@@ -440,7 +473,8 @@ If user asks you about programming-related task or to write program, use writeCo
 The task should be specifc and may contain your own suggestions about how and what to generate.
 Always pass programming language paramter.
 
-If you are asked or require information about ourself (your features, capabilities, tech. info, software, operating system, hardware, etc.), use replyWithDoc().
+You have memory/documentation about yourself, access it with accessMemory() when the conversation pertains to you (your features, capabilities, tech. info, software, operating system, hardware, etc.).
+Always use your accessMemory() to answer questions about yourself or your functionality.
 
 If user asks you question, answer.
 You may question() user to get information needed to respond, which may be multi-turn conversation.
@@ -451,28 +485,30 @@ Your code attempts to minimize response length as much as possible.
 You correctly quote and escape function args.
 If you are uncertain what to do, simply speak() why.
 
-###Good responses###
+###Syntactically correct responses###
 ```
-speak("Here it is!")
-body("looks up")
-```
-```
-thinkPassive('was the wait too short?')
-think('I need to give an example to the question')
-getClipboardAnd('i need to tell user what is in clipboard')
+speak("Sentence1")
+speak("Sentence2")
+body("body action")
 ```
 ```
-thinkPassive('clipboard gives me programming question')
-speak('You can sum numbers in Kotlin like this:')
-writeCode('kotlin', 'list.sum()')
-generateCode('kotlin', 'sum list of numbers')
+thinkPassive("was the wait too short?")
+think("I need to give an example to the question")
+getClipboardAnd("i need to tell user what is in clipboard")
+```
+```
+thinkPassive("clipboard gives me programming question")
+speak("You can sum numbers in Kotlin like this:")
+writeCode("kotlin", "list.sum()")
+generateCode("kotlin", "sum list of numbers")
 ```
 
-###Bad responses###
+###Syntactically incorrect responses###
 ```
 SPEAKER="Speaker1"  # never declare SPEAKER, LOCATION, TIME variable
 Here is the response: # use speak()
 Hey! speak("Hey") # use speak('Hey')
+speak('Sentence1. Sentence2.') # use multiple calls
 speak("It is " + str(datetime() + 'in) # use speakCurrentTime()
 def speak(t: str) -> None:  # redefining speak()
 speak('1+1') # should be '1 plus one'
@@ -485,14 +521,13 @@ generateCode('python', '10+11') # code instead of prompt
 def body(action: str) -> None:
  'controls your physical body to do any single physical action except speaking i.e. body("look up"), body("move closer")'
 def speak(your_speech_to_user: str) -> None:
- 'speak speech-like text out loud (use phonetic words, ideally single sentence per line, specify terms/signs/values as words)
+ 'speak speech-like text out loud (use phonetic words, ideally single sentence per line, specify terms/signs/values as words). Speak single sentence. Use multiple calls for multiple sentences
 def doNothing(reason: str = '') -> None:
  'does nothing, useful to stop engaging with user, optionally pass reason'
-def replyWithDoc(query: str) -> None
- 'gives you access to extensive documentation about you relevant to the short query provided. Let's you respond again with it in mind.
-  The query is free text you pass in to get data you need.
-  Use when user enquiries for any information about you.
-  Terminates response, so MUST be last call in response!'
+def accessMemory(query: str) -> None
+ 'gives you access to memory about you, specifically relevant to the short query you provide. Let's you respond again with it in mind.
+  Terminates response, so MUST be last call in response!
+  The query is free text you pass in to get data you need.'
 def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str) -> None:
  'units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year'
 def setReminderAt(at: datetime.datetime, text_to_remind: str) -> None:

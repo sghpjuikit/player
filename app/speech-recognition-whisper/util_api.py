@@ -8,8 +8,8 @@ class Api:
         self._llm = llm
         self._tts = tts
 
-    def llm(self, e: ChatProceed, ctx: Ctx = CTX) -> Future[str]:
-        return self._llm(e)
+    def llm(self, e: ChatProceed, ctx: Ctx = CTX, stream = False) -> Future[str | Iterator[str]]:
+        return self._llm(e, ctx = ctx, stream=stream)
 
     def ttsSkippable(self, event: str, location: Location) -> Future[None]:
         return self._tts.skippable(event, location)

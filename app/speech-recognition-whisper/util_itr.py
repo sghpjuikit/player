@@ -84,3 +84,61 @@ def words(text: str):
     for element in words:
         yield ' '
         yield element
+
+def lines(input_generator):
+    """
+    Takes a generator of strings and returns a generator of lines,
+    accumulating text until a '\n' is found, then yielding the line.
+    Repeats this process until all lines are returned.
+    """
+    return chunks(input_generator, '\n')
+
+def chunks(input_generator, separator: str):
+    """
+    Takes a generator of strings and returns a generator of strings,
+    accumulating text until a separator is found, then yielding the text chunk.
+    Repeats this process until all chunks are returned.
+    """
+    chunk = ""
+    for chunk_part in input_generator:
+        chunk += chunk_part
+        while separator in chunk:
+            i = chunk.find(separator)
+            yield chunk[:i]
+            chunk = chunk[i+1:]
+    if chunk:
+        yield chunk
+
+def python_code_chunks(input_generator):
+    """
+    Takes a generator of strings representing python code and returns a generator of executable python chunks,
+    accumulating text until an executable python code chunk is complete, then yielding it.
+    Repeats this process until all executable python code chunks are returned.
+
+    If the input python code is invalid, it will still be returned in chunks, but some may be affected.
+    Usually, the affected line of code stays invalid, but unterminated strings may corrupt all chunks.
+    """
+    current_chunk = ""
+    char_last = None
+    in_string = False
+    string_quote = None
+
+    for token in input_generator:
+        for char in token:
+            if in_string:
+                current_chunk += char
+                if current_chunk[-3:]==string_quote:
+                    in_string = False
+            else:
+                if char_last == "\n" and char != " ":
+                    yield current_chunk.rstrip("\n")
+                    current_chunk = ""
+                current_chunk += char
+                if char in ['"', "'"] and current_chunk[-3:] in ['"""', "'''"]:
+                    in_string = True
+                    string_quote = current_chunk[-3:]
+
+            char_last = char
+
+    if current_chunk:
+        yield current_chunk.rstrip("\n")

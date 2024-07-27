@@ -166,8 +166,8 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                   "Open with ${wf.name}",
                   wf.description,
                   wf.icon ?: IconFA.COPY,
-                  BLOCK,
-                  { APP.widgetManager.widgets.use({ it.id==wf.id }, ANY) { it.asIs<Opener>().open(f) } }
+                  UI,
+                  { APP.widgetManager.widgets.use({ it.id==wf.id }, ANY) { it.controller.asIs<Opener>().open(f) } }
                )
             }
          )

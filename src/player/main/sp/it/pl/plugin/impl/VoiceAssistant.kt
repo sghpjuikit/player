@@ -813,7 +813,8 @@ class VoiceAssistant: PluginBase() {
       if (!isRunning) return
       var speaker = text.substringBefore(":")
       var location = text.substringAfter(":").substringBefore(":")
-      var textSanitized = text.substringAfter(":").substringAfter(":").replace("_", " ").sanitize(sttBlacklistWords_)
+      var textContent = text.substringAfter(":").substringAfter(":")
+      var textSanitized = textContent.replace("_", " ").sanitize(sttBlacklistWords_)
       if (user) speakingTextW.value = textSanitized
       if (!command) return
       var handlersViable = handlers.asSequence().filter { it.type==SpeakHandler.Type.KOTLN || !usePythonCommands.value }
@@ -821,11 +822,11 @@ class VoiceAssistant: PluginBase() {
       logger.info { "Speech ${if (orDetectIntent) "event" else "intent"} handled by command `${c?.name}`, request=`${speaker}:${textSanitized}`" }
       if (result==null) {
          if (!orDetectIntent)
-            if (usePythonCommands.value) writeComPytInt(speaker, location, textSanitized)
+            if (usePythonCommands.value) writeComPytInt(speaker, location, textContent)
             else speak("Unrecognized command: $textSanitized")
          else {
             if (usePythonCommands.value)
-               writeComPytInt(speaker, location, textSanitized)
+               writeComPytInt(speaker, location, textContent)
             else
                intent(voiceCommandsPrompt(), textSanitized).ifError {
                   logger.error(it) { "Failed to understand command $textSanitized" }

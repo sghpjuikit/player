@@ -555,7 +555,7 @@ def callback(speech: SpeechText):
 
     # sanitize
     text = speech.text
-    text = text.lower().rstrip(".").strip()
+    text = text.rstrip(".").strip()
 
     # ignore no input
     if len(text) == 0: return

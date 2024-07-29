@@ -149,8 +149,8 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
          }
       }
 
+      root.sync1IfInScene { selection.value = selectedPersona()?.name ?: personas.firstOrNull()?.name ?: plugin.value?.llmChatSysPromptFile?.value?.nameWithoutExtension ?: "" } on onClose
       root.sync1IfInScene { refreshPersonas() } on onClose
-      root.sync1IfInScene { selection.value = selectedPersona()?.name ?: personas.firstOrNull()?.name ?: "" } on onClose
 
       APP.actionStream.onEvent<FileEvent.Delete> { e -> if (personas.any { it.def==e.file }) refreshPersonas() } on onClose
    }

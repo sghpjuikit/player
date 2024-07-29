@@ -805,6 +805,7 @@ while not sysTerminating:
             promptOld = llmSysPrompt
             llmSysPrompt = argLlmSysPrompt(m)
             llm.sysPrompt = llmSysPrompt
+            executorPython.llmSysPrompt = llmSysPrompt
             if promptOld!=llmSysPrompt:
                 llm(ChatReact(llmSysPrompt, f"User changed your system prompt from:\n```\n{promptOld}\n```\n\nto:\n```\n{llmSysPrompt}\n```", name + " prompt changed"))
 

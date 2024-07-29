@@ -100,7 +100,7 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
    val contentTx = textArea()
 
    init {
-      root.prefSize = 400.emScaled x 400.emScaled
+      root.prefSize = 650.emScaled x 400.emScaled
 
       root.disableProperty() syncFrom (plugin map { it==null })
       root.onEventDown(KEY_PRESSED, F5) { refreshPersonas() }

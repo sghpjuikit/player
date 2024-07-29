@@ -187,7 +187,7 @@ allprojects {
       }
 
       "Db" group {
-         implementation("org.apache.fury", "fury-core", "0.5.0")
+         implementation("org.apache.fury", "fury-core", "0.6.0")
       }
 
    }

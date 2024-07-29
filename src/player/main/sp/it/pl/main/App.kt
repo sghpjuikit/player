@@ -36,6 +36,7 @@ import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.Events.ActionEvent
 import sp.it.pl.plugin.PluginManager
+import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.plugin.impl.SongDb
 import sp.it.pl.ui.objects.window.stage.WindowManager
 import sp.it.util.access.v
@@ -296,6 +297,8 @@ class App: Application(), GlobalConfigDelegator {
    @JvmField val ui = AppUi(location.skins)
    /** Application search */
    @JvmField val search = AppSearch()
+   /** Manages plugins. */
+   @JvmField val plugins = PluginManager().apply { installPlugin<Notifier>() }
    /** Manages persistence and in-memory storage. */
    @JvmField val db = SongDb()
    /** Manages audio playback. */
@@ -304,8 +307,6 @@ class App: Application(), GlobalConfigDelegator {
    @JvmField val widgetManager = WidgetManager()
    /** Manages windows. */
    @JvmField val windowManager = WindowManager()
-   /** Manages plugins. */
-   @JvmField val plugins = PluginManager()
 
    override fun init() {
       runTry {

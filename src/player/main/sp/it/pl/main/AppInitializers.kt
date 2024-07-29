@@ -281,7 +281,6 @@ fun ShortcutPane.initApp() = apply {
 
 fun PluginManager.initForApp() {
    installPlugin<Tray>()
-   installPlugin<Notifier>()
    installPlugin<PlaycountIncrementer>()
    installPlugin<LibraryPlugin>()
    installPlugin<AppSearchPlugin>()

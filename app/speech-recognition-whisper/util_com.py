@@ -247,11 +247,11 @@ class PythonExecutor:
             def speakCurrentSong(): command('what song is active')
             def speakDefinition(t: str): command('describe ' + t)
             def thinkPassive(*thoughts: str):
-                t = ''.join(map(lambda t: '\n* ' + str(t) + "*", thoughts))
+                t = ''.join(map(lambda t: '\n*' + str(t) + "*", thoughts))
                 # self.write(f'~{t}~')
                 speak(t)
             def think(*thoughts: str):
-                t = ''.join(map(lambda t: '\n* ' + str(t), thoughts))
+                t = ''.join(map(lambda t: '\n*' + str(t), thoughts))
                 
                 # self.generatePythonAndExecute('System', 'My thoughts are:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)))
 
@@ -456,14 +456,15 @@ Your role: assistant & conversation partner using your persona, you speak only f
 
 ###Output###
 Your response must always be executable Python code.
-It evaluates interactively, if your response has multiple calls/sentences, put them on separate lines, including when using speak().
+It evaluates interactively, if your response has multiple calls/sentences, you put them on separate lines, including when using speak() with multiple sentences.
 Avoid non-python (at the start especially), explanations, markdown, comments, redefining variables or functions, imports (unless absolutely necessary).
 You may use valid python control flow and also have access to this API (bodies omitted):
 {self.promptFuns()}
 
-To do tasks use the above API if possible and only use own more complicated code if necessary.
+You try to programmatically solve any kind of math or computing tasks, using python - you try to find values in user message and capture them to variables. Then compute output and respond.
+To do tasks you use the above API if possible and only use own more complicated code if necessary.
 You never declare or output the above functions/variables.
-If your answer requires data, compute/get it and use think() functions to pass it to yourself as part of thought to think() to continue with data available to you.
+If your answer requires data, you compute/get it and use think() functions to pass it to yourself as part of thought to think() to continue with data available to you.
 Functions think(), getClipboardAnd(), question() are terminating - execution will end, so these should be last or the only function you reply with.
 
 You can react to SPEAKER, LOCATION, TIME variables refering to user you are reacting to, his location and time!
@@ -492,6 +493,11 @@ speak("Sentence2")
 body("body action")
 ```
 ```
+g = '10'
+t = '5' 
+speak(f"In " + str(g) + "s the speed will be " + str(g*t) + "m/s")
+```
+```
 thinkPassive("was the wait too short?")
 think("I need to give an example to the question")
 getClipboardAnd("i need to tell user what is in clipboard")
@@ -508,7 +514,8 @@ generateCode("kotlin", "sum list of numbers")
 SPEAKER="Speaker1"  # never declare SPEAKER, LOCATION, TIME variable
 Here is the response: # use speak()
 Hey! speak("Hey") # use speak('Hey')
-speak('Sentence1. Sentence2.') # use multiple calls
+speak('Sentence1. Sentence2.') # use separate calls
+speak('Hey') body('sits') # use separate lines
 speak("It is " + str(datetime() + 'in) # use speakCurrentTime()
 def speak(t: str) -> None:  # redefining speak()
 speak('1+1') # should be '1 plus one'

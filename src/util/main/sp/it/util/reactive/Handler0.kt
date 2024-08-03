@@ -9,7 +9,7 @@ class Handler0: MutableSet<() -> Unit> by CopyOnWriteArraySet(), () -> Unit {
    /** Invokes all contained functions, in order they were put in. */
    override operator fun invoke() {
       forEach { it() }
-      removeIf { it is RemovingF }
+      removeAll(filterIsInstance<RemovingF>())
    }
 
    /** Adds specified handler to this. Equivalent to [add], not to [addAll] (which would normally be used). */

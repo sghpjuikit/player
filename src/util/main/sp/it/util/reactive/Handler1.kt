@@ -1,16 +1,17 @@
 package sp.it.util.reactive
 
+import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.reflect.KClass
 import sp.it.util.collections.materialize
 
 private typealias C<T> = (T) -> Unit
 
 /** Set of functions taking 1 parameter. Use as a collection of handlers/listeners. */
-class Handler1<I>(backingSet: MutableSet<C<I>> = LinkedHashSet(2)): MutableSet<C<I>> by backingSet, C<I> {
+class Handler1<I>(backingSet: MutableSet<C<I>> = CopyOnWriteArraySet()): MutableSet<C<I>> by backingSet, C<I> {
 
    /** Invokes all contained functions, in order they were put in. */
    override fun invoke(input: I) {
-      materialize().forEach { it(input) }
+      forEach { it(input) }
    }
 
    /** Adds the specified function to this. Returns subscription to remove it. */

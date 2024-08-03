@@ -1,13 +1,14 @@
 package sp.it.util.reactive
 
+import java.util.concurrent.CopyOnWriteArraySet
 import sp.it.util.collections.materialize
 
 /** Set of functions taking 0 parameters. Use as a collection of handlers. */
-class Handler0: MutableSet<() -> Unit> by LinkedHashSet(2), () -> Unit {
+class Handler0: MutableSet<() -> Unit> by CopyOnWriteArraySet(), () -> Unit {
 
    /** Invokes all contained functions, in order they were put in. */
    override operator fun invoke() {
-      materialize().forEach { it() }
+      forEach { it() }
       removeIf { it is RemovingF }
    }
 

@@ -435,7 +435,7 @@ Try speech recognition model (`base.en` should be absolutely enough.
 For speech generation try offline `speech-engine=coqui`.
 
 For llm chat try `llm-engine=openai` with [LmStudio](https://lmstudio.ai) and run it simply as server (everything should work out of the box).
-Use `Meta-Llama-3-8B-Instruct` model.
+Use `Meta-Llama-3.1-8B-Instruct` model.
 
 #### Specialized setup
 It is possible to run only particular features, using `SttNone, LlmNone, TtsNone, mic-enabled=false`. For example:
@@ -449,6 +449,10 @@ This makes it possible to run parts of the application on different platforms, d
 separate client and server, offload entirety of computation needed for inference elsewhere, and so on.
 
 #### Performance
+The main components using resources are Tts, Stt and Llm.
+If any of these componnets is disabled or offloaded through http, you can allocate hw to the remaining components, e.g., by using better AI models.
+Below is recommended setup for given hardware assuming all three components are active.
+
 **Weak systems (no GPU)**:   
 `SttFasterWhisper(tiny.en.pt) + TtsOs + Llm(8B_Q4_CPU)`   
 Alternatively, offload the computation to another instance on other pc over http with `SttHttp` + `TtsHttp` + `LlmOpenAi`.
@@ -460,7 +464,7 @@ LLM model (CPU mode) work well on `Nvidia 4070` + `AMD 5800X3D`.
 
 **Powerful system (24GB VRAM)**:   
 `SttNemo(parakeet-ctc-0.6b) + TtsFastPitch + Llm(8B_Q8_GPU)`
-Nemo has better recognition than Whisper and is faster and here not memory bound. Use bigger llm model and gpu offloading.
+Nemo has better speech recognition than Whisper and is faster and here not memory bound. Use bigger llm model and gpu offloading.
 
 **Very powerful system (>36GB VRAM)**:   
 `SttNemo(parakeet-tdt-1.1b) + TtsFastPitch|TtsCoqui + Llm(>8B_Q8_GPU)`
@@ -470,6 +474,23 @@ Use best nemo model. Try higher llm quants. Try offloading speaker diarization A
 Since we have potentially multiple AIs running at once (stt, llm, tts, vad, etc.),
 the requirements on hw (particularly gpu) scale up fast. Experiment and see what works for you.
 It may be better to run LLM purely on CPU to free GPU for text-to-speech and speech-to-text. 
+
+##### Memory bottlenecks
+RAM and VRAM size limit the size of the models that can be used.
+Using lower quants (Q8, Q4 and so on) helps, but output quality degrades.
+Q8 model is twice smaller and twice faster than Q16 (normal size). Q4 quality drop is already noticeable.
+
+Memory bandwidth is a limiting factor for inference (AI speed).
+Tts may be sensitive to GPU bandwidth being overwhelmed. Consider using multiple GPUs.
+
+Llm model will also use a lot of memory for context buffer. So set context size to your needs. [See](#context-size).
+
+##### Multiple GPUs
+Multiple GPUs is easiest way to scale VRAM as well as memory bandwidth.
+Consider running Stt, Llm, TTs components on different GPUs (through settings).
+Llm models can be oftentimes transparently loaded across multiple GPUs as well (without NvLink).
+So, running `RTX4070 + RTX3090` or other such GPU combo is recommended and easy to use way to run this assistant. 
+
 
 #### Idle
 To reduce GPU/CPU load, simply do not use any functionality.
@@ -507,7 +528,7 @@ The only http communication is for:
 
 ### Wake word
 Can be configured with a script argument.
-Experiment and pick word that you like, but is also easy to detect.
+Experiment and pick word/s that you like, but use words that are easy to detect with the Stt.
 
 ### Output format
 This script prints:
@@ -616,6 +637,41 @@ It does not support voice cloning.
 
 ### LLM (Chat)
 By default, disabled.
+
+### Choosing model
+Recommended and well tested models are `Meta-Llama-3.1-8B-Instruct` or `Mistral Nemo Instruct 2407`.
+`Phi` or `Gemma` models work too.
+Cloud models like `GPT` or `Claude` should have no problem either (but remain untested as privacy is lost).
+
+### Finetunes
+Some models have lot of finetunes available.
+Sometimes the quality drop is not worth it, other times it may be even better.
+There may be unexpected behavior or quirks in assistant responses caused by the finetuned model.
+Sometimes, this can be fixed by adding specific system prompt instructions, but this may be error-prone, not portable and fragile.
+Try out various models and prompts.
+
+### Censorsip & refusals
+This assistent has no limitations and let's user specify his own assistant personas and prompts.
+Some models are censored or have high rate of refusals and moralizing.
+For reducing refusals, look for `abliterated` version of the model, such as `Meta-Llama-3.1-8B-Instruct-abliterated`
+For NSFW, try `Llama-3SOME` or something similar.
+
+#### Instruct vs Base
+Use `Instruct` models (intended for conversation).
+`Base` models are not supported for now.
+
+#### Context size
+Llm context size is a limiting factor for interacting with Llm.
+This assistant uses about 4000 tokens for its prompt, which means standard model with 8000 context size is fine for normal use.
+
+To preserve context size, it is possible to restart the conversation with the assistant.
+The conversation is restarted automatically after certain idle time period.
+
+Newer Llm models now support well up to 100k context size.
+Unfortunately the buffer is fixed, which means the memory allocation rises with the context size set, not used.
+To preserve memory, it is recommended to use set smaller context size when deploying the Llm model.
+
+### Conversation
 
 #### Context
 Each user message to llm has a context:

@@ -45,6 +45,8 @@ import sp.it.util.async.coroutine.invokeTry
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
+import sp.it.util.async.future.Fut.Companion.fut
+import sp.it.util.async.future.awaitFx
 import sp.it.util.async.future.awaitFxOrBlock
 import sp.it.util.async.runFX
 import sp.it.util.async.runOn
@@ -756,9 +758,9 @@ class VoiceAssistant: PluginBase() {
       // due to:
       // - 1 the python process may not recover from sleep properly
       // - 2 AI models slow down sleep and wear hw considerably
-      // the closing must prevent hibernate until ai termination is complete, see
+      // the closing must prevent hibernate until ai termination is complete
       // the startup is delayed so system is ready, which avoids starup issues
-      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Pre) { stopSpeechRecognition(true) }
+      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Pre) { stopSpeechRecognition(true); fut().thenWait(5.seconds).awaitFx() }
       onClose += APP.actionStream.onEventObject(SystemSleepEvent.Stop) { runFX(5.seconds) { startSpeechRecognition(true) } }
 
       isRunning = true

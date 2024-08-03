@@ -6,7 +6,7 @@ import os
 # recommended assistant input
 CHANNELS = 1
 RATE = 16000
-DURATION = 1
+DURATION = 20
 OUTPUT_DIR = 'voices-verified'
 WAVE_OUTPUT_FILENAME = os.path.join('voices-verified', f"{in_name}.wav")
 

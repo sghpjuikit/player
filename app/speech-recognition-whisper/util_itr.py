@@ -30,13 +30,17 @@ def teeThreadSafeEager(iterable, n=2):
             return self.started
 
         def __call__(self):
-            for item in iterable:
+            try:
+                for item in iterable:
+                    self.started = True
+                    for queue in queues:
+                        queue.put(item)
+            except Exception as e:
+                raise e
+            finally:
                 self.started = True
                 for queue in queues:
-                    queue.put(item)
-            self.started = True
-            for queue in queues:
-                queue.put(sentinel)  # Put the sentinel value into the queues
+                    queue.put(sentinel)  # Put the sentinel value into the queues
 
     iterators = [ConsumeIterator()] + [generator(queue) for queue in queues]
 

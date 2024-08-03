@@ -18,7 +18,7 @@ import sp.it.util.system.execRaw
 /** API to access OS. Use only on `JavaFX Application Thread` unless specified otherwise. */
 object CoreOs: Core {
 
-   /** Sleeps OS. Fires [SystemSleepEvent.Pre] and waits till listeners complete, the sleeps and fires [SystemSleepEvent.Start]. */
+   /** Sleeps OS. Fires [SystemSleepEvent.Pre] and waits till listeners complete, then sleeps and fires [SystemSleepEvent.Start]. */
    fun sleep(): Try<Unit, Throwable> = runTry {
       runFX { APP.actionStream(SystemSleepEvent.Pre) }.awaitFxOrBlock()
       when (Os.current) {
@@ -29,7 +29,7 @@ object CoreOs: Core {
       }
    }
 
-   /** Hibernates OS. Fires [SystemSleepEvent.Pre] and waits till listeners complete, the sleeps and fires [SystemSleepEvent.Start]. */
+   /** Hibernates OS. Fires [SystemSleepEvent.Pre] and waits till listeners complete, then sleeps and fires [SystemSleepEvent.Start]. */
    fun hibernate(): Try<Unit, Throwable> = runTry {
       runFX { APP.actionStream(SystemSleepEvent.Pre) }.awaitFxOrBlock()
       when (Os.current) {

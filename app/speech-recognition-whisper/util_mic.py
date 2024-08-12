@@ -150,6 +150,7 @@ class Mic(Actor):
     def _loop(self):
         # wait till enabled, break if stopped
         wait_until(lambda: self.enabled or self._stop)
+        if self._stop: return
         # load vad, diarization models
         self.vad()
         self.speaker_diar()

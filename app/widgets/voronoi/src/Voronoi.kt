@@ -416,6 +416,19 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             it.height/2.0 + i*radiusMax * sin(i*periods*2*PI)
          )}
       }),
+      GALAXY({ seed ->
+         val centerX = seed.width / 2
+         val centerY = seed.height / 2
+         val radius = minOf(centerX, centerY) * 0.8
+         val armCount = 4
+         val armAngle = 2 * PI / armCount
+
+         (1..seed.count).asSequence().map { i ->
+            val angle = i * armAngle + rand0N(armAngle * 0.5) - armAngle * 0.25
+            val distance = radius * sqrt(rand0N(1.0))
+            Cell(centerX + cos(angle) * distance, centerY + sin(angle) * distance)
+         }
+      }),
       PHYLLOTAXIS({
          val theta = PI*(3.0 - sqrt(5.0))
          val cellWidth = 45.0

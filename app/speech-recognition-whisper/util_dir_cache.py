@@ -4,7 +4,7 @@ import os
 
 def sanitize_filename(text):
     # Remove any characters that are not legal filename
-    sanitized_text = re.sub(r'[\\/:*?"<>|]', '-', text).strip('-')
+    sanitized_text = re.sub(r'[\\/:*?"<>|]', '-', text).replace('\n', '').replace('\r', '').strip('-')
     # Convert to lowercase
     sanitized_text = sanitized_text.lower()
 

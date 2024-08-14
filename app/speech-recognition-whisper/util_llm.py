@@ -1,4 +1,5 @@
 import os.path
+import uuid
 from util_itr import teeThreadSafe, teeThreadSafeEager, chain
 from util_paste import pasteTokens
 from util_actor import Actor
@@ -112,12 +113,12 @@ class ChatIntentDetect(ChatProceed):
 
         return a
 
-
 class ChatReact(ChatProceed):
     def __init__(self, sys_prompt: str, event_to_react_to: str, fallback: str):
         super().__init__(
             f"{sys_prompt}",
             f"React to provided event with single short sentence. React in such a way that user will understand what event happened.\n" +
+            f"To prevent same response, here is a random seed: {uuid.uuid4()}\n" +
             f"Standard response would be: ```\n{fallback}\n```\n" +
             f"Event:\n {event_to_react_to}."
         )

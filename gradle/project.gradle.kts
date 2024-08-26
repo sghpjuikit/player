@@ -104,7 +104,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "23-ea+22"
+         val version = "24-ea+5"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -145,7 +145,7 @@ allprojects {
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
-         implementation("org.apache.pdfbox", "pdfbox", "3.0.2") // https://pdfbox.apache.org
+         implementation("org.apache.pdfbox", "pdfbox", "3.0.3") // https://pdfbox.apache.org
          implementation("com.ezylang", "EvalEx", "3.3.0")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
          implementation("ch.obermuhlner", "big-math", "2.3.2")

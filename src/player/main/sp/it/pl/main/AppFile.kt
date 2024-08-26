@@ -77,6 +77,7 @@ fun findAudioOrVideo(files: Collection<File>, depth: Int = Int.MAX_VALUE): List<
 val audioExtensions: Set<String> = setOf(
    "mp3",
    "ogg",
+   "opus",
    "flac",
    "wav",
    "m4a",

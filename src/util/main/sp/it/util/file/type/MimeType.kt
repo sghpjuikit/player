@@ -641,6 +641,7 @@ class MimeType(val name: String, vararg extensions: String) {
       val `audio∕mpeg`: MimeType by mime("mpga", "mp2", "mp2a", "mp3", "m2a", "m3a")
       val `audio∕mpegurl`: MimeType = `application∕mpegurl`
       val `audio∕ogg`: MimeType by mime("oga", "ogg", "spx")
+      val `audio∕opus`: MimeType by mime("opus")
       val `audio∕s3m`: MimeType by mime("s3m")
       val `audio∕silk`: MimeType by mime("sil")
       val `audio∕vnd·dece·audio`: MimeType by mime("uva", "uvva")

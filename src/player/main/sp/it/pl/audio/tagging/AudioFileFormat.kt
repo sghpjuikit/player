@@ -17,6 +17,7 @@ enum class AudioFileFormat {
    MP1,
    MP2,
    AAC,
+   OPUS,
    UNKNOWN;
 
    companion object {

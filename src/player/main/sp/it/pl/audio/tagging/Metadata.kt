@@ -52,6 +52,7 @@ import sp.it.util.functional.andAlso
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.localDateTimeFromMillis
 import sp.it.util.text.StringSeq
 import sp.it.util.text.splitNoEmpty
@@ -238,7 +239,7 @@ class Metadata: Song, Serializable {
 
    private fun AudioFile.loadHeaderFields() {
       val header = this.audioHeader
-      bitrate = header.bitRateAsNumber.toInt()*(if (header.isVariableBitRate) -1 else 1)
+      bitrate = runTry { header.bitRateAsNumber.toInt() }.getOr(0)*(if (header.isVariableBitRate) -1 else 1) // TODO: header.bitRateAsNumber can throw NullPointerException for opus files
       lengthInMs = (1000*header.trackLength).toDouble()
       encodingType = header.format.orNull()   // format and encoding type are switched in jaudiotagger library
       channels = header.channels.orNull()

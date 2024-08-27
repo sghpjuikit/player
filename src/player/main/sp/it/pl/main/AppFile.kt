@@ -112,6 +112,7 @@ val audioExtensionsJaudiotagger = setOf(
    "m4a",
    "mp3",
    "ogg",
+   "opus",
    "wav",
    "flac"
 )

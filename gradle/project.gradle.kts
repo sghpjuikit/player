@@ -82,8 +82,9 @@ allprojects {
 
    repositories {
       mavenCentral()
+      // support git repositories and dependencies referring to commits
       maven("https://jitpack.io")
-      maven("https://mlt.jfrog.io/artifactory/mlt-mvn-releases-local") // for voice-cmu-slt-hsmm
+      // support file jars
       flatDir { dirs("lib") }
    }
 
@@ -135,7 +136,8 @@ allprojects {
             exclude("net.java.dev.jna", "jna-jpms")
             exclude("net.java.dev.jna", "jna-platform-jpms")
          }
-         implementation("net.jthink", "jaudiotagger", "3.0.1")
+         // implementation("net.jthink", "jaudiotagger", "3.0.1") // unmaintained
+         implementation("com.github.RouHim", "jaudiotagger", "1.2.27") // >1.2.27 has build errors and jitpack has no jar, see https://jitpack.io/com/github/RouHim/jaudiotagger/
       }
 
       "Misc" group {

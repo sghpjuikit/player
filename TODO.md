@@ -65,8 +65,8 @@
 - **Function Viewer** plotting steep functions clipped too soon
 
 ## External bugs
-- [ ] [jaudiotagger-65](https://bitbucket.org/ijabz/jaudiotagger/issues/65/add-support-for-ogg-opus-format) opus ogg support
-  open
+- [x] [jaudiotagger-65](https://bitbucket.org/ijabz/jaudiotagger/issues/65/add-support-for-ogg-opus-format) opus ogg support
+  fixed in maintained fork
 - [x] [jfx-481](https://bugs.openjdk.java.net/browse/JDK-8197991) JavaFx: table `CTRL+A` performance  
   fixed
 - [x] [jfx-364](https://github.com/javafxports/openjdk-jfx/issues/364) `javafx.scene.control.TextField` focus styling changes on window focus in/out  
@@ -77,9 +77,9 @@
   fixed
 - [x] [JDK-8195750](https://bugs.openjdk.java.net/browse/JDK-8195750) `sp.it.pl.ui.nodeinfo.TableInfo` change throws exception sometimes  
   open, but no longer occurs
-- [ ] [JDK-8334854](https://bugs.java.com/bugdatabase/view_bug?bug_id=JDK-8334854)
+- [ ] [JDK-8334854](https://bugs.openjdk.org/browse/JDK-8334854)
   reported, open
-- [x] [JDK-8334853](https://bugs.java.com/bugdatabase/view_bug?bug_id=JDK-8334853) ScrollPaneSkin null during sizeToScene
+- [x] [JDK-8334853](https://bugs.openjdk.org/browse/JDK-8334853) ScrollPaneSkin null during sizeToScene
   not a bug, caused by incorrect scale animation setting scaleX/Y to 0.0
 - [x] [KT-41373](https://youtrack.jetbrains.com/issue/KT-41373) Reflection: Anonymous class inspection fails  
   fixed
@@ -98,6 +98,8 @@
 - [-] [KT-52460](https://youtrack.jetbrains.com/issue/KT-52460) Slow Kotlin compilation
   reported, native excelsior compiler has been discontinued; using kotlin-compiler-embeddable jar improves speed dramatically due to daemon; K2 also improves speed a lot 
 - [ ] [KT-54348](https://youtrack.jetbrains.com/issue/KT-54348) False positive: "Inappropriate blocking method call" with coroutines and Dispatchers.IO.invoke
+  reported, open
+- [ ] [KT-54348](https://youtrack.jetbrains.com/issue/KT-69539) KClass::createType fails for inner nested java class
   reported, open
 - [-] [OSHII-2016](https://github.com/oshi/oshi/pull/2016/files) Disabled performance counters check failing
   reported, worked around by enabling the counters on app startup using `CoreOshi::class`

@@ -32,15 +32,7 @@ import static sp.it.util.type.Util.getFieldValue;
 public class ImprovedTable<T> extends TableView<T> {
 
 	/** Will add zeros to index numbers to maintain length consistency. Default true. */
-	public final BooleanProperty zeropadIndex = new SimpleBooleanProperty(true) {
-		@Override
-		public void set(boolean v) {
-			if (get()!=v) {
-				super.set(v);
-				refreshColumn(columnIndex);
-			}
-		}
-	};
+	public final BooleanProperty zeropadIndex = new SimpleBooleanProperty(true);
 	/** Visibility of columns header. Default true. */
 	public final BooleanProperty headerVisible = new SimpleBooleanProperty(true) {
 		@Override
@@ -138,20 +130,6 @@ public class ImprovedTable<T> extends TableView<T> {
 	/** Max index. Normally equal to number of items. */
 	public int getMaxIndex() {
 		return getItems().size();
-	}
-
-	/** Refreshes given column. */
-	public <V> void refreshColumn(TableColumn<T,V> c) {
-		if (!getColumns().contains(c)) return;
-
-		// c.setCellFactory(null);                      // this no longer works (since 8u40 ?)
-		var cf = c.getCellFactory();
-		c.setCellFactory(column -> new TableCell<>());
-		c.setCellFactory(cf);
-	}
-
-	public void refreshFirstColumn() {
-		getColumns().stream().findFirst().ifPresent(this::refreshColumn);
 	}
 
 	/** Builds index column. */
@@ -257,7 +235,7 @@ public class ImprovedTable<T> extends TableView<T> {
 	public void sortBy(TableColumn<T,?> c, TableColumn.SortType type) {
 		getSortOrder().remove(c);
 		c.setSortType(type);
-		getSortOrder().add(0, c);
+		getSortOrder().addFirst(c);
 	}
 
 /* --------------------- UTIL --------------------------------------------------------------------------------------- */

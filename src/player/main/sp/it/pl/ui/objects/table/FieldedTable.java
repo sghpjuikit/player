@@ -272,14 +272,6 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		return getColumn(c -> c.getUserData()==f).map(c -> (TableColumn<T,R>) c);
 	}
 
-	public void refreshColumn(ObjectField<? super T,?> f) {
-		getColumn(f).ifPresent(this::refreshColumn);
-	}
-
-	public void refreshColumns() {
-		if (!getColumns().isEmpty()) refreshColumn(getColumns().getFirst());
-	}
-
 /* --------------------- SORT --------------------------------------------------------------------------------------- */
 
 	/**

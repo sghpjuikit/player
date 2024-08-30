@@ -338,7 +338,6 @@ class LibraryView(widget: Widget): SimpleController(widget) {
          it.text = t.text
          it.cellValueFactory = t.cellValueFactory
          it.cellFactory = t.cellFactory
-         table.refreshColumn(it)
       }
 
       // update filters

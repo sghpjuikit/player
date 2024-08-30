@@ -472,13 +472,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 * will cause items to always be indexed from 1 to items.size. Only has
 	 * effect when filter is in effect.
 	 */
-	public final BooleanProperty showOriginalIndex = new SimpleBooleanProperty(true) {
-		@Override
-		public void set(boolean v) {
-			super.set(v);
-			refreshColumn(columnIndex);
-		}
-	};
+	public final BooleanProperty showOriginalIndex = new SimpleBooleanProperty(true);
 
 	/**
 	 * Indexes range from 1 to n, where n can differ when filter is applied.

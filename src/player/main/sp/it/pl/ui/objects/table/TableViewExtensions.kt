@@ -116,7 +116,7 @@ fun TableView<*>.computeMaxIndex(): Int = items.size
 fun TableColumn<*,*>.computeIndexColumnWidth(): Double {
    val s = tableView?.computeMaxIndex() ?: 100
    val i = decMin1(s)   // 9 is a wide char (font is not always proportional)
-   val font = fontOrNull ?: Font.getDefault()
+   val font = fontOrNull ?: APP.ui.font.value ?: Font.getDefault()
    return computeTextWidth(font, "$i.") + insetsOrZero()
 }
 

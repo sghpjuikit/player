@@ -36,7 +36,7 @@ class AppSearch: GlobalSubConfigDelegator(conf.name) {
                   val phrases = text.dropWhile { it == ' ' }.dropLastWhile { it == ' ' }.split(" ").toList()
                   val results = sourcesTS.asSequence().flatMap { it.source(phrases) }.take(maxResults + 1).toList()
                   if (results.size<maxResults + 1) results
-                  else results.dropLast(1) + SimpleEntry("more items...", null, { "" }, {})
+                  else results.dropLast(1) + SimpleEntry("more items...", null, { null }, {})
                }
             }
          }

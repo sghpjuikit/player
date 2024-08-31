@@ -868,6 +868,7 @@ TextFlow > * {
 
 .label {
     -fx-text-fill: -skin-def-font-color;
+    -fx-skin: "sp.it.pl.ui.objects.SpitLabelSkin";
 
     /* For some reason some labels have borders sometimes, so we eliminate those here */
     -fx-border-width: 0;
@@ -1438,7 +1439,18 @@ TextFlow > * {
     -fx-background-color: null;
 }
 /***** INDIVIDUAL CELLS ********************************************************/
-.table-cell {}
+.list-cell {
+    -fx-skin: "sp.it.pl.ui.objects.SpitListCellSkin";
+}
+.table-cell {
+    -fx-skin: "sp.it.pl.ui.objects.SpitTableCellSkin";
+}
+.tree-cell {
+    -fx-skin: "sp.it.pl.ui.objects.SpitTreeCellSkin";
+}
+.tree-table-cell {
+    -fx-skin: "sp.it.pl.ui.objects.SpitTreeTableCellSkin";
+}
 .table-view > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
 .tree-table-view > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
     -fx-background-color: -fx-table-cell-border-color, -fx-background;

@@ -147,7 +147,7 @@ fun AppSearch.initApp() = APP.apply {
       Entry.of(
          name = "Open widget ${c.name}",
          icon = IconFA.TH_LARGE,
-         infoΛ = { "Open widget ${c.name}" },
+         infoΛ = { null },
          graphics = hBox { lay += strategyCB; lay += processCB }
       ) {
          c.loadIn(strategyCB.value, processCB.value)

@@ -96,7 +96,7 @@ class AppSearchPlugin: PluginBase() {
       Entry.of(
          "Run app: ${it.absolutePath}",
          IconMA.APPS,
-         { "Runs application: ${it.absolutePath}" },
+         { null },
          null,
          { it.runAsProgram() }
       )

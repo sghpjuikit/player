@@ -12,18 +12,15 @@ import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Interpolators.Companion.easeOut
 import sp.it.util.animation.Anim.Interpolators.Companion.interpolator
 import sp.it.util.math.clip
+import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.onEventUp
 import sp.it.util.type.Util
 import sp.it.util.units.em
 import sp.it.util.units.millis
 
-class SpitTableViewSkin<S>(table: TableView<S>): TableViewSkin<S>(table) {
+class SpitTableViewSkin<S>(skinnable: TableView<S>): TableViewSkin<S>(skinnable) {
 
-   init {
-      initScrollAnimationEffect()
-   }
-
-   fun initScrollAnimationEffect() {
+   private val scrollAnimationEffect = Subscribed {
       val flow = Util.getFieldValue<VirtualFlow<*>>(this, "flow")
       var a: Anim? = null
       skinnable.onEventUp(SCROLL) {
@@ -37,10 +34,19 @@ class SpitTableViewSkin<S>(table: TableView<S>): TableViewSkin<S>(table) {
             if (!isMin && !isMax) {
                a?.stop()
                a = Anim.anim(200.millis) { flow.position = (vFrom + it*vBy).clip(0.0, 1.0) }.intpl(interpolator { sqrt(it) }.easeOut())
-               a?.play()
+               a.play()
             }
          }
       }
    }
 
+   override fun install() {
+      super.install()
+      scrollAnimationEffect.subscribe()
+   }
+
+   override fun dispose() {
+      scrollAnimationEffect.unsubscribe()
+      super.dispose()
+   }
 }

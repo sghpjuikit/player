@@ -40,7 +40,7 @@ class DirSearchPlugin: PluginBase() {
       Entry.of(
          "Open directory: ${it.absolutePath}",
          IconUN(0x1f4c1),
-         { "Opens directory: ${it.absolutePath}" },
+         { null },
          null,
          { it.browse() }
       )

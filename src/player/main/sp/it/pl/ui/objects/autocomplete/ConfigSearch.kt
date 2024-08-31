@@ -1,7 +1,9 @@
 package sp.it.pl.ui.objects.autocomplete
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.StringProperty
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -36,9 +38,13 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.item_node.ConfigEditor
+import sp.it.pl.ui.objects.SpitLabeledSkin
+import sp.it.pl.ui.objects.SpitLabeledSkin.SpitLabeledSkinWithTooltip
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.minus
+import sp.it.util.access.v
+import sp.it.util.access.vn
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Config
@@ -47,10 +53,13 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.recurseDF
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.zip
 import sp.it.util.text.keysUi
 import sp.it.util.type.isEnum
 import sp.it.util.type.isSubclassOf
@@ -218,14 +227,14 @@ class ConfigSearch: AutoCompletion<Entry> {
    interface Entry {
       val name: String
       val icon: GlyphIcons?
-      val info: String get() = name
+      val info: String? get() = null
       val graphics: Node? get() = null
       fun Ctx.run()
 
       class ΛEntry(
          override val name: String,
          override val icon: GlyphIcons?,
-         val infoΛ: () -> String,
+         val infoΛ: () -> String?,
          override val graphics: Node? = null,
          private val runΛ: Ctx.() -> Unit
       ): Entry {
@@ -233,7 +242,7 @@ class ConfigSearch: AutoCompletion<Entry> {
          override fun Ctx.run() = runΛ()
       }
 
-      class SimpleEntry(override val name: String, override val icon: GlyphIcons?, val infoΛ: () -> String, private val runΛ: Ctx.() -> Unit): Entry {
+      class SimpleEntry(override val name: String, override val icon: GlyphIcons?, val infoΛ: () -> String?, private val runΛ: Ctx.() -> Unit): Entry {
          override val info get() = infoΛ()
          override fun Ctx.run() = runΛ()
       }
@@ -271,16 +280,17 @@ class ConfigSearch: AutoCompletion<Entry> {
 
       companion object {
 
-         fun of(name: String, icon: GlyphIcons?, infoΛ: () -> String = { "" }, graphics: Node? = null, run: Ctx.() -> Unit) = ΛEntry(name, icon, infoΛ, graphics, run)
+         fun of(name: String, icon: GlyphIcons?, infoΛ: () -> String? = { null }, graphics: Node? = null, run: Ctx.() -> Unit) = ΛEntry(name, icon, infoΛ, graphics, run)
 
          fun of(config: Config<*>) = ConfigEntry(config)
 
       }
    }
 
-   private class EntryListCell: ListCell<Entry>() {
+   private class EntryListCell: ListCell<Entry>(), SpitLabeledSkinWithTooltip {
       private val icon = Icon()
       private val text = Label()
+      private val textInfo = vn<String>(null)
       private val contentSpacing = 5.0
       private val contentPadding = Insets(0.0, 10.0, 0.0, 10.0)
       private val configNodeRoot = hBox(contentSpacing, CENTER_RIGHT)
@@ -292,7 +302,6 @@ class ConfigSearch: AutoCompletion<Entry> {
          }
          lay(CENTER_RIGHT) += configNodeRoot
       }
-      private val rootTooltip = appTooltip()
       private val nextUpdate = Disposer()
       private val configNodeRootWidth = SimpleDoubleProperty(0.0)
 
@@ -308,11 +317,9 @@ class ConfigSearch: AutoCompletion<Entry> {
          root.lookupChildAt<HBox>(0).prefWidthProperty() syncFrom (w)
          root.lookupChildAt<HBox>(0).maxWidthProperty() syncFrom (root.widthProperty() - 100)
          root.lookupChildAt<HBox>(0).padding = Insets(2.5, 0.0, 2.5, 0.0)
-         rootTooltip.textProperty() attach {
-            if (it.isNullOrBlank()) root uninstall rootTooltip
-            else root install rootTooltip
-         }
       }
+
+      override fun needsTooltip() = (textInfo zip text.textTruncatedProperty()).map { (text, truncated) -> truncated || !text.isNullOrBlank() }
 
       override fun updateSelected(selected: Boolean) {
          super.updateSelected(selected)
@@ -333,7 +340,8 @@ class ConfigSearch: AutoCompletion<Entry> {
             text.text = item.name
             icon.isVisible = item.icon!=null
             icon.icon(item.icon)
-            rootTooltip.text = item.info
+            textInfo.value = item.info
+            properties[SpitLabeledSkin.tooltipForTruncatedRowEffectTextPropertyKey] = textInfo.value.takeUnless { it.isNullOrBlank() } ?: text.text
 
             val node = item.graphics
             if (node is HBox) node.alignment = CENTER_RIGHT

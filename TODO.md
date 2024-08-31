@@ -60,13 +60,12 @@
   Challenging. See [issue](/TODO-ISSUES.md#io-ui)
 
 ## Bugs
-- Popup unable to receive focus sometimes
 - Recompiling or manual widget loading does not rebind inputs properly
 - **Function Viewer** plotting steep functions clipped too soon
 
 ## External bugs
-- [x] [jaudiotagger-65](https://bitbucket.org/ijabz/jaudiotagger/issues/65/add-support-for-ogg-opus-format) opus ogg support
-  fixed in maintained fork
+- [-] [jaudiotagger-65](https://bitbucket.org/ijabz/jaudiotagger/issues/65/add-support-for-ogg-opus-format) opus ogg support
+  open, but fixed in maintained fork
 - [x] [jfx-481](https://bugs.openjdk.java.net/browse/JDK-8197991) JavaFx: table `CTRL+A` performance  
   fixed
 - [x] [jfx-364](https://github.com/javafxports/openjdk-jfx/issues/364) `javafx.scene.control.TextField` focus styling changes on window focus in/out  

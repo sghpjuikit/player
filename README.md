@@ -11,7 +11,8 @@
 
 ## What is this?
 
-**Spit Player** is a desktop audio player and audio management meta-application, with a modular ui capable of reloading its own parts in runtime.
+**Spit Player** is a ubiqutious widget-based desktop application.
+It has modular ui and behavior, including audio playback/library, Phllips Hue integration or voice control features.
 Uses VLC under hood & css for looks. Built around plugins and widgets.
 
 **Is this ready?** Yes. Executable downloads are not provided, but can be easily [built](#use).
@@ -28,7 +29,7 @@ Well tested on Windows 8.1 and 10. Linux and OSX compatible, but largely unteste
 ## Do I need this?
 
 You decide. This application has been born out of frustration with how applications today look and are used.
-There are two main major use cases for this application:
+The major use cases are:
 
 ##### Audio playback & management system
 Ever lost your entire library or song ratings due to corrupted database file?
@@ -48,7 +49,15 @@ such as modular layout, different widget launch strategies, be it different type
 If you know Java/Kotlin, you can make your own app with a simple text editor and literally few lines of code.
 Just write your code, hit save and watch as it auto-compiles and reloads in UI.
 All that with included support for powerful type-safe configuration, skins and access to the internals.
+
 See [how](CONTRIBUTING.md#widgets).
+
+##### Voice assistant
+The voice assistant is largely separate, but also integrated functionality capable of full real-time interaction with user.
+It uses multiple AI models for text-to speech, llm, speech-to-text to provide for voice control over devices as well as actual chat.
+It supports voice cloning, multiple speakers, and more.
+
+See [voice assistant documentation](/app/speech-recognition-whisper/README.md)
 
 ## Use
 

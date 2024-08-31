@@ -14,7 +14,7 @@ import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.units.millis
 
 /**
- * SplitPane skin that adds animations & improved usability
+ * [SplitPaneSkin] with:
  * - divider opacity animation on mouse hover
  * - mouse clicks are (always) passed to the parent (fixes [SplitPaneSkin] bug that causes it to consume all clicks)
  */

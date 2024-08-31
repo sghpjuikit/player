@@ -11,7 +11,7 @@ import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.type.Util.getFieldValue
 
 /**
- * SplitPane skin that adds animations & improved usability
+ * [SpitSplitPaneSkin] with:
  * - divider opacity animation on mouse hover
  * - mouse clicks are (always) passed to the parent (fixes [SplitPaneSkin] bug that causes it to consume all clicks)
  */

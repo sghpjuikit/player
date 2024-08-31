@@ -1,6 +1,7 @@
 package sp.it.pl.ui.objects
 
 import javafx.scene.control.TableView
+import javafx.scene.control.skin.ListViewSkin
 import javafx.scene.control.skin.TableViewSkin
 import javafx.scene.control.skin.VirtualFlow
 import javafx.scene.input.ScrollEvent.SCROLL
@@ -18,7 +19,21 @@ import sp.it.util.type.Util
 import sp.it.util.units.em
 import sp.it.util.units.millis
 
+/**
+ * [TableViewSkin] with:
+ * - vertical scroll animation
+ */
 class SpitTableViewSkin<S>(skinnable: TableView<S>): TableViewSkin<S>(skinnable) {
+
+   override fun install() {
+      super.install()
+      scrollAnimationEffect.subscribe()
+   }
+
+   override fun dispose() {
+      scrollAnimationEffect.unsubscribe()
+      super.dispose()
+   }
 
    private val scrollAnimationEffect = Subscribed {
       val flow = Util.getFieldValue<VirtualFlow<*>>(this, "flow")
@@ -40,13 +55,4 @@ class SpitTableViewSkin<S>(skinnable: TableView<S>): TableViewSkin<S>(skinnable)
       }
    }
 
-   override fun install() {
-      super.install()
-      scrollAnimationEffect.subscribe()
-   }
-
-   override fun dispose() {
-      scrollAnimationEffect.unsubscribe()
-      super.dispose()
-   }
 }

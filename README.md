@@ -190,8 +190,8 @@ Object-object converting facility.
   - Displays data as text while allowing user to apply function transformations. Handy file renamer and per-song 
     group tagger. Supports object lists, text transformations, manual text editing, regex, writing to file etc.
   - Provides set of functions that transform java objects (such as String or File). User can then set some kind of input 
-    (formally List<INPUT>) and apply and chain these transformation functions (on every element of the list) to get some 
-    result (List<OUTPUT>). It may sound confusing at first, but it is an intuitive and very powerful thing, particularly when 
+    (formally `List<INPUT>`) and apply and chain these transformation functions (on every element of the list) to get some 
+    result (`List<OUTPUT>`). It may sound confusing at first, but it is an intuitive and very powerful thing, particularly when 
     combined with the ability to see the transformation output as a text at every step and the ability to manually edit 
     that text and reuse it as an input for further transformation. The final output can be used as text or for an action, 
     such as
@@ -270,8 +270,27 @@ Modules (widgets) are part of layout hierarchy, which can be manipulated, saved 
 - multiple windows
 - configurable notification positions (corners, center) + window/screen oriented
 
-### Hotkeys
+##### Controls
+There are multiple improvements over standard JavaFX `Control`s, mostly using custom `Skin` set by `css`.
+The changes are documented in the source code:
+* [SpitComboBox](src/player/main/sp/it/pl/ui/objects/SpitComboBox.kt)
+* [SpitLabelSkin](src/player/main/sp/it/pl/ui/objects/SpitLabelSkin.kt)
+* [SpitListCellSkin](src/player/main/sp/it/pl/ui/objects/SpitListCellSkin.kt)
+* [SpitListViewSkin](src/player/main/sp/it/pl/ui/objects/SpitListViewSkin.kt)
+* [SpitScrollBarSkin](src/player/main/sp/it/pl/ui/objects/SpitScrollBarSkin.kt)
+* [SpitScrollPaneSkin](src/player/main/sp/it/pl/ui/objects/SpitScrollPaneSkin.kt)
+* [SpitSliderSkin](src/player/main/sp/it/pl/ui/objects/SpitSliderSkin.kt)
+* [SpitSplitPaneSkin](src/player/main/sp/it/pl/ui/objects/SpitSplitPaneSkin.kt)
+* [SpitTableCellSkin](src/player/main/sp/it/pl/ui/objects/SpitTableCellSkin.kt)
+* [SpitTableViewSkin](src/player/main/sp/it/pl/ui/objects/SpitTableViewSkin.kt)
+* [SpitText](src/player/main/sp/it/pl/ui/objects/SpitText.kt)
+* [SpitTextAreaSkin](src/player/main/sp/it/pl/ui/objects/SpitTextAreaSkin.kt)
+* [SpitTreeCellSkin](src/player/main/sp/it/pl/ui/objects/SpitTreeCellSkin.kt)
+* [SpitTreeTableCellSkin](src/player/main/sp/it/pl/ui/objects/SpitTreeTableCellSkin.kt)
+* [SpitTreeTableViewSkin](src/player/main/sp/it/pl/ui/objects/SpitTreeTableViewSkin.kt)
+* [SpitTreeViewSkin](src/player/main/sp/it/pl/ui/objects/SpitTreeViewSkin.kt)
 
+### Hotkeys
 - global hotkey supported - shortcuts don't need application focus if so desired
 - media keys supported
 - customizable (any combination of keys:  "F5", "CTRL+L", etc)

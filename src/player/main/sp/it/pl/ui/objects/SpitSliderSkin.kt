@@ -33,7 +33,10 @@ import sp.it.util.ui.valueRel
 import sp.it.util.ui.xy
 import sp.it.util.units.millis
 
-/** SliderSkin skin that adds animations & improved usability - track expands on mouse hover. */
+/**
+ * [SliderSkin] with:
+ * - track expand mouse hover animation
+ */
 open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
    private var thumbScaleHoverX = 1.0
    private var thumbScaleHoverY = 1.0
@@ -43,7 +46,6 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
    init {
       initIds()
       initFill()
-
    }
 
    override fun install() {

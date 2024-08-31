@@ -42,7 +42,12 @@ import sp.it.util.ui.size
 import sp.it.util.ui.traverseParents
 import sp.it.util.units.millis
 
-/** ScrollPaneSkin skin that adds animations, fade effect and consumes scroll events (if the content does not fit). */
+/**
+ * [ScrollPaneSkin] with:
+ * - vertical/horizontal scroll animations
+ * - scrollbar fade effect
+ * - consumes scroll events (if the content does not fit)
+ */
 open class SpitScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane) {
    val onDispose = Disposer()
 

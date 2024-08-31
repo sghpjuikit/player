@@ -24,9 +24,9 @@ import sp.it.util.reactive.onEventUp
 /**
  * ComboBox with added functionalities.
  *  * null-safe converter [toStringConverter] and [emptyText] used as [toStringConverterFx] for [ComboBox.converterProperty]
- *  * [KeyCode.SPACE] shows popup
+ *  * [KeyCode.SPACE] shows autocomplete popup
  *  * Searching & scrolling when typing, [search]
- *  * [readOnly]
+ *  * [readOnly] support
  */
 class SpitComboBox<T>(toStringConverter: (T & Any) -> String, emptyText: String = textNoVal): ComboBox<T>() {
    /** Whether this combobox is not editable. Default false. Note: [ComboBox.editable] refers to [ComboBox.commitValue]. */

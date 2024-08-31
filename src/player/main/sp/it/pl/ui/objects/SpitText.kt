@@ -6,7 +6,10 @@ import sp.it.pl.main.fontScaled
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.sync
 
-/** [javafx.scene.text.Text] with support for [wrappingWithNatural]. */
+/**
+ * [javafx.scene.text.Text] with:
+ * - support for natural width/height ratio [wrappingWithNatural]
+ */
 class SpitText: javafx.scene.text.Text {
 
    /** Whether [wrappingWidth] is maintained to achieve natural width and height based on current text. Default false. */

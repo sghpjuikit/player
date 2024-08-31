@@ -11,7 +11,10 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 
-/** [TextAreaSkin] skin with additional features. */
+/**
+ * [TextAreaSkin] with:
+ * - improved right click context menu ([showContextMenu])
+ */
 class SpitTextAreaSkin(control: TextArea): TextAreaSkin(control) {
    private val disposer = Disposer()
 

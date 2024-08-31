@@ -2,12 +2,14 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
-- Update Kotlin to 2.0.0
+- Update Kotlin to 2.0.20
 - Update dependencies
+- Implement opus audio fiel format support
+- Implement tooltip for all `Labeled` UI elements when truncated
 - Implement **Weather** widget forecast reactive layout
 - Implement **Voice assistant** widget info to display voice commands
 - Implement **Node/Custom** widget to show Node specific info
-- Implement String to Number functor radix parameter
+- Implement `String` to `Number` functor radix parameter
 - Implement discovery of properties for ui types that do not extend ui types
 - Implement function editor help icon with popup showing available functions
 - Implement black screen action that hides screen
@@ -44,11 +46,13 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** Improve console output & activity indicator
 - Implement **Voice assistant** loading/unloading on start/os-hibernate, optionally with custom cli command (LmStudio) 
 - Implement **Voice assistant** personas
+- Implement **Voice assistant** python output streaming execution
 - Implement current song voice command
 - Implement log level highlighting
 - Implement **GitProjects** faster and better file sorting
 - Implement **GitProjects** markdown edit support
 - Implement **GitProjects** non-README markdown file support
+- Implement **Voronoi** widget GALAXY pattern
 - Implement `MdNode` mark-down heading anchor & simpler layout
 - Implement markdown support for widget/plugin descriptions
 - Implement better UI for widget features in widget management settings
@@ -57,6 +61,9 @@ All notable changes to this project will be documented in this file. Format base
 - Implement dock not showing on window mouse hover when mouse movement (uses mouse speed monitoring)
 - Implement warn notification and use for voice confirmation
 - Implement better runCommand methods/action to run CLI command through UI
+- Implement nested configurable properties (improves settings UI in several places)
+- Implement `PopWindow` to respect screen size when too large
+- Implement missing window owner/parent for some application popups/windows
 - Improve shortcut pane layout
 - Improve nullability inference for window properties in settings
 - Improve notification & song info padding
@@ -64,6 +71,7 @@ All notable changes to this project will be documented in this file. Format base
 - Improve `Thumbnail` animation API
 - Improve markdown styling (consistent lists)
 - Improve styling (consistent prompt text color)
+- Improve `ConfigPane` layout [padding taken into effect]
 - Fix **Voice assistant** plugin not waking up from hibernate properly
 - Fix **Voice assistant** python process error logging twice
 - Fix **Voice assistant** some settings not taking effect
@@ -73,6 +81,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **Comet** widget not loading sometimes due to font loading
 - Fix **Weather Info** widget visibility null issue
 - Fix **Logger** widget UI performance when logging too fast & handle ansi
+- Fix **FunctionViewer** to handle asymptotes
 - Fix `OverlayPane` show stutter due to blur
 - Fix `MdNode` ui stutter due to Parser
 - Fix `MdNode` code block not showing entire text sometimes
@@ -96,6 +105,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix window open scale animation causing 0.0 scale and causing issues
 - Fix opening settings too slow sometimes
 - Fix opening popups logging exceptions
+- Fix 'Open with' action
+- Fix table index column not resized correctly initially
 - Fix minor code issues, TODOs and so on
 
 ### Voice Assistant

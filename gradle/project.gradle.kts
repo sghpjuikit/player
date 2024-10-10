@@ -93,10 +93,10 @@ allprojects {
 
       "Kotlin" group {
          // compatibility table https://kotlinlang.org/docs/releases.html#release-details
-         implementation(kotlin("reflect", "2.0.20"))
+         implementation(kotlin("reflect"))
          implementation(kotlin("compiler-embeddable"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.9.0-RC")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.9.0-RC")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.9.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.9.0")
          implementation("org.jetbrains", "annotations", "24.1.0")
       }
 
@@ -122,7 +122,7 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
-         implementation("ch.qos.logback", "logback-classic", "1.5.6") // https://logback.qos.ch/news.html
+         implementation("ch.qos.logback", "logback-classic", "1.5.8") // https://logback.qos.ch/news.html
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
@@ -155,7 +155,7 @@ allprojects {
 
       "Image" group {
          implementation("com.drewnoakes", "metadata-extractor", "2.19.0")
-         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.11.0")
+         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.12.0")
          imageIO("bmp")
          imageIO("clippath")
          imageIO("core")
@@ -184,8 +184,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.9.1")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.9.1")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "6.0.0.M1")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "6.0.0.M1")
       }
 
       "Db" group {

@@ -269,6 +269,9 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    /** Audio http API. */
    private val httpApi = Subscribed {
       Subscription(
+         APP.http.serverRoutes route AppHttp.Handler("/") {
+            JsArray(APP.http.serverRoutes.routes().map { JsString(it.matcher) })
+         },
          APP.http.serverRoutes route AppHttp.Handler("/audio/library") {
             val filter = it.requestURI.query
                ?.splitToSequence(",").orEmpty()

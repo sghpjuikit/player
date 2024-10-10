@@ -34,6 +34,7 @@ import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
 import sp.it.util.dev.fail
 import sp.it.util.dev.printIt
+import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.getOr
@@ -156,10 +157,13 @@ class AppHttp(
                   println("bytes read $bytesRead")
                }
             }
-            else ->
-               e.respond(200, 0) {
-                  it.writer().write(Config.json.toJsonValue(it).toPrettyS())
+            else -> {
+               e.responseHeaders["Content-Type"] = "application/json"
+               val s = Config.json.toJsonValue(it).toPrettyS().toByteArray()
+               e.respond(200, s.size.toLong()) { o ->
+                  o.write(s)
                }
+            }
          }
       }
    }
@@ -188,6 +192,8 @@ class AppHttp(
             runFX { serverHandlers -= handler }
          }
       }
+
+      fun routes(): List<Handler> = routes
 
       fun find(request: HttpExchange): Handler? =
          routes.find { request.requestURI.path.startsWith(it.path) }
@@ -222,7 +228,10 @@ class AppHttp(
             responseBody.close()
          } else {
             sendResponseHeaders(status, contentLength)
-            responseBody.buffered(DEFAULT_BUFFER_SIZE).use { writer(it); it.flush() }
+            runTry {
+
+               responseBody.buffered(DEFAULT_BUFFER_SIZE).use { writer(it); it.flush() }
+            }.ifError { print("LOL") }
          }
       }
 

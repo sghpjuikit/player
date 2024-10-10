@@ -15,6 +15,7 @@ import javax.inject.Inject
 import kotlin.text.Charsets.UTF_8
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Nested
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.JavaToolchainService
@@ -37,7 +38,7 @@ val String.sysProp: String?
 
 open class CleanAppDataTask: DefaultTask() {
 
-   @Input lateinit var appDir: File
+   @InputDirectory lateinit var appDir: File
 
    @TaskAction
    fun greet() {

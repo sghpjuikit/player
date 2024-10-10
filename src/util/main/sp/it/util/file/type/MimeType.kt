@@ -686,6 +686,7 @@ class MimeType(val name: String, vararg extensions: String) {
       val `image∕sgi`: MimeType by mime("sgi")
       val `image∕svg+xml`: MimeType by mime("svg", "svgz")
       val `image∕tiff`: MimeType by mime("tiff", "tif")
+      val `image∕vnd-ms·dds`: MimeType by mime("dds")
       val `image∕vnd·adobe·photoshop`: MimeType by mime("psd")
       val `image∕vnd·dece·graphic`: MimeType by mime("uvi", "uvvi", "uvg", "uvvg")
       val `image∕vnd·dvb·subtitle`: MimeType by mime("sub")

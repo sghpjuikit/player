@@ -170,6 +170,7 @@ val imageExtensions12Monkey: Set<String> = linkedSetOf(
    "svg",
    "wmf",
    "webp",
+   "dds",
 )
 
 /** See [imageExtensions12Monkey]. */

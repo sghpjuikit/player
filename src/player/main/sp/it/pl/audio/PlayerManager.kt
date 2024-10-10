@@ -271,7 +271,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       Subscription(
          APP.http.serverRoutes route AppHttp.Handler("/audio/library") {
             val filter = it.requestURI.query
-               .splitToSequence(",")
+               ?.splitToSequence(",").orEmpty()
                .map { it.split2("=") }
                .mapNotNull { (key, value) -> value.takeIf { key=="filter" && value.isNotEmpty() } }
                .toList()

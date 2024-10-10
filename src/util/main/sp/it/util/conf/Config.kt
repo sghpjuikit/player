@@ -24,6 +24,7 @@ import sp.it.util.file.json.Json
 import sp.it.util.functional.Option
 import sp.it.util.functional.Option.None
 import sp.it.util.functional.Try
+import sp.it.util.functional.and
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.invoke
@@ -37,6 +38,7 @@ import sp.it.util.type.enumValues
 import sp.it.util.type.isEnum
 import sp.it.util.type.isObject
 import sp.it.util.type.isSubclassOf
+import sp.it.util.type.isSuperclassOf
 import sp.it.util.type.objectInstanceSafe
 import sp.it.util.type.raw
 import sp.it.util.type.sealedSubObjects
@@ -134,8 +136,8 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, ConstrainedRead<T>,
       }
       set(property) {
          json.fromJsonValue(type, property)
-               .ifOk { value = it }
-               .ifError { logger.warn(it) { "Unable to set config=$name value from json=$property" } }
+            .and { runTry { value = if (it!=null && !type.isSuperclassOf(it::class)) fail { "Type of value ${it::class} is not compatible with type of config ${type}" } else it } }
+            .ifError { logger.warn(it) { "Unable to set config=$name value from json=$property" } }
       }
 
    protected var valueEnumerator2nd: MutableList<T>? = null

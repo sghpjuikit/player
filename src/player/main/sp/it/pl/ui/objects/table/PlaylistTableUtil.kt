@@ -58,14 +58,14 @@ fun PlaylistTable.buildColumn(f: ObjectField<PlaylistSong, Any?>): TableColumn<P
    }
 }
 
-fun TableView<*>.buildPlayingFieldColumn(): TableColumn<*, Any> = tableColumn {
+fun <T> TableView<T>.buildPlayingFieldColumn(): TableColumn<T, Any> = tableColumn {
    isSortable = false
    isResizable = true
    cellValueFactory = Callback { vAlways(Unit) }
    cellFactory = Callback { buildPlayingFieldCell(it) }
 }
 
-fun TableView<*>.buildPlayingFieldCell(column: TableColumn<*, Any>): TableCell<*, Any> {
+fun <T> TableView<T>.buildPlayingFieldCell(column: TableColumn<*, Any>): TableCell<T, Any> {
    val table = this
    val tableDisposer = if (table is PlaylistTable) table.disposer else table.onNodeDispose
 
@@ -144,7 +144,7 @@ fun TableView<*>.buildPlayingFieldCell(column: TableColumn<*, Any>): TableCell<*
 
       ic
    }
-   val cell = object: TableCell<PlaylistSong, Any>() {
+   val cell = object: TableCell<T, Any>() {
       override fun updateItem(item: Any?, empty: Boolean) {
          super.updateItem(item, empty)
          alignment = CENTER

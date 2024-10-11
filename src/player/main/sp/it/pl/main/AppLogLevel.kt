@@ -9,5 +9,5 @@ enum class AppLogLevel(val logback: Level) {
    INFO(Level.INFO),
    DEBUG(Level.DEBUG),
    TRACE(Level.TRACE),
-   ALL(Level.ALL)
+   @Suppress("DEPRECATION") ALL(Level.ALL)
 }

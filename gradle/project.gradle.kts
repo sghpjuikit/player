@@ -97,7 +97,7 @@ allprojects {
          implementation(kotlin("compiler-embeddable"))
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.9.0")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.9.0")
-         implementation("org.jetbrains", "annotations", "24.1.0")
+         implementation("org.jetbrains", "annotations", "26.0.0")
       }
 
       "lib" group {
@@ -122,7 +122,7 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
-         implementation("ch.qos.logback", "logback-classic", "1.5.8") // https://logback.qos.ch/news.html
+         implementation("ch.qos.logback", "logback-classic", "1.5.9") // https://logback.qos.ch/news.html
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
@@ -179,8 +179,8 @@ allprojects {
 
       "Http" group {
          implementation("javax.jmdns","jmdns","3.4.1")
-         implementation("io.ktor", "ktor-server-core", "2.3.6")
-         implementation("io.ktor", "ktor-client-java", "2.3.6")
+         implementation("io.ktor", "ktor-server-core", "3.0.0")
+         implementation("io.ktor", "ktor-client-java", "3.0.0")
       }
 
       "Test" group {

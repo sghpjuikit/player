@@ -415,7 +415,7 @@ class VoiceAssistant: PluginBase() {
          ::micVoiceDetectProbDebug.getDelegateConfig()
       )
    ).noPersist().def(
-      name = "Microphone > voice detecttion"
+      name = "Microphone > speaker detection"
    )
 
    /** Preferred song order for certain song operations, such as adding songs to playlist */

@@ -438,7 +438,7 @@ executorPython = PythonExecutor(api, write, llmSysPrompt, commandExecutor, ', '.
 class AssistBasic:
     def __init__(self):
         self.last_announcement_at = datetime.now()
-        self.wake_word_delay = 5.0
+        self.wake_word_delay = 10.0
         self.isChat = False
         self.activity_last_at = time.time()
         self.activity_last_diff = 0
@@ -519,14 +519,14 @@ class AssistBasic:
         if self.isChat: return
         self.isChat = True
         write(f"COM: {ctx.speaker}:{ctx.location}:start conversation")
-        if (react): llm(ChatReact(llmSysPrompt, "User started conversation with you. Greet him", "Conversing"), ctx)
+        if (react): llm(ChatReact(llmSysPrompt, f"{ctx.speaker} started conversation with you. Greet him", "Conversing"), ctx)
         for mic in mics: mic.set_pause_threshold_talk()
 
     def restartChat(self, ctx: Ctx, react: bool = True):
         tts.skip()
         llm.generating = False
         write(f"COM: {ctx.speaker}:{ctx.location}:restart conversation")
-        if (react): llm(ChatReact(llmSysPrompt, "User erased his conversation with you from your memory.", "Ok"), ctx)
+        if (react): llm(ChatReact(llmSysPrompt, f"{ctx.speaker} erased his conversation with you from your memory.", "Ok"), ctx)
         executorPython.ms = []
 
     def stopChat(self, ctx: Ctx, react: bool = True):
@@ -535,7 +535,7 @@ class AssistBasic:
         tts.skip()
         llm.generating = False
         write(f"COM: {ctx.speaker}:{ctx.location}:stop conversation")
-        if (react): llm(ChatReact(llmSysPrompt, "User stopped conversation with you", "Ok"), ctx)
+        if (react): llm(ChatReact(llmSysPrompt, f"{ctx.speaker} stopped conversation with you", "Ok"), ctx)
         for mic in mics: mic.set_pause_threshold_normal()
 
 assist = AssistBasic()
@@ -561,8 +561,8 @@ def callback(speech: SpeechText):
     if len(text) == 0: return
 
     # handle question
-    if executorPython.isBlockingQuestion:
-        if executorPython.isBlockingQuestion and executorPython.isBlockingQuestionSpeaker==speech.user: executorPython.onBlockingQuestionDone.set_result(speech.text)
+    if executorPython.isBlockingQuestion and executorPython.isBlockingQuestionSpeaker==speech.user:
+        executorPython.onBlockingQuestionDone.set_result(speech.text)
         write(f'USER: {text}')
         # monitor activity time
         assist.onActivity(speech)
@@ -739,7 +739,7 @@ while not sysTerminating:
 
         if m.startswith("COM-PYT: "):
             speaker, location, text = speakerAndLocAndText(m[9:])
-            executorPython.execute(speaker, location, text, text)
+            executorPython.execute(speaker, location, text)
 
         if m.startswith("COM-PYT-INT: "):
             speaker, location, text = speakerAndLocAndText(m[13:])

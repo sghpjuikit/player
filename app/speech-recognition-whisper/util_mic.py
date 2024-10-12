@@ -485,9 +485,9 @@ class MicVoiceDetectNvidia:
                 audio_array, sampling_rate = sf.read(BytesIO(wav_bytes))
                 audio_array = audio_array.astype(np.float32)
 
+                Y = self.loadSpeakerFromAudio(audio_array)
                 for voice in self.speakers_correct:
                     X = voice.data
-                    Y = self.loadSpeakerFromAudio(audio_array)
                     similarity_score = torch.dot(X, Y) / ((torch.dot(X, X) * torch.dot(Y, Y)) ** 0.5)
                     similarity_score = similarity_score.item()
                     similarity_score = (similarity_score + 1) / 2

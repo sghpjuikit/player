@@ -24,6 +24,7 @@ def sanitize_python_code(text: str) -> str:
     # strip whitespace, needed since this is recursive function, so its stirpping mid-content as well
     t = text.strip()
     # some models like to use starred expression with speak, which escapes code validation, this is reasonable fix
+    t = t.replace('<|eom_id|><|start_header_id|>assistant<|end_header_id|>', '')
     t = t.removeprefix('*')
     t = t.removesuffix('*')
     t = t.replace('*speak(', 'speak(')

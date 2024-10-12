@@ -144,7 +144,7 @@ Args:
     
   stt-whisper-model=$model
     Whisper model for speech recognition
-    Values: tiny.en, tiny, base.en, base, small.en, small, medium.en, medium, large, large-v1, large-v2, large-v3
+    Values: tiny.en, tiny, base.en, base, small.en, small, medium.en, medium, large, large-v1, large-v2, large-v3, turbo
     Default: base.en
 
   stt-whisper-device

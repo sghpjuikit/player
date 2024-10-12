@@ -480,7 +480,7 @@ class VoiceAssistant: PluginBase() {
 
    /** [SttEngine.WHISPER] AI model used to transcribe voice to text */
    val sttWhisperModel by cv("base.en")
-      .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large", "large-v1", "large-v2", "large-v3") }
+      .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large", "large-v1", "large-v2", "large-v3", "turbo") }
       .uiNoOrder()
       .noUi()
       .def(name = "Model", info = "Whisper model for speech recognition.")

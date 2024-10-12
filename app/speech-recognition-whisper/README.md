@@ -88,10 +88,10 @@ flowchart TD
   STTX     -.-> STTX3[/SttFasterWhisper/]
   STTX     -.-> STTX4[/SttNemo/]
   STTX     -.-> STTX5[/SttHttp/]
-  STTX1    -.->|python local AI model| STTXX1[(\ntiny.en\ntiny\nbase.en\nbase\nsmall.en\nsmall\nmedium.en)]
-  STTX2    -.->|python local AI model| STTXX2[(\ntiny.en\ntiny\nbase.en\nbase\nsmall.en\nsmall\nmedium.en)]
+  STTX1    -.->|python local AI model| STTXX1[(\ntiny.en\ntiny\nbase.en\nbase\nsmall.en\nsmall\nnmedium.en\nmedium\nlarge\nlarge-v1\nlarge-v2\nlarge-v3\nturbo)]
+  STTX2    -.->|python local AI model| STTXX2[(\ntiny.en\ntiny\nbase.en\nbase\nsmall.en\nsmall\nmedium.en\nmedium\nlarge\nlarge-v1\nlarge-v2\nlarge-v3)]
   STTX3    -.->|python local AI model| STTXX3[(\ntiny.en\ntiny\nbase.en\nbase\nsmall.en\nsmall\nmedium.en\ndistil-small.en\ndistil-medium.en\ndistil-large-v2\ndistil-large-v3)]
-  STTX4    -.->|python local AI model| STTXX4[(\nnvidia/parakeet-ctc-1.1b\nnvidia/parakeet-ctc-0.6b\nnvidia/parakeet-tdt-1.1b)]
+  STTX4    -.->|python local AI model| STTXX4[(\nnvidia/parakeet-ctc-1.1b\nnvidia/parakeet-tdt_ctc-110m\nnvidia/parakeet-ctc-0.6b\nnvidia/parakeet-tdt-1.1b)]
   STTX5    -.->|http| STTXX5[(Other self instance)]
 ```
 

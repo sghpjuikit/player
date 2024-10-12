@@ -516,7 +516,7 @@ class VoiceAssistant: PluginBase() {
 
    /** [SttEngine.NEMO] AI model used to transcribe voice to text */
    val sttNemoModel by cv("nvidia/parakeet-ctc-1.1b")
-      .values { listOf("nvidia/parakeet-tdt-1.1b", "nvidia/parakeet-ctc-1.1b", "nvidia/parakeet-ctc-0.6b") }
+      .values { listOf("nvidia/parakeet-tdt-1.1b", "nvidia/parakeet-tdt_ctc-110m", "nvidia/parakeet-ctc-1.1b", "nvidia/parakeet-ctc-0.6b") }
       .uiNoOrder()
       .noUi()
       .def(name = "Model", info = "Nemo model for speech recognition.")

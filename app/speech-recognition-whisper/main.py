@@ -162,7 +162,7 @@ Args:
     
   stt-nemo-model=$model
     Nemo model for speech recognition
-    Values: nvidia/parakeet-tdt-1.1b, nvidia/parakeet-ctc-1.1b, nvidia/parakeet-ctc-0.6b
+    Values: nvidia/parakeet-tdt-1.1b, nvidia/parakeet-tdt_ctc-110m, nvidia/parakeet-ctc-1.1b, nvidia/parakeet-ctc-0.6b
     Default: nvidia/parakeet-ctc-1.1b
     
   stt-nemo-device

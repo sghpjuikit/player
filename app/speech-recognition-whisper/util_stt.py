@@ -264,7 +264,7 @@ class SttNemo(Stt):
         if not exists(cacheDir): makedirs(cacheDir)
         # load model
         if self.model=="nvidia/parakeet-tdt-1.1b": model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name="nvidia/parakeet-tdt-1.1b", map_location=torch.device(self.device))
-        if self.model=="nvidia/parakeet-ctc-0.6b": model = nemo_asr.models.ASRModel.from_pretrained(model_name="nvidia/parakeet-tdt_ctc-110m", map_location=torch.device(self.device))
+        if self.model=="nvidia/parakeet-tdt_ctc-110m": model = nemo_asr.models.ASRModel.from_pretrained(model_name="nvidia/parakeet-tdt_ctc-110m", map_location=torch.device(self.device))
         if self.model=="nvidia/parakeet-ctc-1.1b": model = nemo_asr.models.EncDecCTCModelBPE.from_pretrained(model_name="nvidia/parakeet-ctc-1.1b", map_location=torch.device(self.device))
         if self.model=="nvidia/parakeet-ctc-0.6b": model = nemo_asr.models.EncDecCTCModelBPE.from_pretrained(model_name="nvidia/parakeet-ctc-0.6b", map_location=torch.device(self.device))
         # loop

@@ -636,7 +636,7 @@ def install_exit_handler():
     signal.signal(signal.SIGABRT, stop)
 
 def install_on_bootup_invoke():
-    wait_until(lambda: all(actor.state_active() for actor in actors))
+    wait_until(lambda: all(actor.state_after_pause() for actor in actors))
     write.busy_status.remove(1)
     llm(ChatReact(llmSysPrompt, "You booted up. Use 4 words or less.", f"{name} online"))
 

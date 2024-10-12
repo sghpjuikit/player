@@ -183,3 +183,6 @@ class Actor:
 
     def state_active(self) -> bool:
         return self.state() in ["ACTIVE", "PAUSED"]
+
+    def state_after_pause(self) -> bool:
+        return self.state() in ["ACTIVE", "PAUSED", "STOPPED"]

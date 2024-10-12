@@ -63,9 +63,11 @@ import sp.it.util.conf.Constraint.RepeatableAction
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.between
+import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cNest
 import sp.it.util.conf.cr
+import sp.it.util.conf.cro
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvNest
 import sp.it.util.conf.cvn
@@ -407,15 +409,22 @@ class VoiceAssistant: PluginBase() {
       info = "Optional bool whether microphone should be printing real-time `Microphone > voice detect treshold`. Use only to determine optimal `Microphone > voice detect treshold`."
    )
 
+   val micVoiceDetectSpeakers by cro(obtainSpeakers().toList()).noUi().noPersist().def(
+      name = "Verified speakers",
+      info = "Speakers that will be recognized by the assistant. Located at ${dirSpeakers}."
+   )
+
    internal val micVoiceDetectDetails by cNest(
       ListConfigurable.heterogeneous(
          ::micVoiceDetect.getDelegateConfig(),
          ::micVoiceDetectDevice.getDelegateConfig(),
          ::micVoiceDetectProb.getDelegateConfig(),
-         ::micVoiceDetectProbDebug.getDelegateConfig()
+         ::micVoiceDetectProbDebug.getDelegateConfig(),
+         ::micVoiceDetectSpeakers.getDelegateConfig(),
       )
    ).noPersist().def(
-      name = "Microphone > speaker detection"
+      name = "Speaker detection",
+      info = "Whether speaker is identified after speech is detected. If enabled, speech by unverified speakers will be ignored. You will need to add verified speaker first."
    )
 
    /** Preferred song order for certain song operations, such as adding songs to playlist */
@@ -1022,12 +1031,13 @@ class VoiceAssistant: PluginBase() {
 
       val dir by lazy { APP.location / "speech-recognition-whisper" }
       val dirPersonas by lazy { dir / "personas" }
+      val dirSpeakers by lazy { dir / "voices-verified" }
 
       val mainLocationInitial = "PC"
 
       val mainSpeakerInitial = "User"
 
-      fun obtainSpeakers(): List<String> = listOf(mainSpeakerInitial) + (dir / "voices-verified").children().filter { it hasExtension "wav" }.map { it.nameWithoutExtension }
+      fun obtainSpeakers(): List<String> = listOf(mainSpeakerInitial) + dirSpeakers.children().filter { it hasExtension "wav" }.map { it.nameWithoutExtension }
 
       fun obtainPersonas(): Sequence<File> = dirPersonas.children().filter { it hasExtension "txt" }
 

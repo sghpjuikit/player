@@ -231,7 +231,7 @@ class Mic(Actor):
         self.processing_start = None
 
     def listen(self, deviceIndex: int):
-        with sd.RawInputStream(device=deviceIndex, channels=1, samplerate=self.sample_rate, blocksize=1024, dtype='int16') as stream:
+        with sd.RawInputStream(device=deviceIndex, channels=1, samplerate=self.sample_rate, blocksize=512, dtype='int16') as stream:
             while not self._stop and self.enabled and not stream.stopped:
                 speech = self.listenOnce(stream)
                 if not self._stop and self.enabled and speech is not None: self.onSpeechEnd(speech)
@@ -249,7 +249,7 @@ class Mic(Actor):
         assert self.pause_threshold >= self.non_speaking_duration >= 0
 
         # CHUNK_SIZE = int(0.0625 * self.sample_rate)
-        CHUNK_SIZE = 1024
+        CHUNK_SIZE = 512
         CHANNELS = 1
         SAMPLE_WIDTH = 2
         SAMPLE_RATE = self.sample_rate

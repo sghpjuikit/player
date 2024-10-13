@@ -182,7 +182,15 @@ class Hue: PluginBase() {
       val speechHandlerGroup = listOf(
          SpeakHandlerGroup(KOTLN, "Hue commands", "hue lights \$text", speechHandlers) { text ->
             if (matches(text)) {
-               intent(text, speechHandlerGroupSubs.toPromptHint(), text.substringAfter("hue lights ")) { c ->
+               val (lights, groups) = hueBridge.init().bulbsAndGroups()
+               val scenes = hueBridge.init().scenes()
+               val lightsCsv = lights.map { "- ${it.name.lowercase().replace(" ", "_")}" }.joinToString("\n")
+               val groupsCsv = groups.map { "- ${it.name.lowercase().replace(" ", "_")}" }.joinToString("\n")
+               val scenesCsv = scenes.map { "- ${it.name.lowercase().replace(" ", "_")}" }.joinToString("\n")
+               val promptLists = "\n\nbulbs: $lightsCsv\nbulb groups: $groupsCsv\nbulb scenes: $scenesCsv\n"
+               val prompExamples = "\n\nexamples:\nIt's 9PM and I want a nice atmosphere in living room -> lights scene LR_Sunset (infering best scene from list of available scenes)"
+               val prompt = speechHandlerGroupSubs.toPromptHint() + promptLists + prompExamples
+               intent(text, prompt, text.substringAfter("hue lights ")) { c ->
                   val cp = if (c=="on" || c=="off") "light $c" else c
                   speechHandlerGroupSubs.firstNotNullOfOrNull { with(withCommand(it)) { invoke(cp) } } ?: Error("Unknown hue lights command '${cp}'")
                }

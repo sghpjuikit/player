@@ -17,6 +17,7 @@ import javafx.scene.control.Label
 import javafx.scene.layout.VBox
 import javafx.scene.text.TextAlignment
 import javax.jmdns.JmDNS
+import kotlin.math.abs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
@@ -52,7 +53,9 @@ import sp.it.util.conf.def
 import sp.it.util.conf.password
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
+import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsNull
+import sp.it.util.file.json.JsNumber
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.div
@@ -334,7 +337,12 @@ class Hue: PluginBase() {
 
       fun applyBulbLight(bulb: HueBulbId, state: HueBulbStateEditLight) = runSuspendingFx {
          client.put("$url/lights/$bulb/state") {
-            bodyJs(state.toJson().asJsObject().withoutNullValues())
+            // set in hsv color mode (some devices do not support it)
+            // bodyJs(state.toJson().asJsObject().withoutNullValues())
+
+            // set in xy color mode (guarantees all devices show the same color)
+            val xyValues = hsvToXY(state.hue?.net { it.toFloat()*360f/65535f } ?: 0f, state.sat?.toFloat() ?: 0f, state.bri?.toFloat() ?: 0f)
+            bodyJs(JsObject("xy" to JsArray(JsNumber(xyValues.first), JsNumber(xyValues.second))).withoutNullValues())
          }
       }
 
@@ -394,6 +402,53 @@ class Hue: PluginBase() {
          }
       }
 
+      fun hsvToXY(hue: Float, saturation: Float, brightness: Float): Pair<Float, Float> {
+         // Step 1: Convert HSV to RGB
+         val s = saturation / 100
+         val v = brightness / 100
+         val c = s * v
+         val x = c * (1 - abs((hue / 60) % 2 - 1))
+         val m = v - c
+
+         val (r, g, b) = when {
+            hue < 60 -> Triple(c, x, 0f)
+            hue < 120 -> Triple(x, c, 0f)
+            hue < 180 -> Triple(0f, c, x)
+            hue < 240 -> Triple(0f, x, c)
+            hue < 300 -> Triple(x, 0f, c)
+            else -> Triple(c, 0f, x)
+         }
+
+         // Convert RGB to [0, 1]
+         val red = r + m
+         val green = g + m
+         val blue = b + m
+
+         // Step 2: Apply Gamma Correction
+         fun gammaCorrect(value: Float): Float {
+            return if (value > 0.04045f) {
+               Math.pow(((value + 0.055f) / (1.0f + 0.055f)).toDouble(), 2.4).toFloat()
+            } else {
+               value / 12.92f
+            }
+         }
+
+         val correctedRed = gammaCorrect(red)
+         val correctedGreen = gammaCorrect(green)
+         val correctedBlue = gammaCorrect(blue)
+
+         // Step 3: Convert RGB to XYZ
+         val xValue = correctedRed * 0.4124f + correctedGreen * 0.3576f + correctedBlue * 0.1805f
+         val yValue = correctedRed * 0.2126f + correctedGreen * 0.7152f + correctedBlue * 0.0722f
+         val zValue = correctedRed * 0.0193f + correctedGreen * 0.1192f + correctedBlue * 0.9505f
+
+         // Step 4: Calculate xy values
+         val sum = xValue + yValue + zValue
+         val xCoord = if (sum > 0) xValue / sum else 0f
+         val yCoord = if (sum > 0) yValue / sum else 0f
+
+         return xCoord to yCoord
+      }
    }
 
 }

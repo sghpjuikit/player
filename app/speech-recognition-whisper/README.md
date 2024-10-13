@@ -566,6 +566,14 @@ Even though after treshold detection, voice activity detection and optionally sp
 For this the python application has `mic-verbose` flag that prints real-time microphone energy. 
 The assistant ui widget shows real-time energy in microphone settings ui.
 
+#### Noise-cancelling
+Some `TTS` models like `OpenAi Whisper` hallucinate which can cause assistant to react to non-existent input.
+It is recommended to use [SttNemo](#sttnemo) model that does not have this problem.
+Alternatively, avoid noise that can get to tts stage (through voice activity detection and speaker detection).
+For this, you can use noise cancelling and/or echo cancelling feature.
+It is recommended to use microphone with noise cancelling built-in, as it simplifies the setup and reduces compute load on the system.
+Alternatively, use application such as [Nvidia Broadcast](https://www.nvidia.com/en-eu/geforce/broadcasting/broadcast-app/).
+
 #### Multiple microphones
 The assistant supports multiple microphone inputs.
 Each can be assigned different location.
@@ -602,8 +610,8 @@ Install
 - `pip install nemo_toolkit[asr]`
 
 Nemo is of higher quality while being faster than even the best whisper-large model.
-In addition, it has no hallucinations.
-Hardware requirements are Nvidia GPU and enough VRAM.
+In addition, it has no hallucinations for non-speech input.
+Hardware requirements are Nvidia GPU.
 
 #### SttHttp
 TODO

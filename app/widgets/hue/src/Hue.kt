@@ -327,7 +327,7 @@ class Hue(widget: Widget): SimpleController(widget) {
             hueBulbCells.getOrPut(bulb.id) {
                HueIcon(null, 40.0, bulb).run {
                   styleclass("hue-bulb-icon")
-                  styleclassToggle("hue-plug-plug", hue.isBulb())
+                  styleclassToggle("hue-plug-plug", hue.isPlug())
 
                   fun rename() {
                      object: ConfigurableBase<Any?>() {
@@ -384,6 +384,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                }
             }.run {
                icon.hue = bulb
+               icon.styleclassToggle("hue-plug-plug", bulb.isPlug())
                icon.pseudoClassChanged("unreachable", !bulb.state.reachable)
                icon.pseudoClassChanged("on", bulb.state.on)
                icon.isDisable = !bulb.state.reachable

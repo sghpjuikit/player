@@ -425,10 +425,12 @@ data class HueBulbStateEditOn(val on: Boolean)
 
 data class HueBulbStateEditLight(val bri: Int?, val hue: Int?, val sat: Int?)
 
-data class HueBulbState(val on: Boolean, val bri: Int, val hue: Int, val sat: Int, val reachable: Boolean)
+data class HueBulbState(val on: Boolean, val bri: Int?, val hue: Int?, val sat: Int?, val reachable: Boolean)
 
 data class HueBulb(val id: HueBulbId = "", val name: String, val productname: String, val state: HueBulbState, val config: HueMap) {
    val confPowerOn get() = config["startup"]?.asIf<HueMap>()?.get("mode")?.asIs<String>()?.net(HueBulbConfPowerOn::valueOf)
+   fun isBulb() = state.bri!=null && state.hue!=null && state.sat!=null
+   fun isPlug() = config.get("archetype")=="plug"
 }
 
 data class HueGroupState(val all_on: Boolean, val any_on: Boolean)

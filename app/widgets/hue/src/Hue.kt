@@ -131,6 +131,7 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.size
+import sp.it.util.ui.styleclassToggle
 import sp.it.util.ui.text
 import sp.it.util.ui.unitCircleDegP
 import sp.it.util.ui.vBox
@@ -326,6 +327,7 @@ class Hue(widget: Widget): SimpleController(widget) {
             hueBulbCells.getOrPut(bulb.id) {
                HueIcon(null, 40.0, bulb).run {
                   styleclass("hue-bulb-icon")
+                  styleclassToggle("hue-plug-plug", hue.isBulb())
 
                   fun rename() {
                      object: ConfigurableBase<Any?>() {
@@ -358,8 +360,8 @@ class Hue(widget: Widget): SimpleController(widget) {
                      selectedBulbId = bulb.id
                      pseudoClassChanged("edited", true)
                      color.readOnly.value = false
-                     infoPane.lay += color.node
-                     color.changeToBulb(hue)
+                     if (hue.isBulb()) infoPane.lay += color.node
+                     if (hue.isBulb()) color.changeToBulb(hue)
                   }
 
 
@@ -576,10 +578,10 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
       fun changeToBulb(bulb: HueBulb) {
          avoidApplying.suppressing {
-            color.value = Color.hsb(bulb.state.hue.toDouble()*360.0/65535.0, bulb.state.sat.toDouble()/254.0, 1.0, bulb.state.bri.minus(1).toDouble()/253.0)
-            hue.value = bulb.state.hue
-            sat.value = bulb.state.sat
-            bri.value = bulb.state.bri
+            color.value = Color.hsb(bulb.state.hue!!.toDouble()*360.0/65535.0, bulb.state.sat!!.toDouble()/254.0, 1.0, bulb.state.bri!!.minus(1).toDouble()/253.0)
+            hue.value = bulb.state.hue!!
+            sat.value = bulb.state.sat!!
+            bri.value = bulb.state.bri!!
             selector.isVisible = true
             selector.parent?.requestLayout()
          }

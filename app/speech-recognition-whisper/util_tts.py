@@ -6,7 +6,7 @@ import numpy as np
 import asyncio
 import torchaudio
 from util_actor import Actor, ActorStoppedException
-from util_itr import teeThreadSafeEager, words
+from util_itr import teeThreadSafeEager, words, sentences
 from util_play import SdActor, SdEvent
 from util_dir_cache import cache_file
 from util_http import HttpHandler
@@ -94,7 +94,6 @@ class Tts(Actor):
 
     def _loop(self):
         import regex
-        from stream2sentence import generate_sentences
         readable_regex = regex.compile(r'\p{L}|\p{N}')
 
         with (self._looping()):
@@ -112,7 +111,7 @@ class Tts(Actor):
                             self.play.playEvent(SdEvent.boundary(), location)
                             fAll = []
                             # sentences tts
-                            for sentence in generate_sentences(event, cleanup_text_links=True, cleanup_text_emojis=True):
+                            for sentence in sentences(event):
                                 text = text + sentence
                                 if readable_regex.search(sentence): fAll.append(flatMap(self.tts.gen(sentence, skippable=skippable), lambda it: self.play.playEvent(it, location)))
 

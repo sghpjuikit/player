@@ -2,6 +2,7 @@ from imports import *
 from threading import Lock
 from itertools import tee, chain as ichain
 from time import sleep
+from stream2sentence import generate_sentences
 
 def teeThreadSafeEager(iterable, n=2):
     """
@@ -88,6 +89,9 @@ def words(text: str):
     for element in words:
         yield ' '
         yield element
+
+def sentences(input_generator: Iterator[str]):
+    return generate_sentences(input_generator, cleanup_text_links=True, cleanup_text_emojis=True)
 
 def lines(input_generator):
     """

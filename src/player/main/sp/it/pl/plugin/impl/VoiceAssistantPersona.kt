@@ -42,6 +42,7 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Util.filenamizeString
 import sp.it.util.access.v
+import sp.it.util.access.vAlways
 import sp.it.util.async.runVT
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
@@ -51,6 +52,8 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.filename
 import sp.it.util.conf.noUi
+import sp.it.util.conf.nonBlank
+import sp.it.util.conf.nonEmpty
 import sp.it.util.file.FileType
 import sp.it.util.file.children
 import sp.it.util.file.div
@@ -65,6 +68,7 @@ import sp.it.util.functional.and
 import sp.it.util.functional.getOr
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
+import sp.it.util.reactive.flatMap
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -77,6 +81,7 @@ import sp.it.util.system.open
 import sp.it.util.text.capitalLower
 import sp.it.util.text.nameUi
 import sp.it.util.ui.hBox
+import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
@@ -94,6 +99,7 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
    val selection by cv("").noUi()
    val edit = v(false)
    val personas = mutableListOf<Persona>()
+   val personaActive = (plugin flatMap { it?.llmChatSysPromptFile ?: vAlways(null) }) map { it?.nameWithoutExtension }
    val contentPr = scrollPane()
    val contentEd = vBox(15.emScaled, Pos.CENTER)
    val contentEdArea = textArea()
@@ -112,10 +118,22 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
                      tooltip("New Persona")
                      onClickDo { createPersona() }
                   }
+                  lay += label(" ")
+                  lay += Icon(IconMA.PERSON_OUTLINE).apply {
+                     (selection zip personaActive) sync { (s, p) -> icon(if (p==s) IconMA.PERSON else IconMA.PERSON_OUTLINE) } on onClose
+                     disableProperty() syncFrom (selection zip personaActive).map { (s, p) -> s.isEmpty() || p==s } on onClose
+                     tooltip("Activate persona")
+                     onClickDo { personas.find { it.name==selection.value }?.activate() }
+                  }
                   lay += Icon(IconFA.EDIT).apply {
-                     disableProperty() syncFrom (selection zip edit).map { (s, e) -> s.isEmpty() || e }
+                     disableProperty() syncFrom selection.map { s -> s.isEmpty() } on onClose
                      tooltip("Edit persona")
                      onClickDo { edit() }
+                  }
+                  lay += Icon(IconMA.DELETE).apply {
+                     disableProperty() syncFrom (selection zip personaActive).map { (s, p) -> s.isEmpty() || p==s } on onClose
+                     tooltip("Delete persona")
+                     onClickDo { delete() }
                   }
                }
             }
@@ -188,9 +206,15 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
       contentEdArea.text = null
    }
 
+   fun delete() {
+      if (edit.value) return
+      contentEdArea.text = contentTx.text
+      edit.value = true
+   }
+
    fun createPersona() {
       object: ConfigurableBase<Any?>(), Validated {
-         val name by cvn<String>(null).filename()
+         val name by cvn<String>(null).filename().nonBlank()
          override fun isValid() =
             if (name.value==null) Error(Constraint.ObjectNonNull.message())
             else if (listPersonas().map { it.name }.contains(name.value!!)) Error("Persona already exists")

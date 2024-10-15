@@ -97,7 +97,7 @@ allprojects {
          implementation(kotlin("compiler-embeddable"))
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.9.0")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.9.0")
-         implementation("org.jetbrains", "annotations", "26.0.0")
+         implementation("org.jetbrains", "annotations", "26.0.1")
       }
 
       "lib" group {
@@ -122,7 +122,7 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
-         implementation("ch.qos.logback", "logback-classic", "1.5.9") // https://logback.qos.ch/news.html
+         implementation("ch.qos.logback", "logback-classic", "1.5.10") // https://logback.qos.ch/news.html
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
@@ -143,12 +143,12 @@ allprojects {
       "Misc" group {
          implementation("com.github.f4b6a3", "uuid-creator", "6.0.0")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
-         implementation("com.github.oshi", "oshi-core", "6.6.2")  // https://github.com/oshi/oshi/releases
+         implementation("com.github.oshi", "oshi-core", "6.6.5")  // https://github.com/oshi/oshi/releases
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
          implementation("org.apache.pdfbox", "pdfbox", "3.0.3") // https://pdfbox.apache.org
-         implementation("com.ezylang", "EvalEx", "3.3.0")
+         implementation("com.ezylang", "EvalEx", "3.4.0")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
          implementation("ch.obermuhlner", "big-math", "2.3.2")
       }

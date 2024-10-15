@@ -506,7 +506,7 @@ class WidgetManager {
                "-d", compileDir.absolutePath,
                "-jdk-home", APP.location.child("java").absolutePath,
                "-api-version", "2.0",
-               "-jvm-target", "21",
+               "-jvm-target", "23",
                "-no-stdlib",
                "-language-version", "2.0",
                "-Xno-call-assertions",

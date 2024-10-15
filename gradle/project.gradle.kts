@@ -2,14 +2,13 @@ import kotlin.text.Charsets.UTF_8
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTIUM
 import org.gradle.jvm.toolchain.JvmVendorSpec.AMAZON
-import org.jetbrains.kotlin.config.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_23
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "2.0.20"
+   kotlin("jvm") version "2.1.0-Beta2"
    application
    id("com.github.ben-manes.versions") version "0.51.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    // id("com.jaredsburrows.license") version "0.9.8"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin // incompatible with latest gradle
@@ -29,14 +28,14 @@ fun Project.tests(configuration: Test.() -> Unit) {
 /** Working directory of the application */
 val dirApp = file("app")
 val dirJdk = dirApp/"java"
-val javaVersionSupported = JavaVersion.VERSION_21
+val javaVersionSupported = JavaVersion.VERSION_23
 
 allprojects {
    apply(plugin = "kotlin")
 
    kotlin {
       jvmToolchain {
-         languageVersion = JavaLanguageVersion.of(21)
+         languageVersion = JavaLanguageVersion.of(23)
          vendor = ADOPTIUM
       }
       sourceSets.all {
@@ -76,7 +75,7 @@ allprojects {
             "-Xstring-concat=indy-with-constants",
          )
          javaParameters = true
-         jvmTarget = JVM_21
+         jvmTarget = JVM_23
       }
    }
 

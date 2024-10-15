@@ -52,6 +52,14 @@
     -fx-effect: dropshadow(gaussian, -skin-def-font-color-hover, 0.5em,0 , 0,0);
 }
 
+/* Inherits hue-bulb-icon */
+.hue-plug-plug {
+    -glyph-name: "MaterialDesignIcon.POWER_SOCKET";
+}
+.hue-plug-plug:on {
+    -glyph-name: "MaterialDesignIcon.POWER_SOCKET";
+}
+
 .hue-scene-icon {
     -glyph-name: "MaterialDesignIcon.LOOKS";
 }

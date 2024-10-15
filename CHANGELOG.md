@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement function editor help icon with popup showing available functions
 - Implement black screen action that hides screen
 - Implement settings UX
+- Implement **Hue** widget power plug support
+- Implement **Hue** bulb colors to be set in xy mode (better compatibility and color accuracy)
 - Implement **App Scheduler** widget - UI for scheduled tasks
 - Implement **Voice assistant** http APIs
 - Implement **Voice assistant** UX
@@ -47,6 +49,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **Voice assistant** loading/unloading on start/os-hibernate, optionally with custom cli command (LmStudio) 
 - Implement **Voice assistant** personas
 - Implement **Voice assistant** python output streaming execution
+- Implement **WeatherInfo** unit settings
+- Implement **WeatherInfo** to use https://www.visualcrossing.com/ API instead of no longer accessible https://openweathermap.org/api/one-call-api
 - Implement current song voice command
 - Implement log level highlighting
 - Implement **GitProjects** faster and better file sorting
@@ -64,6 +68,8 @@ All notable changes to this project will be documented in this file. Format base
 - Implement nested configurable properties (improves settings UI in several places)
 - Implement `PopWindow` to respect screen size when too large
 - Implement missing window owner/parent for some application popups/windows
+- Implement .dds image support
+- Implement http server / api (shows API info)
 - Improve shortcut pane layout
 - Improve nullability inference for window properties in settings
 - Improve notification & song info padding
@@ -108,6 +114,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix 'Open with' action
 - Fix table index column not resized correctly initially
 - Fix minor code issues, TODOs and so on
+- Fix http server failing if request has empty params
 
 ### Voice Assistant
 Voice assistant has received a lot of updates to make it more usable and productive.

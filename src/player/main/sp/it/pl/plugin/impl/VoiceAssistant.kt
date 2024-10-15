@@ -492,7 +492,7 @@ class VoiceAssistant: PluginBase() {
       .values { listOf("tiny.en", "tiny", "base.en", "base", "small.en", "small", "medium.en", "medium", "large", "large-v1", "large-v2", "large-v3", "turbo") }
       .uiNoOrder()
       .noUi()
-      .def(name = "Model", info = "Whisper model for speech recognition.")
+      .def(name = "Model", info = "Whisper model for speech recognition. See https://github.com/openai/whisper?tab=readme-ov-file#available-models-and-languages for speed and memory comparison.")
 
    /** [SttEngine.WHISPER] torch device used to transcribe voice to text */
    val sttWhisperDevice by cv("")
@@ -524,11 +524,11 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Device", info = "Whisper torch device for speech recognition. E.g. cpu, cuda:0, cuda:1. Default empty, which falls back to 'cpu'.")
 
    /** [SttEngine.NEMO] AI model used to transcribe voice to text */
-   val sttNemoModel by cv("nvidia/parakeet-ctc-1.1b")
+   val sttNemoModel by cv("nvidia/parakeet-tdt_ctc-110m")
       .values { listOf("nvidia/parakeet-tdt-1.1b", "nvidia/parakeet-tdt_ctc-110m", "nvidia/parakeet-ctc-1.1b", "nvidia/parakeet-ctc-0.6b") }
       .uiNoOrder()
       .noUi()
-      .def(name = "Model", info = "Nemo model for speech recognition.")
+      .def(name = "Model", info = "Nemo model for speech recognition. See https://huggingface.co/spaces/hf-audio/open_asr_leaderboard for quality and speed comparison.")
 
    /** [SttEngine.NEMO] torch device used to transcribe voice to text */
    val sttNemoDevice by cv("")

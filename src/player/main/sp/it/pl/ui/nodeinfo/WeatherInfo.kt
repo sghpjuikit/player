@@ -28,10 +28,12 @@ import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.DoubleTemp
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.Dt
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.Dts
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.WindDir
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.DateUnit.DATE
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.DistUnit.IMPERIAL
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.DistUnit.METRIC
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.TemperatureUnit.CELSIUS
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.TemperatureUnit.FAHRENHEIT
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.WindDirUnit.COMPASS
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.popup.PopWindow
@@ -242,6 +244,8 @@ class WeatherInfo: HBox(15.0) {
          val unitPressure by cv(this@WeatherInfo.units.value.pressure).noUi()
          val unitHumidity by cv(this@WeatherInfo.units.value.humidity).noUi()
          val unitVisibility by cv(this@WeatherInfo.units.value.visibility).noUi()
+         val unitWinDir by cv(this@WeatherInfo.units.value.windDir).noUi()
+         val unitDate by cv(this@WeatherInfo.units.value.date).noUi()
          val units by cNest(
             ListConfigurable.heterogeneous(
                ::unitTemperature.getDelegateConfig(),
@@ -250,6 +254,8 @@ class WeatherInfo: HBox(15.0) {
                ::unitPressure.getDelegateConfig(),
                ::unitHumidity.getDelegateConfig(),
                ::unitVisibility.getDelegateConfig(),
+               ::unitWinDir.getDelegateConfig(),
+               ::unitDate.getDelegateConfig(),
             )
          ).noPersist().def(
             name = "Units"
@@ -271,6 +277,8 @@ class WeatherInfo: HBox(15.0) {
             it.unitPressure.value,
             it.unitHumidity.value,
             it.unitVisibility.value,
+            it.unitWinDir.value,
+            it.unitDate.value,
          )
          refresh()
       }
@@ -352,6 +360,8 @@ class WeatherInfo: HBox(15.0) {
       enum class PrecipitationUnit(val ui: String) { MILLIMETERS("mm"), INCHES("″") }
       enum class PressureUnit { HECTOPASCALS, INCHES_OF_MERCURY }
       enum class HumidityUnit { PERCENTAGE }
+      enum class WindDirUnit(val ui: String) { COMPASS("°"), DEGREES("°"), ARROW("°") }
+      enum class DateUnit(val ui: String) { DATE("m.d."), DAY_OF_WEEK("DoW") }
    }
 
    data class UnitsDto(
@@ -361,6 +371,8 @@ class WeatherInfo: HBox(15.0) {
       val pressure: Units2.PressureUnit = Units2.PressureUnit.HECTOPASCALS,
       val humidity: Units2.HumidityUnit = Units2.HumidityUnit.PERCENTAGE,
       val visibility: Units2.DistUnit = METRIC,
+      val windDir: Units2.WindDirUnit = COMPASS,
+      val date: Units2.DateUnit = DATE,
    )
 
    /** https://openweathermap.org/api/one-call-api */
@@ -634,8 +646,8 @@ class WeatherInfo: HBox(15.0) {
                currentConditions.cloudcover!!.toDouble(),
                currentConditions.uvindex!!.toDouble(),
                currentConditions.visibility!!.toDouble()*1000,
-               currentConditions.windspeed,
-               currentConditions.windgust,
+               currentConditions.windspeed?.net { DoubleSpeed(it.t/3.6) },
+               currentConditions.windgust?.net { DoubleSpeed(it.t/3.6) },
                WindDir(currentConditions.winddir!!.toDouble()),
                listOf(Data.WeatherGroup(convertIcon(currentConditions.icon), "", "", ""))
             ),
@@ -648,9 +660,9 @@ class WeatherInfo: HBox(15.0) {
                   it.humidity!!.toDouble(),
                   it.dew!!,
                   it.cloudcover?.toDouble() ?: 0.0,
-                  it.visibility?.net { it*1000 },
-                  it.windspeed,
-                  it.windgust,
+                  it.visibility,
+                  it.windspeed?.net { DoubleSpeed(it.t/3.6) },
+                  it.windgust?.net { DoubleSpeed(it.t/3.6) },
                   WindDir(it.winddir!!.toDouble()),
                   Data.Hourly.Hourly1h(it.precip),
                   Data.Hourly.Hourly1h(it.snow),
@@ -671,8 +683,8 @@ class WeatherInfo: HBox(15.0) {
                   it.pressure!!,
                   it.humidity!!.toDouble(),
                   it.dew!!,
-                  it.windspeed,
-                  it.windgust,
+                  it.windspeed?.net { DoubleSpeed(it.t/3.6) },
+                  it.windgust?.net { DoubleSpeed(it.t/3.6) },
                   WindDir(it.winddir!!.toDouble()),
                   it.cloudcover!!.toDouble(),
                   it.precip,
@@ -878,18 +890,20 @@ class WeatherInfo: HBox(15.0) {
          }
          @JvmInline value class WindDir(val deg: Double) {
             /** @return cardinal direction of the [deg] value, e.g.: SE */
-            fun toCD(): String = when (deg.toInt()) {
-               in  78..123 -> "N"
-               in  23..77  -> "NE"
-               in   0..22  ->  "E"
-               in 338..360 ->  "E"
-               in 294..337 -> "SE"
-               in 249..293 -> "S"
-               in 204..248 -> "SW"
-               in 169..203 ->  "W"
-               in 124..168 -> "NW"
+            fun toCD(): String = when ((deg+180)%360.0) {
+               in 337.5..360.0 -> "N"
+               in   0.5.. 22.5 -> "N"
+               in  22.5.. 67.5 -> "NE"
+               in  67.5..112.5 -> "E"
+               in 112.5..157.5 -> "SE"
+               in 157.5..202.5 -> "S"
+               in 202.5..247.5 -> "SW"
+               in 247.5..292.5 -> "W"
+               in 292.5..337.5 -> "NW"
                else -> fail { "invalid wind direction degree value=${deg}" }
             }
+            val degCardinal: Double get() = deg
+            val degMath: Double get() = (deg+90) % 360.0
          }
       }
    }

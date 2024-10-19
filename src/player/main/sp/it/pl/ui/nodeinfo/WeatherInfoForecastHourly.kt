@@ -1,6 +1,8 @@
 package sp.it.pl.ui.nodeinfo
 
 import de.jensd.fx.glyphs.GlyphIcons
+import java.time.Instant
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import javafx.scene.Cursor.HAND
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
@@ -11,6 +13,9 @@ import sp.it.pl.main.APP
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.DoubleSpeed
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.DoubleTemp
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.WindDir
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.WindDirUnit.ARROW
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.WindDirUnit.COMPASS
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.WindDirUnit.DEGREES
 import sp.it.pl.ui.nodeinfo.WeatherInfo.UnitsDto
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.TextIcon
@@ -79,7 +84,7 @@ class WeatherInfoForecastHourly(units: UnitsDto, value: List<Cell.Data>): HBox()
       val snowL = label()                { lay += this; textProperty() syncFrom units.map { it.precipitation.ui  }; cursor = HAND; onEventDown(MOUSE_CLICKED) { units.setValueOf { it.copy(precipitation = next(it.precipitation)) } } }
       val windL = label()                { lay += this; textProperty() syncFrom units.map { it.windSpeed.speedUi }; cursor = HAND; onEventDown(MOUSE_CLICKED) { units.setValueOf { it.copy(windSpeed = next(it.windSpeed)) } } }
       val windGustsL = label             { lay += this; textProperty() syncFrom units.map { it.windSpeed.speedUi }; cursor = HAND; onEventDown(MOUSE_CLICKED) { units.setValueOf { it.copy(windSpeed = next(it.windSpeed)) } } }
-      val windDirL = label("°")          { lay += this }
+      val windDirL = label("°")          { lay += this; textProperty() syncFrom units.map { it.windDir.ui };        cursor = HAND; onEventDown(MOUSE_CLICKED) { units.setValueOf { it.copy(windDir = next(it.windDir)) } } }
 
       init {
          styleClass += "weather-info-forecast-hourly-units"
@@ -103,6 +108,8 @@ class WeatherInfoForecastHourly(units: UnitsDto, value: List<Cell.Data>): HBox()
          val v = value.value
          val u = units.value
          val l = APP.locale.value
+         val now = ZonedDateTime.now();
+         val at = v.at.toInstant().atZone(ZoneId.systemDefault())
          hourL.text = " ${"%02d".format(v.at.hour % 12 + 1)}${if (v.at.hour < 12) "AM" else "PM"} "
          icon.icon(v.icon)
          tempL.text = v.temp.toUiValue(u, l)
@@ -111,9 +118,11 @@ class WeatherInfoForecastHourly(units: UnitsDto, value: List<Cell.Data>): HBox()
          snowL.text = v.snow?.takeIf { it>0.0 }?.net { "%.1f".format(it) } ?: ""
          windL.text = v.wind?.toUiValue(u, l) ?: ""
          windGustsL.text = v.windGusts?.toUiValue(u, l) ?: ""
-         windDirL.text = v.windDir.toCD()
+         windDirL.text = when (u.windDir) { COMPASS -> v.windDir.toCD(); DEGREES -> "%.0f".format(v.windDir.degCardinal); ARROW -> ">" }
+         windDirL.rotate = when (u.windDir) { COMPASS -> 0.0; DEGREES -> 0.0; ARROW -> v.windDir.degMath }
          pseudoClassToggle("first-hour-of-day", v.at.hour==0)
          pseudoClassToggle("last-hour-of-day", v.at.hour==23)
+         pseudoClassToggle("current", at.hour==now.hour && at.dayOfMonth==now.dayOfMonth && at.monthValue==now.monthValue && at.year==now.year)
       }
 
       init {

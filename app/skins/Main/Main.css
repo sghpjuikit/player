@@ -70,6 +70,11 @@
     -skin-row-fixed-size: 2em; /* size for fixed row size; affects .tree-cell > .tree-disclosure-node, .tree-table-row-cell > .tree-disclosure-node */
     -skin-row-icon-size: 1.25em; /* -glyph-size for .icon in tables, affected by -skin-row-fixed-size */
     -skin-focus-bgr-color: ladder(hsb(180, 100%, 50%), transparent 0%, -fx-focus-color 100%);
+
+    -mdfx-font-color: -skin-def-font-color;
+    -mdfx-link-color: -skin-focus-font-color;
+    -mdfx-bq-color-border: rgba(255,255,255, 0.2);
+    -mdfx-bq-color-background: rgba(255,255,255, 0.02);
 }
 
 /******************************************************************************
@@ -4188,13 +4193,24 @@ TextFlow > * {
 }
 
 /* Inherits: VBox
- * pseudoClasses: first-hour-of-day, last-hour-of-day
+ * pseudoClasses: first-hour-of-day, last-hour-of-day, current
  */
 .weather-info-forecast-hourly .weather-info-forecast-hourly-cell {
     -fx-alignment: CENTER;
+    -fx-border-color: null;
+    -fx-border-radius: 0.5em;
+    -fx-border-insets: 0 -0.5em;
 }
 .weather-info-forecast-hourly .weather-info-forecast-hourly-cell:first-hour-of-day {}
 .weather-info-forecast-hourly .weather-info-forecast-hourly-cell:last-hour-of-day {}
+.weather-info-forecast-hourly .weather-info-forecast-hourly-cell:current {
+    -fx-background-color: -mdfx-bq-color-background;
+    -fx-background-radius: 0.5em;
+    -fx-background-insets: 0 -0.5em;
+    -fx-border-color: -mdfx-bq-color-border;
+    -fx-border-radius: 0.5em;
+    -fx-border-insets: 0 -0.5em;
+}
 
 .weather-info-forecast-hourly .weather-info-forecast-hourly-names .icon,
 .weather-info-forecast-hourly .weather-info-forecast-hourly-units .icon,
@@ -4223,13 +4239,24 @@ TextFlow > * {
 }
 
 /* Inherits: VBox
- * pseudoClasses: first-day-of-month, last-day-of-month
+ * pseudoClasses: first-day-of-month, last-day-of-month, current
  */
 .weather-info-forecast-daily .weather-info-forecast-daily-cell {
     -fx-alignment: CENTER;
+    -fx-border-color: null;
+    -fx-border-radius: 0.5em;
+    -fx-border-insets: 0 -0.5em;
 }
 .weather-info-forecast-daily .weather-info-forecast-daily-cell:first-day-of-month {}
 .weather-info-forecast-daily .weather-info-forecast-daily-cell:last-day-of-month {}
+.weather-info-forecast-daily .weather-info-forecast-daily-cell:current {
+    -fx-background-color: -mdfx-bq-color-background;
+    -fx-background-radius: 0.5em;
+    -fx-background-insets: 0 -0.5em;
+    -fx-border-color: -mdfx-bq-color-border;
+    -fx-border-radius: 0.5em;
+    -fx-border-insets: 0 -0.5em;
+}
 
 .weather-info-forecast-daily .weather-info-forecast-daily-names .icon,
 .weather-info-forecast-daily .weather-info-forecast-daily-units .icon,
@@ -4238,15 +4265,7 @@ TextFlow > * {
 }
 
 /***************************** MARKDOWN NODE *****************************
- * Font picker dialog
- * inherits: .dialog
  */
-* {
-    -mdfx-font-color: -skin-def-font-color;
-    -mdfx-link-color: -skin-focus-font-color;
-    -mdfx-bq-color-border: rgba(255,255,255,0.2);
-    -mdfx-bq-color-background: #0000ff0c;
-}
 
 .markdown-italic {
     -fx-font-style: italic;
@@ -4341,7 +4360,7 @@ TextFlow > * {
     -fx-border-color: -mdfx-bq-color-border;
     -fx-border-width: 0.5;
     -fx-background-radius: 0.5em;
-    -fx-background-color: #FFFFFF05;
+    -fx-background-color: -mdfx-bq-color-background;
 }
 .markdown-codeblock-box {
     -fx-background-insets: 0.5em;

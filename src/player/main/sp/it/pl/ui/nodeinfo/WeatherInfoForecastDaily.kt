@@ -4,6 +4,9 @@ import de.jensd.fx.glyphs.GlyphIcons
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.TextStyle
+import java.time.format.TextStyle.NARROW
+import java.time.format.TextStyle.SHORT
 import javafx.scene.Cursor.HAND
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
@@ -14,6 +17,11 @@ import sp.it.pl.main.IconWH
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.DoubleSpeed
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.WindDir
 import sp.it.pl.ui.nodeinfo.WeatherInfo.Data.Daily
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.DateUnit.DATE
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.DateUnit.DAY_OF_WEEK
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.WindDirUnit.ARROW
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.WindDirUnit.COMPASS
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Units2.WindDirUnit.DEGREES
 import sp.it.pl.ui.nodeinfo.WeatherInfo.UnitsDto
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.TextIcon
@@ -74,7 +82,7 @@ class WeatherInfoForecastDaily(units: UnitsDto, value: List<Daily>): HBox() {
    }
 
    class CellUnits(units: V<UnitsDto>): VBox() {
-      val dayL = label("d")              { lay += this }
+      val dayL = label("d")              { lay += this; textProperty() syncFrom units.map { it.date.ui };           cursor = HAND; onEventDown(MOUSE_CLICKED) { units.setValueOf { it.copy(date = next(it.date)) } } }
       val icon = Icon(TextIcon("")).also { lay += it }
       val tempL = label                  { lay += this; textProperty() syncFrom units.map { it.temperature.ui    }; cursor = HAND; onEventDown(MOUSE_CLICKED) { units.setValueOf { it.copy(temperature = next(it.temperature)) } } }
       val cloudsL = label("%")           { lay += this }
@@ -82,7 +90,7 @@ class WeatherInfoForecastDaily(units: UnitsDto, value: List<Daily>): HBox() {
       val snowL = label()                { lay += this; textProperty() syncFrom units.map { it.precipitation.ui  }; cursor = HAND; onEventDown(MOUSE_CLICKED) { units.setValueOf { it.copy(precipitation = next(it.precipitation)) } } }
       val windL = label()                { lay += this; textProperty() syncFrom units.map { it.windSpeed.speedUi }; cursor = HAND; onEventDown(MOUSE_CLICKED) { units.setValueOf { it.copy(windSpeed = next(it.windSpeed)) } } }
       val windGustsL = label             { lay += this; textProperty() syncFrom units.map { it.windSpeed.speedUi }; cursor = HAND; onEventDown(MOUSE_CLICKED) { units.setValueOf { it.copy(windSpeed = next(it.windSpeed)) } } }
-      val windDirL = label("°")          { lay += this }
+      val windDirL = label("°")          { lay += this; textProperty() syncFrom units.map { it.windDir.ui };        cursor = HAND; onEventDown(MOUSE_CLICKED) { units.setValueOf { it.copy(windDir = next(it.windDir)) } } }
 
       init {
          styleClass += "weather-info-forecast-daily-units"
@@ -106,8 +114,9 @@ class WeatherInfoForecastDaily(units: UnitsDto, value: List<Daily>): HBox() {
          val v = value.value
          val u = units.value
          val l = APP.locale.value
+         val now = ZonedDateTime.now();
          val at = v.dt.toInstant().atZone(ZoneId.systemDefault())
-         dayL.text = at.monthValue.toString() + "." + at.dayOfMonth.toString() + "."
+         dayL.text = when (u.date) { DATE -> at.monthValue.toString() + "." + at.dayOfMonth.toString() + "."; DAY_OF_WEEK -> at.dayOfWeek.getDisplayName(SHORT, l) }
          icon.icon(v.weather.firstOrNull()?.icon(true) ?: IconWH.NA)
          tempL.text = v.temp.max.toUiValue(u, l)
          cloudsL.text = "${v.clouds.toInt()}%"
@@ -115,9 +124,11 @@ class WeatherInfoForecastDaily(units: UnitsDto, value: List<Daily>): HBox() {
          snowL.text = v.snow?.takeIf { it>0.0 }?.net { "%.1f".format(it) } ?: ""
          windL.text = v.wind_speed?.toUiValue(u, l) ?: ""
          windGustsL.text = v.wind_gust?.toUiValue(u, l) ?: ""
-         windDirL.text = v.wind_deg.toCD()
+         windDirL.text = when (u.windDir) { COMPASS -> v.wind_deg.toCD(); DEGREES -> "%.0f".format(v.wind_deg.degCardinal); ARROW -> ">" }
+         windDirL.rotate = when (u.windDir) { COMPASS -> 0.0; DEGREES -> 0.0; ARROW -> v.wind_deg.degMath }
          pseudoClassToggle("first-day-of-month", at.dayOfMonth==1)
          pseudoClassToggle("last-day-of-month", at.dayOfMonth==YearMonth.from(at).atEndOfMonth().dayOfMonth)
+         pseudoClassToggle("current", at.dayOfMonth==now.dayOfMonth && at.monthValue==now.monthValue && at.year==now.year)
       }
 
       init {

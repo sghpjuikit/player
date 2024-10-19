@@ -698,7 +698,7 @@ private      class GenCls<out T>(val value: T) {
 private inline fun <reified T: Any> Any?.shouldBeInstance() = T::class.isInstance(this) shouldBe true
 private infix  fun                  Any?.shouldBeInstance(type: KClass<*>) = type.isInstance(this) shouldBe true
 private infix  fun                  Any?.shouldBeInstance(type: KType) = type.raw.isInstance(this) shouldBe true
-private infix  fun Any?.shouldId(o: Any?): Unit = this should { it==o || it===o }
+private infix  fun Any?.shouldId(o: Any?): Unit = this should { it==o || (it is Float && o is Float && it.isNaN() && o.isNaN()) || (it is Double && o is Double && it.isNaN() && o.isNaN()) }
 private infix  fun Try<*,Throwable>.shouldBeTry(o: Try<*,String>) {
    if (o.isOk) ifError { throw it }
    if (this::class!=o::class) this shouldBe o;

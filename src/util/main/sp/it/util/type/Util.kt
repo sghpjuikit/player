@@ -90,6 +90,7 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
+import kotlin.reflect.full.isSupertypeOf
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.isAccessible
@@ -98,6 +99,7 @@ import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
 import mu.KotlinLogging
+import org.jetbrains.kotlin.ir.backend.js.export.ExportedType
 import sp.it.util.dev.fail
 import sp.it.util.functional.Option
 import sp.it.util.functional.Try
@@ -766,18 +768,25 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
          else -> {
             a.type.raw
                .allSupertypes.asSequence()
-               .flatMap {
-                  sequence {
-                     val c = it.raw
-                     if (c != Any::class && c.visibility == PUBLIC)
-                        yield(c.createType(c.typeParameters.mapIndexed { i, _ -> a.type.argOf(c, i) }, it.isMarkedNullable, it.annotations))
+               .firstOrNull { it.raw != Any::class && it.raw.visibility == PUBLIC && it.raw.isSuperclassOf(b.raw) }
+               ?.let {
+                  val c = it.raw
+                  val params: List<KTypeProjection?> = c.typeParameters.mapIndexed { i, _ ->
+                     val ap = a.type.argOf(c, i)
+                     val bp = b.type.argOf(c, i)
+                     when (ap.variance) {
+                        null -> KTypeProjection.STAR
+                        INVARIANT -> if (bp==ap) ap else null
+                        OUT ->
+                           if (ap.type==kTypeNothingNullable() || ap.type==kTypeNothingNonNull())
+                              (sequenceOf(bp.type!!) + bp.type!!.raw.allSupertypes.asSequence()).flatMap { if (it.isMarkedNullable) sequenceOf(it) else sequenceOf(it, it.withNullability(true)) }.firstOrNull { it.isSupertypeOf(ap.type!!) }?.let { KTypeProjection(INVARIANT, it) }
+                           else
+                              (sequenceOf(ap.type!!) + ap.type!!.raw.allSupertypes.asSequence()).flatMap { if (it.isMarkedNullable) sequenceOf(it) else sequenceOf(it, it.withNullability(true)) }.firstOrNull { it.isSupertypeOf(bp.type!!) }?.let { KTypeProjection(INVARIANT, it) }
+                        IN -> (sequenceOf(bp.type!!) + bp.type!!.raw.allSupertypes.asSequence()).flatMap { if (it.isMarkedNullable) sequenceOf(it) else sequenceOf(it, it.withNullability(true)) }.firstOrNull { it.isSupertypeOf(ap.type!!) }?.let { KTypeProjection(INVARIANT, it) }
+                     }
                   }
+                  if (null in params) null else VType<T>(c.createType(params.asIs(), it.isMarkedNullable, it.annotations))
                }
-               .firstOrNull {
-                  // println(it)
-                  // println(VType<T>(it) isSupertypeOf b)
-
-                  VType<T>(it) isSupertypeOf b }?.net { VType(it) }
                ?: run {
                   if (a.isNullable || b.isNullable) type<Any?>().asIs()
                   else type<Any>().asIs()

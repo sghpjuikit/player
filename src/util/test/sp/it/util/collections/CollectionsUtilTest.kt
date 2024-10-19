@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import java.io.Serializable
 import java.util.AbstractCollection
 import java.util.AbstractList
+import java.util.ArrayList
 import java.util.Optional
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.createType
@@ -104,12 +105,12 @@ class CollectionsUtilTest: FreeSpec({
          listOf("", Try.ok(), null) estimateRuntimeTypeShouldHaveElementType type<Any?>()
 
          // same interface
-         listOf("", 10L) estimateRuntimeTypeShouldHaveElementType type<Serializable>()
-         listOf("", 10L, null) estimateRuntimeTypeShouldHaveElementType type<Serializable?>()
+         listOf("", 10L) estimateRuntimeTypeShouldHaveElementType type<Comparable<Any>>()
+         listOf("", 10L, null) estimateRuntimeTypeShouldHaveElementType type<Comparable<Any>?>()
 
          // generic types (same class, same element class)
          listOf(Optional.of(""), Optional.empty()) estimateRuntimeTypeShouldHaveElementType type<Optional<Any>>()
-         listOf(Option(""), Option.None) estimateRuntimeTypeShouldHaveElementType type<Option<out String>>()
+         listOf(Option(""), Option.None) estimateRuntimeTypeShouldHaveElementType type<Option<String>>()
 
          // generic types (same class, same element class)
          listOf(listOf<Int>(1), listOf<Int>(1)) estimateRuntimeTypeShouldHaveElementType type<AbstractList<Int>>()
@@ -118,19 +119,17 @@ class CollectionsUtilTest: FreeSpec({
          // generic types (same superclass, same element class)
          listOf(listOf<Int>(1, 1), setOf<Int>(1, 1)) estimateRuntimeTypeShouldHaveElementType type<AbstractCollection<Int>>()
          listOf(listOf<Int>(1, 1), setOf<Int>(1, 1), null) estimateRuntimeTypeShouldHaveElementType type<AbstractCollection<Int>?>()
-         "!disabled as not properly implemented" {
-            listOf(listOf<Int>(1, 1), setOf<Int?>(1, 1, null)) estimateRuntimeTypeShouldHaveElementType type<AbstractCollection<Int?>>()
-            listOf(listOf<Int>(1, 1), setOf<Int?>(1, 1, null), null) estimateRuntimeTypeShouldHaveElementType type<AbstractCollection<Int?>?>()
+         listOf(roListOf<Int>(1, 1), roSetOf<Int?>(1, 1, null)) estimateRuntimeTypeShouldHaveElementType type<Collection<Int?>>()
+         listOf(roListOf<Int>(1, 1), roSetOf<Int?>(1, 1, null), null) estimateRuntimeTypeShouldHaveElementType type<Collection<Int?>?>()
 
-            // generic types (same superclass, same element superclass)
-            listOf(listOf<Byte>(0.toByte(), 0.toByte()), setOf<Int>(1, 1)) estimateRuntimeTypeShouldHaveElementType type<AbstractCollection<Number>>()
-            listOf(listOf<Byte>(0.toByte(), 0.toByte()), setOf<Int?>(1, 1, null)) estimateRuntimeTypeShouldHaveElementType type<AbstractCollection<Number?>>()
+         // generic types (same superclass, same element superclass)
+         listOf(roListOf<Byte>(0.toByte(), 0.toByte()), roSetOf<Int>(1, 1)) estimateRuntimeTypeShouldHaveElementType type<Collection<Number>>()
+         listOf(roListOf<Byte>(0.toByte(), 0.toByte()), roSetOf<Int?>(1, 1, null)) estimateRuntimeTypeShouldHaveElementType type<Collection<Number?>>()
 
-            // generic types (same superclass, same element interface)
-            listOf(listOf<String>("", ""), setOf<Int>(1, 1)) estimateRuntimeTypeShouldHaveElementType type<AbstractCollection<Comparable<*>>>()
-            listOf(listOf<String>("", ""), setOf<Int?>(1, 1, null)) estimateRuntimeTypeShouldHaveElementType type<AbstractCollection<Comparable<*>?>>()
-            listOf(Try.ok(""), Try.error("")) estimateRuntimeTypeShouldHaveElementType type<Try<String, String>>()
-         }
+         // generic types (same superclass, same element interface)
+         listOf(roListOf<String>("", ""), roSetOf<Int>(1, 1)) estimateRuntimeTypeShouldHaveElementType type<Collection<Any>>() // Collection<Comparable<String> && Comparable<Int>> because Comparable is invariant
+         listOf(roListOf<String>("", ""), roSetOf<Int?>(1, 1, null)) estimateRuntimeTypeShouldHaveElementType type<Collection<Any?>>() // Collection<Comparable<String> && Comparable<Int?>> because Comparable is invariant
+         listOf(Try.ok(""), Try.error("")) estimateRuntimeTypeShouldHaveElementType type<Try<String, String>>()
       }
 
    }

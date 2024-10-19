@@ -157,6 +157,10 @@ fun <T, R, SET> SET.project(mapper: (T) -> R): ObservableSetRO<R> where SET: Set
    return ObservableSetRO(outBacking)
 }
 
+class RoList<T>(list: List<T>): List<T> by list.toList()
+
+class RoSet<T>(set: Set<T>): Set<T> by set.toSet()
+
 /** Type safe read-only [ObservableList] implemented by delegation as [List] that is [Observable]. */
 class ObservableListRO<T>(private val list: ObservableList<T>): List<T> by list, Observable by list {
    fun addListener(listener: ListChangeListener<in T>) = list.addListener(listener)
@@ -193,6 +197,16 @@ fun <T> observableSet(vararg items: T): ObservableSet<T> = observableSet(*items)
 
 /** @return mutable observable map */
 fun <K,V> observableMap(): ObservableMap<K,V> = FXCollections.observableHashMap()
+
+fun <T> roListOf(vararg elements: T): List<T> = RoList(elements.toList())
+
+fun <T> roSetOf(vararg elements: T): Set<T> = RoSet(elements.toSet())
+
+/** @return read-only observable list */
+fun <T> List<T>.readOnly() = RoList(this)
+
+/** @return read-only observable set */
+fun <T> Set<T>.readOnly() = RoSet(this)
 
 /** @return read-only observable list */
 fun <T> ObservableList<T>.readOnly() = ObservableListRO(this)

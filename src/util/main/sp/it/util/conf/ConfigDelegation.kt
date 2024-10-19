@@ -99,7 +99,7 @@ inline fun <reified T: Any?> cCheckList(vararg initialItems: T): ConfCheckL<T, B
 /** Observable reified configurable checked list. Backed by [CheckListConfig]. */
 inline fun <reified T: Any?, S: Boolean?> cCheckList(checkList: CheckList<T, S>): ConfCheckL<T, S> = ConfCheckL(checkList).nonNull()
 /** Nested configurable. It nests [c]'s [Configurable.getConfigs] editors under single editor group. If [c] is observable, use [cvNest]. May want to use [noPersist]. */
-fun cNest(c: Configurable<*>) = cro(c)
+fun cNest(c: Configurable<*>) = cro(c).but(UiNested)
 /** Nested observable configurable mapped from other observable value. Use when value [c] is observable (showing editor for [c] is caller's responsibility, ideally [c] should be [Config]). Unlike [cNest], the sub-group is dynamic. The [vToC] should return the same object for each same value. May want to use [noPersist]. */
 fun <T> cvNest(c: ObservableValue<T>, vToC: (T) -> Configurable<*>?) = ConfVRO(null as Configurable<*>?, { (c map vToC) }).but(UiNested)
 

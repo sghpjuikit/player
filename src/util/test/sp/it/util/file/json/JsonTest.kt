@@ -3,6 +3,7 @@ package sp.it.util.file.json
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.forAll
 import io.kotest.data.row
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import java.io.File
 import java.math.BigDecimal
@@ -486,38 +487,38 @@ j.fromJson<Double>("-1.7976931348623157E309") shouldBeTry Error("-1.797693134862
 
             // exact type -> exact type
             val valueOut1 = j.toJsonValue(type, valueIn).net { j.fromJsonValue(type, it) }.orThrow
-            valueIn shouldBe valueOut1
-            valueIn::class shouldBe valueOut1::class
+            valueIn shouldId valueOut1
+            valueIn::class shouldId valueOut1::class
 
             val valueOut2 = j.toJsonValue(type, valueIn).toCompactS().net { j.fromJson(type, it) }.orThrow
-            valueIn shouldBe valueOut2
-            valueIn::class shouldBe valueOut2::class
+            valueIn shouldId valueOut2
+            valueIn::class shouldId valueOut2::class
 
             // unknown type -> unknown type
             val valueOut3 = j.toJsonValue(type<Any>(), valueIn).net { j.fromJsonValue(type<Any>(), it) }.orThrow
-            valueIn shouldBe valueOut3
-            valueIn::class shouldBe valueOut3::class
+            valueIn shouldId valueOut3
+            valueIn::class shouldId valueOut3::class
 
             val valueOut4 = j.toJsonValue(type<Any>(), valueIn).toCompactS().net { j.fromJson(type<Any>(), it) }.orThrow
-            valueIn shouldBe valueOut4
-            valueIn::class shouldBe valueOut4::class
+            valueIn shouldId valueOut4
+            valueIn::class shouldId valueOut4::class
 
             // unknown type -> exact type
             val valueOut5 = j.toJsonValue(type<Any>(), valueIn).net { j.fromJsonValue(type, it) }.orThrow
-            valueIn shouldBe valueOut5
-            valueIn::class shouldBe valueOut5::class
+            valueIn shouldId valueOut5
+            valueIn::class shouldId valueOut5::class
 
             val valueOut6 = j.toJsonValue(type<Any>(), valueIn).toCompactS().net { j.fromJson(type, it) }.orThrow
-            valueIn shouldBe valueOut6
-            valueIn::class shouldBe valueOut6::class
+            valueIn shouldId valueOut6
+            valueIn::class shouldId valueOut6::class
 
             // exact type -> unknown type (this case loses exact type because 1 - numbers do not know their type and 2 - due to unsigned types being converted to a number)
             val valueOut7 = j.toJsonValue(type, valueIn).net { j.fromJsonValue(type<Any>(), it) }.orThrow
-            valueIn.toString().toDouble() shouldBe valueOut7.toString().toDouble()
+            valueIn.toString().toDouble() shouldId valueOut7.toString().toDouble()
             valueOut7 shouldBeInstance Number::class
 
             val valueOut8 = j.toJsonValue(type, valueIn).toCompactS().net { j.fromJson(type<Any>(), it) }.orThrow
-            valueIn.toString().toDouble() shouldBe valueOut8.toString().toDouble()
+            valueIn.toString().toDouble() shouldId valueOut8.toString().toDouble()
             if (valueOut8 !in setOf("NaN", "Infinity", "+Infinity", "-Infinity")) valueOut8 shouldBeInstance Number::class
          }
       }
@@ -693,15 +694,16 @@ private      class GenCls<out T>(val value: T) {
 @JvmInline value class InlineInt(val value: Int)
 @JvmInline value class InlineComplex(val value: Complex)
 
+
 private inline fun <reified T: Any> Any?.shouldBeInstance() = T::class.isInstance(this) shouldBe true
 private infix  fun                  Any?.shouldBeInstance(type: KClass<*>) = type.isInstance(this) shouldBe true
 private infix  fun                  Any?.shouldBeInstance(type: KType) = type.raw.isInstance(this) shouldBe true
+private infix  fun Any?.shouldId(o: Any?): Unit = this should { it==o || it===o }
 private infix  fun Try<*,Throwable>.shouldBeTry(o: Try<*,String>) {
    if (o.isOk) ifError { throw it }
    if (this::class!=o::class) this shouldBe o;
-   mapError { it.message }.getAny() shouldBe o.getAny()
+   mapError { it.message }.getAny() shouldId o.getAny()
 }
-
 private inline fun <reified T: Any> arg()          = row(kType<T>())
 private inline fun <reified T: Any> argIns(arg: T) = row(type<T>(), arg)
 

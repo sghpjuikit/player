@@ -9,10 +9,10 @@ import sp.it.util.async.future.Fut
 class AsyncTest: FreeSpec({
 
    Fut::class.jvmName - {
-      
+
       "executors" - {
          fun ct() = Thread.currentThread()
-   
+
          val ct = ct()
          "futOfBlock" {
             Fut.futOfBlock { ct() }.blockAndGetOrThrow() shouldBe ct
@@ -34,18 +34,14 @@ class AsyncTest: FreeSpec({
             }
          }
          "fut(ct) + then(VT).then(VT).then()" {
-            Fut.fut(ct).then(VT) {
-               it to ct() }.then(VT) {
-               it to ct() }.then() {
-               (it to ct()) }.blockAndGetOrThrow().also {
+            Fut.fut(ct).then(VT) { it to ct() }.then(VT) { it to ct() }.then() { (it to ct()) }.blockAndGetOrThrow().also {
                it.first.first.first shouldBe ct
                it.first.first.second.isVirtual shouldBe true
                it.first.first.second shouldBe it.first.second
                it.first.first.second shouldBe it.second
-
             }
          }
       }
    }
-   
+
 })

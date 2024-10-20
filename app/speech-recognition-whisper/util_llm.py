@@ -332,7 +332,7 @@ class LlmHttpOpenAi(Llm):
                                 def process():
                                     stream = client.chat.completions.create(
                                         model=self.modelName, messages=e.messages, max_tokens=self.maxTokens, temperature=self.temp, top_p=self.topp,
-                                        stream=True, timeout=Timeout(5.0),
+                                        stream=True, timeout=Timeout(10.0),
                                         stop = [],
                                     )
                                     try:

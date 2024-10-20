@@ -2,13 +2,16 @@ package sp.it.pl.core
 
 import com.sun.net.httpserver.HttpExchange
 import de.jensd.fx.glyphs.GlyphIcons
+import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.contentType
+import io.ktor.utils.io.jvm.javaio.toInputStream
 import java.io.File
 import java.io.FileNotFoundException
 import java.net.URI
@@ -18,8 +21,10 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.OffsetDateTime
 import java.time.Year
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
 import java.util.regex.Pattern
@@ -125,6 +130,8 @@ class CoreSerializerJson: Core {
             LocalTime::class,
             LocalDate::class,
             LocalDateTime::class,
+            ZonedDateTime::class,
+            OffsetDateTime::class,
             Year::class,
             FileSize::class,
             StrExF::class,
@@ -211,7 +218,7 @@ inline fun <reified T> JsValue.to() = Config.json.fromJsonValue<T>(this).orThrow
 /** Converts response body to json */
 @Throws
 public suspend fun HttpResponse.bodyAsJs(): JsValue =
-   Config.json.ast(bodyAsText(Charsets.UTF_8)).orThrow
+   Config.json.ast(bodyAsChannel().toInputStream()).orThrow
 
 /** Converts response body to json */
 @Throws

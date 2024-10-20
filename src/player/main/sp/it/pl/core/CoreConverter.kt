@@ -372,6 +372,8 @@ object CoreConverter: Core {
       addT<LocalTime>({ ISO_TIME.format(it) }, tryF(DTPE::class) { LocalTime.parse(it, ISO_TIME) })
       addT<LocalDate>({ ISO_DATE.format(it) }, tryF(DTPE::class) { LocalDate.parse(it, ISO_DATE) })
       addT<LocalDateTime>({ ISO_DATE_TIME.format(it) }, tryF(DTPE::class) { LocalDateTime.parse(it, ISO_DATE_TIME) })
+      addT<ZonedDateTime>({ ISO_DATE_TIME.format(it) }, tryF(DTPE::class) { ZonedDateTime.parse(it, ISO_DATE_TIME) })
+      addT<OffsetDateTime>({ ISO_DATE_TIME.format(it) }, tryF(DTPE::class) { OffsetDateTime.parse(it, ISO_DATE_TIME) })
       addT<Year>(toS, tryF(DTPE::class) { Year.parse(it) })
       addP<ActionDb>(ActionDb)
       addP<FileSize>(FileSize)

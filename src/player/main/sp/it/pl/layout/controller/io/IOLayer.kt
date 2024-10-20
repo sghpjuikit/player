@@ -1,7 +1,9 @@
 package sp.it.pl.layout.controller.io
 
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZonedDateTime
 import java.util.UUID
 import javafx.animation.Interpolator
 import javafx.animation.PathTransition
@@ -925,25 +927,14 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
          l.requestLayout()
       }
 
-      private val currentTime = GeneratingOutputRef<LocalTime>(uuid("c86ed924-e2df-43be-99ba-4564ddc2660a"), "Current Time", type()) { ref ->
-         object: GeneratingOutput<LocalTime>(ref, LocalTime.now()) {
-            val generation = Loop(Runnable { i.value = LocalTime.now().net { LocalTime.of(it.hour, it.minute, it.second) } })
+      private val currentTime = GeneratingOutputRef<ZonedDateTime>(uuid("c86ed924-e2df-43be-99ba-4564ddc2660a"), "Current Time", type()) { ref ->
+         object: GeneratingOutput<ZonedDateTime>(ref, ZonedDateTime.now(Clock.tickSeconds(APP.timeZone.value))) {
+            val generation = Loop(Runnable { i.value = ZonedDateTime.now(Clock.tickSeconds(APP.timeZone.value)) })
             init { appWide() }
             init { generation.start() }
             override fun dispose() = generation.stop()
          }
       }.appWide()
-
-      private val currentDate = GeneratingOutputRef<LocalDate>(uuid("c86ed924-e2df-43be-99ba-4564ddc2660a"), "Current Date", type()) { ref ->
-         object: GeneratingOutput<LocalDate>(ref, LocalDate.now()) {
-            val generation = Loop(Runnable { i.value = LocalDate.now() })
-            init { appWide() }
-            init { generation.start() }
-            override fun dispose() = generation.stop()
-         }
-      }.appWide()
-
-
 
       fun addLinkForAll(i: Put<*>, o: Put<*>) {
          allLinks.put(i, o, Any())

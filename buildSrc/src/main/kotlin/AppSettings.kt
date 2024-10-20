@@ -6,6 +6,13 @@ val appSetting = Setting.root {
       config("Locale") {
          info = "Application locale.\n" +
             "Locale represents geographical, political, or cultural region. It determines such things as formatting (numbers, dates) among other things.\n" +
+            "By default should be inherited from operating system settings, but the application UI only supports English, so it is set to be default.\n" +
+            "Requires application restart to take effect."
+      }
+      config("Time zone") {
+         info = "Application time zone.\n" +
+            "Time zone represents way to convert moment in time to local time based on the offset and government or regional rules.\n" +
+            "By default inherited from operating system settings, but can be overriden.\n" +
             "Requires application restart to take effect."
       }
       "Logging" {

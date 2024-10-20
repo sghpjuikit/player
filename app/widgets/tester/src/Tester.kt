@@ -8,6 +8,7 @@ import java.math.BigInteger
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZonedDateTime
 import javafx.animation.Interpolator.LINEAR
 import javafx.animation.PathTransition
 import javafx.animation.PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT
@@ -383,6 +384,10 @@ class Tester(widget: Widget): SimpleController(widget) {
          var `cn(LocalDateTime)` by cn<LocalDateTime>(null)
          val `cv(LocalDateTime)` by cv<LocalDateTime>(LocalDateTime.now())
          val `cvn(LocalDateTime)` by cvn<LocalDateTime>(null)
+         var `c(ZonedDateTime)` by c<ZonedDateTime>(ZonedDateTime.now())
+         var `cn(ZonedDateTime)` by cn<ZonedDateTime>(null)
+         val `cv(ZonedDateTime)` by cv<ZonedDateTime>(ZonedDateTime.now())
+         val `cvn(ZonedDateTime)` by cvn<ZonedDateTime>(null)
          val `cv(Effect)` by cv<Effect>(Blend())
          val `cvn(Effect)` by cvn<Effect>(null)
          val `cv(Command) with value builder` by cv<Command>(DoNothing).but(Command.parser.toUiStringHelper())

@@ -6,6 +6,7 @@ import com.sun.tools.attach.VirtualMachine
 import java.io.File
 import java.lang.management.ManagementFactory
 import java.net.URLConnection
+import java.time.ZoneId
 import java.util.Locale
 import javafx.application.Application
 import javafx.application.Platform
@@ -260,6 +261,8 @@ class App: Application(), GlobalConfigDelegator {
 
    /** Application locale. See [conf.locale] */
    val locale by cv(Locale.ENGLISH).valuesUnsealed { Locale.getAvailableLocales().toList() } def conf.locale attach { actions.showSuggestRestartNotification() }
+   /** Application time zone. See [conf.timeZone] */
+   val timeZone by cv(ZoneId.systemDefault()).valuesUnsealed { ZoneId.getAvailableZoneIds().map { ZoneId.of(it) }.toList() } def conf.timeZone attach { actions.showSuggestRestartNotification() }
    /** Developer mode. Enables certain features useful for developers or power users. See [conf.developerMode] */
    val developerMode by cv(false) { v(it || parameterProcessor.cli.dev) } def conf.developerMode
    /** Os menu integrator. See [conf.osMenuIntegration] */

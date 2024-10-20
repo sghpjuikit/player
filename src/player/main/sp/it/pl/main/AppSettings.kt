@@ -14,6 +14,7 @@ object AppSettings {
 
       /** Application locale.
 Locale represents geographical, political, or cultural region. It determines such things as formatting (numbers, dates) among other things.
+By default should be inherited from operating system settings, but the application UI only supports English, so it is set to be default.
 Requires application restart to take effect. */
       object `locale`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
@@ -21,6 +22,30 @@ Requires application restart to take effect. */
          /** Compile-time constant equivalent to [info]. */
          const val cinfo: String = """Application locale.
 Locale represents geographical, political, or cultural region. It determines such things as formatting (numbers, dates) among other things.
+By default should be inherited from operating system settings, but the application UI only supports English, so it is set to be default.
+Requires application restart to take effect."""
+         /** Compile-time constant equivalent to [group]. */
+         const val cgroup: String = """App"""
+         /** Name of the config. */
+         override val name = cname
+         /** Group of the config. */
+         override val group = cgroup
+         /** Description of the config. */
+         override val info = cinfo
+         /** Editability of the config. */
+         override val editable = EditMode.USER
+      }
+      /** Application time zone.
+Time zone represents way to convert moment in time to local time based on the offset and government or regional rules.
+By default inherited from operating system settings, but can be overriden.
+Requires application restart to take effect. */
+      object `timeZone`: ConfigDefinition {
+         /** Compile-time constant equivalent to [name]. */
+         const val cname: String = """Time zone"""
+         /** Compile-time constant equivalent to [info]. */
+         const val cinfo: String = """Application time zone.
+Time zone represents way to convert moment in time to local time based on the offset and government or regional rules.
+By default inherited from operating system settings, but can be overriden.
 Requires application restart to take effect."""
          /** Compile-time constant equivalent to [group]. */
          const val cgroup: String = """App"""

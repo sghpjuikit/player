@@ -2,6 +2,8 @@ package sp.it.pl.ui.objects.picker
 
 import java.time.LocalDate
 import java.time.Month
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.TextStyle.FULL
 import java.time.format.TextStyle.NARROW
 import java.time.format.TextStyle.SHORT
@@ -12,6 +14,7 @@ import javafx.scene.control.Separator
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.HBox
 import kotlin.math.sign
+import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.picker.DateClockDigitalIos.MonthFormat.NAME_SHORT
 import sp.it.pl.ui.objects.picker.TimeClockPrecision.DAY
 import sp.it.pl.ui.objects.picker.TimeClockPrecision.MONTH
@@ -24,6 +27,7 @@ import sp.it.util.access.v
 import sp.it.util.collections.setTo
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.map
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
@@ -33,16 +37,20 @@ import sp.it.util.ui.pseudoClassToggle
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 
-/** Editable digital clock for [LocalDate]. */
-class DateClockDigitalIos(locale: Locale = Locale.getDefault()): HBox() {
+/** Editable digital clock for [ZonedDateTime]. */
+class DateClockDigitalIos(locale: Locale = Locale.getDefault(), zoneId: ZoneId = APP.timeZone.value): HBox() {
    /** Locale */
    val locale = locale
-   /** Whether user can change [value] through ui. Only if true. Default true. */
-   val editable = v(true)
+   /** Time zone */
+   val zoneId = v<ZoneId>(zoneId)
    /** Time value */
-   val value = v<LocalDate>(LocalDate.now())
-   /** Updates graphics to display [value] */
-   val update = Handler1<LocalDate>()
+   val value = v<ZonedDateTime>(ZonedDateTime.now())
+   /** Time value */
+   private val _value = value zip this.zoneId map { (v, z) -> v.withZoneSameInstant(z) }
+   /** Whether user can change [_value] through ui. Only if true. Default true. */
+   val editable = v(true)
+   /** Updates graphics to display [_value] */
+   val update = Handler1<ZonedDateTime>()
    /** Format for displaying month */
    val formatMonth: StyleableObjectProperty<MonthFormat> by sv(FORMAT_MONTH)
    /** The smallest displayed unit */
@@ -98,8 +106,8 @@ class DateClockDigitalIos(locale: Locale = Locale.getDefault()): HBox() {
             .flatMapIndexed { i, it -> listOfNotNull(if (i==0) null else sep(), it.second) }
       }
 
-      value sync { update(value.value) }
-      formatMonth attach { update(value.value) }
+      _value sync { update(_value.value) }
+      formatMonth attach { update(_value.value) }
    }
 
    override fun getCssMetaData() = classCssMetaData

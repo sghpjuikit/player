@@ -6,6 +6,9 @@ import java.io.Reader
 import java.math.BigInteger
 import java.util.LinkedList
 import kotlin.text.Charsets.UTF_8
+import org.jetbrains.kotlin.backend.common.peek
+import org.jetbrains.kotlin.backend.common.pop
+import org.jetbrains.kotlin.backend.common.push
 import sp.it.util.dev.fail
 import sp.it.util.file.json.JsToken.Col
 import sp.it.util.file.json.JsToken.Com
@@ -19,6 +22,9 @@ import sp.it.util.file.json.JsToken.Rbc
 import sp.it.util.file.json.JsToken.Rbk
 import sp.it.util.file.json.JsToken.Str
 import sp.it.util.file.json.JsToken.Tru
+import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
 import sp.it.util.math.rangeBigInt
 
 fun parseJson(input: String): JsValue =
@@ -39,7 +45,7 @@ private class Lexer(reader: Reader) {
    fun nextCh(): Int {
       val char = reader.read()
       pos++
-      ch = if (char!=-1) char else Chars.EOF
+      ch = if (char==0) fail { """Illegal character \0 (NULL) at $pos""" } else if (char!=-1) char else Chars.EOF
       return ch
    }
 
@@ -222,6 +228,12 @@ private class Parser(lexer: Lexer) {
    private val lexer = lexer
    private var currentToken = lexer.nextToken()
 
+   sealed interface JsParseState { fun add(child: JsValue): Unit }
+   class JsStartParseState(var value: JsValue?): JsParseState { override fun add(child: JsValue) { value = child } }
+   class JsArrayParseState(val value: ArrayList<JsValue>): JsParseState { override fun add(child: JsValue) { value.add(child) } }
+   class JsObjectParseState(val value: LinkedHashMap<String, JsValue>): JsParseState { override fun add(child: JsValue) { fail { "Illegal state" } } }
+   class JsObjectKeyParseState(val o: JsObjectParseState, val key: String, var value: JsValue?): JsParseState { override fun add(child: JsValue) { value=child; o.value.put(key, child) } }
+
    fun parse(): JsValue =
       try {
          parseValueCompletely()
@@ -235,42 +247,101 @@ private class Parser(lexer: Lexer) {
          lexer.nextEOF()
       }
 
-   private fun parseValue(): JsValue =
-      when (val token = currentToken) {
-         Nul -> {
-            consumeToken(Nul)
-            JsNull
+   private fun parseValue(): JsValue {
+      val stack = ArrayDeque<JsParseState>()
+      var cur: JsParseState = JsStartParseState(null)
+
+      fun JsParseState.com(): JsParseState {
+         when (this) {
+            is JsArrayParseState -> when (currentToken) {
+               Com -> { consumeToken(Com); if (currentToken == Rbk) fail { "Invalid=$currentToken token at position $lexerLastPos" } }
+               Rbk -> {}
+               Eof -> {}
+               else -> fail { "Invalid token=$currentToken at position $lexerLastPos, expected ${Com.text} or ${Rbk.text}" }
+            }
+            is JsObjectParseState -> when (currentToken) {
+               Com ->  { consumeToken(Com); if (currentToken == Rbc) fail { "Invalid token=$currentToken at position $lexerLastPos" } }
+               Rbc -> {}
+               Eof -> {}
+               else -> fail { "Invalid token=$currentToken at position $lexerLastPos, expected ${Com.text} or ${Rbc.text}" }
+            }
+            is JsObjectKeyParseState -> when (currentToken) {
+               Com ->  { consumeToken(Com); if (currentToken == Rbc) fail { "Invalid token=$currentToken at position $lexerLastPos" } }
+               Rbc -> {}
+               Eof -> {}
+               else -> fail { "Invalid token=$currentToken at position $lexerLastPos, expected ${Com.text} or ${Rbc.text}" }
+            }
+            else -> {}
          }
-         Tru -> {
-            consumeToken(Tru)
-            JsTrue
-         }
-         Fal -> {
-            consumeToken(Fal)
-            JsFalse
-         }
-         is Str -> {
-            consumeToken(token)
-            JsString(token.value)
-         }
-         is Num -> {
-            consumeToken(token)
-            JsNumber(token.value)
-         }
-         Lbk -> {
-            consumeToken(Lbk)
-            val elements = parseArray()
-            consumeToken(Rbk)
-            JsArray(elements)
-         }
-         Lbc -> {
-            consumeToken(Lbc)
-            val properties = parseObject()
-            consumeToken(Rbc)
-            JsObject(properties)
-         }
-         else -> fail { "Invalid token at position $lexerLastPos" }
+         return this
       }
+
+      do {
+         cur = when (val c = cur) {
+            is JsStartParseState ->
+               if (c.value!=null) return c.value!!
+               else when (val token = currentToken.apply { consumeToken(currentToken) }) {
+                  Nul    -> return JsNull
+                  Tru    -> return JsTrue
+                  Fal    -> return JsFalse
+                  is Str -> return JsString(token.value)
+                  is Num -> return JsNumber(token.value)
+                  Lbk    -> JsArrayParseState(ArrayList()).apply { stack.push(c) }
+                  Lbc    -> JsObjectParseState(LinkedHashMap<String, JsValue>()).apply { stack.push(c) }
+                  else   -> fail { "Invalid token at position $lexerLastPos" }
+               }
+            is JsArrayParseState ->
+               when (val token = currentToken.apply { consumeToken(currentToken) }) {
+                  Nul    -> { c.value.add(JsNull); c.com() }
+                  Tru    -> { c.value.add(JsTrue); c.com() }
+                  Fal    -> { c.value.add(JsFalse); c.com() }
+                  is Str -> { c.value.add(JsString(token.value)); c.com() }
+                  is Num -> { c.value.add(JsNumber(token.value)); c.com() }
+                  Lbk    -> JsArrayParseState(ArrayList()).apply { stack.push(c) }
+                  Lbc    -> JsObjectParseState(LinkedHashMap<String, JsValue>()).apply { stack.push(c) }
+                  Rbk    -> {
+                     val x = stack.pop().apply { add(JsArray(c.value)) }.com()
+                     x.asIf<JsObjectKeyParseState>()?.let { ps ->
+                        ps.o.value.put(ps.key, ps.value.asIs())
+                        stack.pop()
+                     } ?: x
+                  }
+                  else   -> fail { "Invalid token at position $lexerLastPos" }
+               }
+            is JsObjectParseState ->
+               when (val token = currentToken.apply { consumeToken(currentToken) }) {
+                  is Str -> {
+                     consumeToken(Col)
+                     JsObjectKeyParseState(c, token.value, null).apply { stack.push(c) }
+                  }
+                  Rbc -> {
+                     val x = stack.pop().apply { add(JsObject(c.value)) }.com()
+                     x.asIf<JsObjectKeyParseState>()?.let { ps ->
+                        ps.o.value.put(ps.key, ps.value.asIs())
+                        stack.pop()
+                     } ?: x
+                  }
+                  else -> fail { "Invalid token at position $lexerLastPos" }
+               }
+            is JsObjectKeyParseState ->
+               when (val token = currentToken.apply { consumeToken(currentToken) }) {
+                  Nul    -> { c.o.value.put(c.key, JsNull); stack.pop().com() }
+                  Tru    -> { c.o.value.put(c.key, JsTrue); stack.pop().com() }
+                  Fal    -> { c.o.value.put(c.key, JsFalse); stack.pop().com() }
+                  is Str -> { c.o.value.put(c.key, JsString(token.value)); stack.pop().com() }
+                  is Num -> { c.o.value.put(c.key, JsNumber(token.value)); stack.pop().com(); }
+                  Lbk    -> JsArrayParseState(ArrayList()).apply { stack.push(c) }
+                  Lbc    -> JsObjectParseState(LinkedHashMap<String, JsValue>()).apply { stack.push(c) }
+                  Rbc    -> { stack.pop().apply { c.o.value.put(c.key, c.value.asIs()) }.com(); stack.pop().apply { add(JsObject(c.o.value)) } }
+                  else   -> fail { "Invalid token at position $lexerLastPos" }
+               }
+         }
+      } while (
+         cur !is JsStartParseState
+      )
+      return cur.asIs<JsStartParseState>().value!!
+
+   }
 
    private fun parseString(): String {
       val token = currentToken
@@ -282,45 +353,12 @@ private class Parser(lexer: Lexer) {
          fail { "Invalid token $currentToken at position $lexerLastPos" }
    }
 
-   private fun parseArray(): List<JsValue> {
-      val elements = ArrayList<JsValue>()
-      if (currentToken!=Rbk) {
-         while (true) {
-            elements += parseValue()
-
-            if (currentToken==Com)
-               consumeToken(Com)
-            else
-               break
-         }
-      }
-      return elements
-   }
-
-   private fun parseObject(): Map<String, JsValue> {
-      val properties = LinkedHashMap<String, JsValue>()
-      if (currentToken!=Rbc) {
-         while (true) {
-            val key = parseString()
-            consumeToken(Col)
-            val value = parseValue()
-            properties[key] = value
-
-            if (currentToken==Com)
-               consumeToken(Com)
-            else
-               break
-         }
-      }
-      return properties
-   }
-
    private fun consumeToken(expectedToken: JsToken) {
       lexerLastPos = lexer.pos()
       if (currentToken===expectedToken)
          currentToken = lexer.nextToken()
       else
-         fail { "Invalid token $currentToken at position $lexerLastPos" }
+         fail { "Invalid token $currentToken at position $lexerLastPos expected $expectedToken" }
    }
 }
 

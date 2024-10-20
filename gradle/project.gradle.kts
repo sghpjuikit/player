@@ -121,7 +121,7 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
-         implementation("ch.qos.logback", "logback-classic", "1.5.10") // https://logback.qos.ch/news.html
+         implementation("ch.qos.logback", "logback-classic", "1.5.11") // https://logback.qos.ch/news.html
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 

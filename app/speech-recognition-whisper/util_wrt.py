@@ -8,6 +8,7 @@ from time import sleep
 from threading import Lock
 import threading
 import sys
+import io
 
 class Writer(Actor):
     suppress = threading.local()
@@ -123,7 +124,7 @@ class Writer(Actor):
 
         def switchStdout(self):
             self.sout = sys.stdout
-            sys.stdout = self
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
         def switchStdoutBack(self):
             sys.stdout = self.sout
             del self.sout

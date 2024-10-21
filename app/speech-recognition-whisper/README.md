@@ -383,6 +383,8 @@ It is simply a service to intelligently convert input into output.
     pip3 install stream2sentence
     pip3 install torch
     pip3 install torchaudio
+    pip3 install scipy
+    pip3 install librosa
     ```
    - Windows specific
     ```

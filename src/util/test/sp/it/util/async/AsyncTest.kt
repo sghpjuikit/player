@@ -22,23 +22,23 @@ class AsyncTest: FreeSpec({
             Fut.futOfBlock { ct() }.then(CURR) { it to ct() }.blockAndGetOrThrow() shouldBe (ct to ct)
          }
          "fut(ct) + then(ct)" {
-            Fut.fut(ct).then { it to ct() }.then { it to ct() }.blockAndGetOrThrow().also {
-               it.first.first shouldBe ct
-               it.first.second shouldBe ct
-               it.second shouldBe ct
+            Fut.fut(arrayOf(ct)).then { it + ct() }.then { it + ct() }.blockAndGetOrThrow().also {
+               it[0] shouldBe ct
+               it[1] shouldBe ct
+               it[2] shouldBe ct
             }
-            Fut.fut(ct).then(CURR) { it to ct() }.then(CURR) { it to ct() }.blockAndGetOrThrow().also {
-               it.first.first shouldBe ct
-               it.first.second shouldBe ct
-               it.second shouldBe ct
+            Fut.fut(arrayOf(ct)).then(CURR) { it + ct() }.then(CURR) { it + ct() }.blockAndGetOrThrow().also {
+               it[0] shouldBe ct
+               it[1] shouldBe ct
+               it[2] shouldBe ct
             }
          }
          "fut(ct) + then(VT).then(VT).then()" {
-            Fut.fut(ct).then(VT) { it to ct() }.then(VT) { it to ct() }.then() { (it to ct()) }.blockAndGetOrThrow().also {
-               it.first.first.first shouldBe ct
-               it.first.first.second.isVirtual shouldBe true
-               it.first.first.second shouldBe it.first.second
-               it.first.first.second shouldBe it.second
+            Fut.fut(arrayOf(ct)).then(VT) { it + ct() }.then(VT) { it + ct() }.then() { it + ct() }.blockAndGetOrThrow().also {
+               it[0] shouldBe ct
+               it[1].isVirtual shouldBe true
+               it[2] shouldBe it[1]
+               it[3] shouldBe it[1]
             }
          }
       }

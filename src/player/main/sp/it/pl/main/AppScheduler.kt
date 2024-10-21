@@ -78,7 +78,7 @@ object AppScheduler {
    fun start() {
       running = true
       APP.serializer.readSingleStorage(ScheduledNotesDB::class).ifOk {
-         jobs += it?.orEmpty() as Collection<Scheduled>
+         jobs += it.orEmpty() as Collection<Scheduled>
          launch(FX) { jobsObservable += jobs }
       }
       VT {

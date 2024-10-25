@@ -15,6 +15,7 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.util.Callback
+import kotlin.reflect.full.withNullability
 import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
 import sp.it.pl.ui.item_node.ListAreaNode.Transformation

@@ -1,5 +1,6 @@
 package sp.it.pl.ui.item_node
 
+import java.util.Optional
 import java.util.function.BiPredicate
 import java.util.function.Consumer
 import java.util.stream.Stream
@@ -50,6 +51,7 @@ import sp.it.util.functional.PF0
 import sp.it.util.functional.PF1
 import sp.it.util.functional.Parameter
 import sp.it.util.functional.Parameterized
+import sp.it.util.functional.Try
 import sp.it.util.functional.TypeAwareF
 import sp.it.util.functional.Util.IDENTITY
 import sp.it.util.functional.Util.IS
@@ -57,7 +59,9 @@ import sp.it.util.functional.Util.IS0
 import sp.it.util.functional.Util.ISNT
 import sp.it.util.functional.Util.ISNT0
 import sp.it.util.functional.asIs
+import sp.it.util.functional.getOr
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import sp.it.util.math.max
 import sp.it.util.reactive.Suppressor
@@ -72,12 +76,14 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.zip
 import sp.it.util.type.VType
+import sp.it.util.type.argOf
 import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.isSupertypeOf
 import sp.it.util.type.type
 import sp.it.util.type.typeNothingNonNull
+import sp.it.util.type.typeOrAny
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
 import sp.it.util.ui.lay
@@ -264,7 +270,23 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
       class ByString(override val name: String, val f: (String) -> Any?): Transformation() {
          override val linkTypeIn = type<String>()
-         override val linkTypeOut = type<String>()
+         override val linkTypeOut: VType<*>?
+            get() = when (f) {
+               IDENTITY -> type<String>()
+               IS, ISNT, IS0, ISNT0 -> type<Boolean>()
+               is TypeAwareF<*, *> -> when (f.f) {
+                  IDENTITY -> type<String>()
+                  IS, ISNT, IS0, ISNT0 -> type<Boolean>()
+                  else -> when {
+                     f.typeOut.isSubtypeOf<Collection<*>>() -> VType(f.typeOut.type.argOf(Collection::class, 0).typeOrAny)
+                     f.typeOut.isSubtypeOf<Optional<*>>() -> VType(f.typeOut.type.argOf(Optional::class, 0).typeOrAny.withNullability(true))
+                     f.typeOut.isSubtypeOf<Try<*, *>>() -> f.typeOut
+                     f.typeOut.isSubtypeOf<Result<*>>() -> VType(f.typeOut.type.argOf(Result::class, 0).typeOrAny)
+                     else -> f.typeOut
+                  }
+               }
+               else -> fail { "Unrecognized function $f" }
+            }
          override fun invoke(data: List<Any?>) = data.joinToString("\n").let(f).let(::collectionWrap).toList()
       }
 
@@ -309,7 +331,7 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
       chainedFactory = Callback { i ->
          val typeFunctionOut = typeOut
          val typeRuntimeOut = transformsValues[i].estimateRuntimeType()
-         val type = if (typeRuntimeOut isSubtypeOf typeFunctionOut) typeRuntimeOut else typeFunctionOut
+         val type = if (typeFunctionOut isSubtypeOf typeRuntimeOut) typeFunctionOut else typeRuntimeOut
 
          val byNs = functions.getI(type).asIs<PrefList<PF<Any?, Any?>>>()
             .apply { removeIf { it.name=="#" } }

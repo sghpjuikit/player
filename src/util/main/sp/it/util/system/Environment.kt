@@ -80,7 +80,8 @@ fun File.runAsProgram(vararg arguments: String, then: (ProcessBuilder) -> Unit =
    return runVT {
       val f = if (Os.WINDOWS.isCurrent && hasExtension("lnk")) WindowsShortcut.targetedFile(this).orNull() ?: this
               else this
-      val commandRaw = listOf(f.absolutePath, *arguments)
+      val commandRaw = if (Os.WINDOWS.isCurrent && f hasExtension "vbs") listOf("wscript.exe", f.absolutePath, *arguments)
+                       else listOf(f.absolutePath, *arguments)
       val command = runAsProgramArgsTransformer(commandRaw)
       val process = ProcessBuilder(command)
          .directory(parentDirOrRoot)
@@ -406,7 +407,7 @@ private fun File.openWindowsExplorerAndSelect() =
  */
 @NonBlocking
 fun File.isExecutable(): Boolean = when (Os.current) {
-   Os.WINDOWS -> hasExtension("exe", "bat", "com") || (this.hasExtension("lnk") && WindowsShortcut.targetedFile(this).orNull()?.isExecutable()==true)
+   Os.WINDOWS -> hasExtension("exe", "bat", "com", "vbs") || (this.hasExtension("lnk") && WindowsShortcut.targetedFile(this).orNull()?.isExecutable()==true)
    else -> hasExtension("sh")
 }
 

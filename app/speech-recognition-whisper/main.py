@@ -759,9 +759,10 @@ while not sysTerminating:
                 llm(ChatReact(llmSysPrompt, f"User changed how he calls you from `{wake_wordsOld}` to `{wake_wordsNew}`", 'Wake word changed'))
 
         elif argMainSpeaker.isArg(m):
+            mainSpeakerOld = mainSpeaker
             mainSpeaker = argMainSpeaker(m)
             CTX.speaker = mainSpeaker
-            llm(ChatReact(llmSysPrompt, f"User turned {'on' if e else 'off'} microphone input", "Microphone {'on' if e else 'off'}"))
+            llm(ChatReact(llmSysPrompt, f"User changed main speaker from `{mainSpeakerOld}` to `{mainSpeaker}`"))
 
         elif argMainLocation.isArg(m):
             mainLocation = argMainLocation(m)
@@ -774,7 +775,7 @@ while not sysTerminating:
             for mic in mics: mic.enabled = e
             stt.enabled = e
             if micEnabledOld!=e:
-                llm(ChatReact(llmSysPrompt, f"User turned {'on' if e else 'off'} microphone input", "Microphone {'on' if e else 'off'}"))
+                llm(ChatReact(llmSysPrompt, f"User turned {'on' if e else 'off'} microphone input", f"Microphone {'on' if e else 'off'}"))
 
         elif argMicEnergy.isArg(m):
             micEnergy = argMicEnergy(m)

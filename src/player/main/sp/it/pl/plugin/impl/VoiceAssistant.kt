@@ -154,21 +154,25 @@ class VoiceAssistant: PluginBase() {
 
          val python = dir / "main.py"
          fun audioIns(): String =
-            if (mics.isEmpty()) ""
-            else JsObject(
-               mics.map {
-                  it.name.value.orEmpty() to JsObject(
-                     "location" to JsString(it.location.value),
-                     "energy" to JsNumber(it.energy.value),
-                     "verbose" to JsBool(it.verbose.value),
-                  )
-               }
-            ).toCompactS()
+            mics.filter { it.enabled.value }.net {
+               if (it.isEmpty()) ""
+               else JsObject(
+                  it.map {
+                     it.name.value.orEmpty() to JsObject(
+                        "location" to JsString(it.location.value),
+                        "energy" to JsNumber(it.energy.value),
+                        "verbose" to JsBool(it.verbose.value),
+                     )
+                  }
+               ).toCompactS()
+            }
          fun audioOuts(): String =
-            if (audioOuts.isEmpty()) ""
-            else JsObject(
-               audioOuts.associate { it.name.value.orEmpty() to JsString(it.location.value) }
-            ).toCompactS()
+            audioOuts.filter { it.enabled.value }.net {
+               if (it.isEmpty()) ""
+               else JsObject(
+                  it.associate { it.name.value.orEmpty() to JsString(it.location.value) }
+               ).toCompactS()
+            }
 
          val commandRaw = listOf(
             "python", python.absolutePath,
@@ -361,6 +365,9 @@ class VoiceAssistant: PluginBase() {
       /** Location sent to assistant as context. */
       val location by cv<String>(mainLocationInitial)
          .def(name = "Location", info = "Location sent to assistant as context.")
+      /** Whether this microphone is used. */
+      val enabled by cv(true)
+         .def(name = "Enabled", info = "Whether this microphone is to be used.")
       /** Volume above this number is considered speech. Set so ambient energy level is below. */
       val energy by cv<Int>(120)
          .between(0, 32767).uiGeneral()
@@ -384,6 +391,7 @@ class VoiceAssistant: PluginBase() {
       mics.onItemAdded {
          it.name attach { value = uuid() }
          it.location attach { value = uuid() }
+         it.enabled attach { value = uuid() }
          it.energy attach { value = uuid() }
          it.verbose attach { value = uuid() }
       }
@@ -438,6 +446,7 @@ class VoiceAssistant: PluginBase() {
       audioOuts.onItemAdded {
          it.name attach { value = uuid() }
          it.location attach { value = uuid() }
+         it.enabled attach { value = uuid() }
       }
    }
 
@@ -450,6 +459,9 @@ class VoiceAssistant: PluginBase() {
       /** Location of the speaker. */
       val location by cv<String>(mainLocationInitial)
          .def(name = "Location", info = "Location of the speaker.")
+      /** Whether this speaker is used. */
+      val enabled by cv(true)
+         .def(name = "Enabled", info = "Whether this speaker is to be used.")
    }
 
    /** Console output - all */

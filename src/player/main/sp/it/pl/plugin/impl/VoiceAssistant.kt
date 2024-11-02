@@ -655,21 +655,25 @@ class VoiceAssistant: PluginBase() {
    /** Cli command to start llm server. Use if you want to automatize starting local AI server. Invoked on plugin start or waking from hibernation. */
    val llmOpenAiServerStartCommand by cvn<String>(null).nonEmpty()
       .noUi()
-      .def(name = "Llm server start command. Prefix with ! to disable.", info = buildString {
+      .def(name = "Llm server start command", info = buildString {
          appendSent("Cli command to start llm server. Use if you want to automatize starting local AI server.")
          appendSent("Invoked on plugin start or waking from hibernation. Can refer to '${::llmOpenAiModel.getDelegateConfig().nameUi}' using '\$model'.")
          appendSent("Command must be idempotent - have no effect if ran multiple times.")
-         appendSent("Example for `LmStudio` on `Windows`: `cmd /c lms ps | findstr \$model > nul || lms load --gpu max --yes --exact --quiet \$model`.")
+         appendSent("Prefix with ! to disable command.")
+         appendLine()
+         appendSent("Example for `LmStudio` on `Windows`:\n`cmd /c lms server start && lms ps 2>&1 | findstr \$model > nul 2>&1 || lms load --gpu max --yes --exact --quiet \$model`.")
       })
 
    /** Cli command to stop llm server. Use if you want to automatize stopping local AI server. Invoked on plugin stop or hibernation. */
    val llmOpenAiServerStopCommand by cvn<String>(null).nonEmpty()
       .noUi()
-      .def(name = "Llm server stop command. Prefix with ! to disable.", info = buildString {
+      .def(name = "Llm server stop command.", info = buildString {
          appendSent("Cli command to start llm server. Use if you want to automatize stopping local AI server. Invoked on plugin stop or hibernation.")
          appendSent("Can refer to '${::llmOpenAiModel.getDelegateConfig().nameUi}' using '\$model'")
          appendSent("Command must be idempotent - have no effect if ran multiple times.")
-         appendSent("Example for `LmStudio` on `Windows`: `cmd /c lms ps | findstr \$model > nul && lms unload --yes --quiet --no-launch \$model`.")
+         appendSent("Prefix with ! to disable command.")
+         appendLine()
+         appendSent("Example for `LmStudio` on `Windows`:\n`cmd /c lms ps | findstr \$model > nul && lms unload --quiet --no-launch \$model`.")
       })
 
    private fun llmOpenAiServerStartCommandCompute(on: Bool) =
@@ -679,17 +683,23 @@ class VoiceAssistant: PluginBase() {
       llmOpenAiServerStopCommand.value.takeIf { on && llmEngine.value==LlmEngine.OPENAI }?.replace("\$model", llmOpenAiModel.value)
 
    private fun llmOpenAiServerStart(command: String?) =
-      runTry {
-         val c = command
-         if (c!=null && !c.startsWith("!"))
-            runCommandWithOutput(c).withAppProgress("Start LLM server").awaitFxOrBlock()
+      command.net { c ->
+         runTry {
+            if (c!=null && !c.startsWith("!"))
+               runCommandWithOutput(c).withAppProgress("Start LLM server").awaitFxOrBlock()
+         }.ifError {
+            logger.error(it) { "Failed to run start command=$c" }
+         }
       }
 
    private fun llmOpenAiServerStop(on: Bool) =
-      runTry {
-         val c = llmOpenAiServerStopCommandCompute(on)
-         if (c!=null && !c.startsWith("!"))
-            runCommandWithOutput(c).withAppProgress("Stop LLM server").awaitFxOrBlock()
+      llmOpenAiServerStopCommandCompute(on).net { c ->
+         runTry {
+            if (c!=null && !c.startsWith("!"))
+               runCommandWithOutput(c).withAppProgress("Stop LLM server").awaitFxOrBlock()
+         }.ifError {
+            logger.error(it) { "Failed to run stop command=$c" }
+         }
       }
 
    /** Settings for currently active llm engine */

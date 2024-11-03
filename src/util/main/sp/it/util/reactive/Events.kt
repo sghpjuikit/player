@@ -19,10 +19,8 @@ import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.ScrollEvent
 import javafx.stage.Window
+import sp.it.util.dev.printStacktrace
 import sp.it.util.system.Os
-
-/** Key for [KeyEvent.isShortcutDown]. */
-val SHORTCUT: KeyCode = if (Os.OSX.isCurrent) KeyCode.META else KeyCode.CONTROL
 
 /** Equivalent to [EventTarget.addEventHandler]. */
 fun <T: Event> EventTarget.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
@@ -54,12 +52,13 @@ fun <T: MouseEvent> EventTarget.onEventDown(eventType: EventType<T>, button: Mou
 fun <T: KeyEvent> EventTarget.onEventDown(eventType: EventType<T>, key: KeyCode, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventDown(eventType, null, key, consume, eventHandler)
 
 fun <T: KeyEvent> EventTarget.onEventDown(eventType: EventType<T>, modifier: KeyCode? = null, key: KeyCode, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventDown(eventType) {
-   val modifierMatches = modifier==null || when {
-      it.isAltDown -> modifier==KeyCode.ALT
-      it.isControlDown -> modifier==KeyCode.CONTROL
-      it.isMetaDown -> modifier==KeyCode.META
-      it.isShiftDown -> modifier==KeyCode.SHIFT
-      it.isShortcutDown -> modifier==SHORTCUT
+   val modifierMatches = when (modifier) {
+      null -> true
+      KeyCode.ALT -> it.isAltDown
+      KeyCode.CONTROL -> it.isControlDown
+      KeyCode.META -> it.isMetaDown
+      KeyCode.SHIFT -> it.isShiftDown
+      KeyCode.SHORTCUT -> it.isShortcutDown
       else -> false
    }
    if (modifierMatches && it.code==key) {
@@ -98,12 +97,13 @@ fun <T: Event> EventTarget.onEventUp1(eventType: EventType<T>, eventHandler: (T)
 fun <T: KeyEvent> EventTarget.onEventUp(eventType: EventType<T>, key: KeyCode, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventUp(eventType, null, key, consume, eventHandler)
 
 fun <T: KeyEvent> EventTarget.onEventUp(eventType: EventType<T>, modifier: KeyCode? = null, key: KeyCode, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventUp(eventType) {
-   val modifierMatches = modifier==null || when {
-      it.isAltDown -> modifier==KeyCode.ALT
-      it.isControlDown -> modifier==KeyCode.CONTROL
-      it.isMetaDown -> modifier==KeyCode.META
-      it.isShiftDown -> modifier==KeyCode.SHIFT
-      it.isShortcutDown -> modifier==SHORTCUT
+   val modifierMatches = when (modifier) {
+      null -> true
+      KeyCode.ALT -> it.isAltDown
+      KeyCode.CONTROL -> it.isControlDown
+      KeyCode.META -> it.isMetaDown
+      KeyCode.SHIFT -> it.isShiftDown
+      KeyCode.SHORTCUT -> it.isShortcutDown
       else -> false
    }
    if (modifierMatches && it.code==key) {

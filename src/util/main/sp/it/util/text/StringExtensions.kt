@@ -220,7 +220,7 @@ val KeyCode.resolved: KeyCode?
       }
       KeyCode.SHORTCUT -> when (Os.current) {
          Os.OSX -> KeyCode.COMMAND
-         else -> KeyCode.WINDOWS
+         else -> KeyCode.CONTROL
       }
       KeyCode.UNDEFINED -> null
       else -> this

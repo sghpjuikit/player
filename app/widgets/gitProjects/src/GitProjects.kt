@@ -12,7 +12,10 @@ import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.Side
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.input.KeyCode.BACK_SPACE
+import javafx.scene.input.KeyCode.C
 import javafx.scene.input.KeyCode.F5
+import javafx.scene.input.KeyCode.S
+import javafx.scene.input.KeyCode.SHORTCUT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.PRIMARY
@@ -27,6 +30,7 @@ import sp.it.pl.main.Events.FileEvent
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconOC
+import sp.it.pl.main.Key
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.configure
@@ -64,6 +68,7 @@ import sp.it.util.functional.sortedByMemoized
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.zip
@@ -71,6 +76,7 @@ import sp.it.util.reactive.zip2
 import sp.it.util.system.open
 import sp.it.util.text.capitalLower
 import sp.it.util.text.equalsNc
+import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
@@ -101,6 +107,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
       root.prefSize = 400.emScaled x 400.emScaled
       root.onEventDown(KEY_PRESSED, F5) { refreshProjects() }
       root.onEventDown(KEY_PRESSED, BACK_SPACE) { visitPreviousFile() }
+      root.onEventDown(KEY_PRESSED, SHORTCUT, S) { editDo(true) }
       root.onEventDown(MOUSE_CLICKED, SECONDARY) { visitPreviousFile() }
       root.onEventDown(MOUSE_CLICKED, BACK) { visitPreviousFile() }
       root.lay += hBox(20.emScaled, CENTER) {
@@ -280,6 +287,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
       override val tags = setOf(UTILITY, DEVELOPMENT)
       override val summaryActions = listOf(
          Entry("Data", "Refresh projects", F5.nameUi),
+         Entry("Data", "Edit > Save", keys(SHORTCUT, S)),
          Entry("Data", "Back (after visiting link)", BACK_SPACE.nameUi),
          Entry("Data", "Back (after visiting link)", SECONDARY.nameUi),
       )

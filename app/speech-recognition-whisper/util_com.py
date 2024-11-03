@@ -86,13 +86,13 @@ class PythonExecutor:
     def onSpeech(self, speaker):
         if self.speakerLast==speaker:
             if self.isBlockingQuestion is False:
-                print(f'canceling because speech done by {speaker}', end='')
+                print(f'canceling because speech done by {speaker}',)
                 self.cancelActiveCommand()
 
     def onSpeechStart(self, speaker):
         if self.speakerLast==speaker:
             if self.isBlockingQuestion is False:
-                print(f'canceling because speech started by {speaker}', end='')
+                print(f'canceling because speech started by {speaker}')
                 self.cancelActiveCommand()
 
     def cancelActiveCommand(self):
@@ -437,12 +437,12 @@ class PythonExecutor:
 
     def historyAppend(self, m):
         # debug
-        # print("append " + str(m), end='')
+        # print("append " + str(m))
         self.ms.append(m)
         # debug
-        # print(f'+------------------------------------------------', end='')
-        # for m in self.ms: print(str(m).strip(), end='')
-        # print(f'-------------------------------------------------', end='')
+        # print(f'+------------------------------------------------')
+        # for m in self.ms: print(str(m).strip())
+        # print(f'-------------------------------------------------')
 
     def prompt(self) -> str:
         return f"""

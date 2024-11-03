@@ -411,7 +411,7 @@ class MicVoiceDetectNvidia:
             m.to(torch.device(self.device))
             return m
         except Exception as e:
-            print(f"ERR: failed to load speaker detector model {e}", end='')
+            print(f"ERR: failed to load speaker detector model {e}")
             print_exc()
             return None
 
@@ -424,10 +424,10 @@ class MicVoiceDetectNvidia:
             for f in os.listdir(dir):
                 if f.endswith('.wav'):
                     voices.append(MicVoice(f.removesuffix('.wav'), self.loadSpeakerFromFile(os.path.join(dir, f))))
-            print(f"RAW: loading verified voices: {voices}", end='')
+            print(f"RAW: loading verified voices: {voices}")
             return voices
         except Exception as e:
-            print(f"ERR: loading verified voices failed: {e}", end='')
+            print(f"ERR: loading verified voices failed: {e}")
             print_exc()
             return None
 
@@ -492,7 +492,7 @@ class MicVoiceDetectNvidia:
                     similarity_score = similarity_score.item()
                     similarity_score = (similarity_score + 1) / 2
                     verified = similarity_score >= self.speaker_treshold
-                    if self.verbose: print(f'RAW: {voice.name}:{verified} {str(similarity_score)[:4]}{">=" if verified else "<"}{str(self.speaker_treshold)[:4]}', end='')
+                    if self.verbose: print(f'RAW: {voice.name}:{verified} {str(similarity_score)[:4]}{">=" if verified else "<"}{str(self.speaker_treshold)[:4]}')
                     if verified: return voice.name
                 return None
             except Exception as e:

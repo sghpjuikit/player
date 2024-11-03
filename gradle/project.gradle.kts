@@ -104,7 +104,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "24-ea+5"
+         val version = "24-ea+15"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -121,7 +121,7 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
-         implementation("ch.qos.logback", "logback-classic", "1.5.11") // https://logback.qos.ch/news.html
+         implementation("ch.qos.logback", "logback-classic", "1.5.12") // https://logback.qos.ch/news.html
          implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
@@ -148,7 +148,7 @@ allprojects {
          }
          implementation("org.apache.pdfbox", "pdfbox", "3.0.3") // https://pdfbox.apache.org
          implementation("com.ezylang", "EvalEx", "3.4.0")
-         implementation("com.ezylang", "EvalEx-big-math", "1.0.0")
+         implementation("com.ezylang", "EvalEx-big-math", "1.0.1")
          implementation("ch.obermuhlner", "big-math", "2.3.2")
       }
 

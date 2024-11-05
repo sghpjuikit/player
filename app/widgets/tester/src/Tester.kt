@@ -396,8 +396,8 @@ class Tester(widget: Widget): SimpleController(widget) {
          val `cvn(FileFilter) with value builder` by cvn<FileFilter>(null).but(FileFilters.parser.toUiStringHelper())
          val `cList(Int)` by cList<Int>(1, 2, 3)
          val `cList(Int?)` by cList<Int?>(1, 2, null)
-         val `cCheckList(Boolean)` by cCheckList(CheckList.nonNull(type<Boolean>(), listOf("a", "b", "c"), listOf(true, false, false)))
-         val `cCheckList(Boolean?)` by cCheckList(CheckList.nullable(type<Boolean?>(), listOf("a", "b", null), listOf(true, false, null)))
+         val `cCheckList(Boolean)` by cCheckList(CheckList.nonNull(type<String>(), listOf("a", "b", "c"), listOf(true, false, false)))
+         val `cCheckList(Boolean?)` by cCheckList(CheckList.nullable(type<String?>(), listOf("a", "b", null), listOf(true, false, null)))
       }
       onContentChange()
       content.children setToOne vBox(1.em.emScaled) {

@@ -168,7 +168,7 @@ class AppHttp(
       }
    }
 
-   class Handler(override val nameUi: String, block: (HttpExchange) -> Any?): NameUi {
+   class Handler(override val nameUi: String, val exactMatch: Boolean = false, block: (HttpExchange) -> Any?): NameUi {
       /** Path to match against in raw form. May contain single `%` path variable at the end. May contain `?` and quary parameters. */
       val matcher = nameUi
       /** Path to match against */
@@ -196,7 +196,10 @@ class AppHttp(
       fun routes(): List<Handler> = routes
 
       fun find(request: HttpExchange): Handler? =
-         routes.find { request.requestURI.path.startsWith(it.path) }
+         routes.find {
+            if (it.exactMatch) request.requestURI.path == it.path
+            else request.requestURI.path.startsWith(it.path)
+         }
    }
 
    private class Exception404(message: String): RuntimeException(message)

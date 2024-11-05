@@ -269,7 +269,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    /** Audio http API. */
    private val httpApi = Subscribed {
       Subscription(
-         APP.http.serverRoutes route AppHttp.Handler("/") {
+         APP.http.serverRoutes route AppHttp.Handler("/", exactMatch = true) {
             JsArray(APP.http.serverRoutes.routes().map { JsString(it.matcher) })
          },
          APP.http.serverRoutes route AppHttp.Handler("/audio/library") {

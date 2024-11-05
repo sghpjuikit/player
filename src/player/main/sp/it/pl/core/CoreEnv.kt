@@ -17,6 +17,7 @@ import javafx.stage.Stage
 import mu.KLogging
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.main.APP
+import sp.it.pl.main.App
 import sp.it.pl.main.COM
 import sp.it.pl.main.CacheHICON
 import sp.it.pl.main.Events
@@ -111,7 +112,7 @@ object CoreEnv: Core, KLogging() {
    private var taskbarEventHandler: Any? by volatile(null)
 
    private fun initWindowsTaskbarButtons() {
-      if (Os.WINDOWS.isCurrent) {
+      if (APP.rankAtStart==App.Rank.MASTER && Os.WINDOWS.isCurrent) {
          runFX(10.seconds) {
             // TODO: observe main window and install without delay
             APP.windowManager.getMain()?.stage?.ifNotNull { wMain ->

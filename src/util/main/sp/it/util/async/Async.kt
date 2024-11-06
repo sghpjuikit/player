@@ -149,46 +149,46 @@ fun sleep(durationMillis: Long) {
 }
 
 /** Executes the specified block using the specified executor and return the result as [sp.it.util.async.future.Fut]. */
-fun <T> runOn(executor: Executor, block: () -> T) = fut(null).then(executor) { block() }
+fun <T> runOn(executor: Executor, block: () -> T): Fut<T> = fut(null).then(executor) { block() }
 
 /** Calls [runOn] using [NEW] and the specified block. */
-fun <T> runNew(block: () -> T) = runOn(NEW, block)
+fun <T> runNew(block: () -> T): Fut<T> = runOn(NEW, block)
 
 /** Legacy version of [runNew] for Java taking a [Runnable]. */
 fun runNew(block: Runnable): Fut<Unit> = runNew(block.kt)
 
 /** Calls [runOn] using [AWT] and the specified block. */
-fun <T> runAwt(block: () -> T) = runOn(AWT, block)
+fun <T> runAwt(block: () -> T): Fut<T> = runOn(AWT, block)
 
 /** Legacy version of [runAwt] for Java taking a [Runnable]. */
 fun runAwt(block: Runnable): Fut<Unit> = runAwt(block.kt)
 
 /** Calls [runOn] using [FX] and the specified block. */
-fun <T> runFX(block: () -> T) = runOn(FX, block)
+fun <T> runFX(block: () -> T): Fut<T> = runOn(FX, block)
 
 /** Legacy version of [runFX] for Java taking a [Runnable]. */
 fun runFX(block: Runnable): Fut<Unit> = runFX(block.kt)
 
 /** Calls [runOn] using [FX] with the specified delay and the specified block. */
-fun <T> runFX(delay: Duration, block: () -> T) = runOn(FX.delayed(delay), block)
+fun <T> runFX(delay: Duration, block: () -> T): Fut<T> = runOn(FX.delayed(delay), block)
 
 /** Legacy version of [runFX] for Java taking a [Runnable]. */
 fun runFX(delay: Duration, block: Runnable): Fut<Unit> = runFX(delay, block.kt)
 
 /** Calls [runOn] using [FX_LATER] with the specified thread name and the specified block. */
-fun <T> runLater(block: () -> T) = runOn(FX_LATER, block)
+fun <T> runLater(block: () -> T): Fut<T> = runOn(FX_LATER, block)
 
 /** Legacy version of [runLater] for Java taking a [Runnable]. */
 fun runLater(block: Runnable): Fut<Unit> = runLater(block.kt)
 
 /** Calls [runOn] using [IO] and the specified block. */
-fun <T> runIO(block: () -> T) = runOn(IO, block)
+fun <T> runIO(block: () -> T): Fut<T> = runOn(IO, block)
 
 /** Legacy version of [runIO] for Java taking a [Runnable]. */
 fun runIO(block: Runnable): Fut<Unit> = runIO(block.kt)
 
 /** Calls [runOn] using [VT] and the specified block. */
-fun <T> runVT(block: () -> T) = runOn(VT, block)
+fun <T> runVT(block: () -> T): Fut<T> = runOn(VT, block)
 
 /** Legacy version of [runVT] for Java taking a [Runnable]. */
 fun runVT(block: Runnable): Fut<Unit> = runVT(block.kt)

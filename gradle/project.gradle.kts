@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "2.1.0-Beta2"
+   kotlin("jvm") version "2.1.0-RC"
    application
    id("com.github.ben-manes.versions") version "0.51.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    // id("com.jaredsburrows.license") version "0.9.8"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin // incompatible with latest gradle
@@ -178,8 +178,8 @@ allprojects {
 
       "Http" group {
          implementation("javax.jmdns","jmdns","3.4.1")
-         implementation("io.ktor", "ktor-server-core", "3.0.0")
-         implementation("io.ktor", "ktor-client-java", "3.0.0")
+         implementation("io.ktor", "ktor-server-core", "3.0.1")
+         implementation("io.ktor", "ktor-client-java", "3.0.1")
       }
 
       "Test" group {

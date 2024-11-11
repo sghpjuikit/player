@@ -16,6 +16,8 @@ import kotlin.time.measureTimedValue
 import mu.KotlinLogging
 import org.apache.fury.io.FuryInputStream
 import org.apache.fury.logging.LoggerFactory
+import org.apache.fury.resolver.ClassChecker
+import org.apache.fury.serializer.kotlin.KotlinSerializers
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.MetadatasDB
 import sp.it.pl.audio.PlaybackStateDB
@@ -65,6 +67,11 @@ object CoreSerializer: Core {
          .withCompatibleMode(SCHEMA_CONSISTENT)
          .build()!!
          .apply {
+            // turn off class registering warning
+            classResolver.setClassChecker { _, _ -> true }
+            // register kotlin classes
+            KotlinSerializers.registerSerializers(this)
+            // register known classes
             register(PlayerStateDB::class.java)
             register(PlaybackStateDB::class.java)
             register(PlaylistDB::class.java)

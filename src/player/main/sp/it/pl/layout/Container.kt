@@ -174,7 +174,7 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
       val i2 = toParent.indexOf(w2)
       val w1n = w1?.name ?: "null"
       val w2n = w2?.name ?: "null"
-      logger.info("Swapping components {} and {}", w1n, w2n)
+      logger.info { "Swapping components $w1n and $w2n" }
       c1.addChild(i1, w2)
       toParent.addChild(i2, w1)
       c1.closeWindowIfEmpty()

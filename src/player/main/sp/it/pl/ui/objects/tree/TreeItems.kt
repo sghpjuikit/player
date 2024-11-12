@@ -1,6 +1,7 @@
 package sp.it.pl.ui.objects.tree
 
 import javafx.stage.Window as WindowFX
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.nio.file.Path
 import java.util.Stack
@@ -33,7 +34,6 @@ import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.PopupWindow
 import javafx.stage.Stage
 import javax.swing.filechooser.FileSystemView
-import mu.KotlinLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.tagging.MetadataGroup

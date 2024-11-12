@@ -1,7 +1,7 @@
 package sp.it.pl.main
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.collections.FXCollections.observableArrayList
-import mu.KotlinLogging
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.util.access.readOnly
 import sp.it.util.access.v

@@ -1,5 +1,6 @@
 package sp.it.pl.main
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.DISCARD
@@ -12,7 +13,6 @@ import javafx.scene.input.KeyEvent
 import javafx.scene.input.TransferMode
 import javafx.scene.text.Font
 import kotlin.math.ceil
-import mu.KotlinLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup

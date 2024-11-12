@@ -1,10 +1,10 @@
 package sp.it.pl.audio.tagging
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
 import javafx.scene.image.Image
-import mu.KotlinLogging
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.audio.exceptions.CannotReadException

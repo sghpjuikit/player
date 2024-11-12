@@ -13,6 +13,7 @@ import com.github.kwhat.jnativehook.NativeInputEvent.SCROLL_LOCK_MASK
 import com.github.kwhat.jnativehook.dispatcher.VoidDispatchService
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.ConcurrentHashMap
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ALT
@@ -22,11 +23,12 @@ import javafx.scene.input.KeyCode.CONTROL
 import javafx.scene.input.KeyCode.META
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyCode.WINDOWS
-import mu.KLogging
 import sp.it.util.dev.fail
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Subscription
+
+private val logger = KotlinLogging.logger { }
 
 /** Global hotkey manager, implemented on top of JNativeHook library. */
 class Hotkeys(private val executor: (Runnable) -> Unit) {
@@ -195,7 +197,7 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
       }
    }
 
-   companion object: KLogging() {
+   companion object {
       private var ignoredModifiers = listOf(
          SCROLL_LOCK_MASK,
          CAPS_LOCK_MASK,

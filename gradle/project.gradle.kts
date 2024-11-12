@@ -122,7 +122,7 @@ allprojects {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
          implementation("ch.qos.logback", "logback-classic", "1.5.12") // https://logback.qos.ch/news.html
-         implementation("io.github.microutils", "kotlin-logging", "3.0.4")
+         implementation("io.github.oshai", "kotlin-logging-jvm", "7.0.0")
       }
 
       "Native" group {

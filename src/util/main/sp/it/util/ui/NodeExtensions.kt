@@ -1,5 +1,6 @@
 package sp.it.util.ui
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.beans.value.ObservableValue
 import javafx.geometry.Point2D
 import javafx.scene.Group
@@ -13,7 +14,6 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Pane
 import javafx.scene.robot.Robot
 import javafx.stage.Window
-import mu.KotlinLogging
 import sp.it.util.access.V
 import sp.it.util.access.v
 import sp.it.util.dev.Experimental
@@ -32,6 +32,7 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncNonNullWhile
 
+private val logger = KotlinLogging.logger { }
 private val robot by lazy { Robot() }
 
 /** @return property that is true iff this node is attached to a scene in a window that is [Window.displayed] */
@@ -75,7 +76,7 @@ fun Node.removeFromParent() {
    // removes it when focus changes. Focus listener would invoke when this node is no longer part of scene graph.
    if (hasFocusedChild)
       runTry { p?.requestFocus() }
-         .ifError { KotlinLogging.logger {}.error(it) { "Failed to refocus content after removal from scene graph" } }
+         .ifError { logger.error(it) { "Failed to refocus content after removal from scene graph" } }
 }
 
 inline fun <reified T: Node> Node.lookupId(id: String): T = lookup("#$id").let {

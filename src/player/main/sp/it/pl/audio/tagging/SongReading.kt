@@ -1,9 +1,9 @@
 package sp.it.pl.audio.tagging
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.concurrent.Task
 import javafx.event.EventHandler
 import javafx.scene.media.Media
-import mu.KotlinLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong

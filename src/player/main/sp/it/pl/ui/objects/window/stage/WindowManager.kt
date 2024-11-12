@@ -6,6 +6,7 @@ import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
 import sp.it.pl.main.AppSettings.ui.window as confWindow
 import com.sun.jna.platform.win32.GDI32
 import com.sun.jna.platform.win32.User32
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
@@ -36,7 +37,6 @@ import javafx.stage.StageStyle.UTILITY
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import kotlin.math.sqrt
 import kotlinx.coroutines.invoke
-import mu.KLogging
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.ComponentFactory
@@ -702,7 +702,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
    }
 
-   companion object: KLogging() {
+   companion object {
+      private val logger = KotlinLogging.logger { }
       private fun Boolean.toWindowStyle(): StageStyle = if (this) TRANSPARENT else UNDECORATED
    }
 

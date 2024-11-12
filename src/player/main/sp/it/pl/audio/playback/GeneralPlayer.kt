@@ -1,12 +1,12 @@
 package sp.it.pl.audio.playback
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
 import kotlin.math.pow
-import mu.KLogging
 import sp.it.pl.audio.PlayerState
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -169,7 +169,9 @@ class GeneralPlayer(state: PlayerState) {
       is JavaFxPlayer -> listOf()
    }
 
-   companion object: KLogging()
+   companion object {
+      private val logger = KotlinLogging.logger { }
+   }
 
    sealed interface Play {
 

@@ -6,6 +6,7 @@ import javafx.scene.image.WritableImage as ImageWr
 import com.drew.imaging.gif.GifMetadataReader
 import com.drew.metadata.gif.GifControlDirectory
 import com.twelvemonkeys.image.ResampleOp
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.io.File
@@ -25,7 +26,6 @@ import javax.imageio.ImageReader
 import javax.imageio.event.IIOReadProgressListener
 import javax.imageio.stream.ImageInputStream
 import kotlin.concurrent.withLock
-import mu.KotlinLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
@@ -50,7 +50,7 @@ import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
 
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger { }
 
 fun ImageWr.withUrl(url: String?): ImageWr = apply { setField(this, "url", url) }
 

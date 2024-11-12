@@ -1,5 +1,6 @@
 package sp.it.pl.audio.playback
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.scene.media.Media
 import javafx.scene.media.MediaException
 import javafx.scene.media.MediaPlayer
@@ -8,7 +9,6 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
-import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playback.VolumeProperty.Companion.linToLog
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -113,5 +113,7 @@ class JavaFxPlayer: GeneralPlayer.Play {
 
    override fun dispose() = disposePlayback()
 
-   companion object: KLogging()
+   companion object {
+      private val logger = KotlinLogging.logger { }
+   }
 }

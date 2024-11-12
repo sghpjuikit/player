@@ -1,13 +1,13 @@
 package sp.it.pl.plugin
 
 import de.jensd.fx.glyphs.GlyphIcons
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.jvmName
-import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.AppEventLog
@@ -290,6 +290,8 @@ class PluginBox<T: PluginBase>(val type: KClass<T>, val isEnabledByDefault: Bool
 
    override fun toString() = "${this::class.simpleName}(type=${type.simpleName})"
 
-   companion object: KLogging()
+   companion object {
+      private val logger = KotlinLogging.logger { }
+   }
 
 }

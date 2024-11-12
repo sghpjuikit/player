@@ -1,6 +1,7 @@
 package sp.it.pl.layout
 
 import javafx.stage.Window as WindowFX
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileFilter
@@ -32,7 +33,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.cast
 import kotlin.text.Charsets.UTF_8
 import kotlinx.coroutines.runBlocking
-import mu.KLogging
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import sp.it.pl.core.NameUi
 import sp.it.pl.layout.ComponentLoader.Ctx
@@ -471,7 +471,7 @@ class WidgetManager {
             val sourceFiles = javaSrcFiles.map { it.path }
             val arguments = (options + sourceFiles).asArray()
 
-            logger.info("Compiling with arguments=${arguments.joinToString(" ")}")
+            logger.info { "Compiling with arguments=${arguments.joinToString(" ")}" }
             val compiler = ToolProvider.getSystemJavaCompiler() ?: run {
                logger.error { "Compilation failed\nJava system compiler not available" }
                return Try.error("Java system compiler not available")
@@ -518,7 +518,7 @@ class WidgetManager {
                kotlinSrcFiles.joinToString(" ")
             )
 
-            logger.info("Compiling with command=${command.joinToString(" ")} ")
+            logger.info { "Compiling with command=${command.joinToString(" ")}" }
 
             val printStream = object: PrintStream(ByteArrayOutputStream(), true, UTF_8) { fun output() = out.asIs<ByteArrayOutputStream>().toByteArray().toString(UTF_8) }
             val success = compilerKt.exec(printStream, *command.toTypedArray()).code
@@ -783,7 +783,8 @@ class WidgetManager {
       }
    }
 
-   companion object: KLogging() {
+   companion object {
+      val logger = KotlinLogging.logger { }
 
       /** @return new instance of a class represented by specified class file using one shot class loader or null if error */
       private fun loadClass(classFqName: String, compileDir: File, libFiles: Sequence<File>): Try<Class<*>, Throwable> {

@@ -1,6 +1,7 @@
 package sp.it.pl.ui.nodeinfo
 
 import de.jensd.fx.glyphs.GlyphIcons
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.request.get
 import io.ktor.http.isSuccess
 import java.time.Instant
@@ -12,8 +13,6 @@ import javafx.geometry.VPos.CENTER
 import javafx.scene.control.ContextMenu
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
-import mu.KLogger
-import mu.KLogging
 import sp.it.pl.core.bodyAsJs
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.APP
@@ -858,7 +857,7 @@ class WeatherInfo: HBox(15.0) {
       )
    }
 
-   companion object: KLogging(), WidgetCompanion {
+   companion object: WidgetCompanion {
       override val name = "Weather Info"
       override val description = "Displays current weather data and weather forecast"
       override val descriptionLong = "$description."
@@ -870,6 +869,8 @@ class WeatherInfo: HBox(15.0) {
       override val contributor = ""
       override val tags = setOf(UTILITY)
       override val summaryActions = listOf<ShortcutPane.Entry>()
+
+      private val logger = KotlinLogging.logger { }
 
       private inline fun <reified T> JsValue.asJson(): T? = APP.serializerJson.json.fromJsonValue<T>(this).orThrow
 

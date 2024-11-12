@@ -1,5 +1,6 @@
 package sp.it.pl.ui.objects.textfield
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.scene.effect.Blend
 import javafx.scene.effect.Bloom
 import javafx.scene.effect.BoxBlur
@@ -20,7 +21,6 @@ import javafx.scene.effect.SepiaTone
 import javafx.scene.effect.Shadow
 import javafx.scene.layout.VBox
 import kotlin.reflect.KClass
-import mu.KLogging
 import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.SpitComboBox
@@ -74,8 +74,9 @@ class EffectTextField(isNullable: Boolean, effectType: KClass<out Effect>? = nul
       editable syncTo editors.editable
    }
 
-   companion object: KLogging() {
+   companion object {
       const val STYLECLASS = "effect-text-field"
+      val logger = KotlinLogging.logger { }
       val EFFECT_TYPES = listOf(
          EffectType(Blend::class),
          EffectType(Bloom::class),

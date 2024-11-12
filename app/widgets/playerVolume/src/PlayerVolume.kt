@@ -1,6 +1,7 @@
 package playerVolume
 
 import de.jensd.fx.glyphs.GlyphIcons
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.FORWARD
@@ -10,7 +11,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.paint.Color.TRANSPARENT
 import javafx.scene.shape.Circle
 import javafx.scene.text.TextBoundsType.VISUAL
-import mu.KLogging
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playback.VolumeProperty
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -97,7 +97,7 @@ class PlayerVolume(widget: Widget): SimpleController(widget), PlaybackFeature, H
       )
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Playback volume"
       override val description = "Playback volume circular control"
       override val descriptionLong = "$description."
@@ -112,6 +112,8 @@ class PlayerVolume(widget: Widget): SimpleController(widget), PlaybackFeature, H
          Entry("Controls", "Change volume", "Scroll"),
          Entry("Controls", "Mute", "Mute icon LMB | RMB"),
       )
+
+      val logger = KotlinLogging.logger { }
 
       fun GlyphIcons.icon(size: Double, block: (Boolean) -> Unit) = Icon(this, size).apply {
          boundsType = VISUAL

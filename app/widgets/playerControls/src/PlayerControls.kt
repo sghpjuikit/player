@@ -22,7 +22,6 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.UNKNOWN
 import javafx.scene.text.TextBoundsType.LOGICAL
 import javafx.scene.text.TextBoundsType.VISUAL
-import mu.KLogging
 import sp.it.pl.audio.PlayerManager.Seek
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playback.VolumeProperty
@@ -223,7 +222,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       }
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = PLAYBACK_NAME
       override val description = "Controls audio playback"
       override val descriptionLong = "$description."

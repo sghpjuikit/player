@@ -11,7 +11,6 @@ import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.text.TextBoundsType.VISUAL
-import mu.KLogging
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.OFF
@@ -119,7 +118,7 @@ class PlayerLoopMode(widget: Widget): SimpleController(widget), PlaybackFeature,
       )
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Playback loop mode"
       override val description = "Playback loop mode circular control"
       override val descriptionLong = "$description."

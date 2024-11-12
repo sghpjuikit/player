@@ -1,5 +1,6 @@
 package sp.it.pl.plugin.impl
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
@@ -9,7 +10,6 @@ import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import javafx.beans.value.ObservableValue
 import kotlinx.coroutines.invoke
-import mu.KLogging
 import sp.it.pl.audio.audioInputDeviceNames
 import sp.it.pl.audio.audioOutputDeviceNames
 import sp.it.pl.core.InfoUi
@@ -1044,7 +1044,7 @@ class VoiceAssistant: PluginBase() {
       val regex = voiceCommandRegex(commandUi)
    }
 
-   companion object: PluginInfo, KLogging() {
+   companion object: PluginInfo {
       override val name = "Voice Assistant"
       override val description = "Provides speech recognition, synthesis, LLM chat and voice control capabilities using various AI models."
       override val isSupported = true
@@ -1066,6 +1066,8 @@ class VoiceAssistant: PluginBase() {
       val voiceAssistantWidgetFactory by lazy { WidgetFactory("VoiceAssistant", VoiceAssistantWidget::class, APP.location.widgets/"VoiceAssistant") }
 
       val voiceAssistantPersonasWidgetFactory by lazy { WidgetFactory("Voice Assistant persona editor", VoiceAssistantPersona::class, APP.location.widgets/"Voice-Assistant-Persona-Editor") }
+
+      private val logger = KotlinLogging.logger { }
 
       /** @return this string with newline prepended or empty string if blank */
       private fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"

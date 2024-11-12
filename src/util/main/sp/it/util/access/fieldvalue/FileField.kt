@@ -4,6 +4,7 @@ import com.drew.imaging.ImageMetadataReader
 import com.drew.imaging.ImageProcessingException
 import com.drew.metadata.Schema
 import com.drew.metadata.xmp.XmpDirectory
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -20,7 +21,6 @@ import java.time.format.SignStyle
 import java.time.temporal.ChronoField
 import java.util.zip.ZipFile
 import kotlin.text.Charsets.UTF_8
-import mu.KotlinLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.util.file.FileType
 import sp.it.util.file.nameOrRoot

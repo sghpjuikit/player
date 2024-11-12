@@ -1,6 +1,7 @@
 package functionViewer
 
 import functionViewer.FunctionViewer.FunType.NORMAL
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
 import java.math.BigDecimal.TEN
@@ -27,7 +28,6 @@ import javafx.scene.paint.Stop
 import javafx.scene.shape.Rectangle
 import kotlin.math.pow
 import kotlin.math.roundToInt
-import mu.KLogging
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -357,7 +357,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Function Viewer"
       override val description = "Plots mathematical functions"
       override val descriptionLong = "$description."
@@ -372,6 +372,8 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          ShortcutPane.Entry("Graph", "Zoom in/out", "Scroll"),
          ShortcutPane.Entry("Graph", "Shift axes", keys("LMB drag")),
       )
+
+      val logger = KotlinLogging.logger { }
 
       fun ConfigEditor<*>.toHBox(labelText: String) = hBox(5, CENTER) {
          val n = buildNode()

@@ -1,5 +1,6 @@
 package sp.it.pl.layout
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.util.Objects
 import java.util.UUID
@@ -11,7 +12,6 @@ import javafx.scene.layout.Pane
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.ANNOTATION_CLASS
 import kotlin.annotation.AnnotationTarget.CLASS
-import mu.KLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.layout.WidgetIoManager.requestWidgetIOUpdate
 import sp.it.pl.layout.controller.Controller
@@ -471,7 +471,8 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       AUTOMATIC, MANUAL
    }
 
-   companion object: KLogging() {
+   companion object {
+      private val logger = KotlinLogging.logger { }
 
       val configToRawKeyMapper = F1 { it: Config<*> -> it.name.replace(' ', '_').lowercase() }
 

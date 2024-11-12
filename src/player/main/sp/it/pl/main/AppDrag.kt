@@ -2,6 +2,7 @@ package sp.it.pl.main
 
 import javafx.scene.input.DataFormat as DataFormatFX
 import de.jensd.fx.glyphs.GlyphIcons
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Supplier
@@ -18,7 +19,6 @@ import javafx.stage.Window
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.javafx.awaitPulse
-import mu.KotlinLogging
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.MetadataGroup

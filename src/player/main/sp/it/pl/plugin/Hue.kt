@@ -3,6 +3,7 @@
 package sp.it.pl.plugin
 
 import de.jensd.fx.glyphs.GlyphIcons
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -24,7 +25,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.invoke
-import mu.KLogging
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.bodyAsJs
 import sp.it.pl.core.bodyJs
@@ -380,7 +380,7 @@ class Hue: PluginBase() {
 
    }
 
-   companion object: PluginInfo, KLogging() {
+   companion object: PluginInfo {
       override val name = "Phillips Hue"
       override val isSupported = true
       override val isSingleton = true
@@ -390,6 +390,8 @@ class Hue: PluginBase() {
             "\nManages Phillips Hue bulbs, groups & scenes." +
             "\nAdds voice commands to ${VoiceAssistant.name} plugin." +
             "\nSee https://www.philips-hue.com"
+
+      private val logger = KotlinLogging.logger { }
 
       private fun JsObject.withoutNullValues() = JsObject(value.filter { it.value !is JsNull })
 

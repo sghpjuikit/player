@@ -1,6 +1,7 @@
 package gameView
 
 import de.jensd.fx.glyphs.GlyphIcons
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.encodeURLQueryComponent
 import java.io.File
 import java.util.UUID
@@ -27,7 +28,6 @@ import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.util.Callback
 import kotlin.math.round
-import mu.KLogging
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -552,7 +552,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       }
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Game library"
       override val description = "Game library"
       override val descriptionLong = "$description.\nSimple library of games using file system."
@@ -573,6 +573,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          Entry("Game detail", "Back", ESCAPE.nameUi),
       )
 
+      private val logger = KotlinLogging.logger { }
       private fun File.findImage(imageName: String) = children().find {
          val filename = it.name
          val i = filename.lastIndexOf('.')

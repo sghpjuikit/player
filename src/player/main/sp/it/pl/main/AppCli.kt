@@ -18,13 +18,13 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.file
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.lang.management.ManagementFactory
 import java.net.URI
 import java.net.URLEncoder
 import kotlin.system.exitProcess
 import kotlin.text.Charsets.UTF_8
-import mu.KLogging
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.layout.feature.PlaylistFeature
@@ -197,7 +197,9 @@ class Cli: CliktCommand(
       )
    }
 
-   companion object: KLogging()
+   companion object {
+      private val logger = KotlinLogging.logger { }
+   }
 }
 
 private fun File.requireAbsolute() = require(isAbsolute) { "File must be absolute" }

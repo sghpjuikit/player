@@ -1,5 +1,6 @@
 package sp.it.pl.layout
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.beans.value.WritableValue
 import javafx.event.EventDispatcher
 import javafx.event.EventHandler
@@ -8,7 +9,6 @@ import javafx.scene.control.ContextMenu
 import javafx.scene.control.Skin
 import javafx.stage.Window
 import kotlin.reflect.KClass
-import mu.KLogging
 import sp.it.util.conf.ConfigDef
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ListConfigurable
@@ -25,7 +25,8 @@ import sp.it.util.type.raw
 
 data class WidgetNodeInstance(val node: Node?, val properties: List<NodeInput>, val configurable: Configurable<Any?>, val configurableJson: JsObject?): Configurable<Any?> by configurable {
 
-   companion object: KLogging(), JsConverter<WidgetNodeInstance> {
+   companion object: JsConverter<WidgetNodeInstance> {
+      private val logger = KotlinLogging.logger { }
 
       operator fun invoke(node: Node?): WidgetNodeInstance {
          val properties = node.javaFxProperties().toList()

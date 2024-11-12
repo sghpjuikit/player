@@ -1,8 +1,8 @@
 package sp.it.util.dev
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.beans.value.ObservableValue
 import kotlin.reflect.KClass
-import mu.KotlinLogging
 import sp.it.util.reactive.attach
 import sp.it.util.units.formatToSmallestUnit
 import sp.it.util.units.millis

@@ -1,5 +1,6 @@
 package sp.it.util.async
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.EventQueue
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
@@ -17,7 +18,6 @@ import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.javafx.JavaFx
-import mu.KotlinLogging
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut

@@ -1,5 +1,6 @@
 package sp.it.pl.core
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.fury.Fury
 import org.apache.fury.config.CompatibleMode.SCHEMA_CONSISTENT
 import org.apache.fury.config.Language.JAVA
@@ -13,7 +14,6 @@ import kotlin.reflect.cast
 import kotlin.reflect.jvm.jvmName
 import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
-import mu.KotlinLogging
 import org.apache.fury.io.FuryInputStream
 import org.apache.fury.logging.LoggerFactory
 import org.apache.fury.resolver.ClassChecker

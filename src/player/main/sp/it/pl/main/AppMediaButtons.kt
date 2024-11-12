@@ -12,8 +12,8 @@ import com.sun.jna.platform.win32.WinUser.KBDLLHOOKSTRUCT
 import com.sun.jna.platform.win32.WinUser.LowLevelKeyboardProc
 import com.sun.jna.platform.win32.WinUser.MSG
 import com.sun.jna.platform.win32.WinUser.WH_KEYBOARD_LL
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.scene.input.KeyCode
-import mu.KLogging
 import sp.it.util.async.NEW
 import sp.it.util.system.Os
 import sp.it.util.type.volatile
@@ -72,7 +72,9 @@ class AppMediaButtons(handlers: (KeyCode) -> (() -> Boolean)? = APP.actions.regi
       if (r==false) getLastError("UnhookWindowsHookEx")
    }
 
-   private companion object: KLogging() {
+   private companion object {
+      private val logger = KotlinLogging.logger { }
+
       const val WM_APPCOMMAND = 0x0319
       const val APPCOMMAND_MEDIA_PLAY_PAUSE = 14
 
@@ -83,7 +85,7 @@ class AppMediaButtons(handlers: (KeyCode) -> (() -> Boolean)? = APP.actions.regi
 
       fun getLastError(message: String): Int {
          val rc = Kernel32.INSTANCE.GetLastError()
-         if (rc!=0) AppSystemEventsWinListener.logger.warn { "Failed to $message error: $rc" }
+         if (rc!=0) logger.warn { "Failed to $message error: $rc" }
          return rc
       }
 

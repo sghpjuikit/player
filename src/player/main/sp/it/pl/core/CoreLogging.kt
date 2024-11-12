@@ -5,10 +5,10 @@ import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.joran.JoranConfigurator
 import ch.qos.logback.core.joran.spi.JoranException
 import ch.qos.logback.core.util.StatusPrinter2
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.lang.Thread.UncaughtExceptionHandler
 import java.util.logging.LogManager
-import mu.KLogging
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -56,5 +56,7 @@ class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File
       filter?.setLevel(level.toString())
    }
 
-   companion object: KLogging()
+   companion object {
+      private val logger = KotlinLogging.logger { }
+   }
 }

@@ -1,5 +1,6 @@
 package sp.it.pl.audio.tagging
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.Serializable
 import java.net.URI
@@ -9,7 +10,6 @@ import java.time.Year
 import javafx.scene.paint.Color
 import javafx.util.Duration
 import kotlin.math.pow
-import mu.KLogging
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.KeyNotFoundException
@@ -656,7 +656,7 @@ class Metadata: Song, Serializable {
    private fun readArtworkFromTag(): Try<Artwork?, Throwable> = ok(getFile())
       .andAlso { it?.readAudioFile() ?: ok() }
       .map { it?.tag?.firstArtwork }
-      .ifError { logger.warn("Failed to read cover from tag of song=$uri", it) }
+      .ifError { logger.warn(it) { "Failed to read cover from tag of song=$uri" } }
 
    /** @return the cover image file on a file system or null if this song is not file based */
    private fun readCoverFromDir(): Cover? {
@@ -758,7 +758,8 @@ class Metadata: Song, Serializable {
       return r
    }
 
-   companion object: KLogging() {
+   companion object {
+      private val logger = KotlinLogging.logger { }
       private const val serialVersionUID: Long = 1
 
       /** Delimiter between sections of data. In this case, between tags (concatenated to single string). */

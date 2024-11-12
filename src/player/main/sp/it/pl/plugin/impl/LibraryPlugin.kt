@@ -1,9 +1,9 @@
 package sp.it.pl.plugin.impl
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
-import mu.KLogging
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.addToLibTask
@@ -154,12 +154,14 @@ class LibraryPlugin: PluginBase() {
       }.withAppProgress("Updating song library from locations")
    }
 
-   companion object: KLogging(), PluginInfo {
+   companion object: PluginInfo {
       override val name = "Song Library"
       override val description = "Provides library location settings along with song library updating and monitoring"
       override val isSupported = true
       override val isSingleton = false
       override val isEnabledByDefault = true
+
+      private val logger = KotlinLogging.logger { }
    }
 
 }

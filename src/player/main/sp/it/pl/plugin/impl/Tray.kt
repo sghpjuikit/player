@@ -1,5 +1,6 @@
 package sp.it.pl.plugin.impl
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.Image
 import java.awt.SystemTray
 import java.awt.TrayIcon
@@ -16,7 +17,6 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.stage.Screen
 import javafx.stage.Stage
-import mu.KLogging
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.main.APP
 import sp.it.pl.main.App
@@ -186,13 +186,14 @@ class Tray: PluginBase() {
       onClick = action ?: onClickDefault
    }
 
-   companion object: KLogging(), PluginInfo {
+   companion object: PluginInfo {
       override val name = "Tray"
       override val description = "Provides OS tray facilities, such as tray icon, tray tooltip, tray click action or bubble notification"
       override val isSupported get() = SystemTray.isSupported()
       override val isSingleton = true
       override val isEnabledByDefault = true
 
+      private val logger = KotlinLogging.logger { }
       private fun SystemTray.trayIconSizeRaw() = (trayIconSize.width * (Screen.getScreens().maxOfOrNull { it.outputScaleX } ?: 1.0)).toInt()
       private fun Image.scaledToTray(tray: SystemTray) = getScaledInstance(tray.trayIconSizeRaw(), -1, Image.SCALE_SMOOTH)
    }

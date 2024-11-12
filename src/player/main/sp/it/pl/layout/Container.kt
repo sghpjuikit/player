@@ -1,10 +1,10 @@
 package sp.it.pl.layout
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.TreeMap
 import javafx.geometry.Insets
 import javafx.scene.Node
 import javafx.scene.layout.AnchorPane
-import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.window.stage.asAppWindow
 import sp.it.util.collections.materialize
@@ -297,5 +297,7 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
       children.values.forEach { if (it is Container<*>) it.parent = this }
    }
 
-   companion object: KLogging()
+   companion object {
+      private val logger = KotlinLogging.logger { }
+   }
 }

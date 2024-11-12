@@ -1,5 +1,6 @@
 package converter
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.nio.file.Files
 import javafx.geometry.Insets
@@ -21,7 +22,6 @@ import javafx.scene.layout.VBox
 import kotlin.reflect.KClass
 import kotlin.streams.asSequence
 import kotlinx.coroutines.invoke
-import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataWriter
@@ -655,7 +655,7 @@ class Converter(widget: Widget): SimpleController(widget), Opener, SongWriter {
       fun values(): Sequence<In> = ins.values.asSequence()
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = CONVERTER_NAME
       override val description =
          "Data transformer with transformation chains and data processing, such as text, file or audio tagging."
@@ -677,6 +677,7 @@ class Converter(widget: Widget): SimpleController(widget), Opener, SongWriter {
          Entry(CONVERTER_NAME, "Sets data as input", "Drag & drop data"),
       )
 
+      private val logger = KotlinLogging.logger { }
       private fun unpackData(o: Any?): List<*> =
          when (o) {
             is String -> split(o, "\n", { it })

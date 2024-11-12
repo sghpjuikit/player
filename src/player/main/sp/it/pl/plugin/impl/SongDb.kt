@@ -1,9 +1,9 @@
 package sp.it.pl.plugin.impl
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.lang.String.CASE_INSENSITIVE_ORDER
 import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
-import mu.KLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.MetadatasDB
 import sp.it.pl.audio.SimpleSong
@@ -36,6 +36,7 @@ import sp.it.util.units.uuid
 @Suppress("unused")
 class SongDb {
 
+   private val logger = KotlinLogging.logger { }
    private var running = false
    private lateinit var moods: LinkedHashSet<String>
 
@@ -159,5 +160,4 @@ class SongDb {
       }
    }
 
-   companion object: KLogging()
 }

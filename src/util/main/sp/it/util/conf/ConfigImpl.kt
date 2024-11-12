@@ -1,5 +1,6 @@
 package sp.it.util.conf
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.beans.InvalidationListener
 import javafx.beans.Observable
 import javafx.beans.value.ObservableValue
@@ -15,7 +16,6 @@ import kotlin.reflect.KTypeProjection.Companion.invariant
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.isAccessible
-import mu.KLogging
 import sp.it.util.access.OrV
 import sp.it.util.access.OrV.OrValue
 import sp.it.util.collections.materialize
@@ -41,6 +41,8 @@ import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.type.VType
 import sp.it.util.type.raw
 import sp.it.util.type.type
+
+private val logger = KotlinLogging.logger { }
 
 interface ConfigImpl {
 
@@ -197,7 +199,6 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
    val property: OrV<T>
    val valueType: VType<T>
    val elementConstraints: MutableSet<Constraint<T>>
-   companion object: KLogging()
 
    constructor(
       valueType: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<OrValue<T>>>, elementConstraints: Set<Constraint<T>>, property: OrV<T>, group: String, initialValue: OrValue.Initial<T> = property.valueOrInitial
@@ -346,7 +347,6 @@ class CheckListConfig<T, S: Boolean?>(
    override fun getValue(): CheckList<T, S> = defaultValue
    override fun setValue(value: CheckList<T, S>) {}
    override fun setValueToDefault() = value.selections setTo value.selectionsInitial
-   companion object: KLogging()
 
    override var valueAsJson: JsValue
       get() = JsArray(

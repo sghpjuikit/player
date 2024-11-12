@@ -6,6 +6,7 @@ import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinReg
 import com.sun.jna.platform.win32.WinUser
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.Desktop
 import java.io.File
 import java.io.IOException
@@ -15,7 +16,6 @@ import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
 import javafx.stage.Screen
 import javafx.stage.Window
-import mu.KotlinLogging
 import org.jetbrains.annotations.NonBlocking
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runVT

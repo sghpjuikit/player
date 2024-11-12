@@ -15,6 +15,7 @@ import com.sun.jna.platform.win32.WinUser
 import com.sun.jna.platform.win32.WinUser.GWL_STYLE
 import com.sun.jna.platform.win32.WinUser.SMTO_NORMAL
 import com.sun.jna.win32.W32APIOptions
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.UUID
 import javafx.beans.value.ObservableValue
 import javafx.event.Event
@@ -65,7 +66,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.launch
-import mu.KotlinLogging
 import sp.it.pl.layout.WidgetIoManager
 import sp.it.pl.layout.initialTemplateFactory
 import sp.it.pl.layout.widgetFocused

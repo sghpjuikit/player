@@ -1,6 +1,7 @@
 package sp.it.util.ui
 
 import de.jensd.fx.glyphs.GlyphIcons
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.css.PseudoClass
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
@@ -88,7 +89,6 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.sin
-import mu.KotlinLogging
 import sp.it.util.functional.asIf
 import sp.it.util.math.P
 import sp.it.util.math.max
@@ -102,7 +102,7 @@ import sp.it.util.ui.image.FitFrom.INSIDE
 import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.units.toEM
 
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger { }
 
 /* ---------- ICON -------------------------------------------------------------------------------------------------- */
 

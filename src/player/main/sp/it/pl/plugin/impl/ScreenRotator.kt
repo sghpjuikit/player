@@ -1,6 +1,7 @@
 package sp.it.pl.plugin.impl
 
 import javafx.scene.input.KeyCode as Key
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.geometry.Insets
 import javafx.geometry.Pos.BOTTOM_CENTER
 import javafx.geometry.Pos.BOTTOM_RIGHT
@@ -10,7 +11,6 @@ import javafx.geometry.Pos.TOP_LEFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
-import mu.KLogging
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
@@ -165,13 +165,14 @@ class ScreenRotator: PluginBase() {
       CCW("ccw", "counter-clockwise")
    }
 
-   companion object: KLogging(), PluginInfo {
+   companion object: PluginInfo {
       override val name = "Screen Rotator"
       override val description = "Provides actions to turn on screen saver, sleep displays or rotate any screen using convenient visual aid"
       override val isSupported = Os.WINDOWS.isCurrent
       override val isSingleton = false
       override val isEnabledByDefault = false
 
+      private val logger = KotlinLogging.logger { }
       private const val PROGRAM_FILE_NAME = "display.exe"
       private const val PROGRAM_HELP_FILE_NAME = "display.htm"
    }

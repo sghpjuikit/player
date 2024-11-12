@@ -1,5 +1,6 @@
 package voronoi
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.lang.Math.random
 import javafx.event.Event
 import javafx.scene.Scene
@@ -23,7 +24,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.properties.Delegates.observable
-import mu.KLogging
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Envelope
 import org.locationtech.jts.geom.Geometry
@@ -477,7 +477,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       }
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Voronoi"
       override val description = "Playground to visualize and experiment with voronoi diagrams"
       override val descriptionLong = "$description.\nThe visualization is customizable through settings."
@@ -495,6 +495,8 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          Entry("View", "Toggle animation", PRIMARY.nameUi),
       )
       override val tags = setOf(VISUALISATION)
+
+      val logger = KotlinLogging.logger { }
 
       fun rand0N(n: Double): Double = random()*n
 

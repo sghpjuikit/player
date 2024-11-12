@@ -1,6 +1,7 @@
 package sp.it.pl.main
 
 import com.twelvemonkeys.image.ResampleOp
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.net.URISyntaxException
 import javafx.geometry.Pos.CENTER
@@ -17,7 +18,6 @@ import javafx.stage.Stage
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST
 import javax.imageio.ImageIO
-import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.layout.ComponentLoader.WINDOW_FULLSCREEN
 import sp.it.pl.layout.Widget
@@ -515,5 +515,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   companion object: KLogging()
+   companion object {
+      private val logger = KotlinLogging.logger { }
+   }
 }

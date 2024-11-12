@@ -244,7 +244,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 			try {
 				this.keys = keyCombination(keys);
 			} catch (Exception e) {
-				logger(Action.class).warn("Illegal shortcut keys parameter. Shortcut {} disabled. Keys: {}", name, keys, e);
+				logger(Action.class).warn(e, () -> "Illegal shortcut keys parameter. Shortcut " + name + " disabled. Keys: " + keys);
 				this.keys = NO_MATCH;   // disable shortcut for wrong keys
 			}
 		}
@@ -321,11 +321,11 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	public void setValueAsJson(@NotNull JsValue property) {
 		runTry(() -> {
 			var s = property.asJsStringValue();
-			var a = s==null ? null : getOr(ActionDb.Companion.ofS(s).ifErrorUse(it -> logger(Action.class).warn("Unable to set config=" + name + " value from text='" + s + "' because: " + it)), null);
+			var a = s==null ? null : getOr(ActionDb.Companion.ofS(s).ifErrorUse(it -> logger(Action.class).warn(() -> "Unable to set config=" + name + " value from text='" + s + "' because: " + it)), null);
 			if (a!=null) set(a.isGlobal(), a.getKeys());
 			return a;
 		}).ifErrorUse(e ->
-			logger(Action.class).warn("Unable to set config=" + name + " value from json=" + property)
+			logger(Action.class).warn(() -> "Unable to set config=" + name + " value from json=" + property)
 		);
 	}
 

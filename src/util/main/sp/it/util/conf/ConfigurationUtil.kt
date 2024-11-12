@@ -1,5 +1,6 @@
 package sp.it.util.conf
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.lang.reflect.Modifier
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
@@ -17,7 +18,6 @@ import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmName
 import kotlin.reflect.jvm.kotlinFunction
-import mu.KotlinLogging
 import sp.it.util.access.OrV
 import sp.it.util.action.IsAction
 import sp.it.util.dev.fail

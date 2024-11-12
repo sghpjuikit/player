@@ -15,7 +15,6 @@ import javafx.scene.media.MediaPlayer.Status.UNKNOWN
 import javafx.scene.shape.Arc
 import javafx.scene.shape.ArcType
 import javafx.scene.text.TextBoundsType.VISUAL
-import mu.KLogging
 import sp.it.pl.audio.PlayerManager.Seek
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Chapter
@@ -226,7 +225,7 @@ class PlayerSeeker(widget: Widget): SimpleController(widget), PlaybackFeature, H
       val isNew: Boolean get() = i==SongChapterEdit.INDEX_NEW
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Playback seeker"
       override val description = "Audio playback circular seeker"
       override val descriptionLong = "$description."

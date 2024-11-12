@@ -2,6 +2,7 @@
 
 package hue
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.Color.HSBtoRGB
 import javafx.event.EventHandler
 import javafx.geometry.Insets
@@ -34,7 +35,6 @@ import kotlin.math.PI
 import kotlin.math.atan2
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import mu.KLogging
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -597,7 +597,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Hue Scenes"
       override val description = "Manages Phillips Hue bulbs, groups & scenes"
       override val descriptionLong = "$description."
@@ -611,6 +611,8 @@ class Hue(widget: Widget): SimpleController(widget) {
       override val summaryActions = listOf(
          Entry("Data", "Refresh", F5.nameUi),
       )
+
+      val logger = KotlinLogging.logger { }
 
       fun drawGradientCir(radius: Int): Image {
          return WritableImage(2*radius, 2*radius).apply {

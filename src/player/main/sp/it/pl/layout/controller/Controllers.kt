@@ -1,5 +1,6 @@
 package sp.it.pl.layout.controller
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.atomic.AtomicInteger
 import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
@@ -13,7 +14,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.jvm.jvmName
-import mu.KLogging
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.layout.NodeFactory
 import sp.it.pl.layout.NodeInput
@@ -131,7 +131,7 @@ class ControllerEmpty(widget: Widget): Controller(widget) {
    override fun getConfigs() = emptyList<Config<Any?>>()
    override fun getConfig(name: String) = null
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Empty"
       override val description = "Empty widget with no content or functionality"
       override val descriptionLong = "$description."
@@ -180,7 +180,7 @@ class ControllerIntro(widget: Widget): Controller(widget) {
    override fun getConfigs() = emptyList<Config<Any?>>()
    override fun getConfig(name: String) = null
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Intro"
       override val description = "Introductory help widget guiding user through initial steps"
       override val descriptionLong = "$description."
@@ -323,7 +323,7 @@ class ControllerNode(widget: Widget): SimpleController(widget) {
          .ifNull { root.requestFocus() }
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Custom"
       override val description = "Displays custom component specified by ${Node::class.jvmName} class"
       override val descriptionLong = "$description. This avoids the need to create widget wrappers for ui components."

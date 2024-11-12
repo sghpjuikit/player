@@ -13,7 +13,6 @@ import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import kotlin.reflect.KClass
-import mu.KLogging
 import sp.it.pl.layout.NodeFactory
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.WidgetFactory
@@ -156,7 +155,7 @@ class IconPickerContent: StackPane() {
       iconsView.requestFocus()
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = ICON_BROWSER_NAME
       override val description = "Displays glyph icons of supported fonts"
       override val descriptionLong = "$description."

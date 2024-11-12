@@ -1,5 +1,6 @@
 package sp.it.pl.image
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.IOException
 import java.io.ObjectInputStream
@@ -16,7 +17,6 @@ import javafx.scene.image.WritableImage
 import javafx.util.Duration
 import javax.imageio.ImageIO
 import kotlinx.coroutines.withContext
-import mu.KLogging
 import org.apache.pdfbox.Loader.loadPDF
 import org.apache.pdfbox.rendering.PDFRenderer
 import sp.it.pl.audio.SimpleSong
@@ -179,7 +179,8 @@ interface ImageLoader {
 
 
 /** Standard image loader attempting the best possible quality and broad file type support. */
-object ImageStandardLoader: KLogging(), ImageLoader {
+object ImageStandardLoader: ImageLoader {
+   private val logger = KotlinLogging.logger { }
 
    override fun invoke(p: Params): Image? {
       logger.debug { "Loading img $p" }
@@ -226,7 +227,7 @@ object ImageStandardLoader: KLogging(), ImageLoader {
                      loadImagePsd(it.getInputStream(entry), p, highQuality = false)
                   }
                } catch (e: IOException) {
-                  if (!Interrupts.isInterrupted)  logger.error(e) { "Unable to load image from ${p.file}" }
+                  if (!Interrupts.isInterrupted) logger.error(e) { "Unable to load image from ${p.file}" }
                   null
                }
             }

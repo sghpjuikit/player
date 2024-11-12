@@ -1,5 +1,6 @@
 package sp.it.util.type
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.lang.reflect.Array
 import java.lang.reflect.Field
 import java.lang.reflect.GenericArrayType
@@ -98,7 +99,6 @@ import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
-import mu.KotlinLogging
 import org.jetbrains.kotlin.ir.backend.js.export.ExportedType
 import sp.it.util.dev.fail
 import sp.it.util.functional.Option
@@ -118,7 +118,7 @@ import sp.it.util.type.JavafxPropertyType.JavafxLongPropertyType
 import sp.it.util.type.PaneProperties.paneProperty
 import sp.it.util.ui.UiDelegate
 
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger { }
 
 fun Class<*>.isSuperclassOf(type: Class<*>) = isAssignableFrom(type)
 

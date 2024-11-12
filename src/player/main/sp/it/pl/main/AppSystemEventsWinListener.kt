@@ -20,7 +20,7 @@ import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinUser
 import com.sun.jna.platform.win32.WinUser.WindowProc
 import com.sun.jna.platform.win32.Wtsapi32
-import mu.KLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import sp.it.pl.main.AppSystemEvents.Event.FileVolumeAdded
 import sp.it.pl.main.AppSystemEvents.Event.FileVolumeRemoved
 import sp.it.pl.main.AppSystemEvents.SysListener
@@ -200,7 +200,8 @@ class AppSystemEventsWinListener(emitter: (AppSystemEvents.Event) -> Unit): SysL
       return WinDef.LRESULT(1)
    }
 
-   companion object: KLogging() {
+   companion object {
+      val logger = KotlinLogging.logger { }
 
       private fun getLastError(message: String): Int {
          val rc = Kernel32.INSTANCE.GetLastError()

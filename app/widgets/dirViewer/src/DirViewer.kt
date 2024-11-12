@@ -1,6 +1,7 @@
 package dirViewer
 
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.util.Stack
 import java.util.UUID
@@ -29,7 +30,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.input.TransferMode.ANY
 import javafx.scene.layout.HBox
-import mu.KLogging
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -511,7 +511,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       year = "2015",
       tags = [ LIBRARY ]
    )
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Dir Viewer"
       override val description = "Dir Viewer"
       override val descriptionLong = "Displays file hierarchy in a 2D vertically scrollable grid. Allows creation of customizable libraries."
@@ -533,6 +533,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          Entry("Grid cell", "Copy file", "CTRL+C"),
          Entry("Grid cell", "Paste file", "CTRL+V"),
       )
+      private val logger = KotlinLogging.logger { }
    }
 
    enum class CellType(val initialCellSize: CellSize) {

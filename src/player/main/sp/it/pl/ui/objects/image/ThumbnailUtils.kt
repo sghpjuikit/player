@@ -1,5 +1,6 @@
 package sp.it.pl.ui.objects.image
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.util.function.Consumer
 import java.util.function.Function
@@ -15,7 +16,6 @@ import javafx.scene.image.Image
 import javafx.util.Duration
 import kotlin.concurrent.Volatile
 import kotlinx.coroutines.runBlocking
-import mu.KLogging
 import sp.it.util.JavaLegacy
 import sp.it.util.async.VT
 import sp.it.util.async.coroutine.launch
@@ -161,6 +161,8 @@ class ThumbnailAnim(val thumbnail: Thumbnail) {
          }
    }
 
-   companion object: KLogging()
+   companion object {
+      private val logger = KotlinLogging.logger { }
+   }
 
 }

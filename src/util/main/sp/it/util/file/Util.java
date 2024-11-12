@@ -133,7 +133,7 @@ public interface Util {
 					out.add(new File(target, f.getName()));
 				}
 			} catch (IOException e) {
-				logger(Util.class).error("Could not copy file {}", f, e);
+				logger(Util.class).error(e, () -> "Could not copy file " + f);
 			}
 		}
 		return out;
@@ -148,7 +148,7 @@ public interface Util {
 			File nf = new File(target, new_name + "." + getSuffix(f.toURI()));
 			Files.copy(f.toPath(), nf.toPath(), options);
 		} catch (IOException e) {
-			logger(Util.class).error("Could not copy file {}", f, e);
+			logger(Util.class).error(e, () -> "Could not copy file " + f);
 		}
 	}
 
@@ -174,7 +174,7 @@ public interface Util {
 			// copy file
 			Files.copy(f.toPath(), nf.toPath(), options);
 		} catch (IOException e) {
-			logger(Util.class).error("Could not copy file {}", f, e);
+			logger(Util.class).error(e, () -> "Could not copy file " + f);
 		}
 	}
 

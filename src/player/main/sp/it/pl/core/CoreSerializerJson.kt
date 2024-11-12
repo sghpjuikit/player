@@ -2,6 +2,7 @@ package sp.it.pl.core
 
 import com.sun.net.httpserver.HttpExchange
 import de.jensd.fx.glyphs.GlyphIcons
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.setBody
@@ -38,7 +39,6 @@ import javafx.scene.text.Font
 import javafx.util.Duration
 import kotlin.reflect.KClass
 import kotlin.text.Charsets.UTF_8
-import mu.KLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
@@ -208,7 +208,9 @@ class CoreSerializerJson: Core {
             logger.error(it) { "Couldn't deserialize ${T::class} from file $file" }
       }
 
-   companion object: KLogging()
+   companion object {
+      val logger = KotlinLogging.logger { }
+   }
 }
 
 /** Converts json to value of the type specified by the reified type parameter */

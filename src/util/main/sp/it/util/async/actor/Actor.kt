@@ -1,11 +1,11 @@
 package sp.it.util.async.actor
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import mu.KLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.util.async.sleep
 import sp.it.util.async.threadFactory
@@ -13,6 +13,8 @@ import sp.it.util.functional.Option.Some
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
 import sp.it.util.type.volatile
+
+private val logger = KotlinLogging.logger { }
 
 /**
  * Actor that uses virtual thread.
@@ -54,7 +56,6 @@ class ActorVt<T>(
       while (queue.isNotEmpty()) sleep(1)
    }
 
-   companion object: KLogging()
 }
 
 /**
@@ -82,5 +83,4 @@ class ActorSe<T>(
    fun closeAndWait(): Unit =
       executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS).toUnit()
 
-   companion object: KLogging()
 }

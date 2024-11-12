@@ -1,11 +1,11 @@
 package commandGrid
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.util.UUID
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.ScrollEvent.SCROLL
-import mu.KLogging
 import sp.it.pl.conf.Command
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
@@ -175,7 +175,7 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
 
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "Command Grid"
       override val description = "Grid of commands - two-dimensional toolbar"
       override val descriptionLong = "$description. Commands are specified as .spit-command files in widget's user directory."
@@ -187,5 +187,7 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
       override val contributor = ""
       override val tags = setOf(UTILITY)
       override val summaryActions = listOf<ShortcutPane.Entry>()
+
+      private val logger = KotlinLogging.logger { }
    }
 }

@@ -1,6 +1,7 @@
 package sp.it.util.file
 
 import com.sun.nio.file.ExtendedWatchEventModifier.FILE_TREE
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.IOException
 import java.nio.file.ClosedWatchServiceException
@@ -16,7 +17,6 @@ import java.nio.file.WatchKey
 import java.nio.file.WatchService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Predicate
-import mu.KLogging
 import sp.it.util.async.VT
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
@@ -109,7 +109,9 @@ class FileMonitor {
       val timeMs = System.currentTimeMillis()
    }
 
-   companion object: KLogging() {
+   companion object {
+
+      private val logger = KotlinLogging.logger { }
 
       /**
        * Creates and starts directory monitoring reporting events for single file contained within the directory.

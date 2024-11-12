@@ -3,6 +3,7 @@ package sp.it.pl.main
 import sp.it.pl.main.AppSettings.app as conf
 import com.sun.jna.platform.win32.Advapi32Util
 import com.sun.tools.attach.VirtualMachine
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.lang.management.ManagementFactory
 import java.net.URLConnection
@@ -16,7 +17,6 @@ import javafx.stage.FileChooser.ExtensionFilter
 import javafx.stage.Stage
 import kotlin.system.exitProcess
 import kotlin.text.Charsets.UTF_8
-import mu.KLogging
 import sp.it.pl.audio.PlayerManager
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.core.CoreConfiguration
@@ -478,6 +478,8 @@ class App: Application(), GlobalConfigDelegator {
       MASTER, SLAVE
    }
 
-   companion object: KLogging()
+   companion object {
+      private val logger = KotlinLogging.logger { }
+   }
 
 }

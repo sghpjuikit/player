@@ -20,7 +20,6 @@ import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.SOMETIMES
 import javafx.scene.layout.VBox
 import kotlin.reflect.KClass
-import mu.KLogging
 import org.jaudiotagger.tag.wav.WavTag
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.Song
@@ -236,7 +235,7 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener, ObjectDetail
 
    override fun focus() = Unit
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = "ObjectInfo"
       override val description = "Displays information about or preview of an object"
       override val descriptionLong = "$description."

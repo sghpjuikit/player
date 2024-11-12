@@ -1,8 +1,8 @@
 package sp.it.pl.main
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.request.post
 import kotlinx.coroutines.runBlocking
-import mu.KLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.core.bodyJs
 import sp.it.pl.core.requestBodyAsJs
@@ -13,6 +13,7 @@ import sp.it.util.conf.Config
 import sp.it.util.reactive.Handler1
 
 class AppInstanceCom() {
+   private val logger = KotlinLogging.logger { }
    private val j = Config.json
    private val api = "/instance-launched"
    val onNewInstanceHandlers = Handler1<List<String>>()
@@ -39,5 +40,4 @@ class AppInstanceCom() {
       runFX { onNewInstanceHandlers(args) }
    }
 
-   companion object: KLogging()
 }

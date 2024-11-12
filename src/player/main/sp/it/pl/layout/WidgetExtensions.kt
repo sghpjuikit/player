@@ -115,7 +115,7 @@ fun Component.openInConfigured() {
 
 fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
    failIfNotFxThread()
-   WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)
+   WidgetManager.logger.info { "Reloading all open widgets of $widgetFactory" }
 
    APP.widgetManager.widgets.findAll(OPEN)
       .filter { it.factory.id==widgetFactory.id }

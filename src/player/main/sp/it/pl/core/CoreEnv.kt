@@ -4,6 +4,7 @@ import java.awt.desktop.AppReopenedEvent as AppReopenedEventFX
 import java.awt.desktop.ScreenSleepEvent as ScreenSleepEventFX
 import java.awt.desktop.SystemSleepEvent as SystemSleepEventFX
 import java.awt.desktop.UserSessionEvent as UserSessionEventFX
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.Desktop
 import java.awt.desktop.AppForegroundEvent
 import java.awt.desktop.AppForegroundListener
@@ -14,7 +15,6 @@ import java.awt.desktop.ScreenSleepListener
 import java.awt.desktop.SystemSleepListener
 import java.awt.desktop.UserSessionListener
 import javafx.stage.Stage
-import mu.KLogging
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.main.APP
 import sp.it.pl.main.App
@@ -54,7 +54,8 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.units.seconds
 
-object CoreEnv: Core, KLogging() {
+object CoreEnv: Core {
+   private val logger = KotlinLogging.logger { }
 
    override fun init() {
       initEnvironmentContext()

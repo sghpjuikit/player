@@ -1,6 +1,7 @@
 package inspector
 
 import javafx.stage.Window as WindowFX
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.scene.Node
@@ -15,7 +16,6 @@ import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.shape.Shape
 import javafx.stage.Window
 import javafx.util.Callback
-import mu.KLogging
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -182,7 +182,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
 
    override fun focus() = tree.requestFocus()
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = INSPECTOR_NAME
       override val description = "Inspects hierarchies of data as tree"
       override val descriptionLong = "Displays data as tree. Includes windows, ui, widgets, file system and more. Allows editing if possible."
@@ -196,6 +196,8 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
       override val summaryActions = listOf(
          ShortcutPane.Entry("Data", "Inspect object", "Drag & drop object"),
       )
+
+      private val logger = KotlinLogging.logger { }
 
       private fun <T: Any> T.traverseChildrenToLast(next: (T) -> T?) = traverse(next).drop(1).lastOrNull()
 

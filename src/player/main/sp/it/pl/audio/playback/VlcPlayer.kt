@@ -1,5 +1,6 @@
 package sp.it.pl.audio.playback
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.net.URI
 import javafx.geometry.Pos.TOP_CENTER
@@ -9,7 +10,6 @@ import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import kotlin.math.roundToInt
 import kotlinx.coroutines.invoke
-import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.OFF
@@ -350,7 +350,8 @@ class VlcPlayer: GeneralPlayer.Play {
 
    data class AudioDevice(val name: String, val deviceId: String)
 
-   companion object: KLogging() {
+   companion object {
+      private val logger = KotlinLogging.logger { }
 
       private fun discoverVlc(locations: List<File>) = NativeDiscovery(
          WindowsNativeDiscoveryStrategy().customize(locations),

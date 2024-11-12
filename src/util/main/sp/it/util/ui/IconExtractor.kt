@@ -5,12 +5,12 @@ import javafx.scene.image.Image as ImageFx
 import javax.swing.Icon as ImageSw
 import com.sun.jna.platform.win32.Shell32
 import com.sun.jna.platform.win32.WinDef
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
-import mu.KLogging
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.div
 import sp.it.util.file.type.MimeExt.Companion.exe
@@ -33,8 +33,9 @@ import sp.it.util.ui.image.toFxAndFlush
  * http://stackoverflow.com/questions/28034432/javafx-file-listview-with-icon-and-file-name
  * http://stackoverflow.com/questions/26192832/java-javafx-set-swing-icon-for-javafx-label
  */
-object IconExtractor: KLogging() {
+object IconExtractor {
 
+   private val logger = KotlinLogging.logger { }
    private val dirTmp = File(System.getProperty("java.io.tmpdir"))
    private val helperFileSystemView by lazy { FileSystemView.getFileSystemView() }
    private val icons = ConcurrentHashMap<String, ImageFx?>()

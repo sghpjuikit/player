@@ -1,5 +1,6 @@
 package sp.it.pl.audio
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.net.URI
 import javafx.geometry.VPos
@@ -10,7 +11,6 @@ import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
-import mu.KLogging
 import sp.it.pl.audio.PlayerManager.Events.PlaybackActivated
 import sp.it.pl.audio.PlayerManager.Events.PlaybackRestoreAborted
 import sp.it.pl.audio.PlayerManager.Events.PlaybackSongChanged
@@ -693,7 +693,9 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       ABSOLUTE, RELATIVE
    }
 
-   companion object: KLogging()
+   companion object {
+      private val logger = KotlinLogging.logger { }
+   }
 
    /**
     * Adds songs refreshed event [handler] invoked when application updates some song metadata. Invoked on FX thread.

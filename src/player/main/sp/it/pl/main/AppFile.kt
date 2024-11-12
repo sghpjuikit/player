@@ -1,5 +1,6 @@
 package sp.it.pl.main
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import java.io.File
 import java.net.URI
@@ -12,7 +13,6 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.javafx.awaitPulse
-import mu.KotlinLogging
 import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.pl.core.InfoUi
 import sp.it.pl.core.Parse

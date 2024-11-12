@@ -1,5 +1,6 @@
 package sp.it.util.async.future
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
@@ -7,7 +8,6 @@ import java.util.concurrent.Executor
 import java.util.function.Consumer
 import javafx.application.Platform
 import javafx.util.Duration
-import mu.KLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.util.async.CURR
 import sp.it.util.async.FX
@@ -26,6 +26,8 @@ import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
+
+private val logger = KotlinLogging.logger { }
 
 /**
  * Future monad implementation backed by [CompletableFuture].
@@ -113,7 +115,7 @@ class Fut<out T>(private val f: CompletableFuture<T>) {
    @Blocking
    fun blockAndGetOrThrow(): T = block().getDone().toTryRaw().orThrow
 
-   companion object: KLogging() {
+   companion object {
 
       /** @return future completed with [Unit]] */
       @JvmStatic

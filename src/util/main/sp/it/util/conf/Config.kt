@@ -1,11 +1,11 @@
 package sp.it.util.conf
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.collections.ObservableList
 import kotlin.reflect.full.companionObjectInstance
-import mu.KLogging
 import sp.it.util.access.OrV
 import sp.it.util.access.vAlways
 import sp.it.util.access.vx
@@ -186,8 +186,9 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, ConstrainedRead<T>,
 
    override fun getConfigs() = listOf(this)
 
-   companion object: KLogging() {
+   companion object {
 
+      private val logger = KotlinLogging.logger { }
       val json = Json()
 
       /** Helper method. Expert API. */

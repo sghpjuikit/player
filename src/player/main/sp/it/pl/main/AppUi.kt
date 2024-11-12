@@ -6,6 +6,7 @@ import sp.it.pl.main.AppSettings.ui.form as confForm
 import sp.it.pl.main.AppSettings.ui.grid as confGrid
 import sp.it.pl.main.AppSettings.ui.image as confImage
 import sp.it.pl.main.AppSettings.ui.table as confTable
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.net.MalformedURLException
 import javafx.beans.property.SimpleBooleanProperty
@@ -23,7 +24,6 @@ import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.text.Font
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
-import mu.KLogging
 import sp.it.pl.layout.ContainerSwitch
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetSource.OPEN
@@ -287,7 +287,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    /** Toggles layout controlling mode.  */
    @IsAction(name = "Reload skin", info = "Reloads skin.", keys = "F7")
    fun reloadSkin() {
-      logger.info("Reloading skin={}", skin.value)
+      logger.info { "Reloading skin=${skin.value}" }
       applySkin(skin.value)
    }
 
@@ -363,7 +363,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
     */
    fun findSkins(): Set<SkinCss> {
       if (!Util.isValidatedDirectory(skinDir)) {
-         logger.error("Skin lookup failed." + skinDir.path + " could not be accessed.")
+         logger.error { "Skin lookup failed." + skinDir.path + " could not be accessed." }
          return setOf()
       }
 
@@ -373,7 +373,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
             val name = it.name
             val css = File(it, "$name.css")
             if (Util.isValidFile(css)) {
-               logger.info("Registering skin: $name")
+               logger.info { "Registering skin: $name" }
                SkinCss(css)
             } else {
                null
@@ -383,20 +383,20 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    }
 
    private fun registerSkin(s: SkinCss): SkinCss {
-      logger.info("Registering skin={}", s.name)
+      logger.info { "Registering skin=${s.name}" }
       skinsImpl += s
       return s
    }
 
    fun setSkin(s: SkinCss) {
-      logger.info("Setting skin={}", s.name)
+      logger.info { "Setting skin=${s.name}" }
 
       registerSkin(s)
       skin.value = s.name
    }
 
    fun setSkin(cssFile: File) {
-      logger.info("Setting skin file={}", cssFile)
+      logger.info { "Setting skin file=$cssFile" }
 
       val s = skins.stream()
          .filter { (_, file) -> file==cssFile }.findAny()
@@ -484,7 +484,8 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       POPUP, INSIDE
    }
 
-   companion object: KLogging() {
+   companion object {
+      private val logger = KotlinLogging.logger { }
 
       private fun File.toStyleSheet() = try {
          toURI().toURL().toExternalForm()

@@ -1,5 +1,6 @@
 package sp.it.util.file
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.FileFilter
 import java.io.FilenameFilter
@@ -14,7 +15,6 @@ import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
 import java.util.zip.ZipFile
-import mu.KotlinLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.util.dev.fail
 import sp.it.util.functional.Try

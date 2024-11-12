@@ -9,6 +9,7 @@ import be.tarsos.dsp.io.jvm.JVMAudioInputStream
 import be.tarsos.dsp.util.fft.FFT
 import be.tarsos.dsp.util.fft.HannWindow
 import be.tarsos.dsp.util.fft.WindowFunction
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.LinkedList
 import java.util.Queue
 import java.util.TreeSet
@@ -35,7 +36,6 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
-import mu.KLogging
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator
 import sp.it.pl.audio.audioInputDeviceNames
@@ -599,7 +599,8 @@ class TarsosAudioEngine(val settings: Spektrum, val fft: FrequencyBarsProcessor)
       }
    }
 
-   companion object: KLogging() {
+   companion object {
+      val logger = KotlinLogging.logger { }
       val audioThreadFactory = Thread.ofVirtual().name("spektrum-widget-audio-fft", 0)!!
    }
 

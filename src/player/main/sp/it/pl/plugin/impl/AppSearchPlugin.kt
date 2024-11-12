@@ -4,6 +4,7 @@ import com.sun.jna.Native
 import com.sun.jna.platform.win32.Shell32
 import com.sun.jna.platform.win32.ShlObj
 import com.sun.jna.platform.win32.WinDef
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 import javafx.collections.FXCollections.observableArrayList
@@ -11,7 +12,6 @@ import javafx.geometry.Insets
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.AnchorPane
-import mu.KLogging
 import sp.it.pl.layout.ExperimentalController
 import sp.it.pl.layout.Layout
 import sp.it.pl.layout.Widget
@@ -356,7 +356,7 @@ class AppSearchPlugin: PluginBase() {
 
    }
 
-   companion object: KLogging(), PluginInfo {
+   companion object: PluginInfo {
       override val name = "App Search"
       override val description = "Provides application search/start capability to application search as well as application launcher widget"
       override val isSupported = true
@@ -364,6 +364,8 @@ class AppSearchPlugin: PluginBase() {
       override val isEnabledByDefault = false
 
       fun File.getPortableAppExe(type: FileType) = if (type==DIRECTORY) File(this, "$name.exe") else null
+
+      private val logger = KotlinLogging.logger { }
 
       private val windowsAppDataDirectory by lazy {
          val pszPath = CharArray(WinDef.MAX_PATH)

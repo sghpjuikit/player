@@ -1,5 +1,6 @@
 package logger
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.regex.Pattern
 import javafx.event.EventHandler
 import javafx.geometry.Pos.TOP_LEFT
@@ -10,7 +11,6 @@ import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
 import kotlin.Double.Companion.MAX_VALUE
-import mu.KLogging
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -91,7 +91,7 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
       area.text = text
    }
 
-   companion object: WidgetCompanion, KLogging() {
+   companion object: WidgetCompanion {
       override val name = LOGGER_NAME
       override val description = "Displays text or application standard output (stdout), which contains application logging."
       override val descriptionLong = "$description."
@@ -103,7 +103,9 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
       override val contributor = ""
       override val tags = setOf(UTILITY, DEVELOPMENT)
       override val summaryActions = listOf<ShortcutPane.Entry>()
-      
+
+      private val logger = KotlinLogging.logger { }
+
       /** Ansi escape sequence pattern */
       private val ansi = Pattern.compile("\\x1B\\[[0-?]*[ -/]*[@-~]")
 

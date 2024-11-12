@@ -1,12 +1,12 @@
 package sp.it.pl.audio.playlist
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.net.URISyntaxException
 import java.nio.charset.Charset
 import kotlin.text.Charsets.UTF_8
-import mu.KotlinLogging
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song

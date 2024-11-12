@@ -1,9 +1,9 @@
 package sp.it.pl.plugin.impl
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 import javafx.collections.FXCollections.observableArrayList
-import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.main.IconUN
@@ -103,11 +103,13 @@ class DirSearchPlugin: PluginBase() {
          .maxDepth(searchDepth.value)
          .filter { it.isDirectory }
 
-   companion object: KLogging(), PluginInfo {
+   companion object: PluginInfo {
       override val name = "Dir Search"
       override val description = "Provides directory search capability to application search"
       override val isSupported = true
       override val isSingleton = true
       override val isEnabledByDefault = false
+
+      private val logger = KotlinLogging.logger { }
    }
 }

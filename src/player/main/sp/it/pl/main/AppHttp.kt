@@ -4,6 +4,7 @@ import sp.it.util.async.VT as VTe
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
 import io.ktor.client.plugins.HttpTimeout
@@ -16,7 +17,6 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.util.concurrent.CopyOnWriteArrayList
-import mu.KLogging
 import org.jetbrains.annotations.Range
 import sp.it.pl.core.Core
 import sp.it.pl.core.NameUi
@@ -204,7 +204,8 @@ class AppHttp(
 
    private class Exception404(message: String): RuntimeException(message)
 
-   companion object: KLogging() {
+   companion object {
+      private val logger = KotlinLogging.logger { }
 
       /** Whether `Server` header is this application. */
       fun HttpExchange.isFromSpitPlayer() =

@@ -1,9 +1,9 @@
 package sp.it.util.conf
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.lang.invoke.MethodHandles
 import java.util.concurrent.ConcurrentHashMap
-import mu.KLogging
 import sp.it.util.access.toggle
 import sp.it.util.action.Action
 import sp.it.util.action.ActionRegistrar
@@ -23,7 +23,8 @@ import sp.it.util.type.isSubclassOf
 /** Persistable [Configurable]. */
 open class Configuration(nameMapper: ((Config<*>) -> String) = nameMapperDefault): Configurable<Any?> {
 
-   companion object: KLogging() {
+   companion object {
+      private val logger = KotlinLogging.logger { }
       val nameMapperDefault: ((Config<*>) -> String) = { if (it.group.isBlank()) it.name else "${it.group}.${it.name}" }
       val namePostMapperDefault: (String) -> String = { s -> s.replace(' ', '_').lowercase() }
       val configToRawKeyMapperDefault = nameMapperDefault compose namePostMapperDefault

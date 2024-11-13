@@ -2,6 +2,7 @@ package sp.it.pl.plugin.impl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
 import java.io.File
@@ -10,6 +11,7 @@ import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import javafx.beans.value.ObservableValue
 import kotlinx.coroutines.invoke
+import kotlinx.coroutines.runBlocking
 import sp.it.pl.audio.audioInputDeviceNames
 import sp.it.pl.audio.audioOutputDeviceNames
 import sp.it.pl.core.InfoUi
@@ -20,6 +22,7 @@ import sp.it.pl.core.orMessage
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppHttp
 import sp.it.pl.main.Bool
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
 import sp.it.pl.main.IconMA
@@ -650,6 +653,16 @@ class VoiceAssistant: PluginBase() {
    /** The llm model of the OpenAI or OpenAI-compatible server */
    val llmOpenAiModel by cv("")
       .noUi()
+      .valuesUnsealed {
+         runBlocking {
+            VT.invokeTry {
+               APP.http.client.get(llmOpenAiUrl.value + "/models") { header("Authorization", "Bearer " + llmOpenAiBearer.value)}
+                  .bodyAsJs()
+                  .asJsObjectValue()?.get("data")
+                  ?.asJsArrayValue()?.map { it.asJsObjectValue()?.get("id")?.asJsStringValue()!! }
+            }.orNull().orEmpty()
+         }
+      }
       .def(name = "Model", info = "The llm model of the OpenAI-compatible server. Server may ignore this.")
 
    /** Cli command to start llm server. Use if you want to automatize starting local AI server. Invoked on plugin start or waking from hibernation. */

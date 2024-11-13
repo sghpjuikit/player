@@ -7,4 +7,15 @@ class FastFile(path: String, private val isDir: Boolean, private val isFil: Bool
    override fun isFile(): Boolean = isFil
 }
 
-fun File.toFast(type: FileType = FileType(this)) = FastFile(path, type==FileType.DIRECTORY, type==FileType.FILE)
+fun File.toFast() = when {
+   this is FastFile -> this
+   else -> when (FileType(this)) {
+      FileType.DIRECTORY -> FastFile(path, true, false)
+      FileType.FILE -> FastFile(path, false, true)
+   }
+}
+
+fun File.toFast(type: FileType) = when {
+   this is FastFile -> this
+   else -> FastFile(path, type==FileType.DIRECTORY, type==FileType.FILE)
+}

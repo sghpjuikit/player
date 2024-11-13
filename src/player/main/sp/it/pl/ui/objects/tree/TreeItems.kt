@@ -515,15 +515,14 @@ class FileTreeItem: SimpleTreeItem<File> {
 
    override fun isLeaf() = isLeaf
 
-   private fun buildChildren(i: TreeItem<File>): List<TreeItem<File>> {
+   private fun buildChildren(i: TreeItem<File>) = runVT {
       val dirs = ArrayList<FileTreeItem>()
       val files = ArrayList<FileTreeItem>()
       i.value.children().forEach {
-         val isFile = it.isFile
-         (if (isFile) files else dirs) += FileTreeItem(it, isFile)
+         val f = it.toFast()
+         (if (f.isFile) files else dirs) += FileTreeItem(f, f.isFile)
       }
-      dirs += files
-      return dirs
+      dirs + files
    }
 
    fun removeChild(file: File) {

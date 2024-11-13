@@ -698,7 +698,7 @@ class VoiceAssistant: PluginBase() {
    private fun llmOpenAiServerStart(command: String?) =
       command.net { c ->
          runTry {
-            if (c!=null && !c.startsWith("!"))
+            if (c!=null && c.isNotBlank() && !c.startsWith("!"))
                runCommandWithOutput(c).withAppProgress("Start LLM server").awaitFxOrBlock()
          }.ifError {
             logger.error(it) { "Failed to run start command=$c" }
@@ -708,7 +708,7 @@ class VoiceAssistant: PluginBase() {
    private fun llmOpenAiServerStop(on: Bool) =
       llmOpenAiServerStopCommandCompute(on).net { c ->
          runTry {
-            if (c!=null && !c.startsWith("!"))
+            if (c!=null && c.isNotBlank() && !c.startsWith("!"))
                runCommandWithOutput(c).withAppProgress("Stop LLM server").awaitFxOrBlock()
          }.ifError {
             logger.error(it) { "Failed to run stop command=$c" }

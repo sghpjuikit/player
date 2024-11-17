@@ -681,7 +681,7 @@ class VoiceAssistant: PluginBase() {
          appendSent("Command must be idempotent - have no effect if ran multiple times.")
          appendSent("Prefix with ! to disable command.")
          appendLine()
-         appendSent("Example for `LmStudio` on `Windows`:\n`cmd /c lms server start && lms ps 2>&1 | findstr \$model > nul 2>&1 || lms load --gpu max --yes --exact --quiet \$model` || exit \b 0.")
+         appendSent("Example for `LmStudio` on `Windows`:\n`cmd /c lms server start && lms ps 2>&1 | findstr \$model > nul 2>&1 || lms load --gpu max --yes --exact --quiet \$model` || exit \\b 0.")
       })
 
    /** Cli command to stop llm server. Use if you want to automatize stopping local AI server. Invoked on plugin stop or hibernation. */

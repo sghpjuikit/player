@@ -222,6 +222,7 @@ class Mic(Actor):
             except Exception as e:
                 is_disconnect = (isinstance(e, sd.PortAudioError) and e.args[1] == -9999) or (isinstance(e, OSError) and e.errno in (-9988, errno.EINTR, errno.EIO))
                 if is_disconnect: self.speak(f"Microphone {self.location} connection lost.", CTX.location)
+                if is_disconnect: source = None
                 if not is_disconnect: self.write(f"ERR: Microphone {self.micName} error occurred:" + str(e))
                 if not is_disconnect: print_exc()
                 continue

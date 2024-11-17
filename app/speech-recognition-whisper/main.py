@@ -302,6 +302,7 @@ CTX.location = mainLocation
 (argLlmOpenAiUrl, llmOpenAiUrl) = arg('llm-openai-url', 'none')
 (argLlmOpenAiBearer, llmOpenAiBearer) = arg('llm-openai-bearer', 'none')
 (argLlmOpenAiModelName, llmOpenAiModelName) = arg('llm-openai-model', 'none')
+(argLlmOpenAiModelIgnore, llmOpenAiModelIgnore) = arg('llm-openai-model-ignore', "false", lambda it: it=="true")
 (argLlmSysPrompt, llmSysPrompt) = arg('llm-chat-sys-prompt', 'You are helpful chat bot. You are voiced by text-to-speech, so you are extremly concise.')
 (argLlmChatMaxTokens, llmChatMaxTokens) = arg('llm-chat-max-tokens', '400', lambda it: int(it))
 (argLlmChatTemp, llmChatTemp) = arg('llm-chat-temp', '0.5', lambda it: float(it))
@@ -347,7 +348,7 @@ elif llmEngine == "gpt4all":
     )
 elif llmEngine == "openai":
     llm = LlmHttpOpenAi(
-        llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModelName,
+        llmOpenAiUrl, llmOpenAiBearer, "" if llmOpenAiModelIgnore else llmOpenAiModelName,
         tts, write,
         llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
     )
@@ -821,6 +822,18 @@ while not sysTerminating:
 
         elif argLlmChatTopk.isArg(m):
             llm.topk = argLlmChatTopk(m)
+
+        elif argLlmOpenAiUrl.isArg(m) and isinstance(llm, LlmHttpOpenAi):
+            llm.url = argLlmOpenAiUrl(m)
+
+        elif argLlmOpenAiBearer.isArg(m) and isinstance(llm, LlmHttpOpenAi):
+            llm.bearer = argLlmOpenAiBearer(m)
+
+        elif argLlmOpenAiModelName.isArg(m) and isinstance(llm, LlmHttpOpenAi):
+            llm.model = "" if llmOpenAiModelIgnore else argLlmOpenAiModelName(m)
+
+        elif argLlmOpenAiModelIgnore.isArg(m) and isinstance(llm, LlmHttpOpenAi):
+            llm.model = "" if argLlmOpenAiModelIgnore(m) else llmOpenAiModelName
 
         elif argUsePythonCommands.isArg(m):
             usePythonCommandsOld = usePythonCommands

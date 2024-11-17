@@ -20,6 +20,7 @@ import sp.it.pl.core.bodyAsJs
 import sp.it.pl.core.bodyJs
 import sp.it.pl.core.orMessage
 import sp.it.pl.layout.WidgetFactory
+import sp.it.pl.layout.WidgetManager
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppHttp
@@ -200,6 +201,7 @@ class VoiceAssistant: PluginBase() {
             "llm-openai-url=${llmOpenAiUrl.value}",
             "llm-openai-bearer=${llmOpenAiBearer.value}",
             "llm-openai-model=${llmOpenAiModel.value}",
+            "llm-openai-model-ignore=${llmOpenAiModelIgnore.value}",
             "llm-chat-sys-prompt=${llmChatSysPrompt.value.replace('\n', ' ')}",
             "llm-chat-max-tokens=${llmChatMaxTokens.value}",
             "llm-chat-temp=${llmChatTemp.value}",
@@ -666,6 +668,10 @@ class VoiceAssistant: PluginBase() {
       }
       .def(name = "Model", info = "The llm model of the OpenAI-compatible server. Server may ignore this.")
 
+   /** The user authorization of the OpenAI or OpenAI-compatible server */
+   val llmOpenAiModelIgnore by cv(false)
+      .def(name = "Model ignored", info = "Whether the specified model is not passed to the OpenAi-compatible server so it may use whatever model is loaded if supported.")
+
    /** Cli command to start llm server. Use if you want to automatize starting local AI server. Invoked on plugin start or waking from hibernation. */
    val llmOpenAiServerStartCommand by cvn<String>(null).nonEmpty()
       .noUi()
@@ -675,7 +681,7 @@ class VoiceAssistant: PluginBase() {
          appendSent("Command must be idempotent - have no effect if ran multiple times.")
          appendSent("Prefix with ! to disable command.")
          appendLine()
-         appendSent("Example for `LmStudio` on `Windows`:\n`cmd /c lms server start && lms ps 2>&1 | findstr \$model > nul 2>&1 || lms load --gpu max --yes --exact --quiet \$model`.")
+         appendSent("Example for `LmStudio` on `Windows`:\n`cmd /c lms server start && lms ps 2>&1 | findstr \$model > nul 2>&1 || lms load --gpu max --yes --exact --quiet \$model` || exit \b 0.")
       })
 
    /** Cli command to stop llm server. Use if you want to automatize stopping local AI server. Invoked on plugin stop or hibernation. */
@@ -687,7 +693,7 @@ class VoiceAssistant: PluginBase() {
          appendSent("Command must be idempotent - have no effect if ran multiple times.")
          appendSent("Prefix with ! to disable command.")
          appendLine()
-         appendSent("Example for `LmStudio` on `Windows`:\n`cmd /c lms ps | findstr \$model > nul && lms unload --quiet --no-launch \$model`.")
+         appendSent("Example for `LmStudio` on `Windows`:\n`cmd /c lms unload --quiet --no-launch \$model`.")
       })
 
    private fun llmOpenAiServerStartCommandCompute(on: Bool) =
@@ -722,6 +728,7 @@ class VoiceAssistant: PluginBase() {
          LlmEngine.OPENAI -> ListConfigurable.heterogeneous(
             ::llmOpenAiUrl.getDelegateConfig(), ::llmOpenAiBearer.getDelegateConfig(),
             ::llmOpenAiModel.getDelegateConfig(),
+            ::llmOpenAiModelIgnore.getDelegateConfig(),
             ::llmOpenAiServerStartCommand.getDelegateConfig(), ::llmOpenAiServerStopCommand.getDelegateConfig()
          )
          LlmEngine.GPT4ALL -> ListConfigurable.heterogeneous(::llmGpt4AllModel.getDelegateConfig())
@@ -784,6 +791,10 @@ class VoiceAssistant: PluginBase() {
               llmChatTemp.chan().throttleToLast(p2) subscribe { write("llm-chat-temp=$it") }
               llmChatTopP.chan().throttleToLast(p2) subscribe { write("llm-chat-topp=$it") }
               llmChatTopK.chan().throttleToLast(p2) subscribe { write("llm-chat-topk=$it") }
+             llmOpenAiUrl.chan()                    subscribe { write("llm-openai-url=$it") }
+          llmOpenAiBearer.chan()                    subscribe { write("llm-openai-bearer=$it") }
+           llmOpenAiModel.chan()                    subscribe { write("llm-openai-model=$it") }
+     llmOpenAiModelIgnore.chan()                    subscribe { write("llm-openai-model-ignore=$it") }
       // @formatter:on
 
       startSpeechRecognition(true)
@@ -793,7 +804,7 @@ class VoiceAssistant: PluginBase() {
          micChanges, micVoiceDetect, micVoiceDetectDevice, audioOutChanges,
          sttEngine, sttWhisperModel, sttWhisperDevice, sttWhisperSt2Model, sttWhisperSt2Device, sttFasterWhisperModel, sttFasterWhisperDevice, sttNemoModel, sttNemoDevice, sttHttpUrl,
          ttsEngine, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl,
-         llmEngine, llmGpt4AllModel, llmOpenAiUrl, llmOpenAiBearer, llmOpenAiModel,
+         llmEngine, llmGpt4AllModel,
          httpUrl
       )
       val processChange = processChangeVals.map { it.chan() }.reduce { a, b -> a + b }

@@ -177,7 +177,7 @@ class VoiceAssistant: PluginBase() {
                ).toCompactS()
             }
 
-         val commandRaw = listOf(
+         val command = EnvironmentContext.runAsProgramArgsTransformer(listOf(
             "python", python.absolutePath,
             "wake-word=${wakeUpWord.value}",
             "main-speaker=${mainSpeaker.value}",
@@ -217,8 +217,9 @@ class VoiceAssistant: PluginBase() {
             "stt-http-url=${sttHttpUrl.value}",
             "http-url=${httpUrl.value.net { it.substringAfterLast("/") }}",
             "use-python-commands=${false}",
-         )
-         val command = EnvironmentContext.runAsProgramArgsTransformer(commandRaw)
+         ))
+         logger.info { "Starting voice assistant python with command=${command.joinToString(" ")}" }
+
          val process = ProcessBuilder(command)
             .directory(dir)
             .redirectOutput(PIPE).redirectError(PIPE)

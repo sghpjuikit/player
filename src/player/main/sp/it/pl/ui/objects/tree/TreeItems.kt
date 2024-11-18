@@ -71,6 +71,7 @@ import sp.it.util.async.limitExecCount
 import sp.it.util.async.runVT
 import sp.it.util.collections.getElementType
 import sp.it.util.collections.setTo
+import sp.it.util.collections.setToOne
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.dev.fail
@@ -509,7 +510,11 @@ class FileTreeItem: SimpleTreeItem<File> {
    override fun getChildren(): ObservableList<TreeItem<File>> = super.getChildren().apply {
       if (isFirstTimeChildren) {
          isFirstTimeChildren = false
-         this setTo buildChildren(this@FileTreeItem)
+
+         this setToOne TreeItem<File>(File("Loading..."))
+         buildChildren(this@FileTreeItem)
+            .ui { this setTo it }
+            .onError { this setToOne TreeItem<File>(File("Error...")) }
       }
    }
 

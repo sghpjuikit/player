@@ -830,17 +830,16 @@ while not sysTerminating:
             llm.bearer = argLlmOpenAiBearer(m)
 
         elif argLlmOpenAiModelName.isArg(m) and isinstance(llm, LlmHttpOpenAi):
-            llm.model = "" if llmOpenAiModelIgnore else argLlmOpenAiModelName(m)
+            llm.modelName = "" if llmOpenAiModelIgnore else argLlmOpenAiModelName(m)
 
         elif argLlmOpenAiModelIgnore.isArg(m) and isinstance(llm, LlmHttpOpenAi):
-            llm.model = "" if argLlmOpenAiModelIgnore(m) else llmOpenAiModelName
+            llm.modelName = "" if argLlmOpenAiModelIgnore(m) else llmOpenAiModelName
 
         elif argUsePythonCommands.isArg(m):
             usePythonCommandsOld = usePythonCommands
             usePythonCommands = argUsePythonCommands(m)
             if usePythonCommandsOld!=usePythonCommands:
                 llm(ChatReact(llmSysPrompt, f"User {'increased' if usePythonCommands else 'decreased'} your output expressivity", name + " prompt changed"))
-
 
         # exit command
         elif m == "EXIT":

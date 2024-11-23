@@ -2737,6 +2737,7 @@ TextFlow > * {
 /*
  * inherits: FlowPane
  * pseudoClasses: readonly, has-focus
+                  uninteractive: ui only, no interaction
  * attributes: -fx-editable-by: [PLUS_NODE | TEXT_FIELD]
  */
 .tag-text-field {
@@ -2762,25 +2763,6 @@ TextFlow > * {
     -fx-background-color: transparent;
 }
 
-/*
- * inherits: .label
- * pseudoClasses: readonly
-                  uninteractive: ui only, no interaction
- */
-.tag-text-field .tag-text-field-tag {
-    -fx-content-display: right;
-    -fx-label-padding: 0 0 0 0.5em;
-    -fx-border-width: 0.5;
-    -fx-border-radius: 0.5em;
-    -fx-border-color: -skin-def-font-color;
-}
-.tag-text-field .tag-text-field-tag:readonly {
-    -fx-label-padding: 0 0.5em 0 0.5em;
-}
-.tag-text-field .tag-text-field-tag:hover {
-    -fx-border-color: -fx-focus-color;
-}
-
 .tag-text-field:uninteractive {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -2789,6 +2771,26 @@ TextFlow > * {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
 }
+
+/*
+ * inherits: .label
+ * pseudoClasses: has-button: when remove button is present
+ */
+.tag-text-field-tag {
+    -fx-content-display: right;
+    -fx-graphic-text-gap: 0;
+    -fx-label-padding: 0 0.5em 0 0.5em;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 0.5em;
+    -fx-border-color: -skin-def-font-color;
+}
+.tag-text-field-tag:has-button {
+    -fx-label-padding: 0 0 0 0.5em;
+}
+.tag-text-field-tag:hover {
+    -fx-border-color: -fx-focus-color;
+}
+
 .tag-text-field:uninteractive .tag-text-field-tag:hover {
     -fx-border-color: -skin-def-font-color;
 }

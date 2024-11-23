@@ -163,7 +163,7 @@ open class TagTextField<T>(
    private fun TagNode<T>.closeTagIcon() = Icon(ICON_CLOSE).onClickDo { itemRemove(tagItem) }
 
    private fun TagNode<T>.updateEditable() = apply {
-      pseudoClassToggle("readonly", !isEditable.value)
+      pseudoClassToggle("has-button", isEditable.value)
       graphic = if (isEditable.value) closeTagIcon() else null
    }
 

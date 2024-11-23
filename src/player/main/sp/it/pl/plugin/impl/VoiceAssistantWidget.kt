@@ -5,20 +5,20 @@ import java.time.Instant
 import javafx.animation.Interpolator.LINEAR
 import javafx.animation.Transition.INDEFINITE
 import javafx.geometry.HPos
-import javafx.geometry.NodeOrientation.RIGHT_TO_LEFT
+import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos
 import javafx.scene.Cursor.HAND
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane
-import javafx.scene.control.TextArea
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
-import javafx.scene.layout.Priority.NEVER
 import javafx.scene.layout.VBox
 import javafx.scene.text.TextAlignment
 import javafx.util.Duration
@@ -34,11 +34,9 @@ import sp.it.pl.core.InfoUi
 import sp.it.pl.core.NameUi
 import sp.it.pl.core.bodyAsJs
 import sp.it.pl.core.to
-import sp.it.pl.layout.ComponentLoader
 import sp.it.pl.layout.ComponentLoader.Ctx
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
-import sp.it.pl.layout.WidgetSource
 import sp.it.pl.layout.WidgetUse
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.loadIn
@@ -47,6 +45,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.WidgetTags
+import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.errorLabel
 import sp.it.pl.main.showFloating
@@ -56,7 +55,6 @@ import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Event
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Line
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.View
 import sp.it.pl.ui.ValueToggleButtonGroup
-import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
@@ -82,7 +80,6 @@ import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateConfig
-import sp.it.util.conf.noUi
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
@@ -114,6 +111,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncNonNullWhile
+import sp.it.util.reactive.syncTo
 import sp.it.util.reactive.syncWhile
 import sp.it.util.reactive.zip
 import sp.it.util.text.capitalLower
@@ -145,12 +143,12 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
    private val chatSettings = v(false)
    private val plugin = APP.plugins.plugin<VoiceAssistant>().asValue(onClose)
 
-   private val mode by cv(Out.DEBUG).noUi()
+   private val mode by cv(Out.DEBUG)
       .def(name = "Tab", info = "Type of shown output.")
-   private val submit by cv(Submit.CHAT).noUi()
+   private val submit by cv(Submit.CHAT)
       .def(name = "Submit", info = "Type of input to send.")
    private val speaker by cv(VoiceAssistant.mainSpeakerInitial)
-      .valuesUnsealed { VoiceAssistant.obtainSpeakers() }.noUi()
+      .valuesUnsealed { VoiceAssistant.obtainSpeakers() }
       .uiNoOrder()
       .def(name = "Speaker", info = "Speaker.")
 
@@ -375,12 +373,14 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
 
             lay += vBox(5.emScaled, CENTER) {
                visible syncFrom mode.map { it != Out.HW && it != Out.EVENTS }
+               val textAreaPadding = v(Insets.EMPTY)
 
                lay(ALWAYS) += textArea.apply {
                   id = "output"
                   isEditable = false
                   isFocusTraversable = false
                   wrapTextProperty() syncFrom mode.map { it==Out.SPEAK }
+                  paddingProperty() syncTo textAreaPadding
                   prefColumnCount = 100
 
                   onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
@@ -400,49 +400,66 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                   }
                }
                lay += stackPane {
-                  lay(CENTER) += hBox(null, CENTER) {
-                     lay(ALWAYS) += stackPane {
-                        val promptVisible = v(true)
+                  id = "user-input-pane"
+                  val userModeWidthcccWidth = v(0.0)
+                  val promptVisible = v(true)
+                  installActivityIndicator()
 
-                        lay += textArea {
-                           id = "user-input"
-                           isWrapText = true
-                           isNewlineOnShiftEnter = true
-                           prefColumnCount = 100
-                           textProperty() sync { promptVisible.value = it.orEmpty().isEmpty() }
+                  lay += textArea {
+                     userModeWidthcccWidth attach { style = "-fx-padding: ${textAreaPadding.value.top} ${textAreaPadding.value.right + it} ${textAreaPadding.value.bottom} ${textAreaPadding.value.left};" }
+                     id = "user-input"
+                     isWrapText = true
+                     isNewlineOnShiftEnter = true
+                     prefColumnCount = 100
+                     textProperty() sync { promptVisible.value = it.orEmpty().isEmpty() }
 
-                           // reactive height
-                           singLineProperty() sync {
-                              styleclassToggle("text-area-singlelined", !it)
-                              prefRowCount = if (it) 10 else 1
-                           }
+                     // reactive height
+                     singLineProperty() sync {
+                        styleclassToggle("text-area-singlelined", !it)
+                        prefRowCount = if (it) 10 else 1
+                     }
 
-                           // progress
-                           installActivityIndicator()
+                     // action
+                     run = { plugin.value.ifNotNull { submit.value.run(it, speaker.value, text) } }
+                     onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) insertNewline() else run() }
+                  }
 
-                           // action
-                           run = { plugin.value.ifNotNull { submit.value.run(it, speaker.value, text) } }
-                           onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) insertNewline() else run() }
-                        }
+                  lay += label {
+                     id = "user-input-prompt-label"
+                     style = "-fx-text-fill: -skin-prompt-font-color;"
+                     textAlignment = TextAlignment.CENTER
+                     this.isMouseTransparent = true
+                     visibleProperty() syncFrom promptVisible
+                     textProperty() syncFrom (plugin flatMap {
+                        val p = "${ENTER.nameUi} to send, ${SHIFT.nameUi} + ${ENTER.nameUi} for new line"
+                        if (it==null) vAlways(p)
+                        else it.wakeUpWord.zip(it.llmOn).map { (_, chat) -> "Speak ${if (chat) "normally" else "`" + it.wakeUpWordPrimary.capitalLower() + "`"} or $p" }
+                     })
+                  }
 
-                        lay += label {
-                           id = "user-input-prompt-label"
-                           style = "-fx-text-fill: -skin-prompt-font-color;"
-                           textAlignment = TextAlignment.CENTER
-                           this.isMouseTransparent = true
-                           visibleProperty() syncFrom promptVisible
-                           textProperty() syncFrom (plugin flatMap {
-                              val p = "${ENTER.nameUi} to send, ${SHIFT.nameUi} + ${ENTER.nameUi} for new line"
-                              if (it==null) vAlways(p)
-                              else it.wakeUpWord.zip(it.llmOn).map { (_, chat) -> "Speak ${if (chat) "normally" else "`"+it.wakeUpWordPrimary.capitalLower()+"`"} or $p" }
-                           })
+                  lay(CENTER_RIGHT) += hBox(null, CENTER_RIGHT) {
+                     id = "user-mode-pane"
+                     isPickOnBounds = false
+
+                     lay += label {
+                        cursor = HAND
+                        textProperty() syncFrom speaker
+                        onEventDown(MOUSE_CLICKED) {
+                           ::speaker.getDelegateConfig().configure("Edit speaker") { }
                         }
                      }
-                     lay(NEVER) += ConfigEditor.create(::speaker.getDelegateConfig()).editor.apply { nodeOrientation = RIGHT_TO_LEFT }
-                     lay(NEVER) += Icon(IconFA.SEND).onClickDo { run() }.apply {
+                     lay += Icon(IconFA.SEND).onClickDo { run() }.apply {
                         mode sync { tooltip(it.runDesc) }
                      }
-                     lay(NEVER) += ConfigEditor.create(::submit.getDelegateConfig()).editor
+                     lay += label {
+                        cursor = HAND
+                        textProperty() syncFrom submit.map { it.nameUi }
+                        onEventDown(MOUSE_CLICKED) {
+                           ::submit.getDelegateConfig().configure("Edit submit mode") { }
+                        }
+                     }
+                     val labels = children.takeLast(3)
+                     for (l in labels) l.boundsInLocalProperty() attach { userModeWidthcccWidth.value = labels.sumOf { it.boundsInLocal.width } + 2*spacing }
                   }
                }
             }
@@ -452,7 +469,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
 
    override fun focus() = textArea.requestFocus()
 
-   private fun TextArea.installActivityIndicator() {
+   private fun Pane.installActivityIndicator() {
       val a = anim(8.seconds) { at ->
          val a = at*2*PI
          val s = 100 + 100*((1 - at).abs min at.abs)
@@ -519,7 +536,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       CHAT("Chat", "Send the text to the Voice Assistant as if user spoke it", { speaker, text -> writeChat(speaker, text) }),
       SPEAK("Speak", "Narrates the specified text using synthesized voice", { _, text -> speak(text) }),
       COM("Command", "Send command and execute it", { _, text -> writeCom(text) }),
-      COM_PYT("Python command", "Send python command and execute it", { speaker, text -> writeComPyt(speaker, null, text) }),
+      PYT("Python", "Send python code and execute it", { speaker, text -> writeComPyt(speaker, null, text) }),
    }
    enum class Out(
       override val nameUi: String,

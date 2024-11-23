@@ -719,7 +719,6 @@ while not sysTerminating:
             text = text if ":" not in text else text.split(":")[2]
             text = base64.b64decode(text).decode('utf-8')
             text = remove_any_prefix(text, wake_words)
-            print(location)
             return (speaker, location, text)
 
         # talk command

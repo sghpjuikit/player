@@ -921,7 +921,7 @@ class VoiceAssistant: PluginBase() {
 
    fun writeComPytInt(speaker: String, location: String?, command: String): Unit = write("COM-PYT-INT: ${speaker}:${location.orEmpty()}:${command.encodeBase64()}")
 
-   fun writeChat(speaker: String, text: String) = write("CHAT: ${speaker}:${null.orEmpty()}:${text.encodeBase64()}")
+   fun writeChat(speaker: String, location: String?, text: String) = write("CHAT: ${speaker}:${location.orEmpty()}:${text.encodeBase64()}")
 
    @IsAction(name = "Speak text", info = "Identical to \"Narrate text\"")
    fun synthesize() = speak()
@@ -934,7 +934,7 @@ class VoiceAssistant: PluginBase() {
    fun speak(text: String) = write("SAY: ${text.encodeBase64()}")
 
    @IsAction(name = "Write chat", info = "Writes to voice assistant chat")
-   fun chat() = action<String>("Write chat", "Writes to voice assistant chat", IconMA.CHAT, BLOCK) { writeChat("User", it) }.apply {
+   fun chat() = action<String>("Write chat", "Writes to voice assistant chat", IconMA.CHAT, BLOCK) { writeChat("User", null, it) }.apply {
       constraintsN += listOf(Multiline, MultilineRows(10), RepeatableAction)
    }.invokeWithForm()
 

@@ -9,15 +9,15 @@ import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.TextArea
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
-import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import sp.it.pl.main.Css
-import sp.it.pl.main.appTooltip
+import sp.it.pl.main.appTooltipInstant
 import sp.it.pl.main.emScaled
+import sp.it.pl.ui.objects.installInstant
 import sp.it.pl.ui.item_node.ConfigEditor
 import sp.it.pl.ui.item_node.ConfigurableCE
 import sp.it.pl.ui.item_node.ObservableListCE
@@ -41,7 +41,6 @@ import sp.it.util.conf.Constraint.UiNested
 import sp.it.util.conf.Constraint.UiSingleton
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
-import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.nullsFirst
 import sp.it.util.math.clip
@@ -54,18 +53,12 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.type.propertyNullable
 import sp.it.util.type.raw
 import sp.it.util.ui.hBox
-import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.plus
 import sp.it.util.ui.pseudoClassChanged
-import sp.it.util.ui.screenXy
 import sp.it.util.ui.width
-import sp.it.util.ui.x2
-import sp.it.util.ui.xy
-import sp.it.util.units.em
-import sp.it.util.units.millis
 
 class ConfigPane<T: Any?>: VBox {
    private var editors: List<ConfigEditor<*>> = listOf()
@@ -86,11 +79,7 @@ class ConfigPane<T: Any?>: VBox {
          children setTo children.materialize().sortedByConfigWith(value)
       }
 
-   private val configInfoTooltip = appTooltip("").apply {
-      showDelay = 0.millis
-      hideDelay = 0.millis
-      isWrapText = true
-      maxWidth = 350.emScaled
+   private val configInfoTooltip = appTooltipInstant().apply {
       opacityProperty() syncFrom (ui map { if (it==MINI) 1.0 else 0.0 })
    }
 
@@ -156,16 +145,8 @@ class ConfigPane<T: Any?>: VBox {
                minWidth = USE_PREF_SIZE
                labelForWithClick setTo editor
                if (needsInfo()) {
-                  install(configInfoTooltip)
-                  onEventUp(MOUSE_MOVED) {
-                     configInfoTooltip.xy = it.screenXy + 1.em.emScaled.x2
-                  }
-                  onEventUp(MOUSE_ENTERED) {
-                     if (ui.value!=MINI) it.consume()
-                     configInfoTooltip.hide()
-                     configInfoTooltip.text = config.info
-                     configInfoTooltip.xy = it.screenXy + 1.em.emScaled.x2
-                  }
+                  installInstant(configInfoTooltip) { config.info }
+                  onEventUp(MOUSE_ENTERED) { if (ui.value!=MINI) it.consume() }
                }
                block()
             }

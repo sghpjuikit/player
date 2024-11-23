@@ -89,6 +89,7 @@ import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.appTooltip
+import sp.it.pl.main.appTooltipInstant
 import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.ifErrorDefault
@@ -111,6 +112,7 @@ import sp.it.pl.ui.objects.complexfield.TagTextField
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.NullCheckIcon
+import sp.it.pl.ui.objects.installInstant
 import sp.it.pl.ui.objects.textfield.ColorTextField
 import sp.it.pl.ui.objects.textfield.DateTextField
 import sp.it.pl.ui.objects.textfield.DateTimeTextField
@@ -399,6 +401,9 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
 
    final override val editor = SpitComboBox<T>(uiConverter)
    private var suppressChanges = false
+   companion object {
+      private val editorInfoTooltip = appTooltipInstant()
+   }
 
    init {
       editor.styleClass += STYLECLASS_COMBOBOX_CONFIG_EDITOR
@@ -433,12 +438,13 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
       uiInfoConverter.ifNotNull { converter ->
          editor.cellFactory = Callback {
             object: ImprovedComboBoxListCell<T>(editor) {
-               val infoIcon = Icon(IconFA.INFO)
+               val infoIcon = Icon(IconFA.INFO).apply {
+                  installInstant(editorInfoTooltip) { if (item==null && !isNullable) null.toUi() else item.net(converter) }
+               }
 
                override fun updateItem(item: T, empty: Boolean) {
                   super.updateItem(item, empty)
                   super.setGraphic(infoIcon)
-                  infoIcon.tooltip(if (item==null && !isNullable) null.toUi() else item.net(converter))
                }
             }
          }

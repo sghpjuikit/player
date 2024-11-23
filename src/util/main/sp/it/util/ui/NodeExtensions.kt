@@ -10,6 +10,9 @@ import javafx.scene.Scene
 import javafx.scene.control.Control
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.SplitPane
+import javafx.scene.control.Tooltip
+import javafx.scene.control.Tooltip.install
+import javafx.scene.control.Tooltip.uninstall
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Pane
 import javafx.scene.robot.Robot
@@ -251,3 +254,11 @@ private class SceneNodeOverMonitor(val scene: Scene) {
       scene.onEventUp(MouseEvent.MOUSE_EXITED) { onMouseExited(it.sceneXy) } on d
    }
 }
+
+/* ---------- TOOLTIP ----------------------------------------------------------------------------------------------- */
+
+/** Equivalent to [Tooltip.install]. */
+infix fun Node.install(tooltip: Tooltip) = Tooltip.install(this, tooltip)
+
+/** Equivalent to [Tooltip.uninstall]. */
+infix fun Node.uninstall(tooltip: Tooltip) = Tooltip.uninstall(this, tooltip)

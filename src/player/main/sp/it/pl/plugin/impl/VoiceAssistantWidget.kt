@@ -55,8 +55,11 @@ import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Event
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Line
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.View
 import sp.it.pl.ui.ValueToggleButtonGroup
+import sp.it.pl.ui.objects.complexfield.TagTextField
+import sp.it.pl.ui.objects.complexfield.TagTextField.*
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.installClickable
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.pane.ActContext
 import sp.it.pl.ui.pane.ConfigPane
@@ -151,6 +154,10 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       .valuesUnsealed { VoiceAssistant.obtainSpeakers() }
       .uiNoOrder()
       .def(name = "Speaker", info = "Speaker.")
+   private val speakerLocation by cv(VoiceAssistant.mainLocationInitial)
+      .valuesUnsealed { listOf(VoiceAssistant.mainLocationInitial) }
+      .uiNoOrder()
+      .def(name = "Location", info = "Location.")
 
    init {
       root.prefSize = 500.emScaled x 500.emScaled
@@ -420,7 +427,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                      }
 
                      // action
-                     run = { plugin.value.ifNotNull { submit.value.run(it, speaker.value, text) } }
+                     run = { plugin.value.ifNotNull { submit.value.run(it, speaker.value, speakerLocation.value, text) } }
                      onEventDown(KEY_PRESSED, ENTER) { if (it.isShiftDown) insertNewline() else run() }
                   }
 
@@ -441,23 +448,32 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                      id = "user-mode-pane"
                      isPickOnBounds = false
 
+                     fun configure() {
+                        ListConfigurable.heterogeneous(
+                           ::speaker.getDelegateConfig(),
+                           ::speakerLocation.getDelegateConfig(),
+                           ::submit.getDelegateConfig(),
+                        ).configure("Edit submit mode") { }
+                     }
                      lay += label {
-                        cursor = HAND
+                        styleClass += TagNode.STYLECLASS
                         textProperty() syncFrom speaker
-                        onEventDown(MOUSE_CLICKED) {
-                           ::speaker.getDelegateConfig().configure("Edit speaker") { }
-                        }
+                        installClickable { configure() }
+                     }
+                     lay += label {
+                        styleClass += TagNode.STYLECLASS
+                        textProperty() syncFrom speakerLocation
+                        installClickable { configure() }
+                     }
+                     lay += label {
+                        styleClass += TagNode.STYLECLASS
+                        textProperty() syncFrom submit.map { it.nameUi }
+                        installClickable { configure() }
                      }
                      lay += Icon(IconFA.SEND).onClickDo { run() }.apply {
                         mode sync { tooltip(it.runDesc) }
                      }
-                     lay += label {
-                        cursor = HAND
-                        textProperty() syncFrom submit.map { it.nameUi }
-                        onEventDown(MOUSE_CLICKED) {
-                           ::submit.getDelegateConfig().configure("Edit submit mode") { }
-                        }
-                     }
+
                      val labels = children.takeLast(3)
                      for (l in labels) l.boundsInLocalProperty() attach { userModeWidthcccWidth.value = labels.sumOf { it.boundsInLocal.width } + 2*spacing }
                   }
@@ -531,12 +547,12 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
    private enum class Submit(
       override val nameUi: String,
       override val infoUi: String,
-      val run: VoiceAssistant.(String, String) -> Unit,
+      val run: VoiceAssistant.(String, String, String) -> Unit,
    ): NameUi, InfoUi {
-      CHAT("Chat", "Send the text to the Voice Assistant as if user spoke it", { speaker, text -> writeChat(speaker, text) }),
-      SPEAK("Speak", "Narrates the specified text using synthesized voice", { _, text -> speak(text) }),
-      COM("Command", "Send command and execute it", { _, text -> writeCom(text) }),
-      PYT("Python", "Send python code and execute it", { speaker, text -> writeComPyt(speaker, null, text) }),
+      CHAT("Chat", "Send the text to the Voice Assistant as if user spoke it", { speaker, location, text -> writeChat(speaker, location, text) }),
+      SPEAK("Speak", "Narrates the specified text using synthesized voice", { _, _, text -> speak(text) }),
+      COM("Command", "Send command and execute it", { _, _, text -> writeCom(text) }),
+      PYT("Python", "Send python code and execute it", { speaker, location, text -> writeComPyt(speaker, location, text) }),
    }
    enum class Out(
       override val nameUi: String,

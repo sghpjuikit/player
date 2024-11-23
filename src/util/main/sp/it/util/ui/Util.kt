@@ -361,13 +361,6 @@ fun ImageView.applyViewPort(i: Image?, fit: FitFrom) {
    }
 }
 
-/* ---------- TOOLTIP ----------------------------------------------------------------------------------------------- */
-
-/** Equivalent to [Tooltip.install]. */
-infix fun Node.install(tooltip: Tooltip) = Tooltip.install(this, tooltip)
-
-/** Equivalent to [Tooltip.uninstall]. */
-infix fun Node.uninstall(tooltip: Tooltip) = Tooltip.uninstall(this, tooltip)
 
 /* ---------- AREA -------------------------------------------------------------------------------------------------- */
 

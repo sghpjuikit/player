@@ -11,9 +11,10 @@ import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.FlowPane
-import javax.tools.Tool
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Ui.ICON_CLOSE
+import sp.it.pl.main.appTooltipInstant
+import sp.it.pl.ui.objects.installInstant
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
@@ -41,7 +42,6 @@ import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.zip
-import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.onNodeDispose
@@ -172,7 +172,7 @@ open class TagTextField<T>(
    class TagNode<T>(val tagItem: T, text: String, desc: String?): Label(text) {
       init {
          styleClass += STYLECLASS
-         if (desc!=null) install(Tooltip(desc))
+         if (desc!=null) installInstant(tagTooltip) { desc }
       }
 
       companion object {
@@ -182,6 +182,8 @@ open class TagTextField<T>(
 
    companion object: StyleableCompanion() {
       const val STYLECLASS = "tag-text-field"
+
+      private val tagTooltip by lazy { appTooltipInstant() }
 
       val EDITABLE_BY by svMetaData<TagTextField<*>, EditableBy>("-fx-editable-by", enumConverter(), TEXT_FIELD, TagTextField<*>::editableBy)
    }

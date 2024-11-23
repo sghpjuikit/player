@@ -8,7 +8,6 @@ import java.net.URLEncoder
 import java.nio.file.Path
 import java.util.Optional
 import java.util.concurrent.atomic.AtomicLong
-import java.util.function.Consumer
 import javafx.animation.ParallelTransition
 import javafx.beans.property.Property
 import javafx.beans.value.ObservableValue
@@ -116,7 +115,6 @@ import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
-import sp.it.util.functional.consumer
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -451,6 +449,13 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
    onShowing = EventHandler {
       computeDataInfo(data()) ui { text.text = it }
    }
+}
+
+fun appTooltipInstant() = appTooltip("").apply {
+   showDelay = 0.millis
+   hideDelay = 0.millis
+   isWrapText = true
+   maxWidth = 350.emScaled
 }
 
 /** @return future with information inspected by [App.instanceInfo] about the specified data on [IO] executor */

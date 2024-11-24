@@ -1,9 +1,6 @@
 package sp.it.pl.ui.objects.window.stage
 
-import sp.it.pl.core.CoreMouse.onNextMouseMoveStop
-import javafx.stage.Window as WindowFx
-import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
-import sp.it.pl.main.AppSettings.ui.window as confWindow
+import com.sun.javafx.scene.control.ContextMenuContent
 import com.sun.jna.platform.win32.GDI32
 import com.sun.jna.platform.win32.User32
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -14,6 +11,7 @@ import javafx.geometry.Pos
 import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.scene.Scene
+import javafx.scene.control.ContextMenu
 import javafx.scene.image.Image
 import javafx.scene.input.DragEvent.DRAG_ENTERED
 import javafx.scene.input.KeyCode.ESCAPE
@@ -26,6 +24,7 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
+import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.paint.Color
 import javafx.stage.Screen
@@ -34,9 +33,11 @@ import javafx.stage.StageStyle
 import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.StageStyle.UTILITY
+import javafx.stage.Window as WindowFx
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import kotlin.math.sqrt
 import kotlinx.coroutines.invoke
+import sp.it.pl.core.CoreMouse.onNextMouseMoveStop
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.ComponentFactory
@@ -49,6 +50,8 @@ import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.deduplicateIds
 import sp.it.pl.layout.exportFxwl
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
+import sp.it.pl.main.AppSettings.ui.window as confWindow
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.emScaled
@@ -75,6 +78,7 @@ import sp.it.pl.ui.pane.OverlayPane.Companion.isOverlayWindow
 import sp.it.pl.ui.pane.ScreenBgrGetter
 import sp.it.util.access.toggle
 import sp.it.util.access.v
+import sp.it.util.access.vAlways
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.coroutine.FX
@@ -128,6 +132,7 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.zip
+import sp.it.util.reactive.zip2
 import sp.it.util.system.Os
 import sp.it.util.text.keys
 import sp.it.util.ui.anchorPane
@@ -250,28 +255,43 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       if (Os.WINDOWS.isCurrent)
          WindowFx.getWindows().onItemSyncWhile { w ->
-               if (w.isOverlayWindow() && w.asOverlayWindow()!!.displayBgr.value!=ScreenBgrGetter.NONE)
-                  return@onItemSyncWhile Subscription { }
+            if (w.isOverlayWindow() && w.asOverlayWindow()!!.displayBgr.value!=ScreenBgrGetter.NONE)
+               return@onItemSyncWhile Subscription { }
 
-               (w.asAppWindow()?.transparency ?: windowTransparency) zip (w.asAppWindow()?.effect ?: windowEffect) sync { (transparency, effect) ->
-                  runLater {
-                     w.takeIf { it.isShowing }?.reflectHwnd().ifNotNull {
-                        it.alpha(0.0f) // remove visual artefact
-                        it.applyBlur(
-                           when {
-                              w.asStage()?.style.net { it==null || it==TRANSPARENT } && transparency==Transparency.OFF -> when (effect) {
-                                 BgrEffect.OFF -> ACCENT_DISABLED
-                                 BgrEffect.BLUR -> ACCENT_ENABLE_BLURBEHIND
-                                 BgrEffect.ACRYLIC -> ACCENT_ENABLE_ACRYLICBLURBEHIND
-                              }
-                              else -> ACCENT_DISABLED
-                           }
-                        )
-                        it.alpha(w.opacity.toFloat()) // restore opacity
-                        w.asPopWindow()?.root?.pseudoClassChanged(pcTransparentBlur, effect!=BgrEffect.OFF && transparency==Transparency.OFF)
+            val wTransparency = w.asAppWindow()?.transparency ?: windowTransparency
+            val wEffect = w.asAppWindow()?.effect ?: windowEffect
+            val wSkin = APP.ui.skinData
+            val wBgr = null
+               ?: w.asAppWindow()?.root?.backgroundProperty()
+               ?: w.asPopWindow()?.root?.backgroundProperty()
+               ?: w.asOverlayWindow()?.backgroundProperty()
+               ?: w.asIf<ContextMenu>()?.scene?.root?.childrenUnmodifiable?.find { "context-menu" in it.styleClass }?.asIf<Pane>()?.children?.find { "context-menu" in it.styleClass }?.asIf<ContextMenuContent>()?.backgroundProperty()
+               ?: w.sceneProperty().flatMap { it.rootProperty() }.flatMap { it.asIf<Region>()?.backgroundProperty() ?: vAlways(null) }
+
+            wTransparency zip wEffect zip2 wBgr sync { (transparency, effect, bgr) ->
+               runLater {
+                  w.takeIf { it.isShowing }?.reflectHwnd().ifNotNull {
+                     val b = when {
+                        // user-set transparent window avoid blur
+                        transparency!=Transparency.OFF -> ACCENT_DISABLED
+                        // window does not need blur
+                        bgr?.fills?.firstOrNull()?.fill?.isOpaque==true -> ACCENT_DISABLED
+                        // window does not need blur
+                        w.asStage()?.style.net { it!=null && it!=TRANSPARENT } -> ACCENT_DISABLED
+                        // decide blur type
+                        else -> when (effect) {
+                           BgrEffect.OFF -> ACCENT_DISABLED
+                           BgrEffect.BLUR -> ACCENT_ENABLE_BLURBEHIND
+                           BgrEffect.ACRYLIC -> ACCENT_ENABLE_ACRYLICBLURBEHIND
+                        }
                      }
+                     it.alpha(0.0f) // remove visual artefact
+                     it.applyBlur(b)
+                     it.alpha(w.opacity.toFloat()) // restore opacity
+                     w.asPopWindow()?.root?.pseudoClassChanged(pcTransparentBlur, b!=ACCENT_DISABLED)
                   }
                }
+            }
          }
 
       APP.mouse.screens.onChangeAndNow {

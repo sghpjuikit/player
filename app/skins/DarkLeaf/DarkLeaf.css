@@ -21,6 +21,7 @@
     -skin-def-font-color-hover: -skin-green;
     -skin-focus-bgr-color: rgba(255,22,22,0.2);
     -skin-window-bgr-color: -skin-white-dark;
+    -skin-window-bgr-blur-color: -skin-white-dark;
     -skin-window-bgr-color-content-free: -skin-white;
     -skin-window-bgr-color-content-free-blur: -skin-white;
     -fx-focus-color: -skin-base-color;

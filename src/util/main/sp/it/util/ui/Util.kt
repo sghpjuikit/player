@@ -293,9 +293,9 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
 fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
    val clip = Rectangle()
 
-   asIf<Pane>()?.backgroundProperty()?.sync { b ->
+   asIf<Region>()?.backgroundProperty()?.sync { b ->
       val radii = b?.fills?.firstOrNull()?.radii ?: CornerRadii.EMPTY
-      clip.arcHeight = radii.topLeftHorizontalRadius*2
+      clip.arcHeight = radii.topLeftVerticalRadius*2
       clip.arcWidth = radii.topLeftHorizontalRadius*2
    }
 
@@ -314,9 +314,9 @@ fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
 fun Pane.initClipToPadding() {
    val clip = Rectangle()
 
-   asIf<Pane>()?.backgroundProperty()?.sync { b ->
+   asIf<Region>()?.backgroundProperty()?.sync { b ->
       val radii = b?.fills?.firstOrNull()?.radii ?: CornerRadii.EMPTY
-      clip.arcHeight = radii.topLeftHorizontalRadius*2
+      clip.arcHeight = radii.topLeftVerticalRadius*2
       clip.arcWidth = radii.topLeftHorizontalRadius*2
    }
 

@@ -171,7 +171,6 @@ class CoreSerializerJson: Core {
             Command::class,
             Command.CommandActionId::class,
             Command.CommandComponentId::class,
-            AppUi.SkinCss::class,
          )
          classes.forEach { c ->
             c.asIs<KClass<Any>>() convert object: JsConverter<Any> {

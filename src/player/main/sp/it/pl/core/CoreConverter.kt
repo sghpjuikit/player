@@ -76,7 +76,6 @@ import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
-import sp.it.pl.main.AppUi.SkinCss
 import sp.it.pl.main.Events
 import sp.it.pl.main.FileFilter
 import sp.it.pl.main.toS
@@ -449,7 +448,6 @@ object CoreConverter: Core {
       addP<Command>(Command)
       addP<Command.CommandActionId>(Command.CommandActionId)
       addP<Command.CommandComponentId>(Command.CommandComponentId)
-      addT<SkinCss>({ it.file.absolutePath }, { Try.ok(SkinCss(File(it))) })
    }
 
    private inline fun <reified T: Any> ConverterDefault.addP(converter: ConverterString<T>) = addParser(T::class, converter)

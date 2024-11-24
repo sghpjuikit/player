@@ -245,7 +245,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       }
       grid.selectedItem sync {
          outputSelectedSuppressor.suppressed {
-            failIf(it!=null && it.parent!=item) { "item-parent mismatch" }
+            failIf(it!=null && it.parent?.value!=item?.value) { "item-parent mismatch" }
             outputSelected.value = it?.value
             item?.lastSelectedChild = grid.skinImpl?.selectedCI ?: NO_SELECT
          }

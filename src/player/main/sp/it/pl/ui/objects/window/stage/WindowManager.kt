@@ -260,7 +260,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
             val wTransparency = w.asAppWindow()?.transparency ?: windowTransparency
             val wEffect = w.asAppWindow()?.effect ?: windowEffect
-            val wSkin = APP.ui.skinData
             val wBgr = null
                ?: w.asAppWindow()?.root?.backgroundProperty()
                ?: w.asPopWindow()?.root?.backgroundProperty()

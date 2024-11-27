@@ -20,6 +20,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -81,12 +82,15 @@ import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.filter;
+import static sp.it.util.functional.Util.with;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.attach1If;
 import static sp.it.util.reactive.UtilKt.attachSize;
+import static sp.it.util.reactive.UtilKt.map;
 import static sp.it.util.reactive.UtilKt.onChange;
+import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.reactive.UtilKt.syncSize;
 import static sp.it.util.text.StringExtensionsKt.keys;
 import static sp.it.util.ui.TableViewSelectionModelExtensionsKt.clearAndSelect;
@@ -238,7 +242,6 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}));
 
 		onChange(getItems(), runnable(() -> resizeIndexColumn()));
-		footerPane.getStyleClass().add("table-view-footer");
 		footerVisible.set(true);
 
 		initPlaceholder();
@@ -425,15 +428,20 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 */
 	public final TableInfo<T> items_info = new TableInfo<>(new Label()); // can not bind here as table items list not ready
 	private final Label searchQueryLabel = new Label();
-	private final HBox bottomLeftPane = layHorizontally(5, CENTER_LEFT, menus, items_info.getNode());
-	private final HBox bottomRightPane = layHorizontally(5, CENTER_RIGHT, searchQueryLabel);
 	/**
 	 * Pane for controls in the bottom of the table.
 	 * Feel free to modify its content. Menu-bar and item info label are on the
 	 * left {@link BorderPane#leftProperty()}. Search query label is on the right {@link BorderPane#rightProperty()}.
 	 * Both wrapped in {@link HBox};
 	 */
-	public final BorderPane footerPane = new BorderPane(null, null, bottomRightPane, null, bottomLeftPane);
+	public final HBox footerPane = with(new HBox(menus), footer -> {
+		footer.setAlignment(CENTER_LEFT);
+		footer.getStyleClass().add("table-view-footer");
+		sync(map(searchQueryLabel.textProperty(), it -> it==null || it.isBlank()), consumer(it -> {
+			if (it) footer.getChildren().setAll(menus, items_info.getNode());
+			else footer.getChildren().setAll(menus, searchQueryLabel);
+		}));
+	});
 
 	/** Table's filter node. */
 	public class Filter extends FieldedPredicateChainItemNode<T,ObjectField<T,Object>> {

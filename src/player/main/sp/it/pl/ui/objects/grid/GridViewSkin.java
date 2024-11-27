@@ -79,7 +79,9 @@ import static sp.it.util.functional.Util.with;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UnsubscribableKt.on;
+import static sp.it.util.reactive.UtilKt.map;
 import static sp.it.util.reactive.UtilKt.onChange;
+import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.ui.NodeExtensionsKt.hasFocus;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
@@ -168,7 +170,6 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		on(onChange(grid.getItemsShown(), runnable(() -> flow.rebuildCellsNow())), onDispose);
 		searchQueryLabel.textProperty().bind(control.getSearch().searchQuery);
 		itemsInfo.bind(grid);
-		footerPane.getStyleClass().add("grid-view-footer");
 
 		// search
 		onDispose.plusAssign(runnable(() -> searchQueryLabel.textProperty().unbind()));
@@ -267,15 +268,20 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	 * to display different information. You may want to reuse {@link sp.it.pl.ui.nodeinfo.TableInfo.Companion#getDEFAULT_TEXT_FACTORY()}.
 	 */
 	public final GridInfo<T,F> itemsInfo = new GridInfo<>(new Label(), null);
-	private final HBox bottomLeftPane = layHorizontally(5, CENTER_LEFT, menus, itemsInfo.getNode());
-	private final HBox bottomRightPane = layHorizontally(5, CENTER_RIGHT, searchQueryLabel);
 	/**
 	 * Pane for controls in the bottom of the table.
 	 * Feel free to modify its content. Menu bar and item info label are on the
 	 * left {@link BorderPane#leftProperty()}. Search query label is on the right {@link BorderPane#rightProperty()}.
 	 * Both wrapped in {@link HBox};
 	 */
-	public final BorderPane footerPane = new BorderPane(null, null, bottomRightPane, null, bottomLeftPane);
+	public final HBox footerPane = with(new HBox(), footer -> {
+		footer.setAlignment(CENTER_LEFT);
+		footer.getStyleClass().add("grid-view-footer");
+		sync(map(searchQueryLabel.textProperty(), it -> it==null || it.isBlank()), (Boolean it) -> {
+			if (it) footer.getChildren().setAll(menus, itemsInfo.getNode());
+			else footer.getChildren().setAll(menus, searchQueryLabel);
+		});
+	});
 
 	/* ---------- FILTER ------------------------------------------------------------------------------------------------ */
 

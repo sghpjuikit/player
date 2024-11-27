@@ -562,19 +562,10 @@ var TextArea.textAlignment: TextAlignment
       else -> TextAlignment.LEFT
    }
    set(alignment) {
-      pseudoClassChanged("align-left", false)
-      pseudoClassChanged("align-right", false)
-      pseudoClassChanged("align-center", false)
-      pseudoClassChanged("align-justify", false)
-      pseudoClassChanged(
-         when (alignment) {
-            TextAlignment.LEFT -> "align-left"
-            TextAlignment.RIGHT -> "align-right"
-            TextAlignment.CENTER -> "align-center"
-            TextAlignment.JUSTIFY -> "align-justify"
-         },
-         true
-      )
+      pseudoClassChanged("align-left", alignment==TextAlignment.LEFT)
+      pseudoClassChanged("align-right", alignment==TextAlignment.RIGHT)
+      pseudoClassChanged("align-center", alignment==TextAlignment.CENTER)
+      pseudoClassChanged("align-justify", alignment==TextAlignment.JUSTIFY)
    }
 
 /** Sets font, overriding css style. */

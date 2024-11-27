@@ -5,25 +5,25 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_RIGHT
-import javafx.geometry.VPos
+import javafx.scene.control.TextArea
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.layout.Background
+import javafx.scene.layout.Border
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.text.TextAlignment
-import javafx.scene.text.TextBoundsType
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppEventLog
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Key
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.TextIcon
-import sp.it.util.access.textAlign
 import sp.it.util.access.toggleNext
 import sp.it.util.access.v
+import sp.it.util.async.runLater
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.net
 import sp.it.util.functional.supplyIf
@@ -34,31 +34,38 @@ import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
-import sp.it.util.ui.Util.layScrollVTextCenter
+import sp.it.util.ui.Util
+import sp.it.util.ui.Util.computeTextHeight
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.textAlignment
 import sp.it.util.ui.vBox
+import sp.it.util.units.em
 
 class ErrorPane: OverlayPane<Any>() {
 
-   private val uiText: SpitText
    private var uiAt = -1
    private lateinit var historyAtText: WritableValue<String>
    private val uiErrorsOnly = v(true)
-   private val uiTextAlignment = v(TextAlignment.CENTER)
+   private val uiText = TextArea()
+   private val uiTextScrollbarHeight = Util.getScrollBarHeightProperty(uiText)
+   private var uiTextHeightUpdater = { text: String -> }
 
    init {
       uiErrorsOnly attach { updateIndexes() }
 
-      uiText = SpitText().apply {
-         textOrigin = VPos.CENTER
+      uiText.apply {
+         padding = Insets.EMPTY
+         isEditable = false
+         isWrapText = true
          textAlignment = TextAlignment.CENTER
-         boundsType = TextBoundsType.VISUAL
          setMinPrefMaxSize(-1.0)
+         border = Border.EMPTY
+         background = Background.EMPTY
       }
 
       content = stackPane {
@@ -70,8 +77,14 @@ class ErrorPane: OverlayPane<Any>() {
          lay(CENTER) += vBox {
             isFillWidth = false
             alignment = CENTER
-            lay += layScrollVTextCenter(uiText).apply {
-               isFitToWidth = true
+
+            uiTextHeightUpdater = {
+               uiText.prefHeight = (computeTextHeight(uiText.font, uiText.width, uiText.text) + 1.em.emScaled + uiTextScrollbarHeight.value) min layoutBounds.height
+            }
+            uiTextScrollbarHeight attach { uiTextHeightUpdater(uiText.text) }
+            layoutBoundsProperty() attach { uiTextHeightUpdater(uiText.text) }
+
+            lay += uiText.apply {
                minWidth = 400.emScaled
             }
          }
@@ -90,21 +103,6 @@ class ErrorPane: OverlayPane<Any>() {
                lay += Icon(IconFA.ANGLE_RIGHT, -1.0, "Next message").onClickDo { visitRight() }
                lay += CheckIcon(uiErrorsOnly).icons(TextIcon("Error"), TextIcon("Event"))
                lay += label("Log")
-               lay += Icon(null, -1.0, "Toggle text alignment").apply {
-                  uiErrorsOnly zip uiTextAlignment sync { (isErrOnly, txtAlign) ->
-                     uiText.textAlign.value = if (isErrOnly) TextAlignment.LEFT else txtAlign
-                  }
-                  uiText.textAlign sync {
-                     val glyph = when (it!!) {
-                        TextAlignment.CENTER -> IconFA.ALIGN_CENTER
-                        TextAlignment.JUSTIFY -> IconFA.ALIGN_JUSTIFY
-                        TextAlignment.RIGHT -> IconFA.ALIGN_RIGHT
-                        TextAlignment.LEFT -> IconFA.ALIGN_LEFT
-                     }
-                     icon(glyph)
-                  }
-                  onClickDo { uiTextAlignment.toggleNext() }
-               }
                lay += supplyIf(display.value!=Display.WINDOW) {
                   Icon(IconFA.SQUARE, -1.0, "Always on top\n\nForbid hiding this window behind other application windows").apply {
                      onClickDo {
@@ -164,14 +162,26 @@ class ErrorPane: OverlayPane<Any>() {
       }
    }
 
-   private fun update(at: Int, error: Any?) {
+   private fun update(at: Int, event: Any?) {
       uiAt = at
-      uiText.text = error?.let {
-         when (error) {
-            is AppError -> error.textShort + "\n\n" + error.textFull
-            is Throwable -> "Unspecified error: ${error.stacktraceAsString}"
-            else -> error.toUi()
+      val text = event?.let {
+         when (event) {
+            is AppError -> event.textShort + "\n\n" + event.textFull
+            is Throwable -> "Unspecified error: ${event.stacktraceAsString}"
+            else -> event.toUi()
          }
+      }
+      uiText.text = text
+      uiTextHeightUpdater(text ?: "")
+      uiText.isWrapText = when (event) {
+         is Throwable -> false
+         is AppError -> false
+         else -> true
+      }
+      uiText.textAlignment = when (event) {
+         is Throwable -> TextAlignment.LEFT
+         is AppError -> TextAlignment.LEFT
+         else -> TextAlignment.CENTER
       }
       updateIndexes()
    }

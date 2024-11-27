@@ -1,14 +1,17 @@
 package sp.it.util.ui;
 
 import java.util.List;
+import javafx.beans.value.ObservableValue;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.TextArea;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -21,15 +24,22 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.jetbrains.annotations.Nullable;
 import sp.it.util.JavaLegacy;
+import sp.it.util.access.PropertiesKt;
 import sp.it.util.access.V;
 import sp.it.util.reactive.Subscription;
+import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.StageStyle.UTILITY;
+import static sp.it.util.access.PropertiesConstantKt.vAlways;
 import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.reactive.UtilKt.flatMap;
+import static sp.it.util.reactive.UtilKt.map;
 import static sp.it.util.reactive.UtilKt.sync1IfNonNull;
 import static sp.it.util.reactive.UtilKt.syncC;
+import static sp.it.util.reactive.UtilKt.syncIntoWhile;
+import static sp.it.util.reactive.UtilKt.zip;
 import static sp.it.util.ui.NodeExtensionsKt.isAnyParentOf;
 
 @SuppressWarnings("unused")
@@ -312,6 +322,26 @@ public interface Util {
 			.findFirst().orElse(null);
 	}
 
+	public static ObservableValue<Double> getScrollBarHeightProperty(TextArea textArea) {
+		return flatMap(textArea.skinProperty(), skin -> {
+			if (skin==null) return vAlways(0.0);
+			var scrollPane = (ScrollPane) textArea.lookupAll("ScrollPane").stream().findFirst().orElse(null);
+			var scrollBar = scrollPane==null ? null : getScrollBar(scrollPane, HORIZONTAL);
+			if (scrollBar==null) return vAlways(0.0);
+			else return map(zip(scrollBar.visibleProperty(), scrollBar.heightProperty()), it -> it.component1() ? 0.0 : it.component2().doubleValue());
+		});
+	}
+
+	public static ObservableValue<Double> getScrollBarWidthProperty(TextArea textArea) {
+		return flatMap(textArea.skinProperty(), skin -> {
+			if (skin==null) return vAlways(0.0);
+			var scrollPane = (ScrollPane) textArea.lookupAll("ScrollPane").stream().findFirst().orElse(null);
+			var scrollBar = scrollPane==null ? null : getScrollBar(scrollPane, VERTICAL);
+			if (scrollBar==null) return vAlways(0.0);
+			else return map(zip(scrollBar.visibleProperty(), scrollBar.widthProperty()), it -> it.component1() ? 0.0 : it.component2().doubleValue());
+		});
+	}
+
 /* ---------- EVENT ------------------------------------------------------------------------------------------------- */
 
 	/**
@@ -350,6 +380,14 @@ public interface Util {
 
 	static double computeTextHeight(Font font, String text) {
 		return JavaLegacy.computeTextHeight(font, text);
+	}
+
+	static double computeTextWidth(Font font, double wrapWidth, String text) {
+		return JavaLegacy.computeTextWidth(font, wrapWidth, text);
+	}
+
+	static double computeTextHeight(Font font, double wrapWidth, String text) {
+		return JavaLegacy.computeTextHeight(font, wrapWidth, text);
 	}
 
 /* ---------- WINDOW ------------------------------------------------------------------------------------------------ */

@@ -35,6 +35,7 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextBoundsType;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
@@ -134,14 +135,10 @@ public class Icon extends StackPane {
 		if (size!=-1) size(size);
 		if (i!=null) icon(i);
 		tooltip(tooltip);
-		node.setCache(false);
-		node.setCache(true);
-		node.setCacheHint(CacheHint.SPEED);
-		setCache(true);
-		setCacheShape(true);
-		setCacheHint(CacheHint.SPEED);
+		updateCache();
 		node.setSmooth(true);
-		node.setFontSmoothingType(FontSmoothingType.GRAY);
+		node.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
+		node.setFontSmoothingType(FontSmoothingType.LCD);
 		node.setMouseTransparent(true);
 		node.setFocusTraversable(false);
 		node.setManaged(false);
@@ -168,6 +165,15 @@ public class Icon extends StackPane {
 				}))
 			);
 		}));
+	}
+
+	private void updateCache() {
+		var c = getGlyph().getClass()!=TextIcon.class;
+		node.setCache(c);
+		node.setCacheHint(CacheHint.SPEED);
+		setCache(c);
+		setCacheShape(c);
+		setCacheHint(CacheHint.SPEED);
 	}
 
 	private Bounds iconBounds() {
@@ -491,6 +497,7 @@ public class Icon extends StackPane {
 		Font f = new Font(i.getFontFamily().replace("'", ""), node.getFont().getSize());
 		node.setFont(f);
 		node.setText(i.characterToString());
+		updateCache();
 	}
 
 	@Experimental(reason = "Expert API")

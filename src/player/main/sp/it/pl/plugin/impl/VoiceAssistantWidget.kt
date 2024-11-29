@@ -213,7 +213,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                   }
                }
             }
-            lay += CheckIcon().icons(IconMD.TEXT_TO_SPEECH, IconMD.TEXT_TO_SPEECH_OFF).apply {
+            lay += CheckIcon().icons(IconMD.SPEAKER, IconMD.SPEAKER_OFF).apply {
                selected syncFrom plugin.flatMap { it!!.ttsOn }.orElse(false)
                disableProperty() syncFrom plugin.map { it==null }
                tooltip("Voice output settings")

@@ -778,9 +778,16 @@ public class MetadataWriter extends Song {
 			audioFile.commit();
 			return ok(true);
 		} catch (Exception ex) {
-			if (isPlaying(this)) {
-				LOGGER.info("File being played, will attempt to suspend playback");
-				APP.audio.suspend(); // may be asynchronous
+			if (file==null) {
+				LOGGER.error("Can not write audio tag for null file");
+				return error(new IOException("Can not write audio tag for null file"));
+			} else if (!file.canWrite()) {
+				LOGGER.warn("Can not write audio tag for read-only file={}", file);
+				return error(new IOException("Can not write audio tag for read-only file"));
+			} else {
+				var wasPlaying = isPlaying(this); // may block resources even if false if playback just stopped
+				if (wasPlaying) LOGGER.info("File being played, will attempt to suspend playback");
+				if (wasPlaying) runFX(() -> APP.audio.suspend());
 
 				var r = (Try<Boolean, Exception>) null;
 				for (int toSleep: list(0, 250, 1000)) {
@@ -792,21 +799,16 @@ public class MetadataWriter extends Song {
 						break;
 					} catch (Exception e) {
 						if (toSleep!=1000) {
-							LOGGER.info("Can not write audio tag after={}ms file={}", toSleep, audioFile.getFile().getPath());
+							LOGGER.info("Can not write audio tag after={}ms file={}", toSleep, file);
 							r = error(e);
 						} else {
-							LOGGER.error("Can not write audio tag after={}ms file={}", toSleep, audioFile.getFile().getPath(), e);
+							LOGGER.error("Can not write audio tag after={}ms file={}", toSleep, file, e);
 						}
 					}
 				}
 
-				runFX(() ->
-					APP.audio.activate()
-				);
+				if (wasPlaying) runFX(() -> APP.audio.activate());
 				return r;
-			} else {
-				LOGGER.error("Can not write file tag: {}", audioFile.getFile().getPath(), ex);
-				return error(ex);
 			}
 		}
 	}

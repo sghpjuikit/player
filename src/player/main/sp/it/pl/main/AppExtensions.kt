@@ -120,6 +120,7 @@ fun Iterable<File>.copyAs(to: File? = null, then: (Fut<Unit>) -> Unit = {}) = al
 }
 
 /** @return true iff this song is [Song.same] as the song that is currently playing */
+@ThreadSafe
 fun Song.isPlaying(): Boolean = same(APP.audio.playingSong.value)
 
 /** @return metadata representation of this song (content will be read if it hasn't been read before, and may be outdated) */
@@ -127,13 +128,11 @@ fun Song.toMetadata(action: (Metadata) -> Unit) {
    failIfNotFxThread()
 
    when {
-      this is Metadata -> {
+      this is Metadata ->
          action(this)
-      }
-      same(APP.audio.playingSong.value) -> {
+      same(APP.audio.playingSong.value) ->
          action(APP.audio.playingSong.value)
-      }
-      else -> {
+      else ->
          APP.db.songsById[id]
             .ifNotNull { action(it) }
             .ifNull {
@@ -143,12 +142,12 @@ fun Song.toMetadata(action: (Metadata) -> Unit) {
                   action(it)
                }
             }
-      }
    }
 
 }
 
 /** @return true iff any songs contained in this group [Song.isPlaying] */
+@ThreadSafe
 fun MetadataGroup.isPlaying(): Boolean = field.getOf(APP.audio.playingSong.value)==value
 
 /** @return result of [sp.it.pl.core.CoreConverter.ui].[sp.it.util.parsing.ConverterToString.toS] */

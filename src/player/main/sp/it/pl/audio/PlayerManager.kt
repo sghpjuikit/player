@@ -110,6 +110,7 @@ import sp.it.util.text.split2
 import sp.it.util.text.toURI
 import sp.it.util.type.atomic
 import sp.it.util.type.type
+import sp.it.util.type.volatile
 import sp.it.util.ui.Util.layScrollVTextCenter
 import sp.it.util.ui.lay
 import sp.it.util.ui.setMinPrefMaxSize
@@ -356,8 +357,10 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
    }
 
+   /** Suspends playback if any to release all resources. */
    @Idempotent
    fun suspend() {
+      failIfNotFxThread()
       if (isSuspended) return
       APP.actionStream(PlaybackSuspended)
 
@@ -367,6 +370,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
    @Idempotent
    fun activate() {
+      failIfNotFxThread()
       if (!isSuspended) return
       APP.actionStream(PlaybackActivated)
 
@@ -406,7 +410,8 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    inner class CurrentItem {
 
       /** @return the playing song and all its information */
-      var value = Metadata.EMPTY
+      @ThreadSafe
+      var value by volatile(Metadata.EMPTY)
          private set
 
       private val changedImpl = v(value)

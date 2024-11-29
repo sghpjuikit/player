@@ -338,6 +338,7 @@ class LlmHttpOpenAi(Llm):
                                     try:
                                         for chunk in stream:
                                             if self._stop or not self.generating: break
+                                            if chunk is None or chunk.choices is None: continue
                                             if chunk.choices[0].delta.content is not None: yield chunk.choices[0].delta.content
                                     finally:
                                         stream.response.close()

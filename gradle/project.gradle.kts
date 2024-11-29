@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "2.1.0-RC2"
+   kotlin("jvm") version "2.1.0"
    application
    id("com.github.ben-manes.versions") version "0.51.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    // id("com.jaredsburrows.license") version "0.9.8"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin // incompatible with latest gradle
@@ -92,7 +92,7 @@ allprojects {
 
       "Kotlin" group {
          // compatibility table https://kotlinlang.org/docs/releases.html#release-details
-         implementation(kotlin("reflect"))
+         implementation(kotlin("reflect", "2.1.0"))
          implementation(kotlin("compiler-embeddable"))
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.9.0")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.9.0")

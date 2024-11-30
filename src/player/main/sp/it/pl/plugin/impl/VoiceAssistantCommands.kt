@@ -1,6 +1,5 @@
 package sp.it.pl.plugin.impl
 
-import java.io.File
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -10,10 +9,7 @@ import javafx.geometry.Pos
 import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyCode
 import javafx.scene.robot.Robot
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.invoke
-import kotlinx.coroutines.suspendCancellableCoroutine
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.main.APP
@@ -30,10 +26,6 @@ import sp.it.util.async.coroutine.IO
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.await
 import sp.it.util.async.coroutine.delay
-import sp.it.util.async.coroutine.delayTill
-import sp.it.util.async.coroutine.launch
-import sp.it.util.async.runFX
-import sp.it.util.dev.printIt
 import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
@@ -44,7 +36,6 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.text.camelToSpaceCase
 import sp.it.util.text.equalsNc
-import sp.it.util.text.keys
 import sp.it.util.text.words
 import sp.it.util.ui.pressReleaseShortcut
 import sp.it.util.ui.pressReleaseText
@@ -241,7 +232,7 @@ suspend fun SpeakContext.voiceCommandPersonaChange(text: String): ComMatch =
    if (matches(text)) {
       val pName = text.removePrefix("change persona ")
       val p = VoiceAssistant.obtainPersonas().find { it.nameWithoutExtension equalsNc pName }
-      if (p!=null) plugin.llmChatSysPromptFile.value = p
+      if (p!=null) plugin.llmChatPersonaName.value = p.nameWithoutExtension
       if (p!=null) Ok(null)
       else if (!intent) Error("No persona $pName available.")
       else intent(text, "${VoiceAssistant.obtainPersonas().joinToString("\n") { "* " + it.nameWithoutExtension }}\n* unidentified # no recognized persona", pName) { this("change persona $it") }

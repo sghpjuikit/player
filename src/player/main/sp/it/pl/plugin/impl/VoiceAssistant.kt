@@ -9,7 +9,6 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
-import javafx.beans.value.ObservableValue
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.runBlocking
 import sp.it.pl.audio.audioInputDeviceNames
@@ -19,8 +18,8 @@ import sp.it.pl.core.NameUi
 import sp.it.pl.core.bodyAsJs
 import sp.it.pl.core.bodyJs
 import sp.it.pl.core.orMessage
+import sp.it.pl.core.requestBodyAsJs
 import sp.it.pl.layout.WidgetFactory
-import sp.it.pl.layout.WidgetManager
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppHttp
@@ -57,9 +56,6 @@ import sp.it.util.async.runOn
 import sp.it.util.collections.list.DestructuredList
 import sp.it.util.collections.observableList
 import sp.it.util.collections.setTo
-import sp.it.util.conf.ConfV
-import sp.it.util.conf.ConfVRO
-import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.Multiline
 import sp.it.util.conf.Constraint.MultilineRows
@@ -67,7 +63,6 @@ import sp.it.util.conf.Constraint.RepeatableAction
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.between
-import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cNest
 import sp.it.util.conf.cr
@@ -75,6 +70,8 @@ import sp.it.util.conf.cro
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvNest
 import sp.it.util.conf.cvn
+import sp.it.util.conf.cvnro
+import sp.it.util.conf.cvro
 import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.conf.min
@@ -83,7 +80,6 @@ import sp.it.util.conf.noPersist
 import sp.it.util.conf.noUi
 import sp.it.util.conf.nonBlank
 import sp.it.util.conf.nonEmpty
-import sp.it.util.conf.nonNull
 import sp.it.util.conf.password
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
@@ -94,8 +90,8 @@ import sp.it.util.conf.uiPaginated
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
+import sp.it.util.dev.fail
 import sp.it.util.dev.markUsed
-import sp.it.util.dev.printIt
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
@@ -104,7 +100,9 @@ import sp.it.util.file.json.JsNumber
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsValue
+import sp.it.util.file.json.div
 import sp.it.util.file.json.toCompactS
+import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
@@ -126,8 +124,6 @@ import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.plus
-import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.throttleToLast
 import sp.it.util.system.EnvironmentContext
 import sp.it.util.text.appendSent
@@ -202,7 +198,7 @@ class VoiceAssistant: PluginBase() {
             "llm-openai-bearer=${llmOpenAiBearer.value}",
             "llm-openai-model=${llmOpenAiModel.value}",
             "llm-openai-model-ignore=${llmOpenAiModelIgnore.value}",
-            "llm-chat-sys-prompt=${llmChatSysPrompt.value.replace('\n', ' ')}",
+            "llm-chat-sys-prompt=${llmChatPersonaText.value.replace('\n', ' ')}",
             "llm-chat-max-tokens=${llmChatMaxTokens.value}",
             "llm-chat-temp=${llmChatTemp.value}",
             "llm-chat-topp=${llmChatTopP.value}",
@@ -218,6 +214,7 @@ class VoiceAssistant: PluginBase() {
             "stt-nemo-device=${sttNemoDevice.value}",
             "stt-http-url=${sttHttpUrl.value}",
             "http-url=${httpUrl.value.net { it.substringAfterLast("/") }}",
+            "http-ui-url=${APP.http.urlLocal}/voice-assistent-ui/event",
             "use-python-commands=${false}",
          ))
          logger.info { "Starting voice assistant python with command=${command.joinToString(" ")}" }
@@ -737,16 +734,46 @@ class VoiceAssistant: PluginBase() {
    }.noPersist()
       .def(name = "Llm engine >", info = "Settings for currently active llm engine")
 
-   /** System prompt telling llm to assume role, or exhibit behavior */
-   val llmChatSysPrompt by cv("You are helpful voice assistant. You are voiced by tts, be extremly short.").multiline(10).nonBlank()
+   internal val llmChatPersonaTextWriteable = v("You are helpful assistant. You speak like person in conversation.")
+
+   /** [llmChatPersonaDetail] name. */
+   val llmChatPersonaName by cv("System")
+      .valuesUnsealed { dirPersonas.children { it hasExtension "txt" }.map { it.nameWithoutExtension }.toList() }
+      .def(name = "Llm chat > persona", info = "")
+
+   /** [llmChatPersonaDetail] file. */
+   val llmChatPersonaFile by cvro(llmChatPersonaName map { dirPersonas / "$it.txt" })
+      .noUi()
       .noPersist()
-      .def(name = "Llm chat > system prompt", info = "System prompt telling llm to assume role, or exhibit behavior", editable = EditMode.APP)
+      .def(name = "File", info = "", editable = EditMode.APP)
+      .sync { llmChatPersonaTextWriteable valueTry it.readTextTry() }
+
+
+   /** [llmChatPersonaDetail] text. */
+   val llmChatPersonaText by cvro(llmChatPersonaTextWriteable)
+      .multiline(10)
+      .noUi()
+      .noPersist()
+      .def(name = "Text", info = "", editable = EditMode.APP)
 
    /** System prompt telling llm to assume role, or exhibit behavior */
-   val llmChatSysPromptFile by cv(dirPersonas / "System.txt").valuesUnsealed { dirPersonas.children { it hasExtension "txt" }.toList() }
-      .uiConverter { it.nameWithoutExtension }
-      .def(name = "Llm chat > system prompt file", info = "System prompt telling llm to assume role, or exhibit behavior")
-      .sync { llmChatSysPrompt valueTry it.readTextTry() }
+   internal val llmChatPersonaDetail by cvNest(llmChatPersonaName) {
+      ListConfigurable.heterogeneous(
+         ::llmChatPersonaFile.getDelegateConfig(),
+         ::llmChatPersonaText.getDelegateConfig(),
+      )
+   }.noPersist()
+      .def(name = "Llm chat > persona >", info = "System prompt telling llm to assume role, or exhibit behavior")
+
+   internal val llmChatSysPromptWriteable = vn<String>(null)
+
+   /** System prompt passed to llm during chat */
+   val llmChatSysPrompt = llmChatSysPromptWriteable.readOnly()
+
+   internal val llmChatHistoryWriteable = vn<String>(null)
+
+   /** History of the llm during chat */
+   val llmChatHistory = llmChatHistoryWriteable.readOnly()
 
    /** Maximum number of tokens in the reply. Further tokens will be cut off (by llm) */
    val llmChatMaxTokens by cvn(400).min(1)
@@ -786,7 +813,7 @@ class VoiceAssistant: PluginBase() {
   micVoiceDetectProbDebug.chan().throttleToLast(p2) subscribe { write("mic-voice-detect-debug=$it") }
                     ttsOn.chan().throttleToLast(p2) subscribe { write("speech-on=$it") }
       ttsEngineCoquiVoice.chan().throttleToLast(p2) subscribe { write("coqui-voice=$it") }
-         llmChatSysPrompt.chan().throttleToLast(p5) subscribe { write("llm-chat-sys-prompt=${it.replace('\n', ' ').replace('\r', ' ')}") }
+       llmChatPersonaText.chan().throttleToLast(p5) subscribe { write("llm-chat-sys-prompt=${it.replace('\n', ' ').replace('\r', ' ')}") }
          llmChatMaxTokens.chan().throttleToLast(p2) subscribe { write("llm-chat-max-tokens=$it") }
               llmChatTemp.chan().throttleToLast(p2) subscribe { write("llm-chat-temp=$it") }
               llmChatTopP.chan().throttleToLast(p2) subscribe { write("llm-chat-topp=$it") }
@@ -818,6 +845,18 @@ class VoiceAssistant: PluginBase() {
       // the startup is delayed so system is ready, which avoids starup issues
       onClose += APP.actionStream.onEventObject(SystemSleepEvent.Pre) { stopSpeechRecognition(true); fut().thenWait(5.seconds).awaitFx() }
       onClose += APP.actionStream.onEventObject(SystemSleepEvent.Stop) { runFX(5.seconds) { startSpeechRecognition(true) } }
+
+      // http
+      onClose += APP.http.serverRoutes route AppHttp.Handler("/voice-assistent-ui/event", "POST") {
+         val event = it.requestBodyAsJs().asJsObjectValue().orEmpty()
+         val eventType = (event["type"])?.asJsStringValue()
+         when (eventType) {
+            "prompt-changed"   -> runFX { llmChatSysPromptWriteable.value = event["prompt"]!!.asJsStringValue() }
+            "chat-history-set" -> runFX { llmChatHistoryWriteable.value = event["value"]!!.asJsArrayValue()!!.map { it.asJsObject().toPrettyS() }.joinToString("\n") }
+            "chat-history-add" -> runFX { llmChatHistoryWriteable.setValueOf { it.orEmpty() + "\n" + event["value"]!!.asJsObject().toPrettyS() } }
+            else -> fail { "Unknown event type '$eventType'" }
+         }
+      }
 
       isRunning = true
    }

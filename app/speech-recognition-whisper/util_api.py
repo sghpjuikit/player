@@ -1,12 +1,14 @@
+from util_events import *
 from util_llm import Llm, ChatProceed
 from util_tts import Tts
 from util_ctx import *
 from imports import *
 
 class Api:
-    def __init__(self, llm: Llm, tts: Tts):
+    def __init__(self, events: Events, llm: Llm, tts: Tts):
         self._llm = llm
         self._tts = tts
+        self.events = events
 
     def llm(self, e: ChatProceed, ctx: Ctx = CTX, stream = False) -> Future[str | Iterator[str]]:
         return self._llm(e, ctx = ctx, stream=stream)

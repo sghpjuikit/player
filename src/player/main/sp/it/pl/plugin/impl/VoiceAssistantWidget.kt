@@ -55,7 +55,6 @@ import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Event
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Line
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.View
 import sp.it.pl.ui.ValueToggleButtonGroup
-import sp.it.pl.ui.objects.complexfield.TagTextField
 import sp.it.pl.ui.objects.complexfield.TagTextField.*
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
@@ -117,6 +116,7 @@ import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.syncTo
 import sp.it.util.reactive.syncWhile
 import sp.it.util.reactive.zip
+import sp.it.util.reactive.zip2
 import sp.it.util.text.capitalLower
 import sp.it.util.text.nameUi
 import sp.it.util.ui.appendTextSmart
@@ -176,6 +176,25 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             }
             lay += label("   ")
 
+            lay += Icon(IconMA.RECORD_VOICE_OVER).apply {
+               tooltip("Chat")
+               disableProperty() syncFrom plugin.map { it==null }
+               onClickDo {
+                  showFloating("Chat", DOWN_CENTER(this)) {
+                     it.isAutohide.value = true
+                     vBox(null, CENTER) {
+                        val type = v("History")
+
+                        lay += ValueToggleButtonGroup.ofObservableValue(type, listOf("System prompt", "History")).apply {
+                           alignment = CENTER
+                        }
+                        lay(ALWAYS) += textArea {
+                           textProperty() syncFrom (type zip plugin.flatMap { it?.llmChatSysPrompt ?: vAlways(null) } zip2 plugin.flatMap { it?.llmChatHistory ?: vAlways(null) } map { (type, text, history) -> if (type=="History") history else text })
+                        }
+                     }
+                  }
+               }
+            }
             lay += Icon(IconMA.PERSON).apply {
                tooltip("Manage personas")
                onClickDo {
@@ -197,7 +216,8 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                                     ?.net {
                                        listOf(
                                           it::llmEngine, it::llmEngineDetails,
-                                          it::llmChatSysPromptFile, it::llmChatSysPrompt, it::llmChatTemp, it::llmChatTopK, it::llmChatTopP, it::llmChatMaxTokens,
+                                          it::llmChatPersonaName, it::llmChatPersonaDetail,
+                                          it::llmChatTemp, it::llmChatTopK, it::llmChatTopP, it::llmChatMaxTokens,
                                           it::llmOpenAiServerStartCommand, it::llmOpenAiServerStopCommand
                                        )
                                     }

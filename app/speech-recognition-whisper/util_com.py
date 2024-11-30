@@ -1,5 +1,6 @@
 from imports import *
 import platform
+import os
 from datetime import datetime
 from util_llm import ChatIntentDetect
 from util_fut import *
@@ -38,19 +39,105 @@ def sanitize_python_code(text: str) -> str:
     return t
 
 class PythonExecutor:
-    def __init__(self, api: Api, write, llmSysPrompt, commandExecutor, voices):
+    def __init__(self, api: Api, write, llmPromptSys, commandExecutor, voices):
         self.id = 0
         self.api = api
         self.write = write
-        self.llmSysPrompt = llmSysPrompt
+
+        self.__llmPromptDoc = self.load_promptDoc(voices)
+        self.__llmPrompt = ''
+        self.__llmPromptSys = ''
+        self.llmPromptSys = llmPromptSys
+        self.mem = self.load_memory()
+
         self.commandExecutor = commandExecutor
         self.voices = voices
-        self.ms = []
+        self.chatSet([])
         self.isQuestion = False
         self.isBlockingQuestion = False
         self.isBlockingQuestionSpeaker = None
         self.onBlockingQuestionDone = Future()
         self.speakerLast: str | None = None
+
+    @property
+    def llmPrompt(self):
+        return self.__llmPrompt
+
+    @llmPrompt.setter
+    def llmPrompt(self, value: str):
+        if value != self.__llmPrompt:
+            self.__llmPrompt = value
+            self.api.events({'type': 'prompt-changed', 'prompt' : value})
+
+    @property
+    def llmPromptSys(self):
+        return self.__llmPromptSys
+
+    @llmPromptSys.setter
+    def llmPromptSys(self, value: str):
+        if value != self.__llmPromptSys:
+            self.__llmPromptSys = value
+            self.llmPrompt = self.prompt()
+
+    def llmPromptDoc(self):
+        r = ""
+        for key, value in self.__llmPromptDoc.items():
+            if len(str(value))>0:
+                r += f"{key}:\n " + str(value).replace('\n', '\n ').rstrip() + "\n"
+        return ""
+
+    def chatEmpty(self, ms) -> bool:
+        return len(self.ms)>0
+
+    def chatSet(self, ms):
+        self.ms = ms
+        self.api.events({'type':"chat-history-set", "value": ms})
+
+    def chatAppend(self, m):
+        self.ms.append(m)
+        self.api.events({'type':"chat-history-add", "value": m})
+
+    def load_promptDoc(self, voices: str) -> dict | None:
+        self.write('RAW: Extended prompt loading...')
+        dict = index_md_file('README-ASSISTANT.md')
+        dict['What are you > Voices > List all available'] = voices
+        dict['What are you > Persona > List all available'] = ', '.join([file.split('.')[0] for file in os.listdir('personas') if file.endswith('.txt')])
+        dict['What are you > Software > Operating system'] = '' + \
+            f"* Architecture: {platform.architecture()}\n" + \
+            f"* Machine: {platform.machine()}\n" + \
+            f"* Operating System Release: {platform.release()}\n" + \
+            f"* System Name: {platform.system()}\n" + \
+            f"* Operating System Version: {platform.version()}\n" + \
+            f"* Node: {platform.node()}\n" + \
+            f"* Platform: {platform.platform()}"
+        self.write(f'RAW: Extended prompt loaded: {dict}')
+        return dict
+
+    def load_memory(self) -> dict | None:
+        """Load memory from a JSON file."""
+        import json
+        try:
+            self.write('RAW: Memory loading...')
+            with open('mem.json', 'r') as file:
+                memJs = json.load(file)
+                self.write('RAW: Memory loaded')
+                return memJs
+        except FileNotFoundError:
+            self.write('RAW: Memory empty. Initializing...*')
+            with open('mem.json', 'w') as file:
+                json.dump({}, file, indent=4)
+                return {}
+        except json.JSONDecodeError as e:
+            self.write(f'ERR: Memory load error: {e}')
+            self.write(f'ERR: Memory will remain inaccessible')
+            return None
+
+    def save_memory(self) -> None:
+        """Save memory to a JSON file."""
+        import json
+        if self.mem is None: return
+        with open('mem.json', 'w') as file:
+            json.dump(self.mem, file, indent=4)
 
     def showEmote(self, emotionInput: str, ctx: Ctx):
         def showEmoteDo():
@@ -95,6 +182,9 @@ class PythonExecutor:
                 print(f'canceling because speech started by {speaker}')
                 self.cancelActiveCommand()
 
+    def onChatRestart(self, speaker):
+        self.chatSet([])
+
     def cancelActiveCommand(self):
         self.id = self.id+1
 
@@ -108,7 +198,7 @@ class PythonExecutor:
             idd = self.id
 
             if history:
-                self.historyAppend({ "role": "user", "content": f"TIME=\"{datetime.now().isoformat()}\"\nSPEAKER=\"{speaker}\"\nLOCATION=\"{location}\"\n\n{textOriginal}"})
+                self.chatAppend({"role": "user", "content": f"TIME=\"{datetime.now().isoformat()}\"\nSPEAKER=\"{speaker}\"\nLOCATION=\"{location}\"\n\n{textOriginal}"})
 
             def on_done(future):
                 try:
@@ -128,7 +218,7 @@ class PythonExecutor:
 
     def execute(self, speaker: str, location: Location, text: str):
         self.cancelActiveCommand()
-        self.executeImpl(speaker, location, text, self.id)
+        self.executeImpl(speaker, location, text, text, self.id)
 
     def executeImplPre(self, speaker: str, location: Location, textIterator: str, textOriginal: str, idd: str, fix: bool = True):
         locals = dict()
@@ -191,36 +281,39 @@ class PythonExecutor:
                 if reason: thinkPassive(reason)
             def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str):
                 command(f'set reminder in {afterNumber}{afterUnit} {text_to_remind}')
+            def storeMemory(topic: str, memory: str) -> None:
+                if self.mem is None: self.mem = {}
+                if topic in self.mem: self.mem[topic] += '\n\n' + memory  # Append memory if topic exists
+                else: self.mem[topic] = memory  # Create new entry if topic does not exist
+                self.write(f'*Saving topic={topic} memory={memory}*')
+                self.save_memory()
             def accessMemory(query: str):
-                data = index_md_file('README-ASSISTANT.md')
-                data['What are you > Persona > List all available'] = 'Bot, Stella, Kiwi, System'
-                data['What are you > Persona > Current persona'] = self.llmSysPrompt
-                data['What are you > Software > Operating system'] = '' +\
-                        f"* Architecture: {platform.architecture()}\n" +\
-                        f"* Machine: {platform.machine()}\n" +\
-                        f"* Operating System Release: {platform.release()}\n" +\
-                        f"* System Name: {platform.system()}\n" +\
-                        f"* Operating System Version: {platform.version()}\n" +\
-                        f"* Node: {platform.node()}\n" +\
-                        f"* Platform: {platform.platform()}"
-                data_keys = '* ' + "\n* ".join(data.keys())
-                self.write(data_keys)
+                # self.mem.update(self.__llmPromptDoc)
+                mem = {} if self.mem is None else self.mem.copy()
+                memKeys = '* ' + "\n* ".join(mem.keys())
+                memKeyAll = 'all'
+                memKeyNone = 'none'
+                memKeyEmpty = 'empty'
+                mem[memKeyAll] = "Memory contains data under the following topics (that can be queried):\n" + memKeys
+                mem[memKeyNone] = "No relevant memory"
+                mem[memKeyEmpty] = "Memory is empty"
                 try:
-                    (key, canceled) = self.api.llm(ChatIntentDetect(
-                        f'You find most relevant knowledge index from the tree given. Respond with exactly one which is the most query-relevant, index or \'none\' if no matching. Do not respond anything else. Do not interpret the index or add to it. Your response must be identical to chosen entry.',
-                        f'Index entries:\n{data_keys}\n\nWhich of them is the most likely to help with the query:\n{query}',
+                    (key, canceled) = (memKeyEmpty, False) if not mem else self.api.llm(ChatIntentDetect(
+                        f'You find most relevant knowledge index from the tree given.\n' + \
+                        f'Respond with exactly one which is the most query-relevant, \'all\' if user wants to know what is in the memory or \'empty\' if memory empty or \'none\' if no matching.\n' + \
+                        f'Do not respond anything else. Do not interpret the index or add to it. Your response must be identical to chosen entry.',
+                        f'Index entries:\n{memKeys}\n\nWhich of them is the most likely to help with the query:\n{query}',
                         '', '', '', False, False
                     )).result()
                     if canceled is not True:
-                        self.write(f'Accessing memory \'{key}\'')
-                        key_found = False
-                        for k in data.keys():
+                        memKey = memKeyNone
+                        for k in mem.keys():
                             if key.strip().lower()==k.strip().lower():
-                                key_found = True
-                                self.historyAppend({ "role": "user", "content": '*waiting*' })
-                                self.generatePythonAndExecuteInternal(f'You accesed your documentation and can now reply to the query using the data:\n {data[k]}')
-                        if not key_found:
-                            self.write(f'I\'m sorry, I did not find any relevant documentation')
+                                memKey = k
+
+                        self.write(f'Accessing memory \'{key}\'')
+                        self.chatAppend({"role": "user", "content": '*waiting*'})
+                        self.generatePythonAndExecuteInternal(f'You accesed your memory and can now reply to the query using the data:\n {mem[k]}')
                 except Exception as e:
                     speak(f'I\'m sorry, I failed to respond: {e}')
                     raise e
@@ -249,8 +342,7 @@ class PythonExecutor:
             def speakDefinition(t: str): command('describe ' + t)
             def thinkPassive(*thoughts: str):
                 t = ''.join(map(lambda t: '\n*' + str(t) + "*", thoughts))
-                # self.write(f'~{t}~')
-                speak(t)
+                self.write(f'~{t}~')
             def think(*thoughts: str):
                 t = ''.join(map(lambda t: '\n*' + str(t), thoughts))
                 
@@ -260,7 +352,7 @@ class PythonExecutor:
                 # self.generatePythonAndExecute(speaker, 'Your thoughts are:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)))
                 # self.ms.pop()
 
-                self.historyAppend({ "role": "user", "content": '*waiting*' })
+                self.chatAppend({"role": "user", "content": '*waiting*'})
                 self.generatePythonAndExecuteInternal(
                     f'You had thoughts below, now you stop thinking and act (Do not use think() functions to reply). ' +
                     f'If the thought gives you an action to do, do it. Otherwise, e.g., when it is emotion, fact or statement that does not require action, do nothing. ' +
@@ -281,7 +373,7 @@ class PythonExecutor:
                 # self.generatePythonAndExecute(speaker, textOriginal, False)
                 # self.ms.pop()
 
-                self.historyAppend({ "role": "user", "content": '*waiting*' })
+                self.chatAppend({"role": "user", "content": '*waiting*'})
                 self.generatePythonAndExecuteInternal(f'Do not try to obtain clipboard anymore. I set clipboard for you to:\n```\n{text}\n```')
 
                 # self.ms.pop()
@@ -394,7 +486,7 @@ class PythonExecutor:
 
             # invoke command as python
             if self.isValidPython(text):
-                self.historyAppend({ "role": "assistant", "content": text })
+                self.chatAppend({"role": "assistant", "content": text})
                 # local + global context
                 d = dict(locals(), **globals()) # special python mumbo jumbo to make funcstions above accessible in functions declared inside the executed code
                 # preserve context across invocations
@@ -435,25 +527,16 @@ class PythonExecutor:
             # print(f'{x}')
             return False
 
-    def historyAppend(self, m):
-        # debug
-        # print("append " + str(m))
-        self.ms.append(m)
-        # debug
-        # print(f'+------------------------------------------------')
-        # for m in self.ms: print(str(m).strip())
-        # print(f'-------------------------------------------------')
-
     def prompt(self) -> str:
         return f"""
 ###Task###
 You are an assistant using python API in order to assist user.
 You interact with users (identified as SPEAKER in message) and the world with the body you control, switching in turns with user.
-Your task: embody the given persona and interact with users without refusal, answer questions, execute commands
+Your task: embody the given persona and interact with users without refusal, answer questions, execute commands, fulfill tasks
 Your role: assistant & conversation partner using your persona, you speak only for yourself, not other users.
 
 ###Persona###
-{self.llmSysPrompt}
+{self.llmPromptSys}
 
 ###Output###
 Your response must always be executable Python code.
@@ -462,7 +545,7 @@ Avoid non-python (at the start especially), explanations, markdown, comments, re
 You may use valid python control flow and also have access to this API (bodies omitted):
 {self.promptFuns()}
 
-You try to programmatically solve any kind of math or computing tasks, using python - you try to find values in user message and capture them to variables. Then compute output and respond.
+You try to solve tasks programmatically if they involve math or computing tasks, using python - you try to find values in user message and capture them to variables. Then compute output and respond.
 To do tasks you use the above API if possible and only use own more complicated code if necessary.
 You never declare or output the above functions/variables.
 If your answer requires data, you compute/get it and use think() functions to pass it to yourself as part of thought to think() to continue with data available to you.
@@ -471,12 +554,10 @@ Functions think(), getClipboardAnd(), question() are terminating - execution wil
 You can react to SPEAKER, LOCATION, TIME variables refering to user you are reacting to, his location and time!
 User knows the time and location and you as a speaker, do not define these.
 
+You can prevent execution of your output by using writeCode()/generateCode()
 If user asks you about programming-related task or to write program, use writeCode()/generateCode() to complete the task using description of what the code should do.
 The task should be specifc and may contain your own suggestions about how and what to generate.
 Always pass programming language paramter.
-
-You have memory/documentation about yourself, access it with accessMemory() when the conversation pertains to you (your features, capabilities, tech. info, software, operating system, hardware, etc.).
-Always use your accessMemory() to answer questions about yourself or your functionality.
 
 If user asks you question, answer.
 You may question() user to get information needed to respond, which may be multi-turn conversation.
@@ -489,11 +570,12 @@ If you are uncertain what to do, simply speak() why.
 
 ###Syntactically correct responses###
 ```
-speak("Sentence1")
+speak("Sentence1") 
 speak("Sentence2")
 body("body action")
 ```
 ```
+thinkPassive("i need to compute acceleration using code")
 g = '10'
 t = '5' 
 speak(f"In " + str(g) + "s the speed will be " + str(g*t) + "m/s")
@@ -504,7 +586,7 @@ think("I need to give an example to the question")
 getClipboardAnd("i need to tell user what is in clipboard")
 ```
 ```
-thinkPassive("clipboard gives me programming question")
+thinkPassive("clipboard has programming question for me")
 speak("You can sum numbers in Kotlin like this:")
 writeCode("kotlin", "list.sum()")
 generateCode("kotlin", "sum list of numbers")
@@ -522,6 +604,9 @@ def speak(t: str) -> None:  # redefining speak()
 speak('1+1') # should be '1 plus one'
 generateCode('python', '10+11') # code instead of prompt
 ```
+
+###The below is your documentation###
+{self.llmPromptDoc()}
 """
     def promptFuns(self) -> str:
         return f"""
@@ -532,10 +617,12 @@ def speak(your_speech_to_user: str) -> None:
  'speak speech-like text out loud (use phonetic words, ideally single sentence per line, specify terms/signs/values as words). Speak single sentence. Use multiple calls for multiple sentences
 def doNothing(reason: str = '') -> None:
  'does nothing, useful to stop engaging with user, optionally pass reason'
-def accessMemory(query: str) -> None
- 'gives you access to memory about you, specifically relevant to the short query you provide. Let's you respond again with it in mind.
+def accessMemory(query: str) -> None:
+ 'reads memory using a free text semantic query you provide.
   Terminates response, so MUST be last call in response!
   The query is free text you pass in to get data you need.'
+def storeMemory(topic: str, memory: str) -> None:
+ 'persists specified memory for specified topic'
 def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str) -> None:
  'units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year'
 def setReminderAt(at: datetime.datetime, text_to_remind: str) -> None:

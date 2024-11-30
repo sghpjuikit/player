@@ -63,9 +63,9 @@ class Http:
             def do_PUT(self): self.do_XXX("PUT")
 
         try:
-            self.write("RAW: Http server starting...")
+            self.write(f"RAW: Http server {self.serverHost}:{self.serverPort} starting...")
             self.server = HTTPServer((self.serverHost, self.serverPort), HttpRequestHandler)
-            self.write(f"RAW: Http server started on {self.serverHost}:{self.serverPort}")
+            self.write(f"RAW: Http server started {self.serverHost}:{self.serverPort}")
             self.server.serve_forever()
             self.write("RAW: Http server stopped")
         except Exception as e:

@@ -11,9 +11,10 @@ from util_mic import Mic, Vad, MicVoiceDetectNone, MicVoiceDetectNvidia, SpeechS
 from util_llm import LlmNone, LlmGpt4All, LlmHttpOpenAi
 from util_itr import teeThreadSafe, teeThreadSafeEager
 from util_http import Http, HttpHandler
-from util_wrt import Writer
+from util_events import *
 from util_actor import Actor
 from util_paste import *
+from util_wrt import Writer
 from util_api import Api
 from util_com import *
 from util_now import *
@@ -244,11 +245,15 @@ Args:
   llm-chat-topk=$int(1-inf)
     The llm model of the OpenAI or OpenAI-compatible server
     Default: 40
-    
+
   http-url=$host:port
     Url of the http API of the locally running AI executor
     Default: localhost:1236
-    
+
+  http-ui-url=$scheme://host:port
+    Url of the ui that wishes to receive events
+    Default: ''
+
   use-python-commands=bool
     Experimental flag to allow llm to repond with python commands. Much more powerful, but also somewhat unpredictable.
     Default: false
@@ -303,15 +308,19 @@ CTX.location = mainLocation
 (argLlmOpenAiBearer, llmOpenAiBearer) = arg('llm-openai-bearer', 'none')
 (argLlmOpenAiModelName, llmOpenAiModelName) = arg('llm-openai-model', 'none')
 (argLlmOpenAiModelIgnore, llmOpenAiModelIgnore) = arg('llm-openai-model-ignore', "false", lambda it: it=="true")
-(argLlmSysPrompt, llmSysPrompt) = arg('llm-chat-sys-prompt', 'You are helpful chat bot. You are voiced by text-to-speech, so you are extremly concise.')
+(argLlmPromptSys, llmPromptSys) = arg('llm-chat-sys-prompt', 'You are helpful chat bot. You are voiced by text-to-speech, so you are extremly concise.')
 (argLlmChatMaxTokens, llmChatMaxTokens) = arg('llm-chat-max-tokens', '400', lambda it: int(it))
 (argLlmChatTemp, llmChatTemp) = arg('llm-chat-temp', '0.5', lambda it: float(it))
 (argLlmChatTopp, llmChatTopp) = arg('llm-chat-topp', '0.95', lambda it: float(it))
 (argLlmChatTopk, llmChatTopk) = arg('llm-chat-topk', '40', lambda it: int(it))
 
 (argHttpUrl, httpUrl) = arg('http-url', 'localhost:1236')
+(argHttpUiUrl, httpUiUrl) = arg('http-ui-url', '')
 (argUsePythonCommands, usePythonCommands) = arg('use-python-commands', 'false', lambda it: it=="true")
 
+
+# events
+events = Events(httpUiUrl)
 
 # speak engine actor, non-blocking
 if ttsEngineType == 'none':
@@ -344,13 +353,13 @@ elif llmEngine == "gpt4all":
     llm = LlmGpt4All(
         llmGpt4AllModelName, "models-gpt4all",
         tts, write,
-        llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
+        llmPromptSys, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
     )
 elif llmEngine == "openai":
     llm = LlmHttpOpenAi(
         llmOpenAiUrl, llmOpenAiBearer, "" if llmOpenAiModelIgnore else llmOpenAiModelName,
         tts, write,
-        llmSysPrompt, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
+        llmPromptSys, llmChatMaxTokens, llmChatTemp, llmChatTopp, llmChatTopk
     )
 else:
     llm = LlmNone(tts, write)
@@ -391,7 +400,7 @@ class CommandExecutorMain(CommandExecutor):
             return handled
         if text.startswith("greeting "):
             g = text.removeprefix("greeting ").capitalize()
-            llm(ChatReact(llmSysPrompt, "User greeted you with " + g, g), ctx)
+            llm(ChatReact(llmPromptSys, "User greeted you with " + g, g), ctx)
             return handled
         if text.startswith("change voice "):
             voice = text.removeprefix("change voice ")
@@ -404,9 +413,9 @@ class CommandExecutorMain(CommandExecutor):
                         ttsCoquiVoice = voice
                         tts.tts.voice = voice
                         voiceNew = ttsCoquiVoice
-                        llm(ChatReact(llmSysPrompt, f"User changed your voice from:\n```\n{voiceOld}\n```\n\nto:\n```\n{voiceNew}\n```", name + " voice changed"), ctx)
-                else: llm(ChatReact(llmSysPrompt, f"User tried to change voice to {voice}, but such voice is not available", f"No voice {voice} available"), ctx)
-            else: llm(ChatReact(llmSysPrompt, f"User tried to change voice, but current voice generation does not support changing voice", "Current voice generation does not support changing voice"), ctx)
+                        llm(ChatReact(llmPromptSys, f"User changed your voice from:\n```\n{voiceOld}\n```\n\nto:\n```\n{voiceNew}\n```", name + " voice changed"), ctx)
+                else: llm(ChatReact(llmPromptSys, f"User tried to change voice to {voice}, but such voice is not available", f"No voice {voice} available"), ctx)
+            else: llm(ChatReact(llmPromptSys, f"User tried to change voice, but current voice generation does not support changing voice", "Current voice generation does not support changing voice"), ctx)
             return handled
         if text.startswith("generate from clipboard"):
             t = get_clipboard_text()
@@ -417,7 +426,7 @@ class CommandExecutorMain(CommandExecutor):
             if len(text.removeprefix("generate "))>0: llm(ChatPaste(text))
             return handled
         if text.startswith("do-describe "):
-            llm(ChatProceed(llmSysPrompt, "Describe the following content:\n" + text.removeprefix("do-describe ")))
+            llm(ChatProceed(llmPromptSys, "Describe the following content:\n" + text.removeprefix("do-describe ")))
             return handled
         elif text == 'start conversation':
             assist.startChat(ctx)
@@ -431,10 +440,10 @@ class CommandExecutorMain(CommandExecutor):
         else:
             return text
 
-api = Api(llm, tts)
+api = Api(events, llm, tts)
 commandExecutor = CommandExecutorMain()
 llm.commandExecutor = commandExecutor.execute
-executorPython = PythonExecutor(api, write, llmSysPrompt, commandExecutor, ', '.join(voices))
+executorPython = PythonExecutor(api, write, llmPromptSys, commandExecutor, ', '.join(voices))
 
 class AssistBasic:
     def __init__(self):
@@ -453,7 +462,7 @@ class AssistBasic:
     def assistUpdateIdle(self):
         while True:
             time.sleep(1.0)
-            if self.restartChatDelay < (time.time() - self.activity_last_at) and len(executorPython.ms)>0:
+            if self.restartChatDelay < (time.time() - self.activity_last_at) and not executorPython.chatEmpty():
                 self.restartChat(CTX, react=False)
 
     def needsWakeWord(self, speech: SpeechText) -> bool:
@@ -468,8 +477,8 @@ class AssistBasic:
         # announcement
         if len(text) == 0:
             self.last_announcement_at = datetime.now()
-            if self.isChat: llm(ChatReact(llmSysPrompt, "User said your name - say you are still conversing. Say 2 words at most", "Yes, we are talking"), speech.asCtx())
-            else: llm(ChatReact(llmSysPrompt, "User said your name - are you there? Say 2 words at most", "Yes"), speech.asCtx())
+            if self.isChat: llm(ChatReact(llmPromptSys, "User said your name - say you are still conversing. Say 2 words at most", "Yes, we are talking"), speech.asCtx())
+            else: llm(ChatReact(llmPromptSys, "User said your name - are you there? Say 2 words at most", "Yes"), speech.asCtx())
         # cancel
         elif text == "ok" or text == "okey" or text == "whatever" or text == "stop":
             tts.skip()
@@ -520,15 +529,15 @@ class AssistBasic:
         if self.isChat: return
         self.isChat = True
         write(f"COM: {ctx.speaker}:{ctx.location}:start conversation")
-        if (react): llm(ChatReact(llmSysPrompt, f"{ctx.speaker} started conversation with you. Greet him", "Conversing"), ctx)
+        if (react): llm(ChatReact(llmPromptSys, f"{ctx.speaker} started conversation with you. Greet him", "Conversing"), ctx)
         for mic in mics: mic.set_pause_threshold_talk()
 
     def restartChat(self, ctx: Ctx, react: bool = True):
         tts.skip()
         llm.generating = False
         write(f"COM: {ctx.speaker}:{ctx.location}:restart conversation")
-        if (react): llm(ChatReact(llmSysPrompt, f"{ctx.speaker} erased his conversation with you from your memory.", "Ok"), ctx)
-        executorPython.ms = []
+        if (react): llm(ChatReact(llmPromptSys, f"{ctx.speaker} erased his conversation with you from your memory.", "Ok"), ctx)
+        executorPython.onChatRestart()
 
     def stopChat(self, ctx: Ctx, react: bool = True):
         if self.isChat is False: return
@@ -536,7 +545,7 @@ class AssistBasic:
         tts.skip()
         llm.generating = False
         write(f"COM: {ctx.speaker}:{ctx.location}:stop conversation")
-        if (react): llm(ChatReact(llmSysPrompt, f"{ctx.speaker} stopped conversation with you", "Ok"), ctx)
+        if (react): llm(ChatReact(llmPromptSys, f"{ctx.speaker} stopped conversation with you", "Ok"), ctx)
         for mic in mics: mic.set_pause_threshold_normal()
 
 assist = AssistBasic()
@@ -639,7 +648,7 @@ def install_exit_handler():
 def install_on_bootup_invoke():
     wait_until(lambda: all(actor.state_after_pause() for actor in actors))
     write.busy_status.remove(1)
-    llm(ChatReact(llmSysPrompt, "You booted up. Use 4 words or less.", f"{name} online"))
+    llm(ChatReact(llmPromptSys, "You booted up. Use 4 words or less.", f"{name} online"))
 
 def install_on_bootup():
     Thread(name='on-bootup', target=install_on_bootup_invoke, daemon=True).start()
@@ -692,7 +701,7 @@ try:
     http.handlers.append(HttpHandlerStt(stt))
     http.handlers.append(HttpHandlerTts(tts.tts))
     http.handlers.append(HttpHandlerMicState(mics))
-    http.handlers.append(HttpHandlerTtsReact(llm, llmSysPrompt))
+    http.handlers.append(HttpHandlerTtsReact(llm, llmPromptSys))
 
     # start actors
     http.start()
@@ -756,13 +765,13 @@ while not sysTerminating:
             name, wake_words = argWake(m)
             wake_wordsNew = ', '.join(wake_words)
             if wake_wordsOld!=wake_wordsNew:
-                llm(ChatReact(llmSysPrompt, f"User changed how he calls you from `{wake_wordsOld}` to `{wake_wordsNew}`", 'Wake word changed'))
+                llm(ChatReact(llmPromptSys, f"User changed how he calls you from `{wake_wordsOld}` to `{wake_wordsNew}`", 'Wake word changed'))
 
         elif argMainSpeaker.isArg(m):
             mainSpeakerOld = mainSpeaker
             mainSpeaker = argMainSpeaker(m)
             CTX.speaker = mainSpeaker
-            llm(ChatReact(llmSysPrompt, f"User changed main speaker from `{mainSpeakerOld}` to `{mainSpeaker}`"))
+            llm(ChatReact(llmPromptSys, f"User changed main speaker from `{mainSpeakerOld}` to `{mainSpeaker}`"))
 
         elif argMainLocation.isArg(m):
             mainLocation = argMainLocation(m)
@@ -775,7 +784,7 @@ while not sysTerminating:
             for mic in mics: mic.enabled = e
             stt.enabled = e
             if micEnabledOld!=e:
-                llm(ChatReact(llmSysPrompt, f"User turned {'on' if e else 'off'} microphone input", f"Microphone {'on' if e else 'off'}"))
+                llm(ChatReact(llmPromptSys, f"User turned {'on' if e else 'off'} microphone input", f"Microphone {'on' if e else 'off'}"))
 
         elif argMicEnergy.isArg(m):
             micEnergy = argMicEnergy(m)
@@ -802,13 +811,13 @@ while not sysTerminating:
         elif argTtsCoquiVoice.isArg(m):
             commandExecutor.execute("change voice " + argTtsCoquiVoice(m))
 
-        elif argLlmSysPrompt.isArg(m):
-            promptOld = llmSysPrompt
-            llmSysPrompt = argLlmSysPrompt(m)
-            llm.sysPrompt = llmSysPrompt
-            executorPython.llmSysPrompt = llmSysPrompt
-            if promptOld!=llmSysPrompt:
-                llm(ChatReact(llmSysPrompt, f"User changed your system prompt from:\n```\n{promptOld}\n```\n\nto:\n```\n{llmSysPrompt}\n```", name + " prompt changed"))
+        elif argLlmPromptSys.isArg(m):
+            promptOld = llmPromptSys
+            llmPromptSys = argLlmPromptSys(m)
+            llm.sysPrompt = llmPromptSys
+            executorPython.llmPromptSys = llmPromptSys
+            if promptOld!=llmPromptSys:
+                llm(ChatReact(llmPromptSys, f"User changed your system prompt from:\n```\n{promptOld}\n```\n\nto:\n```\n{llmPromptSys}\n```", name + " prompt changed"))
 
         elif argLlmChatMaxTokens.isArg(m):
             llm.maxTokens = argLlmChatMaxTokens(m)
@@ -838,7 +847,7 @@ while not sysTerminating:
             usePythonCommandsOld = usePythonCommands
             usePythonCommands = argUsePythonCommands(m)
             if usePythonCommandsOld!=usePythonCommands:
-                llm(ChatReact(llmSysPrompt, f"User {'increased' if usePythonCommands else 'decreased'} your output expressivity", name + " prompt changed"))
+                llm(ChatReact(llmPromptSys, f"User {'increased' if usePythonCommands else 'decreased'} your output expressivity", name + " prompt changed"))
 
         # exit command
         elif m == "EXIT":

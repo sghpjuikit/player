@@ -2,7 +2,6 @@ package sp.it.pl.plugin.impl
 
 
 import java.io.File
-import java.util.Stack
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos
@@ -10,37 +9,26 @@ import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.Side
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
-import javafx.scene.input.KeyCode.BACK_SPACE
 import javafx.scene.input.KeyCode.F5
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.PRIMARY
-import javafx.scene.input.MouseButton.SECONDARY
-import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
-import sp.it.pl.layout.WidgetFactory
-import sp.it.pl.layout.controller.ControllerIntro
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
-import sp.it.pl.main.Bool
 import sp.it.pl.main.Events.FileEvent
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
-import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.listBox
 import sp.it.pl.main.listBoxRow
 import sp.it.pl.main.withAppProgress
-import sp.it.pl.plugin.impl.VoiceAssistant
-import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.objects.form.Validated
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.util.Util.filenamizeString
 import sp.it.util.access.v
 import sp.it.util.access.vAlways
 import sp.it.util.async.runVT
@@ -53,21 +41,12 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.filename
 import sp.it.util.conf.noUi
 import sp.it.util.conf.nonBlank
-import sp.it.util.conf.nonEmpty
-import sp.it.util.file.FileType
-import sp.it.util.file.children
 import sp.it.util.file.div
-import sp.it.util.file.hasExtension
 import sp.it.util.file.readTextTry
-import sp.it.util.file.toFileOrNull
 import sp.it.util.file.writeTextTry
-import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
 import sp.it.util.functional.Try.Ok
-import sp.it.util.functional.and
 import sp.it.util.functional.getOr
-import sp.it.util.functional.ifNotNull
-import sp.it.util.functional.ifNull
 import sp.it.util.reactive.flatMap
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
@@ -76,8 +55,6 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.zip
-import sp.it.util.reactive.zip2
-import sp.it.util.system.open
 import sp.it.util.text.capitalLower
 import sp.it.util.text.nameUi
 import sp.it.util.ui.hBox
@@ -99,7 +76,8 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
    val selection by cv("").noUi()
    val edit = v(false)
    val personas = mutableListOf<Persona>()
-   val personaActive = (plugin flatMap { it?.llmChatSysPromptFile ?: vAlways(null) }) map { it?.nameWithoutExtension }
+   val personaActive = plugin flatMap { it?.llmChatPersonaName ?: vAlways(null) }
+   val personaActiveWithSelection = selection zip personaActive
    val contentPr = scrollPane()
    val contentEd = vBox(15.emScaled, Pos.CENTER)
    val contentEdArea = textArea()
@@ -120,8 +98,8 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
                   }
                   lay += label(" ")
                   lay += Icon(IconMA.PERSON_OUTLINE).apply {
-                     (selection zip personaActive) sync { (s, p) -> icon(if (p==s) IconMA.PERSON else IconMA.PERSON_OUTLINE) } on onClose
-                     disableProperty() syncFrom (selection zip personaActive).map { (s, p) -> s.isEmpty() || p==s } on onClose
+                     personaActiveWithSelection sync { (s, p) -> icon(if (p==s) IconMA.PERSON else IconMA.PERSON_OUTLINE) } on onClose
+                     disableProperty() syncFrom personaActiveWithSelection.map { (s, p) -> s.isEmpty() || p==s } on onClose
                      tooltip("Activate persona")
                      onClickDo { personas.find { it.name==selection.value }?.activate() }
                   }
@@ -131,7 +109,7 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
                      onClickDo { edit() }
                   }
                   lay += Icon(IconMA.DELETE).apply {
-                     disableProperty() syncFrom (selection zip personaActive).map { (s, p) -> s.isEmpty() || p==s } on onClose
+                     disableProperty() syncFrom personaActiveWithSelection.map { (s, p) -> s.isEmpty() || p==s } on onClose
                      tooltip("Delete persona")
                      onClickDo { delete() }
                   }
@@ -167,7 +145,7 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
          }
       }
 
-      root.sync1IfInScene { selection.value = selectedPersona()?.name ?: personas.firstOrNull()?.name ?: plugin.value?.llmChatSysPromptFile?.value?.nameWithoutExtension ?: "" } on onClose
+      root.sync1IfInScene { selection.value = selectedPersona()?.name ?: personas.firstOrNull()?.name ?: plugin.value?.llmChatPersonaFile?.value?.nameWithoutExtension ?: "" } on onClose
       root.sync1IfInScene { refreshPersonas() } on onClose
 
       APP.actionStream.onEvent<FileEvent.Delete> { e -> if (personas.any { it.def==e.file }) refreshPersonas() } on onClose
@@ -237,11 +215,11 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
 
       fun icon() = if (isActive()) IconMA.PERSON else IconMA.PERSON_OUTLINE
 
-      fun isActive() = plugin.value?.llmChatSysPromptFile?.value == def
+      fun isActive() = plugin.value?.llmChatPersonaFile?.value == def
 
       fun activate() {
          if (isActive()) return
-         plugin.value?.llmChatSysPromptFile?.value = def
+         plugin.value?.llmChatPersonaName?.value = def.nameWithoutExtension
          personas.forEach { it.row.icon.icon(it.icon()) }
       }
 
@@ -254,7 +232,7 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
 
       fun editDef(text: String) =
          runVT { def.writeTextTry(text) }.ui {
-            if (isActive()) plugin.value?.llmChatSysPrompt?.value = text
+            if (isActive()) plugin.value?.llmChatPersonaName?.value = def.nameWithoutExtension
             this@VoiceAssistantPersona.contentTx.text = text
          }.withAppProgress(
             "Edit persona $name"

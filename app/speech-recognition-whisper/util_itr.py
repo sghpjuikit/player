@@ -150,3 +150,59 @@ def python_code_chunks(input_generator):
 
     if current_chunk:
         yield current_chunk.rstrip("\n")
+
+def vec(sentence: str):
+    from nomic import embed
+    import numpy as np
+    output = embed.text(
+        texts=[
+            'Nomic Embed now supports local and dynamic inference to save you inference latency and cost!',
+            'Hey Nomic, why don\'t you release a multimodal model soon?',
+        ],
+        model='nomic-embed-text-v1.5',
+        task_type="search_document",
+        inference_mode='local',
+        dimensionality=768,
+    )
+
+    print(output['usage'])
+
+    embeddings = np.array(output['embeddings'])
+
+    print(embeddings.shape)
+
+def get(query: str) -> None:
+    if query in memory:
+        embed_model = NomicEmbedding(
+            model_name='nomic-embed-text-v1.5',
+            inference_mode='local',
+            device='gpu',
+        )
+        result = embed_model.get_text_embedding(query)
+        # perform cosine similarity search on the stored vectors
+        scores = []
+        for text, vector in memory.items():
+            score = cosine_similarity(result, vector)[0][0]
+            scores.append((text, score))
+        scores.sort(key=lambda x: x[1], reverse=True)
+        top_results = [x[0] for x in scores[:10]]
+        speak(f"Top 10 similar results: {', '.join(top_results)}")
+    else:
+        speak(f"No embedding found for '{query}'")
+
+def set(text: str) -> None:
+    embed_model = NomicEmbedding(
+        model_name='nomic-embed-text-v1.5',
+        inference_mode='local',
+        device='gpu',
+    )
+    result = embed_model.get_text_embedding(text)
+    memory[text] = result
+    speak(f"Embedded '{text}' and stored it in the RAG.")
+
+# vec('')
+# data = index_md_file('README-ASSISTANT.md')
+# data_rag = {}
+# for header, text in data.items():
+#     data_rag[header] = {}
+#     data_rag[header]

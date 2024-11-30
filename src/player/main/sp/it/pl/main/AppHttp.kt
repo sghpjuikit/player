@@ -57,9 +57,13 @@ class AppHttp(
    /** Speech handlers called when user has spoken. */
    private val serverHandlers by cList<Handler>().readOnly().noPersist().butElement { uiConverter { it.nameUi } }
       .def(name = "API", info = "API of this application. Be default empty.", editable = EditMode.APP)
-   /** Url of this application */
+   /** Url of this application (where the server will be started) */
    val url by c(uri("http://0.0.0.0:$port")).readOnly().noPersist()
       .def(name = "Url", info = "Url address of this application. 0.0.0.0 means the application is reachable from local network and potentially also the internet.", editable = EditMode.NONE)
+   /** Url of this application (where the server can be reached locally, i.e. 0.0.0.0 replaced by localhost) */
+   val urlLocal = uri(url.toString().replace("0.0.0.0", "localhost"))
+   /** Url of this application (where the server can be reached externally, i.e. 0.0.0.0 replaced by host address) */
+   val urlExternal = uri(url.toString().replace("0.0.0.0", InetAddress.getLocalHost().hostAddress))
    /** Http sever of this application, does not support https. Thread-safe. */
    val server get() = serverLazy.value
    /** Http server routes, i.e., request handlers. Thread-safe. */
@@ -107,7 +111,12 @@ class AppHttp(
    private fun buildServerHandler() = HttpHandler { e ->
       runTry {
          logger.info { "Req ${e.requestMethod} ${e.requestURI}" }
-         serverRoutes.find(e).ifNull { throw Exception404("No handler for ${e.requestURI.path}") }!!.block(e)
+         val r = serverRoutes.find(e)
+         // 404 if no match
+         r ?: throw Exception404("No handler for ${e.requestURI.path}")
+         // 405 if no method match
+         r.takeIf { it.method==null || it.method==e.requestMethod } ?: throw Exception405("Method not allowed for ${e.requestURI.path}")
+         r.block(e)
       }.map {
          when (it) {
             is Fut<*> -> it.blockAndGetOrThrow()
@@ -116,6 +125,8 @@ class AppHttp(
       }.ifError { x ->
          if (x is Exception404)
             e.respond(404, 0) { it.writer().write(x.message ?: "") }
+         if (x is Exception405)
+            e.respond(405, 0) { it.writer().write(x.message ?: "") }
          else {
             logger.error(x) { "Failed to handle http request ${e.requestURI}" }
             e.respond(500, 0) { it.writer().write(x.message ?: "") }
@@ -168,7 +179,7 @@ class AppHttp(
       }
    }
 
-   class Handler(override val nameUi: String, val exactMatch: Boolean = false, block: (HttpExchange) -> Any?): NameUi {
+   class Handler(override val nameUi: String, val method: String? = "GET", val exactMatch: Boolean = false, block: (HttpExchange) -> Any?): NameUi {
       /** Path to match against in raw form. May contain single `%` path variable at the end. May contain `?` and quary parameters. */
       val matcher = nameUi
       /** Path to match against */
@@ -203,6 +214,7 @@ class AppHttp(
    }
 
    private class Exception404(message: String): RuntimeException(message)
+   private class Exception405(message: String): RuntimeException(message)
 
    companion object {
       private val logger = KotlinLogging.logger { }
@@ -233,9 +245,8 @@ class AppHttp(
          } else {
             sendResponseHeaders(status, contentLength)
             runTry {
-
                responseBody.buffered(DEFAULT_BUFFER_SIZE).use { writer(it); it.flush() }
-            }.ifError { print("LOL") }
+            }
          }
       }
 

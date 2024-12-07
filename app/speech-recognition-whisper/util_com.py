@@ -289,7 +289,11 @@ class PythonExecutor:
                 self.save_memory()
             def accessMemory(query: str):
                 # self.mem.update(self.__llmPromptDoc)
+
                 mem = {} if self.mem is None else self.mem.copy()
+                self.write(self.mem)
+                self.write(self.mem.copy())
+                self.write(mem)
                 memKeys = '* ' + "\n* ".join(mem.keys())
                 memKeyAll = 'all'
                 memKeyNone = 'none'
@@ -308,12 +312,13 @@ class PythonExecutor:
                     if canceled is not True:
                         memKey = memKeyNone
                         for k in mem.keys():
+                            self.write(f'{key.strip().lower()} =={k.strip().lower()}')
                             if key.strip().lower()==k.strip().lower():
                                 memKey = k
 
                         self.write(f'Accessing memory \'{key}\'')
                         self.chatAppend({"role": "user", "content": '*waiting*'})
-                        self.generatePythonAndExecuteInternal(f'You accesed your memory and can now reply to the query using the data:\n {mem[k]}')
+                        self.generatePythonAndExecuteInternal(f'You accesed your memory and can now reply to the query using the data:\n {mem[key]}')
                 except Exception as e:
                     speak(f'I\'m sorry, I failed to respond: {e}')
                     raise e

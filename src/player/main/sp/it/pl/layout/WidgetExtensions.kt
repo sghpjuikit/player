@@ -109,7 +109,7 @@ fun Component.openInConfigured() {
       val strategy by cv<ComponentLoaderStrategy>(w.asIf<WidgetFactory<*>>()?.let { APP.widgetManager.widgets.componentLastOpenStrategiesMap[it.id] } ?: DOCK)
       val process by cv<ComponentLoaderProcess>(NORMAL)
    }.configure("Open") {
-      w.toDb().toDomain()?.openIn(it.strategy.value, it.process.value)
+      w.toDb().deduplicateIds().toDomain()?.openIn(it.strategy.value, it.process.value)
    }
 }
 

@@ -90,6 +90,9 @@ private lateinit var rawArgs: Array<String>
 fun main(args: Array<String>) {
    rawArgs = args
 
+   // prevent running from incorrect directory
+   if (!File("SpitPlayer.exe").exists()) fail { "Incorrect working directory. The application must be started from its directory" }
+
    // set UTF-8
    System.setProperty("file.encoding", "UTF-8");
 

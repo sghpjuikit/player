@@ -294,27 +294,37 @@ class ControllerNode(widget: Widget): SimpleController(widget) {
   }
 
    fun storeInputs() {
-      widget.properties["node-widget-inputs"] = io.i.getInputs().joinToString("-") {
-         it.name.encodeBase64() + "|" + if (it.isBoundUnless()) "" else it.value.toS().quote().encodeBase64()
+      widget.properties["node-inputs"] = io.i.getInputs().associate {
+         it.name to (if (it.isBoundUnless()) "" else it.value.toS())
       }
    }
 
-   fun restoreInputs() {
-      widget.properties["node-widget-inputs"].asIf<String>().orEmpty().splitNoEmpty("-").forEach {
-         val (propertyNameBase64, propertyValueBase64) = it.split2Partial("|")
-         val (propertyName, propertyValueS) = propertyNameBase64.decodeBase64().orThrow to propertyValueBase64.ifNotEmpty { it.decodeBase64().orThrow.unquote() }
-         val properties = nodeInstance.value.properties
-         val property = properties.firstOrNull { p -> p.name==propertyName }
-         if (property!=null && io.i.getInputs().none { it.name==property.name }) {
-            val propertyValue = when (propertyValueS) {
-               "" -> property.value.value
-               else -> APP.converter.general.ofS(property.type, propertyValueS).getOrSupply { property.value.value }
-            }
-
-            property.value.value = propertyValue
-            io.i.create(property.name, property.type, propertyValue) { property.value.value = it }
+   fun restoreInput(propertyName: String, propertyValueS: String) {
+      val properties = nodeInstance.value.properties
+      val property = properties.firstOrNull { p -> p.name==propertyName }
+      if (property!=null && io.i.getInputs().none { it.name==property.name }) {
+         val propertyValue = when (propertyValueS) {
+            "" -> property.value.value
+            else -> APP.converter.general.ofS(property.type, propertyValueS).getOrSupply { property.value.value }
          }
+
+         property.value.value = propertyValue
+         io.i.create(property.name, property.type, propertyValue) { property.value.value = it }
       }
+   }
+   fun restoreInputs() {
+      // legacy restoration
+      widget.properties["node-widget-inputs"].asIf<String>().orEmpty().splitNoEmpty("-")
+         .associate {
+            val (propertyNameBase64, propertyValueBase64) = it.split2Partial("|")
+            val (propertyName, propertyValueS) = propertyNameBase64.decodeBase64().orThrow to propertyValueBase64.ifNotEmpty { it.decodeBase64().orThrow.unquote() }
+            propertyName to propertyValueS
+         }
+         .forEach(::restoreInput)
+      widget.properties - "node-widget-inputs"
+      // new restoration
+      widget.properties["node-widget-inputs"].asIf<Map<String, String>>().orEmpty()
+         .forEach(::restoreInput)
    }
 
    override fun focus() {

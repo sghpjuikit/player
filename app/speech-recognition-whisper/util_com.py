@@ -182,7 +182,7 @@ class PythonExecutor:
                 print(f'canceling because speech started by {speaker}')
                 self.cancelActiveCommand()
 
-    def onChatRestart(self, speaker):
+    def onChatRestart(self):
         self.chatSet([])
 
     def cancelActiveCommand(self):

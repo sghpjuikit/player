@@ -216,12 +216,6 @@ dependencies {
    implementation(project(":util"))
 }
 
-javaToolchains.compilerFor {
-   languageVersion = JavaLanguageVersion.of(20)
-   vendor = ADOPTIUM
-}
-
-
 tasks {
 
    val copyLibs by creating(Sync::class) {
@@ -272,11 +266,15 @@ tasks {
       group = "build"
       destinationDirectory = dirApp
       archiveFileName = "SpitPlayer.jar"
+      manifest {
+         attributes["Main-Class"] = "sp.it.pl.main.AppKt"
+      }
    }
 
    "run"(JavaExec::class) {
       dependsOn(jar)  // the widgets need the jar on the classpath
       workingDir = dirApp
+      mainClass = "sp.it.pl.main.AppKt"
       args = listOf("--dev")
    }
 
@@ -301,6 +299,7 @@ tasks {
 application {
    applicationName = "Spit Player"
    mainClass = "sp.it.pl.main.AppKt"
+   executableDir = "app"
    applicationDefaultJvmArgs = listOf(
       "-Dname=SpitPlayer",
       "-Dfile.encoding=UTF-8",
@@ -311,6 +310,7 @@ application {
       "-XX:+UseStringDeduplication",
       "-XX:+UseCompressedOops",
       "-XX:+CompactStrings",  // OpenJ9 only
-      *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty()
+      *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
+      "--dev"
    )
 }

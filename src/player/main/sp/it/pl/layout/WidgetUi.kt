@@ -27,6 +27,7 @@ import sp.it.pl.main.toS
 import sp.it.pl.ui.objects.placeholder.Placeholder
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.functional.net
+import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
@@ -75,6 +76,7 @@ class WidgetUi(container: Container<*>, index: Int, widget: Widget): ComponentUi
       }
       override fun layoutChildren() {
          super.layoutChildren()
+         if (disposed) return
          controls.root.prefWidth = width
          controls.root.prefHeight = height
          layoutInArea(controls.root, 0.0, 0.0, width, height, 0.0, padding, true, true, HPos.CENTER, VPos.CENTER, true)
@@ -187,9 +189,9 @@ class WidgetUi(container: Container<*>, index: Int, widget: Widget): ComponentUi
       content.styleclassToggle(CONTENT_STYLECLASS, !isStandalone)
    }
 
-   override fun show() = controls.show()
+   override fun show() = if (disposed) Unit else controls.show()
 
-   override fun hide() = controls.hide()
+   override fun hide() = if (disposed) Unit else controls.hide()
 
    private fun buildManualLoadPane() = Placeholder(widget.factory.icon ?: IconOC.UNFOLD, "") {
       widget.forceLoading = true

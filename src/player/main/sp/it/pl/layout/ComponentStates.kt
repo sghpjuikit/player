@@ -1,9 +1,11 @@
 package sp.it.pl.layout
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.util.UUID
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
+import sp.it.pl.core.logger
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
@@ -14,6 +16,7 @@ import sp.it.util.file.writeTextTry
 import sp.it.util.functional.orNull
 import sp.it.util.text.splitNoEmpty
 
+private val logger = KotlinLogging.logger { }
 private val json = APP.serializerJson.json
 
 /**[Component.toDb] or [NoComponentDb] */
@@ -27,6 +30,7 @@ fun Component?.toDb(): ComponentDb = this?.toDb() ?: NoComponentDb
  * See [File.loadComponentFxwlJson]
  */
 fun Component?.exportFxwl(f: File) = runVT {
+   logger.info { "Exporting component to file=$f" }
    APP.serializerJson.toJson(toDb(), f).ifErrorNotify {
       AppError(
          "Unable to export component launcher for ${this?.name} into ${f}.",
@@ -37,6 +41,7 @@ fun Component?.exportFxwl(f: File) = runVT {
 
 /** Creates a launcher for this widget with default (none predefined) settings.  */
 fun Widget.exportFxwlDefault(f: File) = runVT {
+   logger.info { "Exporting default widget launcher to file=$f" }
    f.writeTextTry(factory.id).ifErrorNotify {
       AppError(
          "Unable to export default widget launcher for $name into $f.",
@@ -50,6 +55,7 @@ fun Widget.exportFxwlDefault(f: File) = runVT {
  * See [Component.exportFxwl]
  */
 fun File.loadComponentFxwlJson() = runVT {
+   logger.info { "Loading component from file=$this" }
    json.fromJson<ComponentDb>(this).ifErrorNotify {
       AppError(
          "Unable to load component launcher from $this.",

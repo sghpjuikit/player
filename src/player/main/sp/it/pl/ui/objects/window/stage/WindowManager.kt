@@ -49,6 +49,7 @@ import sp.it.pl.layout.WidgetIoManager
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.deduplicateIds
 import sp.it.pl.layout.exportFxwl
+import sp.it.pl.layout.loadComponentFxwlJson
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
 import sp.it.pl.main.AppSettings.ui.window as confWindow
@@ -83,6 +84,7 @@ import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.VT
+import sp.it.util.async.coroutine.await
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
@@ -716,7 +718,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       when (id) {
          null -> null
-         "" -> APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.deduplicateIds()?.toDomain()?.apply { fileDeserializing = launcher }
+         "" -> launcher.loadComponentFxwlJson().await()?.apply { fileDeserializing = launcher }
          else -> instantiateComponent(id)
       }
    }

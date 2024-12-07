@@ -180,7 +180,8 @@ class StartScreen: PluginBase() {
       override val name = "Start Screen"
       override val description = buildString {
          append("Provides start screen overlay similar to the one in Windows 8.").append(" ")
-         append("The content is managed like in any other window, using containers and components.")
+         append("The content is fully customizable like any ordinary window.").append(" ")
+         append("The content supports pasing any data from clipboard and drag&drop as well.")
       }
       override val isSupported = Os.WINDOWS.isCurrent
       override val isSingleton = true

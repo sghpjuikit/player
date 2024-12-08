@@ -104,7 +104,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "24-ea+15"
+         val version = "24-ea+19"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -122,7 +122,7 @@ allprojects {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
          implementation("ch.qos.logback", "logback-classic", "1.5.12") // https://logback.qos.ch/news.html
-         implementation("io.github.oshai", "kotlin-logging-jvm", "7.0.0")
+         implementation("io.github.oshai", "kotlin-logging-jvm", "7.0.3")
       }
 
       "Native" group {
@@ -178,8 +178,8 @@ allprojects {
 
       "Http" group {
          implementation("javax.jmdns","jmdns","3.4.1")
-         implementation("io.ktor", "ktor-server-core", "3.0.1")
-         implementation("io.ktor", "ktor-client-java", "3.0.1")
+         implementation("io.ktor", "ktor-server-core", "3.0.2")
+         implementation("io.ktor", "ktor-client-java", "3.0.2")
       }
 
       "Test" group {

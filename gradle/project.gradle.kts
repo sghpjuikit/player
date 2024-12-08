@@ -302,7 +302,7 @@ application {
    executableDir = "app"
    applicationDefaultJvmArgs = listOf(
       "-Dname=SpitPlayer",
-      "-Dfile.encoding=UTF-8",
+      "-D--dev",
       "-Xms" + ("player.memoryMin".prjProp ?: "50m"),
       "-Xmx" + ("player.memoryMax".prjProp ?: "3g"),
       "-XX:MinHeapFreeRatio=5",  // Hotspot gc only
@@ -311,6 +311,5 @@ application {
       "-XX:+UseCompressedOops",
       "-XX:+CompactStrings",  // OpenJ9 only
       *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
-      "--dev"
    )
 }

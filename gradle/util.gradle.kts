@@ -14,6 +14,6 @@ sourceSets {
 }
 
 dependencies {
-   implementation("org.apache.commons", "commons-text", "1.12.0")
+   implementation("org.apache.commons", "commons-text", "1.13.0")
    implementation("org.atteo", "evo-inflector", "1.3")
 }

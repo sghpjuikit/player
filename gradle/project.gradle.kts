@@ -94,8 +94,8 @@ allprojects {
          // compatibility table https://kotlinlang.org/docs/releases.html#release-details
          implementation(kotlin("reflect", "2.1.0"))
          implementation(kotlin("compiler-embeddable"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.9.0")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.9.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.10.1")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.10.1")
          implementation("org.jetbrains", "annotations", "26.0.1")
       }
 
@@ -121,12 +121,12 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
-         implementation("ch.qos.logback", "logback-classic", "1.5.12") // https://logback.qos.ch/news.html
+         implementation("ch.qos.logback", "logback-classic", "1.5.15") // https://logback.qos.ch/news.html
          implementation("io.github.oshai", "kotlin-logging-jvm", "7.0.3")
       }
 
       "Native" group {
-         implementation("net.java.dev.jna", "jna-platform", "5.14.0")
+         implementation("net.java.dev.jna", "jna-platform", "5.16.0")
          implementation("com.github.kwhat", "jnativehook", "2.2.2")
       }
 
@@ -178,8 +178,8 @@ allprojects {
 
       "Http" group {
          implementation("javax.jmdns","jmdns","3.4.1")
-         implementation("io.ktor", "ktor-server-core", "3.0.2")
-         implementation("io.ktor", "ktor-client-java", "3.0.2")
+         implementation("io.ktor", "ktor-server-core", "3.0.3")
+         implementation("io.ktor", "ktor-client-java", "3.0.3")
       }
 
       "Test" group {

@@ -135,6 +135,8 @@ allprojects {
             exclude("net.java.dev.jna", "jna-jpms")
             exclude("net.java.dev.jna", "jna-platform-jpms")
          }
+         implementation("uk.co.caprica", "vlcj-javafx", "1.2.0")
+
          // implementation("net.jthink", "jaudiotagger", "3.0.1") // unmaintained
          implementation("com.github.RouHim", "jaudiotagger", "1.2.27") // >1.2.27 has build errors and jitpack has no jar, see https://jitpack.io/com/github/RouHim/jaudiotagger/
       }

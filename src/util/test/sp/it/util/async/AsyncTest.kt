@@ -1,7 +1,6 @@
 package sp.it.util.async
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import kotlin.reflect.jvm.jvmName
 import sp.it.util.async.future.Fut

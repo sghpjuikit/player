@@ -308,7 +308,10 @@ open class PopWindow {
          }
 
          lay += contentP
-         lay(BOTTOM_RIGHT) += resizeB
+         userResizable attach {
+            if (it) lay(BOTTOM_RIGHT) += resizeB
+            else lay -= resizeB
+         }
       }
    }
 

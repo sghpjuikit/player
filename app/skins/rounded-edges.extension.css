@@ -7,7 +7,19 @@
 .window,
 .window > #front > #frontContent,
 .pop-window,
-.pop-window-content,
+.pop-window-content {
+    -fx-background-radius: 0.5em; // 0.5 is compatible with windows radius
+    -fx-border-radius: 0.6em; // -fx-background-radius + 0.1em to improve look in the corner
+}
+
+.window:maximized,
+.window:maximized > #front > #frontContent,
+.window:fullscreen,
+.window:fullscreen > #front > #frontContent {
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
 * {
     -fx-background-radius: 1em;
     -fx-border-radius: 1em;

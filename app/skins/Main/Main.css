@@ -2187,6 +2187,7 @@ TextFlow > * {
  *  resized: the window is being resized
  *  moved: the window is being moved
  *  fullscreen: the window is in fullscreen mode
+ *  maximized: the window is in maximized state
  *  transparent-on: the window has StageStyle.TRANSPARENT and is not `transparent` or `transparent-ct`
  *  transparent-blur: same as transparent-on, but window has blurred bgr effect enabled
  *  transparent: the window has forcefully disabled certain decorations to show transparency effects

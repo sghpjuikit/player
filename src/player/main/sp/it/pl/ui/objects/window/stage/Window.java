@@ -172,6 +172,8 @@ public class Window extends WindowBase {
 	public static final PseudoClass pcMoved = pseudoclass("moved");
 	/** Pseudoclass active when this window is fullscreen. Applied on {@link #scWindow}. */
 	public static final PseudoClass pcFullscreen = pseudoclass("fullscreen");
+	/** Pseudoclass active when this window is maximized. Applied on {@link #scWindow}. */
+	public static final PseudoClass pcMaximized = pseudoclass("maximized");
 	/** Pseudoclass active when this window {@link javafx.stage.StageStyle} is {@link javafx.stage.StageStyle#TRANSPARENT} and {@link #effect} is {@link sp.it.pl.ui.objects.window.stage.Window.BgrEffect#OFF}. */
 	public static final String pcTransparentOn = "transparent-on";
 	/** Pseudoclass active when this window {@link javafx.stage.StageStyle} is {@link javafx.stage.StageStyle#TRANSPARENT} and {@link #effect} is not {@link sp.it.pl.ui.objects.window.stage.Window.BgrEffect#OFF}. */
@@ -259,6 +261,7 @@ public class Window extends WindowBase {
 		resizing.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcResized, nv!=NONE));
 		moving.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcMoved, nv));
 		fullscreen.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFullscreen, nv));
+		maximized.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcMaximized, nv==Maximized.ALL));
 
 		// disable borders when not resizable
 		// makes gui consistent & prevents potential bugs

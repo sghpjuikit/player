@@ -37,6 +37,8 @@ import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.objects.window.stage.popWindowOwner
 import sp.it.pl.ui.pane.OverlayPane.Companion.isOverlayWindow
+import sp.it.util.access.OrV
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.v
 import sp.it.util.access.vAlways
 import sp.it.util.access.vn
@@ -189,6 +191,11 @@ open class PopWindow {
    val focusOnShow = v(true)
    /** Additional icons in the header. Order is respected (from left to right). Default empty. */
    val headerIcons = observableArrayList<Node>()!!
+
+   /** Whether window content has transparent decoration. Default off. */
+   val transparency = OrV(APP.windowManager.windowTransparency, Inherit());
+   /** Whether window content has transparent decoration. Default off. */
+   val effect = OrV(APP.windowManager.windowEffect, Inherit());
 
    /** Whether this popup is currently showing. */
    val isShowing get() = window?.isShowing ?: false

@@ -260,8 +260,14 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             if (w.isOverlayWindow() && w.asOverlayWindow()!!.displayBgr.value!=ScreenBgrGetter.NONE)
                return@onItemSyncWhile Subscription { }
 
-            val wTransparency = w.asAppWindow()?.transparency ?: windowTransparency
-            val wEffect = w.asAppWindow()?.effect ?: windowEffect
+            val wTransparency = null
+               ?: w.asAppWindow()?.transparency
+               ?: w.asPopWindow()?.transparency
+               ?: windowTransparency
+            val wEffect = null
+               ?: w.asAppWindow()?.effect
+               ?: w.asPopWindow()?.effect
+               ?: windowEffect
             val wBgr = null
                ?: w.asAppWindow()?.root?.backgroundProperty()
                ?: w.asPopWindow()?.root?.backgroundProperty()

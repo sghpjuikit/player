@@ -329,9 +329,10 @@ class PythonExecutor:
             def print(t: object):
                 # alias for speak, because LLM likes to use print instead of speak too much
                 speak(t)
-            def speak(t: object):
+            def speak(t: object, emotion: str | None = None):
                 if t is None: return;
                 assertSkip()
+                if emotion is not None: self.write(f"*{emotion}*")
                 self.api.ttsSkippable(f'{t}'.removeprefix('"').removesuffix('"'), location).result()
             def body(t: str):
                 assertSkip()
@@ -346,10 +347,10 @@ class PythonExecutor:
             def speakCurrentSong(): command('what song is active')
             def speakDefinition(t: str): command('describe ' + t)
             def thinkPassive(*thoughts: str):
-                t = ''.join(map(lambda t: '\n*' + str(t) + "*", thoughts))
+                t = thoughts[0] if len(thoughts)==1 else ''.join(map(lambda t: '\n*' + str(t) + "*", thoughts))
                 self.write(f'~{t}~')
             def think(*thoughts: str):
-                t = ''.join(map(lambda t: '\n*' + str(t), thoughts))
+                t = thoughts[0] if len(thoughts)==1 else ''.join(map(lambda t: '\n*' + str(t), thoughts))
                 
                 # self.generatePythonAndExecute('System', 'My thoughts are:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)))
 
@@ -618,8 +619,8 @@ generateCode('python', '10+11') # code instead of prompt
 ```
 def body(action: str) -> None:
  'controls your physical body to do any single physical action except speaking i.e. body("look up"), body("move closer")'
-def speak(your_speech_to_user: str) -> None:
- 'speak speech-like text out loud (use phonetic words, ideally single sentence per line, specify terms/signs/values as words). Speak single sentence. Use multiple calls for multiple sentences
+def speak(your_speech_to_user: str, emotion: str | None = None) -> None:
+ 'speak speech-like text out loud (use phonetic words, ideally single sentence per line, specify terms/signs/values as words). Speak single sentence. Use multiple calls for multiple sentences. Specify emotion when speaking other than normal.
 def doNothing(reason: str = '') -> None:
  'does nothing, useful to stop engaging with user, optionally pass reason'
 def accessMemory(query: str) -> None:

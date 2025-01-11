@@ -27,6 +27,7 @@ import sp.it.pl.main.IconMA
 import sp.it.pl.main.isPlaying
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.util.access.fieldvalue.MetaField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.fieldvalue.ObjectFieldBase
@@ -114,7 +115,13 @@ fun <T> TableView<T>.buildPlayingFieldCell(column: TableColumn<*, Any>): TableCe
             if (e.button==SECONDARY) {
                // open playback controls on RMB
                val widgetKey = "playlist-table-playback-control-widget"
-               fun customizePopup(it: PopWindow) { it.headerVisible.value = false }
+               fun customizePopup(it: PopWindow) {
+                  it.headerVisible.value = false
+                  it.userResizable.value = false
+                  it.root.style = "-fx-background-radius: 1000; -fx-border-radius: 1000;"
+                  it.effect.override.value = true
+                  it.effect.value = Window.BgrEffect.OFF
+               }
                fun obtainWidget() = APP.widgetManager.widgets.findAll(OPEN).find { widgetKey in it.properties }?.apply { focusWithWindow() }
                fun buildWidget() = APP.widgetManager.widgets.find("Playback seeker", NEW(POPUP.customize(::customizePopup)(this)))?.apply { properties[widgetKey] = widgetKey }
                obtainWidget() ?: buildWidget()

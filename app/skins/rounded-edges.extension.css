@@ -21,6 +21,6 @@
 }
 
 * {
-    -fx-background-radius: 1em;
-    -fx-border-radius: 1em;
+    -fx-background-radius: 0.5em;
+    -fx-border-radius: 0.6em;
 }

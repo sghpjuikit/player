@@ -103,7 +103,8 @@ class VlcPlayer: GeneralPlayer.Play {
          val pf = playerFactory ?: try {
             MediaPlayerFactory(
                discoverVlc(APP.audio.playerVlcLocations),
-               "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access"
+               "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access",
+               "--demux=avformat" // support animated gif
             ).apply {
                playerFactory = this
             }

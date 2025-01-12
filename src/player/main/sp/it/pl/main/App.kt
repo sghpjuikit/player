@@ -1,5 +1,8 @@
 package sp.it.pl.main
 
+import com.github.ajalt.clikt.parameters.options.convert
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.option
 import sp.it.pl.main.AppSettings.app as conf
 import com.sun.jna.platform.win32.Advapi32Util
 import com.sun.tools.attach.VirtualMachine
@@ -116,6 +119,7 @@ fun main(args: Array<String>) {
 
    CoreOshi().init()
 
+   Platform.setImplicitExit(false)
    Application.launch(App::class.java, *args)
 }
 
@@ -159,7 +163,7 @@ class App: Application(), GlobalConfigDelegator {
    /** Whether application starts with a state. If false, state is not restored on start or stored on close. */
    var isStateful = true
    /** Whether application forbids no windows. If true, at least one window must be open and closing last one will close the app. */
-   var isUiApp = true
+
    /** Whether application is initialized. Starts as error and transitions to ok in [App.start] if no error occurs. */
    var isInitialized: Try<Unit, Throwable> = Try.error(Exception("Initialization has not run yet"))
       private set
@@ -225,6 +229,9 @@ class App: Application(), GlobalConfigDelegator {
    /** Shows whether this application's process is running with elevated permissions. */
    val processElevated by cn(if (WINDOWS.isCurrent) Advapi32Util.isCurrentProcessElevated() else null)
       .noPersist().apply { if (!WINDOWS.isCurrent) noUi() } def ConfigDef("Process elevated", "Whether this application's process is running with elevated permissions", editable = NONE)
+   /** Whether application can run with no ui. If false, at least one window must be open and closing main window will close the app. */
+   val isUiApp by cv(true)
+      .def(name = "Require ui", info = "Whether application can run with no ui. If false, at least one window must be open and closing main window will close the app.")
 
    /** Environment core. */
    val env = CoreEnv.apply { init() }
@@ -358,7 +365,7 @@ class App: Application(), GlobalConfigDelegator {
 
       isInitialized = runTry {
          plugins.initForApp()
-         collectActionsOf(PlaylistManager)
+         collectActionsOf(PlaylistManager)   
          collectActionsOf(this)
          collectActionsOf(ui)
          collectActionsOf(actions)
@@ -368,7 +375,8 @@ class App: Application(), GlobalConfigDelegator {
          widgetManager.init()
          db.init()
          audio.initialize()
-         if (isStateful) windowManager.deserialize()
+         windowManager.deserialize()
+         Unit
       }.ifError {
          runLater {
             logger.error(it) { "Application failed to start" }
@@ -397,6 +405,12 @@ class App: Application(), GlobalConfigDelegator {
          windowManager.deserialize()
          audio.restore()
       }
+   }
+
+   /** Starts this application normally if not yet started that way, otherwise has no effect. */
+   @IsAction(name = "Load ui", info = conf.startNormally.cinfo)
+   fun startUi() {
+      windowManager.deserialize(force = true)
    }
 
    @Deprecated("Called automatically")
@@ -437,7 +451,7 @@ class App: Application(), GlobalConfigDelegator {
       if (isInitialized.isOk) {
          if (rank==MASTER && isStateful) audio.state.serialize()
          if (rank==MASTER && isStateful) windowManager.dockWindow?.window?.close()
-         if (rank==MASTER && isStateful) windowManager.serialize()
+         if (rank==MASTER && isStateful) windowManager.serialize(true)
          if (rank==MASTER) configuration.save(location.user.application_json)
       }
    }

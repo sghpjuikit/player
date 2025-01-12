@@ -5,6 +5,7 @@ import com.sun.jna.platform.win32.GDI32
 import com.sun.jna.platform.win32.User32
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
+import java.util.concurrent.locks.ReentrantLock
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos
@@ -36,10 +37,10 @@ import javafx.stage.StageStyle.UTILITY
 import javafx.stage.Window as WindowFx
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import kotlin.math.sqrt
+import kotlin.concurrent.withLock
 import kotlinx.coroutines.invoke
 import sp.it.pl.core.CoreMouse.onNextMouseMoveStop
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.ComponentFactory
 import sp.it.pl.layout.ComponentLoader.CUSTOM
 import sp.it.pl.layout.Layout
@@ -47,7 +48,6 @@ import sp.it.pl.layout.NoFactoryFactory
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetIoManager
 import sp.it.pl.layout.WidgetUse.NEW
-import sp.it.pl.layout.deduplicateIds
 import sp.it.pl.layout.exportFxwl
 import sp.it.pl.layout.loadComponentFxwlJson
 import sp.it.pl.main.APP
@@ -87,19 +87,23 @@ import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.await
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.future.Fut
+import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runLater
 import sp.it.util.async.runVT
 import sp.it.util.bool.TRUE
 import sp.it.util.collections.ObservableListRO
+import sp.it.util.collections.materialize
 import sp.it.util.collections.observableList
 import sp.it.util.collections.readOnly
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.between
+import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.conf.noUi
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.Util.isValidatedDirectory
@@ -137,6 +141,7 @@ import sp.it.util.reactive.zip
 import sp.it.util.reactive.zip2
 import sp.it.util.system.Os
 import sp.it.util.text.keys
+import sp.it.util.type.atomic
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.borderPane
 import sp.it.util.ui.flowPane
@@ -237,6 +242,10 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    /** @return focused window or [getMain] if none focused or new window if no main window */
    fun getActiveOrNew(): Window = getActive() ?: createWindow()
 
+   private val serializing = ReentrantLock()
+   private var isSerialized by atomic(true)
+   private var isSerializedWithAppClose by c(false).noUi()
+
    init {
       windowsFx.onItemAdded { w ->
          w.asAppWindow().ifNotNull {
@@ -247,10 +256,14 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
       windowsFx.onItemRemoved { w ->
          w.asAppWindow().ifNotNull {
-            if (APP.isUiApp && it.isMain.value) {
-               APP.close()
+            val isMain = it.isMain.value
+            if (APP.isUiApp.value) {
+               if (isMain) APP.close()
+               else windows -= it
             } else {
+               if (isMain) serialize(false)
                windows -= it
+               if (isMain) windows.materialize().forEach { it.closeWithAnim() }
             }
          }
       }
@@ -325,7 +338,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
    }
 
-   fun create(canBeMain: Boolean = APP.isUiApp, state: WindowDb? = null) = create(
+   fun create(canBeMain: Boolean = APP.isUiApp.value, state: WindowDb? = null) = create(
       owner = state?.let { if (!it.isTaskbarVisible) APP.windowManager.createStageOwner() else null },
       style = (state?.transparent ?: windowStyleAllowTransparency.value).toWindowStyle(),
       canBeMain = state?.main ?: canBeMain
@@ -334,7 +347,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    fun create(owner: Stage?, style: StageStyle, canBeMain: Boolean): Window {
       val w = Window(owner, style)
 
-      if (mainWindow==null && APP.isUiApp && canBeMain) setAsMain(w)
+      if (mainWindow==null && APP.isUiApp.value && canBeMain) setAsMain(w)
 
       w.initialize()
 
@@ -362,7 +375,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    }
 
    @IsAction(name = "Open new window", info = "Opens new application window")
-   fun createWindow(): Window = createWindow(APP.isUiApp)
+   fun createWindow(): Window = createWindow(APP.isUiApp.value)
 
    fun setAsMain(w: Window) {
       if (mainWindow===w) return
@@ -501,39 +514,69 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
    }
 
-   fun serialize() {
+   fun serialize(appCloses: Boolean) {
       failIfNotFxThread()
+      isSerializedWithAppClose = !appCloses
+      serializing.withLock {
+         // prevent serializing multiple times, in ui-less mode this can overwrite serialized state with empty
+         if (isSerialized) {
+            logger.info { "Serializing windows skipped. Already done." }
+            return
+         }
 
-      // make sure directory is accessible
-      val dir = APP.location.user.layouts.current
-      if (!isValidatedDirectory(dir)) {
-         logger.error { "Serializing windows failed. $dir not accessible." }
-         return
+         // make sure directory is accessible
+         val dir = APP.location.user.layouts.current
+         if (!isValidatedDirectory(dir)) {
+            logger.error { "Serializing windows failed. $dir not accessible." }
+            return
+         }
+
+         val filesOld = dir.children().toSet()
+         val ws = windows.filter { it!==dockWindow?.window && it.layout!=null }
+         logger.info { "Serializing ${ws.size} application windows" }
+
+         // serialize - for now each window to its own file with .ws extension
+         val sessionUniqueName = System.currentTimeMillis().toString()
+         var isError = false
+         val filesNew = HashSet<File>()
+         for (i in ws.indices) {
+            val w = ws[i]
+            val f = dir/"window_${sessionUniqueName}_$i.ws"
+            filesNew += f
+            isError = isError or APP.serializerJson.toJson(WindowDb(w), f).isError
+            if (isError) break
+         }
+
+         // remove unneeded files, either old or new session will remain
+         (if (isError) filesNew else filesOld).forEach { it.delete() }
+
+         isSerialized = true
       }
-
-      val filesOld = dir.children().toSet()
-      val ws = windows.filter { it!==dockWindow?.window && it.layout!=null }
-      logger.info { "Serializing ${ws.size} application windows" }
-
-      // serialize - for now each window to its own file with .ws extension
-      val sessionUniqueName = System.currentTimeMillis().toString()
-      var isError = false
-      val filesNew = HashSet<File>()
-      for (i in ws.indices) {
-         val w = ws[i]
-         val f = dir/"window_${sessionUniqueName}_$i.ws"
-         filesNew += f
-         isError = isError or APP.serializerJson.toJson(WindowDb(w), f).isError
-         if (isError) break
-      }
-
-      // remove unneeded files, either old or new session will remain
-      (if (isError) filesNew else filesOld).forEach { it.delete() }
    }
 
    @ThreadSafe
-   fun deserialize(): Fut<*> =
-      runVT<List<WindowDb>> {
+   fun deserialize(force: Boolean = false): Fut<*> {
+      serializing.lock()
+
+      // prevent deserializing multiple times, in ui-less mode this can overwrite serialized state with empty
+      if (!isSerialized) {
+         logger.info { "Deserializing windows skipped. Already done." }
+         return fut()
+      }
+
+      // prevent deserializing multiple times, in ui-less mode this can overwrite serialized state with empty
+      if (!APP.isStateful) {
+         logger.info { "Deserializing windows skipped. App not stateful." }
+         return fut()
+      }
+
+      // prevent deserializing prematurely
+      if (!force && !APP.isUiApp.value && !isSerializedWithAppClose) {
+         logger.info { "Deserializing windows skipped. Not forced and not serializedWithAppClose." }
+         return fut()
+      }
+
+      return runVT<List<WindowDb>> {
          logger.info { "Deserializing windows..." }
          val dir = APP.location.user.layouts.current
          if (isValidatedDirectory(dir)) {
@@ -547,7 +590,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          }
       }.ui { it ->
          if (it.isEmpty()) {
-            createWindow(true)
+            if (APP.isUiApp.value)
+               createWindow(true)
          } else {
             val ws = it.map { it.toDomain() }
             if (mainWindow==null) setAsMain(ws.first())
@@ -556,7 +600,15 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             WidgetIoManager.requestWidgetIOUpdate()
          }
          getActive()?.focus()
+      }.onDone {
+         isSerialized = false
+         serializing.unlock()
       }
+   }
+
+   /** @return whether [deserialize] would have any effect */
+   @ThreadSafe
+   fun isDeserializeUiPossible() = isSerialized
 
    fun slideWindow(c: Component): Window {
       val screen = getScreenForMouse()

@@ -93,7 +93,7 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
    val c = object: ConfigurableBase<Any?>() {
 
       val main by cv(w.isMain.value, false).readOnlyIf(w.isMain)
-         .def(name = "Main", info = "Whether this window is main. Closing main window closes the application. At most one window can be main. Can only be set to true.")
+         .def(name = "Main", info = "Whether this window is main. Closing main window closes the application if application is not set to allow no ui). At most one window can be main. Can only be set to true (which steals main from previous main window).")
       val opacity by cOr(w.opacity, Inherit()).butOverridden { between(0.1, 1.0) }
          .defInherit(APP.windowManager::windowOpacity)
       val transparencyAllow by cOr(APP.windowManager::windowStyleAllowTransparency, if (w.stageStyleOverride) Override(w.s.style==TRANSPARENT) else Inherit(), onClose)

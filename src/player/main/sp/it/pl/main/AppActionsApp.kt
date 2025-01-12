@@ -13,6 +13,11 @@ import sp.it.util.system.open
 /** Denotes actions for [App] */
 object AppActionsApp {
 
+
+   val restart = action<App>("App Restart", "Restarts application process", IconFA.REFRESH) { APP.restart() }
+
+   val exit = action<App>("App Exit", "Exits application process", IconFA.CLOSE) { APP.close() }
+
    val openLocation = action<App>("Open app directory", "Opens directory from which this application is running from", IconFA.GEARS) { APP.location.open() }
 
    val openHotkeysInfo = action<App>("Open hotkeys", "Display all available shortcuts", IconMD.KEYBOARD_VARIANT) { it.actions.showShortcuts() }

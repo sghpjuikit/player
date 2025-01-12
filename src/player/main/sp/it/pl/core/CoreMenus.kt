@@ -174,19 +174,20 @@ object CoreMenus: Core {
                }
          }
          add<App> {
-            menu("Windows") {
-               item("New window") { APP.windowManager.createWindow() }
-               menu("All") {
+            menu("Ui") {
+               if (APP.windowManager.isDeserializeUiPossible())
+                  item("App Ui - Load") { APP.startUi() }
+
+               menu("Windows") {
                   APP.windowManager.windows.forEach { w ->
                      menuFor("${w.stage.title} (${w.width} x ${w.height})", w)
                   }
                }
+               item("New window") { APP.windowManager.createWindow() }
             }
             menu("Audio") {
                item("Play/pause", keys = ActionRegistrar["Pause/resume"].keysUi()) { APP.audio.pauseResume() }
             }
-            item("Restart") { APP.restart() }
-            item("Exit") { APP.close() }
          }
          add<File> {
             if (value.isAudio()) {

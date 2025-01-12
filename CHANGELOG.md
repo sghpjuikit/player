@@ -2,9 +2,9 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
-- Update Kotlin to 2.0.20
-- Update dependencies
-- Implement opus audio fiel format support
+- Update Java to 23, Kotlin to 2.0.20, dependencies
+- Implement no ui mode (running with no ui)
+- Implement opus audio format support
 - Implement tooltip for all `Labeled` UI elements when truncated
 - Implement **Weather** widget forecast reactive layout
 - Implement **Voice assistant** widget info to display voice commands
@@ -13,49 +13,49 @@ All notable changes to this project will be documented in this file. Format base
 - Implement discovery of properties for ui types that do not extend ui types
 - Implement function editor help icon with popup showing available functions
 - Implement black screen action that hides screen
-- Implement settings UX
 - Implement **Hue** widget power plug support
 - Implement **Hue** bulb colors to be set in xy mode (better compatibility and color accuracy)
 - Implement **App Scheduler** widget - UI for scheduled tasks
-- Implement **Voice assistant** http APIs
-- Implement **Voice assistant** UX
-- Implement **Voice assistant** asynchronous/suspending voice command support 
-- Implement **Voice assistant** voice command voice confirmation
-- Implement **Voice assistant** voice command programmatic intent detection 
-- Implement **Voice assistant** voice command nesting 
-- Implement **Voice assistant** actor state http API & UI
-- Implement **Voice assistant** voice command for listing and changing voice
-- Implement **Voice assistant** voice command `describe`
-- Implement **Voice assistant** voice command `wait` & optimize waits
-- Implement **Voice assistant** voice command `search $text` & `type $text`
-- Implement **Voice assistant** stt using **Nvidia Nemo ASR**
-- Implement **Voice assistant** tts using **Tacotron2**, **SpeechBrain**, **FastPitch**
-- Implement **Voice assistant** tts using OS voice to support all features and work reliably
-- Implement **Voice assistant** llm using Gpt4All to support all features
-- Implement **Voice assistant** separate outputs for RAW, SPEAK
-- Implement **Voice assistant** wake delay action
-- Implement **Voice assistant** command argument value capture group parsing
-- Implement **Voice assistant** responses using llm
-- Implement **Voice assistant** line rewrite support (shows progress bars properly)
-- Implement **Voice assistant** multiple wake words support & better wake word handling
-- Implement **Voice assistant** `TtsCoqui` better text cleanup & voice loading speed
-- Implement **Voice assistant** speaker identification/diarization/registration/reaction
-- Implement **Voice assistant** python commands
-- Implement **Voice assistant** automatic history reset (5min)
-- Implement **Voice assistant** implement multiple microphones & microphone location
-- Implement **Voice assistant** audio output settings & location
-- Implement **Voice assistant** tts over http supports all tts actors
-- Implement **Voice assistant** Improve console output & activity indicator
-- Implement **Voice assistant** loading/unloading on start/os-hibernate, optionally with custom cli command (LmStudio) 
-- Implement **Voice assistant** personas
-- Implement **Voice assistant** python output streaming execution
+- Implement **Voice assistant**
+  - Http APIs
+  - UX
+  - Asynchronous/suspending voice command support 
+  - Actor state http API & UI
+  - Voice command voice confirmation, programmatic intent detection, nesting 
+  - Voice command for listing and changing voice, `describe`, `wait` & optimize waits, `search $text` & `type $text`
+  - Stt using **Nvidia Nemo ASR**
+  - Tts using **Tacotron2**, **SpeechBrain**, **FastPitch**
+  - Tts using OS voice to support all features and work reliably
+  - Llm using Gpt4All to support all features
+  - Separate outputs for RAW, SPEAK
+  - Wake delay action
+  - Command argument value capture group parsing
+  - Responses using llm
+  - Line rewrite support (shows progress bars properly)
+  - Multiple wake words support & better wake word handling
+  - `TtsCoqui` better text cleanup & voice loading speed
+  - Speaker identification/diarization/registration/reaction
+  - Python commands
+  - Automatic history reset (5min)
+  - Implement multiple microphones & microphone location
+  - Audio output settings & location
+  - Tts over http supports all tts actors
+  - Improve console output & activity indicator
+  - Loading/unloading on start/os-hibernate, optionally with custom cli command (LmStudio) 
+  - Personas
+  - Python output streaming execution
+  - Better settings (nested settings, model autocomplete, some settings not neededing restart, etc)
+  - Simple memory
+  - Prompt/history UI
 - Implement **WeatherInfo** unit settings
 - Implement **WeatherInfo** to use https://www.visualcrossing.com/ API instead of no longer accessible https://openweathermap.org/api/one-call-api
 - Implement current song voice command
 - Implement log level highlighting
-- Implement **GitProjects** faster and better file sorting
-- Implement **GitProjects** markdown edit support
-- Implement **GitProjects** non-README markdown file support
+- Implement **GitProjects**
+  - Faster and better file sorting
+  - Markdown edit support
+  - Non-README markdown file support
+  - CTRL+S shortcut
 - Implement **Voronoi** widget GALAXY pattern
 - Implement `MdNode` mark-down heading anchor & simpler layout
 - Implement markdown support for widget/plugin descriptions
@@ -70,14 +70,19 @@ All notable changes to this project will be documented in this file. Format base
 - Implement missing window owner/parent for some application popups/windows
 - Implement .dds image support
 - Implement http server / api (shows API info)
+- Implement asynchronous file tree loading (experimental)
 - Improve shortcut pane layout
 - Improve nullability inference for window properties in settings
 - Improve notification & song info padding
 - Improve window UX (forbid resizing dock/slide window if hidden)
 - Improve `Thumbnail` animation API
-- Improve markdown styling (consistent lists)
-- Improve styling (consistent prompt text color)
 - Improve `ConfigPane` layout [padding taken into effect]
+- Improve styling - consistent prompt text color, markdown (consistent lists), window opacity & blur & round corner handling,
+- Improve table/grid footer layout & UX
+- Implement instant tooltip for more ui elements
+- Implement playback controls popup to be circular
+- Implement vlc instance to play animated gif
+- Remove **YouSearch** widget
 - Fix **Voice assistant** plugin not waking up from hibernate properly
 - Fix **Voice assistant** python process error logging twice
 - Fix **Voice assistant** some settings not taking effect
@@ -115,6 +120,26 @@ All notable changes to this project will be documented in this file. Format base
 - Fix table index column not resized correctly initially
 - Fix minor code issues, TODOs and so on
 - Fix http server failing if request has empty params
+- Fix text icon is blurry and has broken layout
+- Fix error overlay pane layout and behavior
+- Fix open widget action when repeatedly invoked
+
+### No ui mode
+Application can now run without ui even if main window is closed, if this is enabled in settings.
+Application starts with no ui if it closed that way and the ui can be additionally loaded later through global action or tray.
+
+### Markdown
+Markdown renderer has been optimized.
+The markdown styling has been improved as well, particularly to be consistent in vertical layout.
+The headings now have visual **GitHub**-like anchors.
+Now, the `MdNode` can be (and is) used seamlessly to render text-based UIs.
+
+### ActionPane custom ui support
+
+`ActionPane` now has completely simplified `show()` API and allows full ui customization after action completes with `UiResult` and `UiInput`.
+This allows nesting icon options as well as computing options dynamically and lazily. Powerful and simple.
+For now only used for opening value with Opener widgets.
+In the future, any Feature will have registered action with compatible widgets as sub options.
 
 ### Voice Assistant
 Voice assistant has received a lot of updates to make it more usable and productive.
@@ -217,19 +242,6 @@ Besides the commands, like music playback control, phillis hue light control and
 - showEmote() to show (possibly animated) emote of its choosing from those made available by user [see](/app/speech-recognition-whisper/emotes/README.md)
 - showWarning()
 - question() to ask user for additional input.
-
-### Markdown
-Markdown renderer has been optimized.
-The markdown styling has been improved as well, particularly to be consistent in vertical layout.
-The headings now have visual **GitHub**-like anchors.
-Now, the `MdNode` can be (and is) used seamlessly to render text-based UIs.
-
-### ActionPane custom ui support
-
-`ActionPane` now has completely simplified `show()` API and allows full ui customization after action completes with `UiResult` and `UiInput`.
-This allows nesting icon options as well as computing options dynamically and lazily. Powerful and simple.
-For now only used for opening value with Opener widgets.
-In the future, any Feature will have registered action with compatible widgets as sub options.
 
 ## [8.0.0] 2023 10 27
 - Implement Windows taskbar icons

@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+
+## [9.0.0] 2025 01 12
 - Update Java to 23, Kotlin to 2.0.20, dependencies
 - Implement no ui mode (running with no ui)
 - Implement opus audio format support

@@ -4,6 +4,8 @@ import javafx.util.Duration as Dur
 import kotlin.time.Duration as DurationKt
 import java.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
+import kotlin.time.DurationUnit.MILLISECONDS
 import kotlin.time.DurationUnit.NANOSECONDS
 import sp.it.util.dev.Dependency
 import sp.it.util.dev.failIf
@@ -17,7 +19,7 @@ import sp.it.util.functional.runTry
 val Duration.javafx: Dur get() = toMillis().millis
 
 /** Converts to javafx [Dur] */
-val DurationKt.javafx: Dur get() = toDouble(NANOSECONDS).millis
+val DurationKt.javafx: Dur get() = toDouble(MILLISECONDS).millis
 
 /** Converts to [Duration] */
 val Dur.java: Duration get() = Duration.ofMillis(toMillis().toLong())

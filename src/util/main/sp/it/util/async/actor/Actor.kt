@@ -76,7 +76,7 @@ class ActorSe<T>(
 
    /** Close actor. New events are ignored. Queued events will be processed. Returns immediatelly. */
    fun close(): Unit =
-      executor.close()
+      executor.shutdown()
 
    /** Close actor. New events are ignored. Queued events will be processed. Returns after all events are processed. */
    @Blocking

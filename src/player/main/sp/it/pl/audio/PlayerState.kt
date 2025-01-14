@@ -11,6 +11,7 @@ import sp.it.pl.layout.feature.PlaylistFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
+import sp.it.util.async.future.Fut
 import sp.it.util.collections.setTo
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.dev.stacktraceAsString
@@ -34,8 +35,7 @@ class PlayerState {
       playback = s.playback.toDomain()
    }
 
-   @Blocking
-   fun serialize() {
+   fun serialize(): Fut<Unit> {
       failIfNotFxThread()
 
       val playlistsActive = APP.widgetManager.widgets.findAll(OPEN)
@@ -45,8 +45,9 @@ class PlayerState {
       playlistId = PlaylistManager.active
       playlists setTo PlaylistManager.playlists.filter { it.id in playlistsActive }
 
-      CoreSerializer.useAtomically {
-         writeSingleStorage(PlayerStateDB(this@PlayerState))
+      val db = PlayerStateDB(this@PlayerState)
+      return CoreSerializer.useAtomically {
+         writeSingleStorage(db)
       }
    }
 

@@ -514,43 +514,45 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
    }
 
-   fun serialize(appCloses: Boolean) {
+   fun serialize(appCloses: Boolean): Fut<Unit> {
       failIfNotFxThread()
       isSerializedWithAppClose = !appCloses
       serializing.withLock {
          // prevent serializing multiple times, in ui-less mode this can overwrite serialized state with empty
          if (isSerialized) {
             logger.info { "Serializing windows skipped. Already done." }
-            return
+            return fut()
          }
 
          // make sure directory is accessible
          val dir = APP.location.user.layouts.current
          if (!isValidatedDirectory(dir)) {
             logger.error { "Serializing windows failed. $dir not accessible." }
-            return
+            return fut()
          }
 
          val filesOld = dir.children().toSet()
-         val ws = windows.filter { it!==dockWindow?.window && it.layout!=null }
+         val ws = windows.filter { it!==dockWindow?.window && it.layout!=null }.map { WindowDb(it) }
          logger.info { "Serializing ${ws.size} application windows" }
 
-         // serialize - for now each window to its own file with .ws extension
-         val sessionUniqueName = System.currentTimeMillis().toString()
-         var isError = false
-         val filesNew = HashSet<File>()
-         for (i in ws.indices) {
-            val w = ws[i]
-            val f = dir/"window_${sessionUniqueName}_$i.ws"
-            filesNew += f
-            isError = isError or APP.serializerJson.toJson(WindowDb(w), f).isError
-            if (isError) break
+         return runVT {
+            // serialize - for now each window to its own file with .ws extension
+            val sessionUniqueName = System.currentTimeMillis().toString()
+            var isError = false
+            val filesNew = HashSet<File>()
+            for (i in ws.indices) {
+               val w = ws[i]
+               val f = dir/"window_${sessionUniqueName}_$i.ws"
+               filesNew += f
+               isError = isError or APP.serializerJson.toJson(w, f).isError
+               if (isError) break
+            }
+
+            // remove unneeded files, either old or new session will remain
+            (if (isError) filesNew else filesOld).forEach { it.delete() }
+
+            isSerialized = true
          }
-
-         // remove unneeded files, either old or new session will remain
-         (if (isError) filesNew else filesOld).forEach { it.delete() }
-
-         isSerialized = true
       }
    }
 
@@ -576,7 +578,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          return fut()
       }
 
-      return runVT<List<WindowDb>> {
+      return runVT {
          logger.info { "Deserializing windows..." }
          val dir = APP.location.user.layouts.current
          if (isValidatedDirectory(dir)) {

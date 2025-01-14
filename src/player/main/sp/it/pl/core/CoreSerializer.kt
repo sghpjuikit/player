@@ -28,6 +28,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.util.async.actor.ActorSe
+import sp.it.util.async.future.Fut
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.printExecutionTime
 import sp.it.util.file.div
@@ -97,7 +98,7 @@ object CoreSerializer: Core {
       serializerActor.close()
 
    @ThreadSafe
-   fun useAtomically(block: CoreSerializer.() -> Unit): Unit =
+   fun useAtomically(block: CoreSerializer.() -> Unit): Fut<Unit> =
       serializerActor(block)
 
    /**

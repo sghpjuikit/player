@@ -4,10 +4,12 @@ import de.jensd.fx.glyphs.GlyphIcons
 import io.github.oshai.kotlinlogging.KotlinLogging
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
+import javafx.util.Duration
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.jvmName
+import kotlin.time.measureTime
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.AppEventLog
@@ -15,7 +17,9 @@ import sp.it.pl.main.AppSettings
 import sp.it.pl.main.run1AppReady
 import sp.it.pl.plugin.PluginManager.Events.PluginInstalled
 import sp.it.pl.plugin.PluginManager.Events.PluginStarted
+import sp.it.pl.plugin.PluginManager.Events.PluginStarting
 import sp.it.pl.plugin.PluginManager.Events.PluginStopped
+import sp.it.pl.plugin.PluginManager.Events.PluginStopping
 import sp.it.util.Locatable
 import sp.it.util.access.vn
 import sp.it.util.collections.ObservableListRO
@@ -48,6 +52,7 @@ import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.on
+import sp.it.util.units.javafx
 import sp.it.util.units.version
 
 class PluginManager: GlobalConfigDelegator {
@@ -103,10 +108,14 @@ class PluginManager: GlobalConfigDelegator {
    object Events {
       /** At the time the event is invoked, the plugin is not running. */
       data class PluginInstalled<T: PluginBase>(val plugin: PluginBox<T>)
+      /** At the time the event is invoked, the plugin has not started and [PluginBox.plugin] is null. */
+      data class PluginStarting<T: PluginBase>(val plugin: PluginBox<T>)
       /** At the time the event is invoked, the plugin has started and [PluginBox.plugin] is not null. */
-      data class PluginStarted<T: PluginBase>(val plugin: PluginBox<T>)
+      data class PluginStarted<T: PluginBase>(val plugin: PluginBox<T>, val stoppedIn: Duration)
       /** At the time the event is invoked, the plugin is still running and [PluginBox.plugin] is not null. */
-      data class PluginStopped<T: PluginBase>(val plugin: PluginBox<T>)
+      data class PluginStopping<T: PluginBase>(val plugin: PluginBox<T>)
+      /** At the time the event is invoked, the plugin is not running and [PluginBox.plugin] is null. */
+      data class PluginStopped<T: PluginBase>(val plugin: PluginBox<T>, val stoppedIn: Duration)
    }
 
 }
@@ -120,14 +129,14 @@ class PluginRef<P: PluginBase>(val type: KClass<P>) {
          APP.plugins.isInstalled(type) -> {
             Subscription(
                APP.actionStream.onEvent<PluginStarted<P>>({ type.isInstance(it.plugin.plugin) }) { block(it.plugin.plugin!!) on disposer },
-               APP.actionStream.onEvent<PluginStopped<P>>({ type.isInstance(it.plugin.plugin) }) { disposer() },
+               APP.actionStream.onEvent<PluginStopping<P>>({ type.isInstance(it.plugin.plugin) }) { disposer() },
                Subscription { disposer() }
             )
          }
          else -> APP.actionStream.onEvent<PluginInstalled<P>>({ type.isInstance(it.plugin.plugin) }) {
             Subscription(
                APP.actionStream.onEvent<PluginStarted<P>>({ type.isInstance(it.plugin.plugin) }) { block(it.plugin.plugin!!) on disposer },
-               APP.actionStream.onEvent<PluginStopped<P>>({ type.isInstance(it.plugin.plugin) }) { disposer() },
+               APP.actionStream.onEvent<PluginStopping<P>>({ type.isInstance(it.plugin.plugin) }) { disposer() },
                Subscription { disposer() }
             )
          }
@@ -143,14 +152,14 @@ class PluginRef<P: PluginBase>(val type: KClass<P>) {
          APP.plugins.isInstalled(type) -> {
             Subscription(
                APP.actionStream.onEvent<PluginStarted<P>>({ type.isInstance(it.plugin.plugin) }) { block(it.plugin.plugin!!) on disposer },
-               APP.actionStream.onEvent<PluginStopped<P>>({ type.isInstance(it.plugin.plugin) }) { disposer() },
+               APP.actionStream.onEvent<PluginStopping<P>>({ type.isInstance(it.plugin.plugin) }) { disposer() },
                Subscription { disposer() }
             )
          }
          else -> APP.actionStream.onEvent<PluginInstalled<P>>({ it.plugin.plugin is P }) {
             Subscription(
                APP.actionStream.onEvent<PluginStarted<P>>({ type.isInstance(it.plugin.plugin) }) { block(it.plugin.plugin!!) on disposer },
-               APP.actionStream.onEvent<PluginStopped<P>>({ type.isInstance(it.plugin.plugin) }) { disposer() },
+               APP.actionStream.onEvent<PluginStopping<P>>({ type.isInstance(it.plugin.plugin) }) { disposer() },
                Subscription { disposer() }
             )
          }
@@ -250,21 +259,23 @@ class PluginBox<T: PluginBase>(val type: KClass<T>, val isEnabledByDefault: Bool
    fun start() {
       failIfNotFxThread()
       if (isRunning()) return
-      logger.info { "Starting plugin $type" }
 
-      plugin = runTry {
-         val constructor = type.primaryConstructor?.takeIf { it.parameters.isEmpty() } ?: fail { "Plugin must have a primary no-arg constructor" }
-         constructor.call().apply {
-            collectActionsOf(this)
-            APP.configuration.collect(this)
-            APP.configuration.rawSet(this)
-            start()
+      APP.actionStream(PluginStarting(this@PluginBox))
+      var time = measureTime {
+         plugin = runTry {
+            val constructor = type.primaryConstructor?.takeIf { it.parameters.isEmpty() } ?: fail { "Plugin must have a primary no-arg constructor" }
+            constructor.call().apply {
+               collectActionsOf(this)
+               APP.configuration.collect(this)
+               APP.configuration.rawSet(this)
+               start()
+            }
+         }.orNull {
+            logger.error(it) { "Instantiating plugin $type failed" }
          }
-      }.orNull {
-         logger.error(it) { "Instantiating plugin $type failed" }
       }
 
-      if (plugin!=null) APP.actionStream(PluginStarted(this@PluginBox))
+      if (plugin!=null) APP.actionStream(PluginStarted(this@PluginBox, time.javafx))
    }
 
    fun isRunning(): Boolean = plugin!=null
@@ -273,18 +284,20 @@ class PluginBox<T: PluginBase>(val type: KClass<T>, val isEnabledByDefault: Bool
    fun stop() {
       failIfNotFxThread()
       if (!isRunning()) return
-      logger.info { "Stopping plugin $type" }
 
+      APP.actionStream(PluginStopping(this@PluginBox))
       plugin?.apply {
-         APP.actionStream(PluginStopped(this@PluginBox))
-         APP.configuration.rawAdd(this)
-         APP.configuration.drop(this)
-         plugin = null
-         runTry {
-            stop()
-         }.orNull {
-            logger.error(it) { "Error while stopping plugin $type" }
+         var time = measureTime {
+            APP.configuration.rawAdd(this)
+            APP.configuration.drop(this)
+            plugin = null
+            runTry {
+               stop()
+            }.orNull {
+               logger.error(it) { "Error while stopping plugin $type" }
+            }
          }
+         APP.actionStream(PluginStopped(this@PluginBox, time.javafx))
       }
    }
 

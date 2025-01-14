@@ -9,6 +9,8 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
+import kotlin.concurrent.thread
+import kotlin.time.measureTime
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.runBlocking
 import sp.it.pl.audio.audioInputDeviceNames
@@ -52,6 +54,7 @@ import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.awaitFx
 import sp.it.util.async.future.awaitFxOrBlock
 import sp.it.util.async.runFX
+import sp.it.util.async.runNew
 import sp.it.util.async.runOn
 import sp.it.util.collections.list.DestructuredList
 import sp.it.util.collections.observableList
@@ -92,6 +95,7 @@ import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
 import sp.it.util.dev.fail
 import sp.it.util.dev.markUsed
+import sp.it.util.dev.printIt
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
@@ -136,6 +140,7 @@ import sp.it.util.text.split2
 import sp.it.util.text.splitNoEmpty
 import sp.it.util.text.splitTrimmed
 import sp.it.util.text.useStrings
+import sp.it.util.units.javafx
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
 
@@ -699,21 +704,21 @@ class VoiceAssistant: PluginBase() {
    private fun llmOpenAiServerStopCommandCompute(on: Bool) =
       llmOpenAiServerStopCommand.value.takeIf { on && llmEngine.value==LlmEngine.OPENAI }?.replace("\$model", llmOpenAiModel.value)
 
-   private fun llmOpenAiServerStart(command: String?) =
+   private fun llmOpenAiServerStart(command: String?, blockUi: Boolean = true) =
       command.net { c ->
          runTry {
             if (c!=null && c.isNotBlank() && !c.startsWith("!"))
-               runCommandWithOutput(c).withAppProgress("Start LLM server").awaitFxOrBlock()
+               runCommandWithOutput(c).withAppProgress("Start LLM server").apply { if (blockUi) awaitFxOrBlock() }
          }.ifError {
             logger.error(it) { "Failed to run start command=$c" }
          }
       }
 
-   private fun llmOpenAiServerStop(on: Bool) =
+   private fun llmOpenAiServerStop(on: Bool, blockUi: Boolean = true) =
       llmOpenAiServerStopCommandCompute(on).net { c ->
          runTry {
             if (c!=null && c.isNotBlank() && !c.startsWith("!"))
-               runCommandWithOutput(c).withAppProgress("Stop LLM server").awaitFxOrBlock()
+               runCommandWithOutput(c).withAppProgress("Stop LLM server").apply { if (blockUi) awaitFxOrBlock() }
          }.ifError {
             logger.error(it) { "Failed to run stop command=$c" }
          }
@@ -862,10 +867,10 @@ class VoiceAssistant: PluginBase() {
    }
 
    override fun stop() {
-      isRunning = false
-      stopSpeechRecognition(true)
-      writing.closeAndWait()
-      onClose()
+         isRunning = false
+         stopSpeechRecognition(true)
+         writing.close()
+         onClose()
    }
 
    private fun startSpeechRecognition(runLlmServerCommand: Bool) {
@@ -876,7 +881,7 @@ class VoiceAssistant: PluginBase() {
    private fun stopSpeechRecognition(runLlmServerCommand: Bool) {
       write("EXIT")
       setup = null
-      llmOpenAiServerStop(runLlmServerCommand)
+      llmOpenAiServerStop(runLlmServerCommand, blockUi = false)
    }
 
    @IsAction(name = "Restart Voice Assistant", info = "Restarts Voice Assistant python program")

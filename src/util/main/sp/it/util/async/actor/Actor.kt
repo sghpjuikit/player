@@ -2,13 +2,16 @@ package sp.it.util.async.actor
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.annotations.Blocking
+import sp.it.util.async.future.Fut
 import sp.it.util.async.sleep
 import sp.it.util.async.threadFactory
+import sp.it.util.dev.ThreadSafe
 import sp.it.util.functional.Option.Some
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
@@ -51,6 +54,7 @@ class ActorVt<T>(
 
    /** Close actor. New events are ignored. Queued events will be processed. Returns after all events are processed. */
    @Blocking
+   @ThreadSafe
    fun closeAndWait(): Unit {
       isRunning = false
       while (queue.isNotEmpty()) sleep(1)
@@ -71,8 +75,20 @@ class ActorSe<T>(
    private val executor = ThreadPoolExecutor(0, 1, 10, TimeUnit.SECONDS, LinkedBlockingQueue(), threadFactory(name, false))
 
    /** Send event for processing. Returns immediatelly. */
-   operator fun invoke(message: T): Unit =
-      executor.execute { actionSafe(message) }
+   operator fun invoke(message: T): Fut<Unit> =
+      Fut<Unit>(
+         CompletableFuture<Unit>().also { future ->
+            executor.execute {
+               runTry {
+                  actionSafe(message)
+               }.ifOk {
+                  future.complete(Unit)
+               }.ifError {
+                  future.completeExceptionally(it)
+               }
+            }
+         }
+      )
 
    /** Close actor. New events are ignored. Queued events will be processed. Returns immediatelly. */
    fun close(): Unit =
@@ -80,6 +96,7 @@ class ActorSe<T>(
 
    /** Close actor. New events are ignored. Queued events will be processed. Returns after all events are processed. */
    @Blocking
+   @ThreadSafe
    fun closeAndWait(): Unit =
       executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS).toUnit()
 

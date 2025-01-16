@@ -129,7 +129,7 @@ class ConfigPane<T: Any?>: VBox {
          .associateBy { it.configEditor ?: it.parent?.configEditor!! }
 
       fun ConfigEditor<*>.needsLabel() =
-         !(this is ConfigurableCE && config.hasConstraint<UiNested>())
+         this !is ConfigurableCE || config.hasConstraint<UiNested>()
       fun ConfigEditor<*>.needsInfo() =
          config.info.isNotEmpty() && config.nameUi!=config.info && needsLabel()
       fun ConfigEditor<*>.isNested() =

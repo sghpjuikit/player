@@ -1,8 +1,6 @@
 ## Potential future work
 
 
-- Implement Platform observable properties in settings
-  What config group should they use
 - Implement about page
 - Implement Thumbnail video support
 - Implement AI emotion state

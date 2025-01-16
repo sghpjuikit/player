@@ -1,14 +1,10 @@
 package sp.it.pl.main
 
-import javafx.stage.Window as WindowFX
-import sp.it.pl.main.AppSettings.ui as confUi
-import sp.it.pl.main.AppSettings.ui.form as confForm
-import sp.it.pl.main.AppSettings.ui.grid as confGrid
-import sp.it.pl.main.AppSettings.ui.image as confImage
-import sp.it.pl.main.AppSettings.ui.table as confTable
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.net.MalformedURLException
+import javafx.application.ColorScheme.LIGHT
+import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.FXCollections.observableSet
 import javafx.geometry.NodeOrientation
@@ -22,16 +18,21 @@ import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.text.Font
+import javafx.stage.Window as WindowFX
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 import sp.it.pl.layout.ContainerSwitch
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetSource.OPEN
+import sp.it.pl.main.AppSettings.ui as confUi
+import sp.it.pl.main.AppSettings.ui.form as confForm
+import sp.it.pl.main.AppSettings.ui.grid as confGrid
+import sp.it.pl.main.AppSettings.ui.image as confImage
 import sp.it.pl.main.AppSettings.ui.overlay.actionViewer.closeWhenActionEnds
 import sp.it.pl.main.AppSettings.ui.overlay.overlayArea
 import sp.it.pl.main.AppSettings.ui.overlay.overlayBackground
 import sp.it.pl.main.AppSettings.ui.overlay.shortcutViewer.hideUnassignedShortcuts
-import sp.it.pl.main.AppSettings.ui.skin
+import sp.it.pl.main.AppSettings.ui.table as confTable
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.picker.FontPickerContent
 import sp.it.pl.ui.objects.rating.Rating
@@ -49,18 +50,25 @@ import sp.it.util.access.readOnly
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
+import sp.it.util.async.runVT
 import sp.it.util.collections.project
 import sp.it.util.collections.readOnly
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.GlobalSubConfigDelegator
+import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.between
 import sp.it.util.conf.butElement
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
+import sp.it.util.conf.cNest
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
+import sp.it.util.conf.cvro
 import sp.it.util.conf.def
+import sp.it.util.conf.getDelegateConfig
+import sp.it.util.conf.noPersist
+import sp.it.util.conf.noUi
 import sp.it.util.conf.readOnlyIf
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiConverter
@@ -85,6 +93,8 @@ import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
+import sp.it.util.text.buildStringSentences
+import sp.it.util.text.split2
 import sp.it.util.ui.asStyle
 import sp.it.util.ui.isAnyParentOf
 import sp.it.util.units.EM
@@ -217,6 +227,68 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    val ratingIsPartial by cvn<Boolean>(null) def confUi.ratingAllowPartial attach { updateRatingStyle() }
    /** [confUi.ratingSkin] */
    val ratingSkin by cvn<KClass<out Skin<Rating>>>(null).valuesIn(APP.instances).uiConverter { it?.simpleName ?: "<none> (App skin decides)" } def confUi.ratingSkin attach { updateRatingStyle() }
+
+   /** [Platform.Preferences.accentColorProperty] */
+   val osAccentColor by cvro(Platform.getPreferences().accentColorProperty())
+      .noUi().noPersist()
+      .def(
+         name = "Accent color",
+         info = buildStringSentences(
+            "Color, which can be used to highlight the active or important part of a control and make it stand out from the rest of the user interface.",
+            "It is usually a vivid color that contrasts with the foreground and background colors.",
+            "",
+            "If the platform does not report a value, vivid blue (hex #157EFB).",
+         )
+      )
+   val osBgrColor by cvro(Platform.getPreferences().backgroundColorProperty())
+      .noUi().noPersist()
+      .def(
+         name = "Background color",
+         info = buildStringSentences(
+            "The color used for background regions.",
+            "If the platform does not report a value, this property defaults to WHITE.",
+         )
+      )
+   val osFrgColor by cvro(Platform.getPreferences().foregroundColorProperty())
+      .noUi().noPersist()
+      .def(
+         name = "Foreground color",
+         info = buildStringSentences(
+            "The color used for foreground elements like text.",
+            "If the platform does not report a value, this property defaults to BLACK.",
+         )
+      )
+   val osColorScheme by cvro(Platform.getPreferences().colorSchemeProperty())
+      .noUi().noPersist()
+      .def(
+         name = "Color scheme",
+         info = buildStringSentences(
+            "The platform color scheme, which specifies whether applications should prefer light text on dark backgrounds, or dark text on light backgrounds.",
+            "If the platform does not report a value, this property defaults to $LIGHT.",
+         )
+      )
+   val osReducedMotion by cvro(Platform.getPreferences().reducedMotionProperty())
+      .noUi().noPersist()
+      .def(
+         name = "Reduced motion",
+         info = buildStringSentences(
+            "Whether applications should minimize the amount of non-essential animations, reducing discomfort for users who experience motion sickness or vertigo.",
+            "If the platform does not report a value, this property defaults to false.",
+         )
+      )
+
+   private val osValues by cNest(
+      ListConfigurable.heterogeneous(
+         ::osAccentColor.getDelegateConfig(),
+         ::osBgrColor.getDelegateConfig(),
+         ::osFrgColor.getDelegateConfig(),
+         ::osColorScheme.getDelegateConfig(),
+         ::osReducedMotion.getDelegateConfig(),
+      )
+   ).noPersist().def(
+      name = "Os",
+      info = "Read-only values reported to the application by the Operating System, usually configurable by user."
+   )
 
    init {
       updateRatingStyle()

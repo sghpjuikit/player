@@ -13,7 +13,7 @@ class Events:
                 while True:
                     try:
                         event = self.queue.get(block=True, timeout=0.2)
-                        response = requests.post(self.address, data=json.dumps(event))
+                        response = requests.post(self.address, headers = {'Content-Type': 'application/json'}, data=json.dumps(event))
                     except Empty:
                         continue
                     except Exception as e:

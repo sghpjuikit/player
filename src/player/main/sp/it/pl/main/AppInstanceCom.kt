@@ -30,13 +30,13 @@ class AppInstanceCom() {
    @Blocking
    fun fireNewInstanceEvent(args: List<String>): Unit =
       runBlocking(NEW) {
-         logger.info { "Sending NewAppInstance($args)" }
+         logger.info { "Sending NewAppInstance(args=$args)" }
          APP.http.client.post("http://127.0.0.1:${APP.http.url.port}$api") { bodyJs(args) }
       }
 
    /** Handles received new app instance event */
    fun newInstanceLaunched(args: List<String>) {
-      logger.info { "NewAppInstance($args)" }
+      logger.info { "NewAppInstance(args=$args)" }
       runFX { onNewInstanceHandlers(args) }
    }
 

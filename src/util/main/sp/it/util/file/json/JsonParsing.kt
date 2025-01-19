@@ -288,7 +288,7 @@ private class Parser(lexer: Lexer) {
                   is Num -> return JsNumber(token.value)
                   Lbk    -> JsArrayParseState(ArrayList()).apply { stack.push(c) }
                   Lbc    -> JsObjectParseState(LinkedHashMap<String, JsValue>()).apply { stack.push(c) }
-                  else   -> fail { "Invalid token at position $lexerLastPos" }
+                  else   -> fail { "Invalid token=$token at position $lexerLastPos" }
                }
             is JsArrayParseState ->
                when (val token = currentToken.apply { consumeToken(currentToken) }) {
@@ -306,7 +306,7 @@ private class Parser(lexer: Lexer) {
                         stack.pop()
                      } ?: x
                   }
-                  else   -> fail { "Invalid token at position $lexerLastPos" }
+                  else   -> fail { "Invalid token=$token at position $lexerLastPos" }
                }
             is JsObjectParseState ->
                when (val token = currentToken.apply { consumeToken(currentToken) }) {
@@ -321,7 +321,7 @@ private class Parser(lexer: Lexer) {
                         stack.pop()
                      } ?: x
                   }
-                  else -> fail { "Invalid token at position $lexerLastPos" }
+                  else -> fail { "Invalid token=$token at position $lexerLastPos" }
                }
             is JsObjectKeyParseState ->
                when (val token = currentToken.apply { consumeToken(currentToken) }) {
@@ -333,7 +333,7 @@ private class Parser(lexer: Lexer) {
                   Lbk    -> JsArrayParseState(ArrayList()).apply { stack.push(c) }
                   Lbc    -> JsObjectParseState(LinkedHashMap<String, JsValue>()).apply { stack.push(c) }
                   Rbc    -> { stack.pop().apply { c.o.value.put(c.key, c.value.asIs()) }.com(); stack.pop().apply { add(JsObject(c.o.value)) } }
-                  else   -> fail { "Invalid token at position $lexerLastPos" }
+                  else   -> fail { "Invalid token=$token at position $lexerLastPos" }
                }
          }
       } while (

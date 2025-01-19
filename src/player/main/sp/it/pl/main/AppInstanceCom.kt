@@ -19,7 +19,7 @@ class AppInstanceCom() {
    val onNewInstanceHandlers = Handler1<List<String>>()
 
    fun start() {
-      APP.http.serverRoutes route AppHttp.Handler(api) {
+      APP.http.serverRoutes route AppHttp.Handler(api, method = "POST") {
          newInstanceLaunched(it.requestBodyAsJs().to<List<String>>())
       }
    }

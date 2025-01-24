@@ -33,7 +33,6 @@
 - Document all used libraries, how they are used, why, where not to use them, etc.
 - Experiment with StartScreen that keeps content loaded between hide/show
 - Implement **vlc**/**mpeg** setup to be restartable
-- Implement `app.stateful` on/off config
 - Drag & drop playlist file support in audio
 - Migrate `ActionPane`  actions to `AppActions.kt`& integrate with `Action`, adding icon to Action & keys to ActionData 
 - Implement better application running detection: app running without exe and app running from different directory

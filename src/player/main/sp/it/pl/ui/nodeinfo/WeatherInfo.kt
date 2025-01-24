@@ -893,7 +893,7 @@ class WeatherInfo: HBox(15.0) {
             /** @return cardinal direction of the [deg] value, e.g.: SE */
             fun toCD(): String = when ((deg+180)%360.0) {
                in 337.5..360.0 -> "N"
-               in   0.5.. 22.5 -> "N"
+               in   0.0.. 22.5 -> "N"
                in  22.5.. 67.5 -> "NE"
                in  67.5..112.5 -> "E"
                in 112.5..157.5 -> "SE"

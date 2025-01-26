@@ -4,3 +4,9 @@
  * inherits: .grid-view
  */
 .album-grid {}
+
+/*
+ * Album grid cell
+ * inherits: .grid-cell
+ */
+.album-grid-cell {}

@@ -4028,6 +4028,7 @@ TextFlow > * {
     // -fx-background-color: -skin-color-darker; /* dark cells */
     -fx-background-color: -skin-color-lighter;  /* dark cells */
     -fx-font-size: 0.9em;   /* improves readability */
+    -fx-line-spacing: -0.4em;   /* improves readability */
     -fx-label-padding: 0 0.5em 0 0.5em;
 }
 
@@ -4035,36 +4036,46 @@ TextFlow > * {
     -fx-font-size: 1em;
 }
 
-.grid-cell:hover {
-    // if we were not using programmatic hover/select animation:
-    //-fx-background-color: rgba(0,0,0,0.3);
-    //-fx-background-insets: -1;
-    //-fx-padding: -1;
-}
-.grid-cell:selected {
-    // if we were not using programmatic hover/select animation:
-    //-fx-background-color: rgba(0,0,0,0.4);
-    //-fx-background-insets: -2;
-    //-fx-padding: -2;
-}
-
 .grid-cell > .grid-cell-stroke {
+    transition-property: -fx-stroke-width;
+    transition-duration: 0.15s;
     -fx-fill: null;
     -fx-stroke: black;
     -fx-stroke-type: INSIDE;
-    // if we were not using programmatic hover/select animation:
-    //-fx-stroke-width: 1;
+    -fx-stroke-width: 1;
+}
+.grid-cell:hover > .grid-cell-stroke,
+.grid-cell:selected > .grid-cell-stroke {
+    -fx-stroke-width: 2;
 }
 
-.grid-cell:selected > .grid-cell-stroke {
-    // if we were not using programmatic hover/select animation:
-    // -fx-stroke-width: 2;
+.grid-cell > .label {
+    transition-property: -fx-background-color;
+    transition-duration: 0.15s;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0 -0.5em 0 -0.5em;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 0 0;
+    -fx-border-insets: 0em -0.5em 0 -0.5em;
+}
+.grid-cell:selected > .label,
+.grid-cell:hover > .label {
+    -fx-background-color: black;
+    -fx-border-color: black;
+    -fx-border-width: 1;
+}
+
+.grid-cell:full-width > .label,
+.grid-cell:full-width:hover > .label,
+.grid-cell:full-width:selected > .label {
+    -fx-border-color: transparent;
 }
 
 .grid-cell:full-width,
 .grid-cell:full-width > .label {
     -fx-background-color: transparent;
 }
+.grid-cell:full-width:hover,
 .grid-cell:full-width:selected {
     -fx-background-color: rgba(0,0,0,0.3);
 }

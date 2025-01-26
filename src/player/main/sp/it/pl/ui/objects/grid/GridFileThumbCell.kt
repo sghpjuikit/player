@@ -45,16 +45,6 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    protected var thumb: Thumbnail? = null
    protected var imgLoadAnim: Anim? = null
    private var imgLoadAnimItem: Item? = null
-   private val hoverAnim = lazy {
-      anim(150.millis) {
-         val p = sqrt(it)
-         val s = 2.emScaled
-         val xRaw = s + computeCellTextHeight()
-         val x = p*xRaw
-         stroke.strokeWidth = (p*s) max 1.0
-         thumb?.pane?.style = "-fx-border-color: black; -fx-border-width: 0 0 $x 0; -fx-border-insets: 0 0 -$xRaw 0;"
-      }
-   }
    protected var onLayoutChildren: (Double, Double, Double, Double) -> Unit = { _, _, _, _ -> }
    protected var disposed = false
    protected val onDispose = Disposer()
@@ -79,7 +69,6 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       imgLoadAnimItem = null
       imgLoadAnim?.stop()
       imgLoadAnim = null
-      hoverAnim.orNull()?.stop()
       onDispose()
       if (thumb!=null) {
          val img = thumb?.view?.image
@@ -111,7 +100,6 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       if (this.isSelected==selected) return
 
       super.updateSelected(selected)
-      hoverAnim.value.playFromDir(selected || isHover)
       if (thumb!=null && thumb!!.image.value!=null) thumb!!.animationPlayPause(selected)
    }
 
@@ -151,7 +139,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
          isCache = true
          isCacheShape = true
       }
-      children.addAll(thumb!!.pane, stroke, name)
+      children.addAll(thumb!!.pane, name, stroke)
       isSnapToPixel = true
       minSize = -1.0 x -1.0
       prefSize = -1.0 x -1.0
@@ -161,9 +149,6 @@ open class GridFileThumbCell: GridCell<Item, File>() {
             onAction(item, it.isShiftDown)
             it.consume()
          }
-      }
-      hoverProperty() sync { h ->
-         hoverAnim.value.playFromDir(h || isSelected)
       }
    }
 

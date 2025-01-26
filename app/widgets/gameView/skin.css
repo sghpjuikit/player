@@ -3,6 +3,7 @@
 .game-cell-play-placeholder {
     -fx-padding: 3;
     -fx-background-color: -skin-bgr-color;
+    -fx-background-radius: 0;
     -fx-background-color: linear-gradient(to right, -skin-bgr-color 0%, ladder(rgba(0,55,255), -skin-bgr-color, transparent), -skin-bgr-color 100%);
     -fx-max-height: 4em;
 }

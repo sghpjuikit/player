@@ -4,6 +4,33 @@
  * Year: 2020
  */
 
+
+// everything
+* {
+    -fx-background-radius: 0.5em;
+    -fx-border-radius: 0.6em;
+}
+
+// thumbnail
+.thumbnail-root {
+    -fx-background-color: transparent; // this enables clip mask for radius
+}
+
+// grid cell
+.grid-cell > .thumbnail-root {
+    -fx-background-color: transparent; // this enables clip mask for radius
+    -fx-background-radius: 0.8em 0.8em 0 0;
+}
+.grid-cell > .grid-cell-stroke {
+    -fx-arc-height: 1.2em; // 2x radius
+    -fx-arc-width: 1.2em;
+}
+.grid-cell > .label {
+    -fx-background-radius: 0 0 0.6em 0.6em;
+    -fx-border-radius: 0 0 0.5em 0.5em;
+}
+
+// window
 .window,
 .window > #front > #frontContent,
 .pop-window,
@@ -12,15 +39,11 @@
     -fx-border-radius: 0.6em; // -fx-background-radius + 0.1em to improve look in the corner
 }
 
+// window content
 .window:maximized,
 .window:maximized > #front > #frontContent,
 .window:fullscreen,
 .window:fullscreen > #front > #frontContent {
     -fx-background-radius: 0;
     -fx-border-radius: 0;
-}
-
-* {
-    -fx-background-radius: 0.5em;
-    -fx-border-radius: 0.6em;
 }

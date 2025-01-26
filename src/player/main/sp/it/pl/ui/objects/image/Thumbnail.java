@@ -1,28 +1,28 @@
 package sp.it.pl.ui.objects.image;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableObjectValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import kotlin.Unit;
-import kotlin.coroutines.Continuation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -33,15 +33,11 @@ import sp.it.util.animation.Anim;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.future.Fut;
 import sp.it.util.dev.Dependency;
-import sp.it.util.file.type.MimeTypesKt;
 import sp.it.util.math.P;
 import sp.it.util.ui.image.FitFrom;
-import sp.it.util.ui.image.ImageFrame;
 import sp.it.util.ui.image.ImageSize;
-import sp.it.util.ui.image.Params;
 import static java.lang.Double.min;
 import static java.lang.Math.signum;
-import static javafx.animation.Animation.INDEFINITE;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -56,27 +52,21 @@ import static sp.it.pl.main.AppBuildersKt.contextMenuFor;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy.VT_IMAGE;
-import static sp.it.util.JavaLegacy.destroyImage;
 import static sp.it.util.Util.clip;
-import static sp.it.util.async.AsyncKt.CURR;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runOn;
-import static sp.it.util.async.AsyncKt.runVT;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.file.UtilKt.toFileOrNull;
 import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.sync1If;
-import static sp.it.util.type.Util.getFieldValue;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 import static sp.it.util.ui.MouseDragKt.initMouseDrag;
 import static sp.it.util.ui.UiDelegateKt.setUiDelegate;
+import static sp.it.util.ui.UtilKt.initClip;
 import static sp.it.util.ui.UtilKt.setScaleXYByTo;
 import static sp.it.util.ui.image.FitFrom.INSIDE;
-import static sp.it.util.ui.image.UtilKt.imgImplLoadFX;
-import static sp.it.util.ui.image.UtilKt.isImageAnimated;
-import static sp.it.util.ui.image.UtilKt.loadImageFrames;
 import static sp.it.util.units.FactoriesKt.uri;
 
 /**
@@ -221,6 +211,7 @@ public class Thumbnail {
 	 * is expected to change during life cycle.
 	 */
 	public Thumbnail(double width, double height) {
+		root.getStyleClass().add("thumbnail-root");
 		root.setMinSize(width, height);
 		root.setPrefSize(width, height);
 		root.setMaxSize(width, height);
@@ -588,6 +579,13 @@ public class Thumbnail {
 		b.setManaged(false);
 		b.getStyleClass().add(styleclassBorder);
 		return b;
+	}
+
+/* ---------- RADIUS ------------------------------------------------------------------------------------------------ */
+
+	{
+		// TODO optimize
+		initClip(root, Insets.EMPTY);
 	}
 
 /* ---------- BACKGROUND -------------------------------------------------------------------------------------------- */

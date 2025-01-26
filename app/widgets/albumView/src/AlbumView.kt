@@ -353,17 +353,6 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       private var thumb: Thumbnail? = null
       private var imgLoadAnim: Anim? = null
       private var imgLoadAnimItem: Album? = null
-
-      private val hoverAnim = lazy {
-         anim(150.millis) {
-            val p = sqrt(it)
-            val s = 2.emScaled
-            val xRaw = s + computeCellTextHeight()
-            val x = p*xRaw
-            stroke.strokeWidth = (p*s) max 1.0
-            thumb?.pane?.style = "-fx-border-color: black; -fx-border-width: 0 0 $x 0; -fx-border-insets: 0 0 -$xRaw 0;"
-         }
-      }
       private var disposed = false
 
       init {
@@ -384,7 +373,6 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          imgLoadAnim?.stop()
          imgLoadAnim = null
          imgLoadAnimItem = null
-         hoverAnim.orNull()?.stop()
          if (thumb!=null) {
             val img = thumb?.view?.image
             thumb?.view?.image = null
@@ -411,7 +399,6 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
 
       override fun updateSelected(selected: Boolean) {
          super.updateSelected(selected)
-         hoverAnim.value.playFromDir(selected || root.isHover)
          if (thumb!=null && thumb!!.image.value!=null) thumb!!.animationPlayPause(selected)
       }
 
@@ -457,9 +444,6 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
                onAction(item, it.isShiftDown)
                it.consume()
             }
-         }
-         hoverProperty() sync { h ->
-            hoverAnim.value.playFromDir(h || isSelected)
          }
       }
 

@@ -33,15 +33,18 @@ import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
-import javafx.scene.control.Tooltip
 import javafx.scene.control.TreeTableView
 import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.image.WritableImage
 import javafx.scene.input.DragEvent
+import javafx.scene.input.DragEvent.DRAG_ENTERED_TARGET
+import javafx.scene.input.DragEvent.DRAG_EXITED
+import javafx.scene.input.DragEvent.DRAG_OVER
 import javafx.scene.input.GestureEvent
 import javafx.scene.input.MouseDragEvent.MOUSE_DRAG_EXITED
+import javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED
 import javafx.scene.input.MouseDragEvent.MOUSE_ENTERED_TARGET
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
@@ -70,7 +73,12 @@ import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.robot.Robot
 import javafx.scene.shape.Arc
+import javafx.scene.shape.ArcTo
 import javafx.scene.shape.Circle
+import javafx.scene.shape.ClosePath
+import javafx.scene.shape.LineTo
+import javafx.scene.shape.MoveTo
+import javafx.scene.shape.Path
 import javafx.scene.shape.Rectangle
 import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
@@ -89,9 +97,9 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.sin
+import sp.it.util.collections.setTo
 import sp.it.util.functional.asIf
 import sp.it.util.math.P
-import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -102,7 +110,7 @@ import sp.it.util.ui.image.FitFrom.INSIDE
 import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.units.toEM
 
-private val logger = KotlinLogging.logger { }
+private val logger = KotlinLogging.logger {}
 
 /* ---------- ICON -------------------------------------------------------------------------------------------------- */
 
@@ -290,24 +298,38 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
 
 /** Installs clip mask to prevent displaying content outside this node. Mask area may be padded with the specified value. */
 @JvmOverloads
-fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
-   val clip = Rectangle()
+fun Node.initClip(padding: Insets = Insets.EMPTY) {
+   val clipPath = Path()
+   clipPath.fill = Color.BLACK
 
-   asIf<Region>()?.backgroundProperty()?.sync { b ->
-      val radii = b?.fills?.firstOrNull()?.radii ?: CornerRadii.EMPTY
-      clip.arcHeight = radii.topLeftVerticalRadius*2
-      clip.arcWidth = radii.topLeftHorizontalRadius*2
+   // Function to compute the rounded rectangle path
+   fun createRoundedRectanglePath(width: Double, height: Double, radii: CornerRadii) =
+      listOfNotNull(
+         MoveTo(padding.left + radii.topLeftHorizontalRadius, padding.top),
+         LineTo(width - radii.topRightHorizontalRadius, padding.top),
+         if (radii.topRightHorizontalRadius==0.0) null else ArcTo(radii.topRightHorizontalRadius, radii.topRightVerticalRadius, 0.0, width, padding.top + radii.topRightVerticalRadius, false, true),
+         LineTo(width, height - radii.bottomRightVerticalRadius),
+         if (radii.bottomRightHorizontalRadius==0.0) null else ArcTo(radii.bottomRightHorizontalRadius, radii.bottomRightVerticalRadius, 0.0, width - radii.bottomLeftHorizontalRadius, height, false, true),
+         LineTo(padding.left + radii.bottomLeftHorizontalRadius, height),
+         if (radii.bottomLeftHorizontalRadius==0.0) null else ArcTo(radii.bottomLeftHorizontalRadius, radii.bottomLeftVerticalRadius, 0.0, padding.left, height - radii.topLeftVerticalRadius, false, true),
+         LineTo(padding.left, padding.top + radii.topLeftVerticalRadius),
+         if (radii.topLeftHorizontalRadius==0.0) null else ArcTo(radii.topLeftHorizontalRadius, radii.topLeftVerticalRadius, 0.0, padding.left + radii.topLeftHorizontalRadius, padding.top, false, true),
+         ClosePath(),
+      )
+   fun update() {
+      val insets = asIf<Region>()?.border?.strokes?.firstOrNull()?.insets ?: Insets.EMPTY
+      val radii = asIf<Region>()?.background?.fills?.firstOrNull()?.radii ?: CornerRadii.EMPTY
+      val width = layoutBounds.width - padding.left - padding.right - insets.left.coerceAtMost(0.0) - insets.right.coerceAtMost(0.0)
+      val height = layoutBounds.height - padding.top - padding.bottom - insets.top.coerceAtMost(0.0) - insets.bottom.coerceAtMost(0.0)
+      clipPath.elements setTo createRoundedRectanglePath(width, height, radii)
    }
 
-   layoutBoundsProperty() sync {
-      clip.x = padding.left
-      clip.y = padding.top
-      clip.width = it.width - padding.left - padding.right
-      clip.height = it.height - padding.top - padding.bottom
-   }
+   asIf<Region>()?.backgroundProperty()?.attach { update() }
+   asIf<Region>()?.borderProperty()?.attach { update() }
+   layoutBoundsProperty().attach { update() }
+   if (scene != null) update()
 
-   setClip(clip)
-   return clip
+   setClip(clipPath)
 }
 
 /** Installs clip mask to prevent displaying content outside this node. Mask area is padded with pane's padding. */
@@ -329,7 +351,7 @@ fun Pane.initClipToPadding() {
 
    paddingProperty() attach { update() }
    layoutBoundsProperty() attach { update() }
-   update()
+   if (scene != null) update()
 
    setClip(clip)
 }

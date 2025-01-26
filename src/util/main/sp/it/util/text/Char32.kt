@@ -3,7 +3,8 @@ package sp.it.util.text
 import sp.it.util.dev.failIf
 
 /** 32-bit Unicode character, [Int]. See [Character] and [Char16]. Has full Unicode code-unit range support. See e.g. [String.char32At]. */
-data class Char32(val value: Int) {
+@JvmInline
+value class Char32(val value: Int) {
    constructor(c: Char16): this(c.code)
    
    init {

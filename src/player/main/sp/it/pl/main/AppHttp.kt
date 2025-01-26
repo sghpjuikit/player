@@ -1,22 +1,31 @@
 package sp.it.pl.main
 
+import com.sun.net.httpserver.Headers
+import com.sun.net.httpserver.HttpContext
 import sp.it.util.async.VT as VTe
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
+import com.sun.net.httpserver.HttpPrincipal
 import com.sun.net.httpserver.HttpServer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.statement.HttpResponse
+import java.io.BufferedInputStream
 import java.io.File
+import java.io.FilterInputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.io.SequenceInputStream
 import java.net.BindException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.net.URI
+import java.nio.CharBuffer
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.text.Charsets.UTF_8
 import org.jetbrains.annotations.Range
 import sp.it.pl.core.Core
 import sp.it.pl.core.NameUi
@@ -33,7 +42,6 @@ import sp.it.util.conf.noPersist
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.uiConverter
 import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.type.mimeType
@@ -43,6 +51,7 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Subscription
+import sp.it.util.text.readCodePoints
 import sp.it.util.units.FileSize.Companion.sizeInBytes
 import sp.it.util.units.uri
 
@@ -110,7 +119,13 @@ class AppHttp(
 
    private fun buildServerHandler() = HttpHandler { e ->
       runTry {
-         logger.info { "Req ${e.requestMethod} ${e.requestURI}" }
+         if (e.isBodyUtf8Text()) {
+            val body = e.requestBody.bufferedReader(UTF_8).readCodePoints(150)
+            e.setStreams(SequenceInputStream(body.byteInputStream(UTF_8), e.requestBody), null)
+            logger.info { "Req ${e.requestMethod} ${e.requestURI} $body" }
+         } else {
+            logger.info { "Req ${e.requestMethod} ${e.requestURI}" }
+         }
          val r = serverRoutes.find(e)
          // 404 if no match
          r ?: throw Exception404("No handler for ${e.requestURI.path}")
@@ -218,6 +233,24 @@ class AppHttp(
 
    companion object {
       private val logger = KotlinLogging.logger { }
+
+      private val loggableMimeTypes = setOf(
+         "application/json",
+         "text/plain",
+         "text/html",
+         "application/xml",
+         "text/xml",
+         "application/xhtml+xml",
+         "application/json; charset=UTF-8",
+         "text/plain; charset=UTF-8",
+         "text/html; charset=UTF-8",
+         "application/xml; charset=UTF-8",
+         "text/xml; charset=UTF-8",
+         "application/xhtml+xml; charset=UTF-8",
+      )
+
+      fun HttpExchange.isBodyUtf8Text() =
+         requestHeaders.getFirst("Content-type").orEmpty().lowercase() in loggableMimeTypes
 
       /** Whether `Server` header is this application. */
       fun HttpExchange.isFromSpitPlayer() =

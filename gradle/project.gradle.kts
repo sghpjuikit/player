@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
    kotlin("jvm") version "2.1.0"
    application
-   id("com.github.ben-manes.versions") version "0.51.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
+   id("com.github.ben-manes.versions") version "0.52.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    // id("com.jaredsburrows.license") version "0.9.8"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin // incompatible with latest gradle
 }
 
@@ -96,7 +96,7 @@ allprojects {
          implementation(kotlin("compiler-embeddable"))
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.10.1")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.10.1")
-         implementation("org.jetbrains", "annotations", "26.0.1")
+         implementation("org.jetbrains", "annotations", "26.0.2") // https://github.com/JetBrains/java-annotations/releases
       }
 
       "lib" group {
@@ -104,7 +104,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "24-ea+19"
+         val version = "25-ea+1"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -121,7 +121,7 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.9")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
-         implementation("ch.qos.logback", "logback-classic", "1.5.15") // https://logback.qos.ch/news.html
+         implementation("ch.qos.logback", "logback-classic", "1.5.16") // https://logback.qos.ch/news.html
          implementation("io.github.oshai", "kotlin-logging-jvm", "7.0.3")
       }
 
@@ -148,7 +148,7 @@ allprojects {
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
-         implementation("org.apache.pdfbox", "pdfbox", "3.0.3") // https://pdfbox.apache.org
+         implementation("org.apache.pdfbox", "pdfbox", "3.0.4") // https://pdfbox.apache.org
          implementation("com.ezylang", "EvalEx", "3.4.0")
          implementation("com.ezylang", "EvalEx-big-math", "1.0.1")
          implementation("ch.obermuhlner", "big-math", "2.3.2")

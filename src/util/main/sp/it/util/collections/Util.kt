@@ -162,27 +162,27 @@ class RoList<T>(list: List<T>): List<T> by list.toList()
 class RoSet<T>(set: Set<T>): Set<T> by set.toSet()
 
 /** Type safe read-only [ObservableList] implemented by delegation as [List] that is [Observable]. */
-class ObservableListRO<T>(private val list: ObservableList<T>): List<T> by list, Observable by list {
+class ObservableListRO<out T>(private val list: ObservableList<T>): List<T> by list, Observable by list {
    fun addListener(listener: ListChangeListener<in T>) = list.addListener(listener)
    fun removeListener(listener: ListChangeListener<in T>) = list.removeListener(listener)
-   fun toJavaFx(): ObservableList<T> = observableArrayList(this).also {
+   fun toJavaFx(): ObservableList<@UnsafeVariance T> = observableArrayList(this).also {
       onChange { it setTo this }
    }
 }
 
 /** Type safe read-only [ObservableSet] implemented by delegation as [Set] that is [Observable]. */
-class ObservableSetRO<T>(private val set: ObservableSet<T>): Set<T> by set, Observable by set{
+class ObservableSetRO<out T>(private val set: ObservableSet<T>): Set<T> by set, Observable by set{
    override fun removeListener(listener: InvalidationListener) = addListener(listener)
    override fun addListener(listener: InvalidationListener) = set.addListener(listener)
    fun addListener(listener: SetChangeListener<in T>) = set.addListener(listener)
    fun removeListener(listener: SetChangeListener<in T>) = set.removeListener(listener)
-   fun toJavaFx(): ObservableSet<T> = observableSet(this).also {
+   fun toJavaFx(): ObservableSet<@UnsafeVariance T> = observableSet(this).also {
       onChange { it setTo this }
    }
 }
 
 /** Type safe read-only [ObservableMap] implemented by delegation as [Map] that is [Observable]. */
-class ObservableMapRO<K,V>(private val map: ObservableMap<K,V>): Map<K,V> by map, Observable by map {
+class ObservableMapRO<K,out V>(private val map: ObservableMap<K,V>): Map<K,V> by map, Observable by map {
    override fun removeListener(listener: InvalidationListener) = addListener(listener)
    override fun addListener(listener: InvalidationListener) = map.addListener(listener)
    fun addListener(listener: MapChangeListener<in K, in V>) = map.addListener(listener)

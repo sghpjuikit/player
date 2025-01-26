@@ -213,6 +213,9 @@ import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
 import sp.it.util.animation.Anim.Companion.mapTo01
+import sp.it.util.collections.ObservableListRO
+import sp.it.util.conf.def
+import sp.it.util.conf.values
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
 import sp.it.util.ui.center
@@ -397,7 +400,17 @@ class Tester(widget: Widget): SimpleController(widget) {
          val `cList(Int)` by cList<Int>(1, 2, 3)
          val `cList(Int?)` by cList<Int?>(1, 2, null)
          val `cCheckList(Boolean)` by cCheckList(CheckList.nonNull(type<String>(), listOf("a", "b", "c"), listOf(true, false, false)))
+            .def(name = "cCheckList(Boolean)", info = "Checklist with 2-valued selection")
          val `cCheckList(Boolean?)` by cCheckList(CheckList.nullable(type<String?>(), listOf("a", "b", null), listOf(true, false, null)))
+            .def(name = "cCheckList(Boolean?)", info = "Checklist with 3-valued selection")
+         val `cv_sealed_observable` by cv("a").values(`cCheckList(Boolean)`.selectedObservable(true))
+            .def(name = "cv_sealed_observable", info = "The list of possible values is fixed at the time of creation to the source `cCheckList(Boolean)`")
+         val `cv_sealed_observable_lambda` by cv("a").values { `cCheckList(Boolean)`.selected(true) }
+            .def(name = "cv_sealed_observable_lambda", info = "The list of possible values is fixed at the time of creation to the source `cCheckList(Boolean)`")
+         val `cv_unsealed_observable` by cv("a").valuesUnsealed(`cCheckList(Boolean)`.selectedObservable(true))
+            .def(name = "cv_unsealed_observable", info = "The list of suggested values changes depending on the source `cCheckList(Boolean)`")
+         val `cv_unsealed_observable_lambda` by cv("a").valuesUnsealed { `cCheckList(Boolean)`.selected(true) }
+            .def(name = "cv_unsealed_observable_lambda", info = "The list of suggested values changes depending on the source `cCheckList(Boolean)`")
       }
       onContentChange()
       content.children setToOne vBox(1.em.emScaled) {

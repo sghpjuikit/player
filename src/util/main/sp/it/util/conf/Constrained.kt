@@ -7,6 +7,8 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import javafx.beans.value.ObservableValue
 import javafx.collections.ObservableList
+import sp.it.util.collections.ObservableListRO
+import sp.it.util.collections.ObservableSetRO
 import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.Constraint.FileOut
 import sp.it.util.conf.Constraint.FileRelative
@@ -145,6 +147,12 @@ fun                <T: Any?, C: ConstrainedDsl<T>> C.uiGeneral() = but(UiGeneral
 fun                <T: Any?, C: ConstrainedDsl<T>> C.values(enumerator: () -> Collection<T>) = but(ValueSealedSet { enumerator() })
 /** Adds [Constraint.ValueSealedSet] using the specified collection as enumerator */
 fun                <T: Any?, C: ConstrainedDsl<T>> C.values(enumerator: Collection<T>) = but(ValueSealedSet { enumerator })
+@Deprecated("Sealed value must belong to immutable source, observable will have no effect, materialize first or use `valuesUnsealed`")
+fun                <T: Any?, C: ConstrainedDsl<T>> C.values(enumerator: ObservableList<T>) = but(ValueSealedSet { enumerator })
+@Deprecated("Sealed value must belong to immutable source, observable will have no effect, materialize first or use `valuesUnsealed`")
+fun                <T: Any?, C: ConstrainedDsl<T>> C.values(enumerator: ObservableListRO<T>) = but(ValueSealedSet { enumerator })
+@Deprecated("Sealed value must belong to immutable source, observable will have no effect, materialize first or use `valuesUnsealed`")
+fun                <T: Any?, C: ConstrainedDsl<T>> C.values(enumerator: ObservableSetRO<T>) = but(ValueSealedSet { enumerator })
 /** Adds [Constraint.ValueSealedSet] using the specified enumerator */
 fun                <T: Any?, C: ConstrainedDsl<T>> C.valuesIn(enumerator: () -> Sequence<T>) = but(ValueSealedSet { enumerator().toList() })
 /** Adds [Constraint.ValueSealedSet] using the instance map for type specified by the reified generic type argument as enumerator */

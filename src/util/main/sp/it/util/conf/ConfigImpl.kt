@@ -18,6 +18,7 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.isAccessible
 import sp.it.util.access.OrV
 import sp.it.util.access.OrV.OrValue
+import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfList.Companion.FailFactory
@@ -379,6 +380,7 @@ class CheckList<out T, S: Boolean?> private constructor(
    fun forEach(block: (Pair<T, S>) -> Unit): Unit = (all zip selections).forEach(block)
    fun forEachIndexed(block: (Triple<Int, T, S>) -> Unit): Unit = all.indices.forEach { block(Triple(it, all[it], selections[it])) }
    fun selected(s: S): List<T> = all.filterIndexed { i, _ -> selections[i]==s }
+   fun selectedObservable(s: S): ObservableListRO<T> = ObservableListRO(observableArrayList<T>().also { out -> selections.onChangeAndNow { out setTo selected(s) } })
    fun isSelected(e: @UnsafeVariance T): S = selections[all.indexOf(e)]
    override fun addListener(listener: InvalidationListener?) = selections.addListener(listener)
    override fun removeListener(listener: InvalidationListener?) = selections.removeListener(listener)

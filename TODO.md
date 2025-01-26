@@ -22,7 +22,6 @@
   - tag writing should fail when tag reading fails?
   - make writing to tag handle errors properly (& report read-only files)
 - Fix `ObsListConfig.setDefaultValue` not removing disabled items
-- Fix `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
 - Fix`Configuration.propertiesRaw` are not synced with configs, should be?
 - Fix Thumbnail image scaling for directories
 - Fix LibraryView not refreshing on song library add sometimes

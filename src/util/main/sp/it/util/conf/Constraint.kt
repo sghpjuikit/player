@@ -219,7 +219,7 @@ interface Constraint<in T> {
    /** Use single icon mode for boolean config editor and disabled style for false. */
    class IconConstraint(val icon: GlyphIcons): MarkerConstraint()
 
-   /** Constrain value to those specified in the collection. May be mutable (see [ValueSealedSetIfNotIn], [SealedEnumerator]). */
+   /** Constrain value to those specified in the collection. Should be immutable during config life-time (see [ValueSealedSetIfNotIn]). */
    class ValueSealedSet<T>(private val enumerator: () -> Collection<T>): MarkerConstraint(), SealedEnumerator<T> {
       override fun enumerateSealed() = enumerator()
    }

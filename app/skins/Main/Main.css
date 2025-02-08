@@ -4368,6 +4368,9 @@ TextFlow > * {
     -fx-padding: 0.5em;
     -fx-alignment: CENTER_LEFT;
 }
+.markdown-codeblock-box-mermaid {
+    -fx-alignment: CENTER;
+}
 .markdown-codeblock-box,
 .markdown-code-background {
     -fx-border-radius: 0.5em;

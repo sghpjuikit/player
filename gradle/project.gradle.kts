@@ -104,7 +104,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "25-ea+1"
+         val version = "25-ea+2"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -112,7 +112,7 @@ allprojects {
             os.isWindows -> "win"
             else -> failIO { "Unable to determine javafx dependency classifier due to unfamiliar system=$os" }
          }
-         listOf("base", "controls", "graphics", "media", "swing").forEach {
+         listOf("base", "controls", "graphics", "media", "swing", "web").forEach {
             implementation("org.openjfx", "javafx-$it", version, classifier = classifier)
          }
          implementation("de.jensd", "fontawesomefx", "8.9")
@@ -155,27 +155,31 @@ allprojects {
       }
 
       "Image" group {
+         implementation("com.github.hervegirod", "fxsvgimage", "1.1")
+
+         val version = "3.12.0"
          implementation("com.drewnoakes", "metadata-extractor", "2.19.0")
-         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.12.0")
-         imageIO("bmp")
-         imageIO("clippath")
-         imageIO("core")
-         imageIO("hdr")
-         imageIO("icns")
-         imageIO("iff")
-         imageIO("jpeg")
-         imageIO("metadata")
-         imageIO("pcx")
-         imageIO("pdf")
-         imageIO("pict")
-         imageIO("pnm")
-         imageIO("psd")
-         imageIO("reference")
-         imageIO("sgi")
-         imageIO("tga")
-         imageIO("thumbsdb")
-         imageIO("tiff")
-         imageIO("webp")
+         implementation("com.twelvemonkeys.imageio", "imageio-core", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-batik", version) // requires batik-all
+         implementation("org.apache.xmlgraphics", "batik-all", "1.18")
+         implementation("com.twelvemonkeys.imageio", "imageio-bmp", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-clippath", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-hdr", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-icns", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-iff", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-jpeg", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-metadata", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-pcx", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-pdf", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-pict", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-pnm", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-psd", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-reference", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-sgi", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-tga", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-thumbsdb", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-tiff", version)
+         implementation("com.twelvemonkeys.imageio", "imageio-webp", version)
       }
 
       "Http" group {
@@ -220,7 +224,7 @@ dependencies {
 
 tasks {
 
-   val copyLibs by creating(Sync::class) {
+   val copyLibs by registering(Sync::class) {
       group = "build"
       description = "Copies all libraries into the app dir"
       from(configurations.runtimeClasspath, project(":util").configurations.runtimeClasspath)
@@ -228,15 +232,13 @@ tasks {
       duplicatesStrategy = EXCLUDE
    }
 
-   @Suppress("UNUSED_VARIABLE", "KotlinRedundantDiagnosticSuppress")
-   val linkJdk by creating(LinkJDK::class) {
+   val linkJdk by registering(LinkJDK::class) {
       group = "build setup"
       description = "Links JDK to project relative directory"
       linkLocation = dirJdk
    }
 
-   @Suppress("UNUSED_VARIABLE", "KotlinRedundantDiagnosticSuppress")
-   val generateFileHierarchy by creating(GenerateKtFileHierarchy::class) {
+   val generateFileHierarchy by registering(GenerateKtFileHierarchy::class) {
       group = "build setup"
       description = "Generates file hierarchy class and documentation"
       inFileHierarchy = project.rootDir/"file-info"
@@ -246,8 +248,7 @@ tasks {
       outRootPath = """File("").absolutePath"""
    }
 
-   @Suppress("UNUSED_VARIABLE", "KotlinRedundantDiagnosticSuppress")
-   val generateSettings by creating(GenerateKtSettings::class) {
+   val generateSettings by registering(GenerateKtSettings::class) {
       group = "build setup"
       description = "Generates application settings class"
       outFile = project.rootDir/"src"/"player"/"main"/"sp"/"it"/"pl"/"main"/"AppSettings.kt"
@@ -256,8 +257,7 @@ tasks {
       settings = appSetting
    }
 
-   @Suppress("UNUSED_VARIABLE", "KotlinRedundantDiagnosticSuppress")
-   val cleanAppData by creating(CleanAppDataTask::class) {
+   val cleanAppData by registering(CleanAppDataTask::class) {
       group = "application"
       description = "Deletes app data including user data"
       appDir = dirApp

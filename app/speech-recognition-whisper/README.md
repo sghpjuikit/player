@@ -23,9 +23,12 @@ This is a voice assistant python program. Features:
 ###### Input
 ```mermaid
 flowchart TD
-  MICROPHONE([MICROPHONE DEVICE]) -.->|Continuous read| A
-  A[Mic Actor] -->|Speech audio chunks| B
-  A -.->|Voice Activity Detection| A
+  MICROPHONE([MICROPHONE DEVICE]) -.->|Continuous read| VAD
+  subgraph Mic Actor[Mic Actor]
+      VAD[Voice Activity Detection]
+      VAD --> SD[Speaker detection]
+  end
+  SD -->|Speech audio chunks| B
   B[Tts Actor] -->|Speech transcribed as text| C
   C[Decision function - state machine]
     
@@ -53,24 +56,19 @@ flowchart TD
 flowchart TD
     INPUT[/Input/] ----->|Text| C((State machine))
     
-    C -.-> LOGIC{State Logic}
-    LOGIC -.->|state==chat| LOGIC_STATE_CHAT[Handle by llm]
-    LOGIC -.->|state==state1| LOGIC_STATE1[Handle by state logic]
-    LOGIC -.->|state==state2| LOGIC_STATE2[Handle by state logic]
-    LOGIC_STATE_CHAT -.->|state==chat| LLM1
-    C -.->|command| CE[Command Executor]
-    C -.->|Generic text| LLM2
+    C -.->|chat| LOGIC_STATE_CHAT[Llm AI Executor]
+    LOGIC_STATE_CHAT -.->LLM1
+    LLM1 -.->|error\ncorrection| LLM1
+    C -.->|text command| CE[Command Executor]
     
     LLM1[LLM Actor - Chat]
-    LLM2[LLM Actor - User intent detection]
 
-    LLM2 -.->|Stream of characters| LLM2JOIN
-    LLM2JOIN([Join output]) -.->|Text| C
     
-    LLM1 -->|Stream of characters| LLM1SPLIT
-    LLM1SPLIT([Split output])
-    LLM1SPLIT -->|Stream of characters| WRITER1[/Writer Actor/]
-    LLM1SPLIT -->|Stream of characters| SPEECH1[/Speech Actor/]
+    LLM1 -->|Stream of python code blocks| LLM1PYTEXEC
+    LLM1PYTEXEC[/Python interpreter/]
+    LLM1PYTEXEC -->|function call| WRITER1[/Writer Actor/]
+    LLM1PYTEXEC -->|function call| SPEECH1[/Speech Actor/]
+    LLM1PYTEXEC -->|function call| OUT[/Side effects/]
 
     CE -.-> CE_STA[/Adjust state machine/]
     CE -.-> CE_EXE[/Invoke direct command/]
@@ -138,12 +136,13 @@ flowchart TD
 ```mermaid
 flowchart LR
   HTTP[Http API]
-  HTTP -->|endpoint| HTTP1[path: /speech \n returns generated audio \n requires Tts==TtsCoqui]
-  HTTP -->|endpoint| HTTP2[path: /actor \n returns all actor states for monitoring]
-  HTTP -->|endpoint| HTTP2[path: /actor-events?actor=STDOUT/MIC/STT/LLM/TTS/PLAY&type=QUEUED/PROCESSING/PROCESSED \n returns specified actor events]
-  HTTP -->|endpoint| HTTP3[path: /intent \n returns result of intent detection \n requires Llm!=LlmNone]
-  HTTP -->|endpoint| HTTP4[path: /stt \n returns text result of speech recognition \n requires Stt!=SttNone]
-  HTTP -->|endpoint| HTTP4[path: //tts-event \n speak text generated with llm with specified input or fallback text, it requires Stt!=LlmNone, Stt!=SttNone]
+  HTTP -->|GET  /actor| HTTP2[returns all actor states for monitoring]
+  HTTP -->|GET  /actor-events?actor=STDOUT/MIC/STT/LLM/TTS/PLAY&type=QUEUED/PROCESSING/PROCESSED| HTTP3[returns specified actor events]
+  HTTP -->|GET  /actor-events-all| HTTP4[returns all actor events]
+  HTTP -->|POST /intent| HTTP5[returns result of intent detection \n requires Llm!=LlmNone]
+  HTTP -->|POST /stt| HTTP6[returns text result of speech recognition \n requires Stt!=SttNone]
+  HTTP -->|POST /tts-event| HTTP7[speak text generated with llm with specified input or fallback text, it requires Stt!=LlmNone, Stt!=SttNone]
+  HTTP -->|POST /speech| HTTP1[returns generated audio]
 ```
 
 ## Features

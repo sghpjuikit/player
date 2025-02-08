@@ -12,6 +12,9 @@ import sp.it.pl.main.Widgets.TESTER
 import sp.it.pl.ui.pane.action
 import sp.it.util.async.coroutine.FX
 import sp.it.util.async.coroutine.launch
+import sp.it.util.file.json.JsObject
+import sp.it.util.file.json.JsString
+import sp.it.util.file.json.JsValue
 import sp.it.util.functional.toUnit
 import sp.it.util.system.browse
 import sp.it.util.units.uri
@@ -51,6 +54,16 @@ object AppActionsAppHelp {
    val printJavaProcesses = action<AppHelp>("Print running java processes", "Print running java processes", IconMD.RESPONSIVE) {
       val text = VirtualMachine.list().joinToString("") { "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}" }
       APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) }
+   }
+
+   val openAboutPage = action<AppHelp>("Open About page", "Show application about page.", IconMD.INFORMATION_OUTLINE) {
+      APP.ui.actionPane.orBuild.show(
+         JsObject(
+            "Name" to JsString(APP.name),
+            "VM" to JsString(System.getProperty("java.vm.name")),
+            "Version" to JsString(APP.version.toString()),
+         )
+      )
    }
 
 }

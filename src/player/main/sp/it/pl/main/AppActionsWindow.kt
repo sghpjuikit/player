@@ -8,4 +8,6 @@ object AppActionsWindow {
 
    val windowFocus = action<Window>("Focus", "Focus this window.", IconFA.EYE) { w -> w.requestFocus() }
 
+   val windowResizeToContent = action<Window>("Resize to content", "Resize to content.", IconMA.CROP) { w -> w.sizeToScene() }
+
 }

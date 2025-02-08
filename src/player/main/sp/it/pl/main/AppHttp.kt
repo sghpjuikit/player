@@ -52,6 +52,7 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Subscription
 import sp.it.util.text.readCodePoints
+import sp.it.util.text.toPrintableNonWhitespace
 import sp.it.util.units.FileSize.Companion.sizeInBytes
 import sp.it.util.units.uri
 
@@ -120,7 +121,7 @@ class AppHttp(
    private fun buildServerHandler() = HttpHandler { e ->
       runTry {
          if (e.isBodyUtf8Text()) {
-            val body = e.requestBody.bufferedReader(UTF_8).readCodePoints(150)
+            val body = e.requestBody.readCodePoints(150)
             e.setStreams(SequenceInputStream(body.byteInputStream(UTF_8), e.requestBody), null)
             logger.info { "Req ${e.requestMethod} ${e.requestURI} $body" }
          } else {
@@ -143,7 +144,7 @@ class AppHttp(
          if (x is Exception405)
             e.respond(405, 0) { it.writer().write(x.message ?: "") }
          else {
-            logger.error(x) { "Failed to handle http request ${e.requestURI}" }
+            logger.error(x) { "Failed to handle http request ${e.requestMethod} ${e.requestURI}" }
             e.respond(500, 0) { it.writer().write(x.message ?: "") }
          }
       }.ifOk {

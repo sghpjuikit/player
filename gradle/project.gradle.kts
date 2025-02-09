@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "2.1.0"
+   kotlin("jvm") version "2.1.10"
    application
    id("com.github.ben-manes.versions") version "0.52.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    // id("com.jaredsburrows.license") version "0.9.8"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin // incompatible with latest gradle
@@ -119,10 +119,10 @@ allprojects {
       }
 
       "Logging" group {
-         implementation("org.slf4j", "slf4j-api", "2.0.9")
-         implementation("org.slf4j", "jul-to-slf4j", "2.0.9")
+         implementation("org.slf4j", "slf4j-api", "2.1.0-alpha1")
+         implementation("org.slf4j", "jul-to-slf4j", "2.1.0-alpha1")
          implementation("ch.qos.logback", "logback-classic", "1.5.16") // https://logback.qos.ch/news.html
-         implementation("io.github.oshai", "kotlin-logging-jvm", "7.0.3")
+         implementation("io.github.oshai", "kotlin-logging-jvm", "7.0.4")
       }
 
       "Native" group {
@@ -144,7 +144,7 @@ allprojects {
       "Misc" group {
          implementation("com.github.f4b6a3", "uuid-creator", "6.0.0")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.4")
-         implementation("com.github.oshi", "oshi-core", "6.6.5")  // https://github.com/oshi/oshi/releases
+         implementation("com.github.oshi", "oshi-core", "6.6.6")  // https://github.com/oshi/oshi/releases
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.8") {
             exclude("com.vladsch.flexmark", "flexmark-pdf-converter")
          }
@@ -189,8 +189,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "6.0.0.M1")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "6.0.0.M1")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "6.0.0.M2")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "6.0.0.M2")
       }
 
       "Db" group {

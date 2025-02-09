@@ -17,7 +17,7 @@ import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
-import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.onIsShowing1st
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.onIsShowing1
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.popWindow
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
@@ -126,7 +126,7 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
             nw.show()
             nw.initLayout(ow.detachLayout())
             if (ow.isMain.value) APP.windowManager.setAsMain(nw)
-            nw.stage.onIsShowing1st { ow.settingsWindow?.hide(); ow.close(); openWindowSettings(nw, nw.root) } on onClose
+            nw.stage.onIsShowing1 { ow.settingsWindow?.hide(); ow.close(); openWindowSettings(nw, nw.root) } on onClose
          }
 
          w.isMain attachFalse { main.value = it } on onClose

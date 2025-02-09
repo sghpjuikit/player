@@ -23,6 +23,7 @@ import javafx.stage.Popup
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.StageStyle.TRANSPARENT
+import javafx.stage.WindowEvent
 import javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.stage.WindowEvent.WINDOW_HIDING
@@ -47,11 +48,12 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runLater
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
+import sp.it.util.dev.printStacktrace
 import sp.it.util.functional.asIf
-import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
-import sp.it.util.functional.toUnit
+import sp.it.util.functional.recurse
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
 import sp.it.util.reactive.Disposer
@@ -88,6 +90,7 @@ import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.size
 import sp.it.util.ui.uiDelegate
 import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import sp.it.util.ui.xy
 import sp.it.util.units.millis
 
@@ -110,6 +113,9 @@ open class PopWindow {
          }
       }.apply {
          initStyle(TRANSPARENT)
+         minWidth = 10.0
+         minHeight = 10.0
+         size = 10 x 10
 
          uiDelegate = this@PopWindow
          initOwner(owner)
@@ -134,6 +140,7 @@ open class PopWindow {
          autoHideProperty() syncFrom isAutohide
          hideOnEscapeProperty() syncFrom isEscapeHide
          scene.installWindowInteraction()
+         size = 10 x 10
 
          onEventUp(WINDOW_SHOWING) { onShowing() }
          onEventUp(WINDOW_SHOWN) { onShown() }
@@ -332,7 +339,7 @@ open class PopWindow {
             stageOwner = windowOwner
             stage.apply {
                window = this
-               window?.opacity = 0.0
+               if (!isShowing) window?.opacity = 0.0
                window?.popWindowOwner = windowOwner
 
                fun initHideWithOwner() {
@@ -380,28 +387,32 @@ open class PopWindow {
                initHideOnEscapeWhenNoFocus()
                onEventUp1(WINDOW_SHOWN) { onContentShown() }
 
-               if (animated.value) fadeIn()
-               show()
-               scene.root = root
-               sizeToScene()
-               xy = shower(stage).net {
-                  val s = Screen.getScreensForRectangle(it.areaBy(1 x 1)).firstOrNull()
-                  if (s!=null) stage.maxSize = s.bounds.size
-                  if (s==null) it else it max s.bounds.min min (s.bounds.max - size)
-               }
+               val wasShowing = isShowing
+               if (!isShowing && animated.value) fadeIn()
+               if (!isShowing) show()
 
-               onIsShowing1st { initAutohide() } on tillHidden
+               scene.root = root
+               runFX((if (wasShowing) 0 else 200).millis) {
+                  sizeToScene()
+                  focus()
+                  xy = shower(stage).net {
+                     val s = Screen.getScreensForRectangle(it.areaBy(1 x 1)).firstOrNull()
+                     if (s!=null) stage.maxSize = s.bounds.size
+                     if (s==null) it else it max s.bounds.min min (s.bounds.max - size)
+                  }
+                  onIsShowing1 { initAutohide() } on tillHidden
+               }
             }
          } else {
             popup.apply {
                window = this
-               window?.opacity = 0.0
+               if (!isShowing) window?.opacity = 0.0
                window?.popWindowOwner = windowOwner
                initHideOnEscapeWhenNoFocus()
 
                content setToOne root
 
-               if (animated.value) fadeIn()
+               if (!isShowing && animated.value) fadeIn()
                show(windowOwner ?: UNFOCUSED_OWNER.value)
                sizeToScene()
                xy = shower(this).net {
@@ -425,12 +436,25 @@ open class PopWindow {
 
    /** Focuses this popup if it supports focus. */
    fun focus() {
-      window?.ifNotNull {
-         if (!it.isFocused) {
-            it.asIf<Stage>()?.toFront()
-            it.requestFocus()
+//      stageOwner?.requestFocus()
+//      window?.requestFocus()
+//      window?.ifNotNull {
+//         if (!it.isFocused) {
+//            it.asIf<Stage>()?.toFront()
+//            it.requestFocus()
+//         }
+//      }
+
+      fun tryFocus() {
+         if (window?.isFocused==false) {
+            stageOwner?.requestFocus()
+            window?.requestFocus()
          }
+         root.asIs<Node>().recurse { if (it is Parent) it.childrenUnmodifiable else listOf() }
+            .firstOrNull { it.isFocusTraversable }?.requestFocus()
       }
+      tryFocus()
+      runLater { tryFocus() }
    }
 
    /** Hides this popup. If is [animated], the hiding animation is started, otherwise happens immediately. */
@@ -452,7 +476,7 @@ open class PopWindow {
    private fun fadeIn() = animation.value.apply {
       applyNow()
       dur(animationDuration.value)
-      delay(if (position.value==0.0) 50.millis else 0.0.millis) // give ui time to initialize to decreases animation stutter
+      delay(if (position.value==0.0) 200.millis else 0.0.millis) // give ui time to initialize to decreases animation stutter
       playOpenDo { }
    }
 
@@ -490,7 +514,7 @@ open class PopWindow {
 
       infix fun WindowFx.isParent(w: WindowFx) = w isChild this
 
-      fun WindowFx.onIsShowing1st(block: () -> Unit): Subscription = if (isShowing) { block(); Subscription() } else onEventDown1(WINDOW_SHOWN) { block() }
+      fun WindowFx.onIsShowing1(block: () -> Unit): Subscription = if (isShowing) { block(); Subscription() } else onEventDown1(WINDOW_SHOWN) { block() }
 
       private val UNFOCUSED_OWNER = lazy { APP.windowManager.createStageOwnerNoShow().apply { show() } }
 

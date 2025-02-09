@@ -11,6 +11,8 @@ import sp.it.pl.layout.exportFxwl
 import sp.it.pl.layout.introWidgetFactory
 import sp.it.pl.main.APP
 import sp.it.pl.main.Events
+import sp.it.pl.main.Events.AppEvent.SystemSleepEvent.SystemSleepStartEvent
+import sp.it.pl.main.Events.AppEvent.UserSessionEvent.UserSessionStopEvent
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Key
 import sp.it.pl.main.LazyOverlayPane
@@ -56,10 +58,10 @@ class StartScreen: PluginBase() {
    private val onClose = Disposer()
 
    private val overlaySleepHandler = Subscribed {
-      APP.actionStream.onEventObject(Events.AppEvent.SystemSleepEvent.Start) { overlay.hide() }
+      APP.actionStream.onEventObject(SystemSleepStartEvent) { overlay.hide() }
    }
    private val overlayUserHandler = Subscribed {
-      APP.actionStream.onEventObject(Events.AppEvent.UserSessionEvent.Stop) { overlay.hide() }
+      APP.actionStream.onEventObject(UserSessionStopEvent) { overlay.hide() }
    }
    private val overlayIsActive = Subscribed {
       fun showerCondition() =

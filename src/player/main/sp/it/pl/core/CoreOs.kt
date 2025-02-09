@@ -6,7 +6,7 @@ import com.sun.jna.win32.StdCallLibrary
 import java.io.File
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.main.APP
-import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
+import sp.it.pl.main.Events.AppEvent.SystemSleepEvent.*
 import sp.it.util.async.future.awaitFxOrBlock
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
@@ -18,9 +18,9 @@ import sp.it.util.system.execRaw
 /** API to access OS. Use only on `JavaFX Application Thread` unless specified otherwise. */
 object CoreOs: Core {
 
-   /** Sleeps OS. Fires [SystemSleepEvent.Pre] and waits till listeners complete, then sleeps and fires [SystemSleepEvent.Start]. */
+   /** Sleeps OS. Fires [SystemSleepPreEvent] and waits till listeners complete, then sleeps and fires [SystemSleepStartEvent]. */
    fun sleep(): Try<Unit, Throwable> = runTry {
-      runFX { APP.actionStream(SystemSleepEvent.Pre) }.awaitFxOrBlock()
+      runFX { APP.actionStream(SystemSleepPreEvent) }.awaitFxOrBlock()
       when (Os.current) {
          Os.WINDOWS -> Runtime.getRuntime().execRaw("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
          Os.OSX -> Runtime.getRuntime().execRaw("pmset sleepnow")
@@ -29,9 +29,9 @@ object CoreOs: Core {
       }
    }
 
-   /** Hibernates OS. Fires [SystemSleepEvent.Pre] and waits till listeners complete, then sleeps and fires [SystemSleepEvent.Start]. */
+   /** Hibernates OS. Fires [SystemSleepPreEvent] and waits till listeners complete, then sleeps and fires [SystemSleepStartEvent]. */
    fun hibernate(): Try<Unit, Throwable> = runTry {
-      runFX { APP.actionStream(SystemSleepEvent.Pre) }.awaitFxOrBlock()
+      runFX { APP.actionStream(SystemSleepPreEvent) }.awaitFxOrBlock()
       when (Os.current) {
          Os.WINDOWS -> Runtime.getRuntime().execRaw("rundll32.exe powrprof.dll,SetSuspendState Hibernate")
          Os.OSX -> Runtime.getRuntime().execRaw("pmset hibernatemode 25; pmset sleepnow")

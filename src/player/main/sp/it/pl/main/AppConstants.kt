@@ -119,23 +119,23 @@ object Events {
       }
       sealed interface SystemSleepEvent: AppEvent {
          /** Happens just before [java.awt.desktop.SystemSleepListener.systemAboutToSleep] if sleep is invoked from this application. Allows reacting to sleep before it happens. Raised on FX thread. */
-         data object Pre: SystemSleepEvent
-         /** [java.awt.desktop.SystemSleepListener.systemAboutToSleep]. May be raised after wake-up, see [Pre]. Raised on FX thread. */
-         data object Start: SystemSleepEvent
+         data object SystemSleepPreEvent: SystemSleepEvent
+         /** [java.awt.desktop.SystemSleepListener.systemAboutToSleep]. May be raised after wake-up, see [SystemSleepPreEvent]. Raised on FX thread. */
+         data object SystemSleepStartEvent: SystemSleepEvent
          /** [java.awt.desktop.SystemSleepListener.systemAwoke]. Raised on FX thread. */
-         data object Stop: SystemSleepEvent
+         data object SystemSleepStopEvent: SystemSleepEvent
       }
       sealed interface ScreenSleepEvent: AppEvent {
          /** [java.awt.desktop.ScreenSleepListener.screenAboutToSleep]. Raised on FX thread. */
-         data object Start: ScreenSleepEvent
+         data object ScreenSleepStartEvent: ScreenSleepEvent
          /** [java.awt.desktop.ScreenSleepListener.screenAwoke]. Raised on FX thread. */
-         data object Stop: ScreenSleepEvent
+         data object ScreenSleepStopEvent: ScreenSleepEvent
       }
       sealed interface UserSessionEvent: AppEvent {
          /** [java.awt.desktop.UserSessionListener.userSessionActivated]. Raised on FX thread. */
-         data object Start: UserSessionEvent
+         data object UserSessionStartEvent: UserSessionEvent
          /** [java.awt.desktop.UserSessionListener.userSessionDeactivated]. Raised on FX thread. */
-         data object Stop: UserSessionEvent
+         data object UserSessionStopEvent: UserSessionEvent
       }
       /** [java.awt.desktop.AppReopenedListener.appReopened]. Raised on FX thread. */
       data object AppReopenedEvent: AppEvent

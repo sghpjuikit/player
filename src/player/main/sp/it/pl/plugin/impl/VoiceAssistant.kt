@@ -9,8 +9,6 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
-import kotlin.concurrent.thread
-import kotlin.time.measureTime
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.runBlocking
 import sp.it.pl.audio.audioInputDeviceNames
@@ -27,6 +25,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppHttp
 import sp.it.pl.main.Bool
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
+import sp.it.pl.main.Events.AppEvent.SystemSleepEvent.*
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.runCommandWithOutput
@@ -54,7 +53,6 @@ import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.awaitFx
 import sp.it.util.async.future.awaitFxOrBlock
 import sp.it.util.async.runFX
-import sp.it.util.async.runNew
 import sp.it.util.async.runOn
 import sp.it.util.collections.list.DestructuredList
 import sp.it.util.collections.observableList
@@ -73,7 +71,6 @@ import sp.it.util.conf.cro
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvNest
 import sp.it.util.conf.cvn
-import sp.it.util.conf.cvnro
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateConfig
@@ -95,7 +92,6 @@ import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.doNothing
 import sp.it.util.dev.fail
 import sp.it.util.dev.markUsed
-import sp.it.util.dev.printIt
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
@@ -104,7 +100,6 @@ import sp.it.util.file.json.JsNumber
 import sp.it.util.file.json.JsObject
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsValue
-import sp.it.util.file.json.div
 import sp.it.util.file.json.toCompactS
 import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.readTextTry
@@ -140,7 +135,6 @@ import sp.it.util.text.split2
 import sp.it.util.text.splitNoEmpty
 import sp.it.util.text.splitTrimmed
 import sp.it.util.text.useStrings
-import sp.it.util.units.javafx
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
 
@@ -848,8 +842,8 @@ class VoiceAssistant: PluginBase() {
       // - 2 AI models slow down sleep and wear hw considerably
       // the closing must prevent hibernate until ai termination is complete
       // the startup is delayed so system is ready, which avoids starup issues
-      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Pre) { stopSpeechRecognition(true); fut().thenWait(5.seconds).awaitFx() }
-      onClose += APP.actionStream.onEventObject(SystemSleepEvent.Stop) { runFX(5.seconds) { startSpeechRecognition(true) } }
+      onClose += APP.actionStream.onEventObject(SystemSleepPreEvent) { stopSpeechRecognition(true); fut().thenWait(5.seconds).awaitFx() }
+      onClose += APP.actionStream.onEventObject(SystemSleepStopEvent) { runFX(5.seconds) { startSpeechRecognition(true) } }
 
       // http
       onClose += APP.http.serverRoutes route AppHttp.Handler("/voice-assistent-ui/event", "POST") {

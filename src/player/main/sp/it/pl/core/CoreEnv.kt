@@ -14,20 +14,21 @@ import java.awt.desktop.AppReopenedListener
 import java.awt.desktop.ScreenSleepListener
 import java.awt.desktop.SystemSleepListener
 import java.awt.desktop.UserSessionListener
-import javafx.stage.Stage
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.main.APP
 import sp.it.pl.main.App
-import sp.it.pl.main.COM
 import sp.it.pl.main.CacheHICON
 import sp.it.pl.main.Events
 import sp.it.pl.main.Events.AppEvent.AppHidingEvent.AppHidden
 import sp.it.pl.main.Events.AppEvent.AppHidingEvent.AppUnHidden
 import sp.it.pl.main.Events.AppEvent.AppReopenedEvent
 import sp.it.pl.main.Events.AppEvent.AppXGroundEvent.AppMovedToBackground
-import sp.it.pl.main.Events.AppEvent.ScreenSleepEvent
+import sp.it.pl.main.Events.AppEvent.AppXGroundEvent.AppMovedToForeground
+import sp.it.pl.main.Events.AppEvent.ScreenSleepEvent.ScreenSleepStartEvent
+import sp.it.pl.main.Events.AppEvent.ScreenSleepEvent.ScreenSleepStopEvent
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
-import sp.it.pl.main.Events.AppEvent.UserSessionEvent
+import sp.it.pl.main.Events.AppEvent.UserSessionEvent.UserSessionStartEvent
+import sp.it.pl.main.Events.AppEvent.UserSessionEvent.UserSessionStopEvent
 import sp.it.pl.main.THUMBBUTTON
 import sp.it.pl.main.WindowsTaskbarInternal
 import sp.it.pl.main.WndProcCallbackOverride
@@ -38,7 +39,6 @@ import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.window.stage.lookupHwnd
 import sp.it.util.async.NEW
 import sp.it.util.async.runFX
-import sp.it.util.dev.fail
 import sp.it.util.file.div
 import sp.it.util.file.traverseParents
 import sp.it.util.functional.ifNotNull
@@ -91,7 +91,7 @@ object CoreEnv: Core {
    private fun initAppEventListeners() =
       Desktop.getDesktop().addAppEventListener(
          object: AppForegroundListener, AppHiddenListener, AppReopenedListener, ScreenSleepListener, SystemSleepListener, UserSessionListener {
-            override fun appRaisedToForeground(e: AppForegroundEvent) = runFX { APP.actionStream(AppMovedToBackground) }.toUnit()
+            override fun appRaisedToForeground(e: AppForegroundEvent) = runFX { APP.actionStream(AppMovedToForeground) }.toUnit()
             override fun appMovedToBackground(e: AppForegroundEvent) = runFX { APP.actionStream(AppMovedToBackground) }.toUnit()
 
             override fun appHidden(e: AppHiddenEvent) = runFX { APP.actionStream(AppHidden) }.toUnit()
@@ -99,14 +99,14 @@ object CoreEnv: Core {
 
             override fun appReopened(e: AppReopenedEventFX) = runFX { APP.actionStream(AppReopenedEvent) }.toUnit()
 
-            override fun screenAboutToSleep(e: ScreenSleepEventFX) = runFX { APP.actionStream(ScreenSleepEvent.Start) }.toUnit()
-            override fun screenAwoke(e: ScreenSleepEventFX) = runFX { APP.actionStream(ScreenSleepEvent.Stop) }.toUnit()
+            override fun screenAboutToSleep(e: ScreenSleepEventFX) = runFX { APP.actionStream(ScreenSleepStartEvent) }.toUnit()
+            override fun screenAwoke(e: ScreenSleepEventFX) = runFX { APP.actionStream(ScreenSleepStopEvent) }.toUnit()
 
-            override fun systemAboutToSleep(e: SystemSleepEventFX) = runFX { APP.actionStream(SystemSleepEvent.Start) }.toUnit()
-            override fun systemAwoke(e: SystemSleepEventFX) = runFX { APP.actionStream(SystemSleepEvent.Stop) }.toUnit()
+            override fun systemAboutToSleep(e: SystemSleepEventFX) = runFX { APP.actionStream(SystemSleepEvent.SystemSleepStartEvent) }.toUnit()
+            override fun systemAwoke(e: SystemSleepEventFX) = runFX { APP.actionStream(SystemSleepEvent.SystemSleepStopEvent) }.toUnit()
 
-            override fun userSessionActivated(e: UserSessionEventFX) = runFX { APP.actionStream(UserSessionEvent.Start) }.toUnit()
-            override fun userSessionDeactivated(e: UserSessionEventFX) = runFX { APP.actionStream(UserSessionEvent.Stop) }.toUnit()
+            override fun userSessionActivated(e: UserSessionEventFX) = runFX { APP.actionStream(UserSessionStartEvent) }.toUnit()
+            override fun userSessionDeactivated(e: UserSessionEventFX) = runFX { APP.actionStream(UserSessionStopEvent) }.toUnit()
          }
       )
 

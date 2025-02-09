@@ -305,11 +305,26 @@ class VoiceAssistant: PluginBase() {
       }
 
    /** Allow llm to repond with python commands. Much more powerful assistant, but also somewhat unpredictable. Default false. */
-   val usePythonCommands by cv(false)
-      .def(
-         name = "Use python commands",
-         info = "Allow llm to repond with python commands. Much more powerful assistant, but also somewhat unpredictable. Default false."
+   val usePythonCommands by cv(false).noUi().def(
+      name = "Use python commands",
+      info = "Allow llm to repond with python commands. Much more powerful assistant, but also somewhat unpredictable. Default false."
+   )
+
+   /** Turn off python and release AI models during PC sleep. Enable if using hibernate (but not sleep), to make hibernate faster and prevent python errors. Default true. */
+   val restartOnSleep by cv(true).noUi().def(
+      name = "Suspend on sleep",
+      info = "Turn off python and release AI models during PC sleep. Make sleep faster and prevents various issues. Disable at your own risk. Default true."
+   )
+
+   internal val python by cNest(
+      ListConfigurable.heterogeneous(
+         ::usePythonCommands.getDelegateConfig(),
+         ::restartOnSleep.getDelegateConfig(),
       )
+   ).noPersist().def(
+      name = "Python",
+      info = "Python process & AI models."
+   )
 
    /** Speech handlers called when user has spoken. Matched in order. */
    val handlers = observableList(*voiceCommands().toTypedArray())
@@ -665,8 +680,10 @@ class VoiceAssistant: PluginBase() {
       .def(name = "Model", info = "The llm model of the OpenAI-compatible server. Server may ignore this.")
 
    /** The user authorization of the OpenAI or OpenAI-compatible server */
-   val llmOpenAiModelIgnore by cv(false)
-      .def(name = "Model ignored", info = "Whether the specified model is not passed to the OpenAi-compatible server so it may use whatever model is loaded if supported.")
+   val llmOpenAiModelIgnore by cv(false).noUi().def(
+      name = "Model ignored",
+      info = "Whether the specified model is not passed to the OpenAi-compatible server so it may use whatever model is loaded if supported."
+   )
 
    /** Cli command to start llm server. Use if you want to automatize starting local AI server. Invoked on plugin start or waking from hibernation. */
    val llmOpenAiServerStartCommand by cvn<String>(null).nonEmpty()
@@ -836,14 +853,23 @@ class VoiceAssistant: PluginBase() {
       val processChange = processChangeVals.map { it.chan() }.reduce { a, b -> a + b }
       processChange.throttleToLast(2.seconds).subscribe { restart() } on onClose
 
-      // turn off during hibernate
-      // due to:
-      // - 1 the python process may not recover from sleep properly
-      // - 2 AI models slow down sleep and wear hw considerably
-      // the closing must prevent hibernate until ai termination is complete
-      // the startup is delayed so system is ready, which avoids starup issues
-      onClose += APP.actionStream.onEventObject(SystemSleepPreEvent) { stopSpeechRecognition(true); fut().thenWait(5.seconds).awaitFx() }
-      onClose += APP.actionStream.onEventObject(SystemSleepStopEvent) { runFX(5.seconds) { startSpeechRecognition(true) } }
+      // turn off during hibernate because:
+      // - the python process may not recover from sleep properly
+      // - AI models slow down sleep and wear hw considerably
+      // unfortunately we do not distinguis hibernate from sleep
+      onClose += APP.actionStream.onEventObject(SystemSleepPreEvent) {
+         if (restartOnSleep.value) {
+            stopSpeechRecognition(true)
+            // delay proceeding until ai termination is complete
+            fut().thenWait(5.seconds).awaitFx()
+         }
+      }
+      onClose += APP.actionStream.onEventObject(SystemSleepStopEvent) {
+         if (restartOnSleep.value) {
+            // delay statup to avoids issues
+            runFX(5.seconds) { startSpeechRecognition(true) }
+         }
+      }
 
       // http
       onClose += APP.http.serverRoutes route AppHttp.Handler("/voice-assistent-ui/event", "POST") {

@@ -18,14 +18,19 @@ import javafx.stage.Stage
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST
 import javax.imageio.ImageIO
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.javafx.awaitPulse
 import sp.it.pl.audio.Song
 import sp.it.pl.layout.ComponentLoader.WINDOW_FULLSCREEN
+import sp.it.pl.layout.ComponentLoaderStrategy
 import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetUse
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.controller.Controller
 import sp.it.pl.layout.controller.ControllerNode
 import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.layout.feature.ObjectDetail
+import sp.it.pl.layout.nodeWidgetFactory
 import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.objects.MdNode
@@ -50,6 +55,10 @@ import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.ActionManager
 import sp.it.util.action.ActionRegistrar
 import sp.it.util.action.IsAction
+import sp.it.util.async.coroutine.asDeferred
+import sp.it.util.async.coroutine.asFut
+import sp.it.util.async.coroutine.delay
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.async.runIoParallel
@@ -72,6 +81,7 @@ import sp.it.util.conf.readOnly
 import sp.it.util.conf.values
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
 import sp.it.util.file.creationTime
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
@@ -89,6 +99,7 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
@@ -403,15 +414,11 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    }
 
    val openMarkdownFile = action<File>("Open markdown", "Opens markdown file.", IconOC.MARKDOWN, constriction = { it hasExtension MimeExt.md }) { mdFile ->
-      APP.windowManager.createWindow().apply {
-         detachLayout()
-         setContent(
-            MdNode().apply {
-               readFile(mdFile)
-            }
-         )
-         show()
-      }
+      runSuspendingFx {
+         val w = APP.instances.factoryMdNode.create()
+         ComponentLoaderStrategy.WINDOW.loader.invoke(w)
+         w.controller.asIs<ControllerNode>().nodeInstance.value.node.asIs<MdNode>().readFile(mdFile)
+      }.asDeferred().asFut()
    }
 
    val fileSyncFileTimes = action<File>(

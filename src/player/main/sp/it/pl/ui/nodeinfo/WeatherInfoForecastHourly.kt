@@ -110,7 +110,7 @@ class WeatherInfoForecastHourly(units: UnitsDto, value: List<Cell.Data>): HBox()
          val l = APP.locale.value
          val now = ZonedDateTime.now();
          val at = v.at.toInstant().atZone(ZoneId.systemDefault())
-         hourL.text = " ${"%02d".format(v.at.hour % 12 + 1)}${if (v.at.hour < 12) "AM" else "PM"} "
+         hourL.text = " ${"%02d".format(v.at.hour % 12 + 1)}${if (v.at.hour < 12) "am" else "pm"} "
          icon.icon(v.icon)
          tempL.text = v.temp.toUiValue(u, l)
          cloudsL.text = "${v.clouds.toInt()}%"

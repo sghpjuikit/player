@@ -115,8 +115,8 @@ class WeatherInfoForecastDaily(units: UnitsDto, value: List<Daily>): HBox() {
          val u = units.value
          val l = APP.locale.value
          val now = ZonedDateTime.now();
-         val at = v.dt.toInstant().atZone(ZoneId.systemDefault())
-         dayL.text = when (u.date) { DATE -> at.monthValue.toString() + "." + at.dayOfMonth.toString() + "."; DAY_OF_WEEK -> at.dayOfWeek.getDisplayName(SHORT, l) }
+         val at = v.dt.toInstant().atZone(ZoneId.systemDefault()).plusDays(1)
+         dayL.text = when (u.date) { DATE -> "%02d.%02d.".format(at.monthValue, at.dayOfMonth); DAY_OF_WEEK -> at.dayOfWeek.getDisplayName(SHORT, l) }
          icon.icon(v.weather.firstOrNull()?.icon(true) ?: IconWH.NA)
          tempL.text = v.temp.max.toUiValue(u, l)
          cloudsL.text = "${v.clouds.toInt()}%"

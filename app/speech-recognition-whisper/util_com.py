@@ -48,6 +48,7 @@ class PythonExecutor:
         self.__llmPrompt = ''
         self.__llmPromptSys = ''
         self.llmPromptSys = llmPromptSys
+        self.memFile = 'memory/mem.json'
         self.mem = self.load_memory()
 
         self.commandExecutor = commandExecutor
@@ -118,13 +119,13 @@ class PythonExecutor:
         import json
         try:
             self.write('RAW: Memory loading...')
-            with open('mem.json', 'r') as file:
+            with open(self.memFile, 'r') as file:
                 memJs = json.load(file)
                 self.write('RAW: Memory loaded')
                 return memJs
         except FileNotFoundError:
             self.write('RAW: Memory empty. Initializing...*')
-            with open('mem.json', 'w') as file:
+            with open(self.memFile, 'w') as file:
                 json.dump({}, file, indent=4)
                 return {}
         except json.JSONDecodeError as e:
@@ -136,7 +137,7 @@ class PythonExecutor:
         """Save memory to a JSON file."""
         import json
         if self.mem is None: return
-        with open('mem.json', 'w') as file:
+        with open(self.memFile, 'w') as file:
             json.dump(self.mem, file, indent=4)
 
     def showEmote(self, emotionInput: str, ctx: Ctx):
@@ -282,18 +283,16 @@ class PythonExecutor:
             def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str):
                 command(f'set reminder in {afterNumber}{afterUnit} {text_to_remind}')
             def storeMemory(topic: str, memory: str) -> None:
+                timestamp = datetime.datetime.now().isoformat()
                 if self.mem is None: self.mem = {}
-                if topic in self.mem: self.mem[topic] += '\n\n' + memory  # Append memory if topic exists
-                else: self.mem[topic] = memory  # Create new entry if topic does not exist
+                if topic in self.mem: self.mem[topic].append([(timestamp, memory)])  # Append memory if topic exists
+                else: self.mem[topic] = [(timestamp, memory)]  # Create new entry if topic does not exist
                 self.write(f'*Saving topic={topic} memory={memory}*')
                 self.save_memory()
             def accessMemory(query: str):
                 # self.mem.update(self.__llmPromptDoc)
 
                 mem = {} if self.mem is None else self.mem.copy()
-                self.write(self.mem)
-                self.write(self.mem.copy())
-                self.write(mem)
                 memKeys = '* ' + "\n* ".join(mem.keys())
                 memKeyAll = 'all'
                 memKeyNone = 'none'
@@ -312,13 +311,13 @@ class PythonExecutor:
                     if canceled is not True:
                         memKey = memKeyNone
                         for k in mem.keys():
-                            self.write(f'{key.strip().lower()} =={k.strip().lower()}')
+                            # self.write(f'{key.strip().lower()}=={k.strip().lower()}')
                             if key.strip().lower()==k.strip().lower():
                                 memKey = k
 
                         self.write(f'Accessing memory \'{key}\'')
                         self.chatAppend({"role": "user", "content": '*waiting*'})
-                        self.generatePythonAndExecuteInternal(f'You accesed your memory and can now reply to the query using the data:\n {mem[key]}')
+                        self.generatePythonAndExecuteInternal(f'You accesed your memory and can now reply to the query using the data:\n {str(mem[key])}')
                 except Exception as e:
                     speak(f'I\'m sorry, I failed to respond: {e}')
                     raise e

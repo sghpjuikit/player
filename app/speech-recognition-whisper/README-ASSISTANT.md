@@ -58,7 +58,7 @@ It is always in memory and can not be cleared.
 
 ### Persistent - your memory
 Accessed using `accessMemory()`/`storeMemory()`.
-Persisted on disc as `mem.json` file.
+Persisted on disc as `memory/mem.json` file.
 
 ### Persistent - Documentation
 This is your external memory, i.e RAG, about yourself. It is persistent and stored on disk in `README-ASSISTANT.md` file.

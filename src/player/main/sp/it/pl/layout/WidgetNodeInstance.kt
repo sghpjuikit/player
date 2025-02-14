@@ -11,6 +11,7 @@ import javafx.stage.Window
 import kotlin.reflect.KClass
 import sp.it.util.conf.ConfigDef
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.Constraint
 import sp.it.util.conf.ListConfigurable
 import sp.it.util.conf.PropertyConfig
 import sp.it.util.file.json.JsConverter
@@ -30,7 +31,7 @@ data class WidgetNodeInstance(val node: Node?, val properties: List<NodeInput>, 
 
       operator fun invoke(node: Node?): WidgetNodeInstance {
          val properties = node.javaFxProperties().toList()
-         val configs = properties.map { PropertyConfig(it.type, it.name, ConfigDef(it.name, "", "instance"), setOf(), it.value.asIs(), it.value.value, "instance") }
+         val configs = properties.map { PropertyConfig(it.type, it.name, ConfigDef(it.name, "", "instance"), it.constraints.asIs(), it.value.asIs(), it.value.value, "instance") }
          val configurable = ListConfigurable.homogeneous(configs)
          return WidgetNodeInstance(node, properties, configurable, null)
       }
@@ -59,12 +60,14 @@ data class WidgetNodeInstance(val node: Node?, val properties: List<NodeInput>, 
                   && !(it.type.isSubtypeOf<Boolean>() && it.name=="needsLayout")    // internals
                   && !(it.type.isSubtypeOf<Boolean>() && it.name=="managed")        // internals
             }
-            .map { NodeInput(it.name, it.declaringClass, { it.observable().asIs() }, VType<Any?>(it.type)) }
+            .map {
+               NodeInput(it.name, it.declaringClass, { it.observable().asIs() }, VType<Any?>(it.type), it.constraints)
+            }
       }
    }
 
 }
 
-data class NodeInput(val name: String, val declaringClass: KClass<*>, val valueSupplier: () -> WritableValue<*>, val type: VType<*>) {
+data class NodeInput(val name: String, val declaringClass: KClass<*>, val valueSupplier: () -> WritableValue<*>, val type: VType<*>, val constraints: Set<Constraint<*>>) {
    val value: WritableValue<Any?> by lazy { valueSupplier().asIs() }
 }

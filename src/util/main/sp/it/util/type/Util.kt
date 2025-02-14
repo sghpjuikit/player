@@ -57,6 +57,7 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
+import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Paint
@@ -100,6 +101,10 @@ import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
 import org.jetbrains.kotlin.ir.backend.js.export.ExportedType
+import sp.it.util.conf.Constraint
+import sp.it.util.conf.Constraint.Multiline
+import sp.it.util.conf.Constraint.ValueSealedSet
+import sp.it.util.conf.Constraint.ValueUnsealedSet
 import sp.it.util.dev.fail
 import sp.it.util.functional.Option
 import sp.it.util.functional.Try
@@ -239,7 +244,8 @@ fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when {
    }
 }
 
-private data class Extractor<T>(val declaringClass: KClass<*>, val method: KFunction<T>, val type: VType<T>)
+private val javaFxSizeConstraints = setOf(ValueUnsealedSet<Double>({ listOf(Region.USE_COMPUTED_SIZE, Region.USE_PREF_SIZE) }))
+private data class Extractor<T>(val declaringClass: KClass<*>, val method: KFunction<T>, val type: VType<T>, val constraints: Set<Constraint<*>> = setOf())
 private val extractors = setOf(
       Extractor(javafx.scene.Node::class,            javafx.scene.Node::accessibleHelpProperty,             type<Property<String?>>()),
       Extractor(javafx.scene.Node::class,            javafx.scene.Node::accessibleRoleProperty,             type<Property<AccessibleRole>>()),
@@ -302,19 +308,19 @@ private val extractors = setOf(
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::cacheShapeProperty,        type<Property<Boolean>>()),
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::centerShapeProperty,       type<Property<Boolean>>()),
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::getChildrenUnmodifiable,   type<ObservableList<Node>>()),
-      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::heightProperty,            type<ReadOnlyProperty<Double>>()),
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::insetsProperty,            type<ReadOnlyProperty<Insets?>>()),
-      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::maxHeightProperty,         type<Property<Double>>()),
-      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::maxWidthProperty,          type<Property<Double>>()),
-      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::minHeightProperty,         type<Property<Double>>()),
-      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::minWidthProperty,          type<Property<Double>>()),
-      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::prefHeightProperty,        type<Property<Double>>()),
-      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::prefWidthProperty,         type<Property<Double>>()),
+      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::widthProperty,             type<ReadOnlyProperty<Double>>()),
+      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::heightProperty,            type<ReadOnlyProperty<Double>>()),
+      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::minHeightProperty,         type<Property<Double>>(), javaFxSizeConstraints),
+      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::minWidthProperty,          type<Property<Double>>(), javaFxSizeConstraints),
+      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::prefHeightProperty,        type<Property<Double>>(), javaFxSizeConstraints),
+      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::prefWidthProperty,         type<Property<Double>>(), javaFxSizeConstraints),
+      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::maxHeightProperty,         type<Property<Double>>(), javaFxSizeConstraints),
+      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::maxWidthProperty,          type<Property<Double>>(), javaFxSizeConstraints),
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::opaqueInsetsProperty,      type<Property<Insets?>>()),
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::scaleShapeProperty,        type<Property<Boolean>>()),
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::shapeProperty,             type<Property<Shape?>>()),
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::snapToPixelProperty,       type<Property<Boolean>>()),
-      Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::widthProperty,             type<ReadOnlyProperty<Double>>()),
       Extractor(javafx.scene.layout.Region::class,   javafx.scene.layout.Region::paddingProperty,           type<Property<Insets>>()),
       Extractor(javafx.scene.layout.Pane::class,     javafx.scene.layout.Pane::backgroundProperty,          type<Property<Background?>>()),
       Extractor(javafx.scene.layout.Pane::class,     javafx.scene.layout.Pane::getChildren,                 type<ObservableList<Node>>()),
@@ -337,13 +343,14 @@ private val extractors = setOf(
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::labelPaddingProperty,    type<ReadOnlyProperty<Insets>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::lineSpacingProperty,     type<Property<Double>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::mnemonicParsingProperty, type<Property<Boolean>>()),
-      Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::textProperty,            type<Property<String>>()),
+      Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::textProperty,            type<Property<String?>>(), setOf(Multiline)),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::textAlignmentProperty,   type<Property<TextAlignment>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::textFillProperty,        type<Property<Paint>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::textOverrunProperty,     type<Property<OverrunStyle>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::underlineProperty,       type<Property<Boolean>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::wrapTextProperty,        type<Property<Boolean>>()),
       Extractor(javafx.scene.control.Label::class,   javafx.scene.control.Label::labelForProperty,          type<Property<Node?>>()),
+      Extractor(javafx.scene.control.TextArea::class,javafx.scene.control.TextArea::textProperty,           type<Property<String?>>(), setOf(Multiline)),
       Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::fillProperty,                type<Property<Paint>>()),
       Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::smoothProperty,              type<Property<Boolean>>()),
       Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::strokeProperty,              type<Property<Paint?>>()),
@@ -370,7 +377,7 @@ private val extractors = setOf(
       Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::tabSizeProperty,               type<Property<Int>>()),
       Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::textAlignmentProperty,         type<Property<TextAlignment>>()),
       Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::textOriginProperty,            type<Property<VPos>>()),
-      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::textProperty,                  type<Property<String>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::textProperty,                  type<Property<String>>(), setOf(Multiline)),
       Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::underlineProperty,             type<Property<Boolean>>()),
       Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::wrappingWidthProperty,         type<Property<Double>>()),
       Extractor(javafx.stage.Stage::class,           javafx.stage.Stage::fullScreenExitHintProperty,        type<Property<String?>>()),
@@ -419,7 +426,8 @@ private fun forEachJavaFXPropertyImpl(o: Any): Sequence<InspectedFxProperty> = s
                   propertyName = propertyName.substringAfter("get", propertyName)
                   propertyName = propertyName.decapital()
                   method.isAccessible = true
-                  val propertyType = extractors[declaringClass].orEmpty()[methodName]?.type?.type?.javaFxPropertyType ?: returnType.javaFxPropertyType.resolveNullability(propertyName)
+                  val extractor = extractors[declaringClass].orEmpty()[methodName]
+                  val propertyType = extractor?.type?.type?.javaFxPropertyType ?: returnType.javaFxPropertyType.resolveNullability(propertyName)
                   val observableRaw = method.call(o) as Observable?
                   if (observableRaw!=null) {
                      val observable = {
@@ -435,7 +443,7 @@ private fun forEachJavaFXPropertyImpl(o: Any): Sequence<InspectedFxProperty> = s
                         observableRaw is ObservableList<*> || observableRaw is ObservableSet<*> || observableRaw is ObservableMap<*,*> -> observableRaw::class.jvmName.contains("unmodifiable", true)
                         else -> !returnType.raw.isSubclassOf(WritableValue::class) || (observableRaw is Property<*> && observableRaw.isBound)
                      }
-                     yield(InspectedFxProperty(observable, propertyName, isReadOnly, declaringClass, propertyType))
+                     yield(InspectedFxProperty(observable, propertyName, isReadOnly, declaringClass, propertyType, extractor?.constraints.orEmpty()))
                   }
                   else logger.warn { "Is null declaringClass='$declaringClass' propertyName=$propertyName propertyType=$propertyType" }
                } catch (e: Throwable) {
@@ -525,7 +533,7 @@ private fun forEachJavaFXPropertyImpl(o: Any): Sequence<InspectedFxProperty> = s
    }
 }
 
-data class InspectedFxProperty(val observable: () -> Observable, val name: String, val isReadOnly: Boolean, val declaringClass: KClass<*>, val type: KType)
+data class InspectedFxProperty(val observable: () -> Observable, val name: String, val isReadOnly: Boolean, val declaringClass: KClass<*>, val type: KType, val constraints: Set<Constraint<*>> = setOf())
 
 private object PaneProperties {
    inline fun <reified T: Any> paneProperty(o: Node, key: String, crossinline getter: (Node) -> T?, crossinline setter: (Node, T?) -> Unit): () -> Observable = {

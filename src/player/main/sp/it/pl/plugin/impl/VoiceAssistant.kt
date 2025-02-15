@@ -33,6 +33,14 @@ import sp.it.pl.main.toUi
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.plugin.impl.VoiceAssistant.InputType.NULL
+import sp.it.pl.plugin.impl.VoiceAssistant.InputType.EMPTY
+import sp.it.pl.plugin.impl.VoiceAssistant.InputType.RAW
+import sp.it.pl.plugin.impl.VoiceAssistant.InputType.SYS
+import sp.it.pl.plugin.impl.VoiceAssistant.InputType.USER
+import sp.it.pl.plugin.impl.VoiceAssistant.InputType.USER_RAW
+import sp.it.pl.plugin.impl.VoiceAssistant.InputType.ERR
+import sp.it.pl.plugin.impl.VoiceAssistant.InputType.COM
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.action
 import sp.it.util.access.V
@@ -237,7 +245,7 @@ class VoiceAssistant: PluginBase() {
                      { e, state ->
                         pythonOutStd.value = pythonOutStd.value.concatApplyBackspace(e)
                         if (state!=null && state!="") pythonOutEvent.value = pythonOutEvent.value.concatApplyBackspace(e)
-                        if (state=="USER" || state=="SYS") pythonOutSpeak.value = pythonOutSpeak.value.concatApplyBackspace(e)
+                        if (state==USER || state==SYS) pythonOutSpeak.value = pythonOutSpeak.value.concatApplyBackspace(e)
                         onLocalInputReducer.push(e to state)
                      },
                      { e, state ->
@@ -921,13 +929,13 @@ class VoiceAssistant: PluginBase() {
 
    private fun handleInput(text: String, state: String) {
       when (state) {
-         "" -> Unit
-         "RAW" -> Unit
-         "ERR" -> Unit
-         "USER-RAW" -> launch(FX) { confirm(text) }
-         "USER" -> launch(FX) { confirm(text) ?: handleSpeech(text, user = true) }
-         "SYS" -> Unit
-         "COM" -> launch(FX) { handleSpeech(text, command = true, orDetectIntent = true) }
+         EMPTY -> Unit
+         RAW -> Unit
+         ERR -> Unit
+         USER_RAW -> launch(FX) { confirm(text) }
+         USER -> launch(FX) { confirm(text) ?: handleSpeech(text, user = true) }
+         SYS -> Unit
+         COM -> launch(FX) { handleSpeech(text, command = true, orDetectIntent = true) }
       }
    }
 
@@ -1019,6 +1027,17 @@ class VoiceAssistant: PluginBase() {
       VT {
          APP.http.client.get("${httpUrl.value}/actor-events-all").bodyAsJs()
       }
+
+   object InputType {
+            val NULL = null
+      const val EMPTY = ""
+      const val RAW = "RAW"
+      const val SYS = "SYS"
+      const val USER = "USER"
+      const val USER_RAW = "USER-RAW"
+      const val ERR = "ERR"
+      const val COM = "COM"
+   }
 
    enum class SttEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
       NONE("none", "None", "No speech recognition"),

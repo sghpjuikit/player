@@ -1,5 +1,6 @@
 package sp.it.util.access
 
+import java.util.function.UnaryOperator
 import javafx.beans.Observable
 import javafx.beans.binding.Bindings
 import javafx.beans.binding.BooleanBinding
@@ -25,6 +26,7 @@ import sp.it.util.collections.materialize
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.functional.Try
+import sp.it.util.functional.invoke
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachTo
@@ -57,6 +59,9 @@ operator fun IntegerProperty.setValue(thisRef: Any, property: KProperty<*>, valu
 
 operator fun ObservableBooleanValue.getValue(thisRef: Any, property: KProperty<*>) = get()
 operator fun BooleanProperty.setValue(thisRef: Any, property: KProperty<*>, value: Boolean) = set(value)
+
+/** Invokes [setValue] on this with the transformed value using the specified mapper. */
+fun <T> WritableValue<T>.setValueOf(op: UnaryOperator<T>) = setValue(op(value))
 
 /** Sets value to current value transformed with the specified function, like `value = f(value)`. */
 inline fun <T> WritableValue<T>.transformValue(f: (T) -> T) {

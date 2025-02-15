@@ -1,7 +1,5 @@
 ## Potential future work
 
-
-- Implement about page
 - Implement Thumbnail video support
 - Implement AI emotion state
 - impl MdNode edit

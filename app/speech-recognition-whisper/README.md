@@ -150,11 +150,11 @@ flowchart LR
 ###### Voice control
 User can speak to the assistant by speaking its name (configurable, `System` by default)
 ```
-USR: System
+USER: System
 SYS: yes
 ```
 ```
-USR: System, command
+USER: System, command
 SYS: doing command...
 ```
 
@@ -167,18 +167,18 @@ Hence, `System` turns out to be really good name, while custom names such as `Ja
 ###### Delayed voice control
 User can avoid speaking assistant name during short period after the name was already spoken.
 ```
-USR: System
+USER: System
 SYS: Yes
-USE: command without repeating system name
+USER: command without repeating system name
 ```
 
 ###### Voice chat
 Use can speak without calling the assistant's name completely in chat mode.
 In this mode user is conversing with LLM, which requires `LlmActor` enabled and running.
 ```
-USR: System start covnersation
+USER: System start covnersation
 SYS: Conversing...
-USR: Tell a joke
+USER: Tell a joke
 ...
 ```
 
@@ -203,11 +203,11 @@ This
 User may speak commands for assistent to execute.
 These are matched against command's matcher (see features below).
 ```
-USR: System my command
+USER: System my command
 ```
 User may speak multiple commands at once, using `and` word.
 ```
-USR: System my command and other command
+USER: System my command and other command
 ```
 
 ###### Custom/Programmatic commands

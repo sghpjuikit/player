@@ -404,3 +404,17 @@ fun StringBuilder.concatApplyBackspace(str: String): StringBuilder {
 
 /** @return String with each [Char32] transformed with [Char32.toPrintableNonWhitespace] */
 fun String.toPrintableNonWhitespace() = chars32().map { it.toPrintableNonWhitespace() }.joinToString("")
+
+/** @return index of the [n]th occurence of the substring or -1 */
+fun String.findNthOccurrence(substring: String, n: Int): Int {
+   var count = 0
+   var index = -1
+   var currentIndex = 0
+   while (count < n) {
+      index = indexOf(substring, currentIndex)
+      if (index == -1) break
+      count++
+      currentIndex = index + substring.length
+   }
+   return if (count == n) index else -1
+}

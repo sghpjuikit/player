@@ -26,13 +26,13 @@ class VoiceAssistentCliReader(val isProgress: V<Bool>) {
       if ("COM: System::activity-start" in t) {
          process(t.substringBefore("COM: System::activity-start"), onS, onE)
          isProgress.value = true
-         process(t.substringAfter("COM: System::activity-start"), onS, onE)
+         process(t.substringAfter("COM: System::activity-start").drop(1), onS, onE)
          return
       }
       if ("COM: System::activity-stop" in t) {
          process(t.substringBefore("COM: System::activity-stop"), onS, onE)
          isProgress.value = false
-         process(t.substringAfter("COM: System::activity-stop"), onS, onE)
+         process(t.substringAfter("COM: System::activity-stop").drop(1), onS, onE)
          return
       }
 

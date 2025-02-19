@@ -65,21 +65,26 @@ class Writer(Actor):
         with self._print_lock:
             ps = self._progress_suffix
             active = len(ps)>0
+            active_changed = self._last_progress_active != active
 
             # notify activity started
-            if self._last_progress_active!=active and active:
-                self.stdout.stdout.write('COM: System::activity-start')
+            if active_changed and active:
+                self.stdout.stdout.write('COM: System::activity-start\n')
                 self.stdout.stdout.flush()
 
+            # remove progress
             self.stdout.stdout.write('\033[1;32m' + '\b'*(len(self._last_progress_suffix)+len('\033[1;32m\033[0m')) + '\033[0m')
+            self.stdout.stdout.flush()
 
             # notify activity ended
-            if self._last_progress_active!=active and not active:
-                self.stdout.stdout.write('COM: System::activity-stop')
+            if active_changed and not active:
+                self.stdout.stdout.write('COM: System::activity-stop\n')
                 self.stdout.stdout.flush()
 
+            # write output
             self.stdout.stdout.write(s + end + '\033[1;32m' + ps + '\033[0m')
             self.stdout.stdout.flush()
+
             self._last_progress_suffix = ps
             self._last_progress_active = active
 

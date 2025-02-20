@@ -640,3 +640,37 @@ class TtsFastPitch(TtsBase):
                             # result
                             self._loop_result = audio.clone().detach()
                             f.set_result(SdEvent.wavChunks(text, audio[0].data.cpu().numpy(), skippable))
+
+
+# https://huggingface.co/hexgrad/Kokoro-82M
+class TtsKokoro(TtsBase):
+    def __init__(self, device: str, write: Writer):
+        super().__init__('TtsKokoro', write)
+        self.deviceName = device
+        self.device = device
+
+    def _loop(self):
+        # Suppress specific warnings
+        import warnings
+        warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.modules.rnn")
+        warnings.filterwarnings("ignore", category=FutureWarning, module="torch.nn.utils.weight_norm")
+
+        # init
+        from kokoro import KPipeline
+        from IPython.display import display, Audio
+        import soundfile as sf
+        import numpy as np
+        import torch
+        pipeline = KPipeline(lang_code='a', device=self.device)
+        voice = pipeline.load_single_voice('af_heart')
+        # loop
+        with self._looping():
+            while not self._stop:
+                with self._loopProcessEventFut("kokoro", 24000, lambda audio: self._loop_result.clone().detach().unsqueeze(0)) as (text, skippable, f):
+                    if text is not None:
+                        generator = pipeline(text, voice=voice, speed=1, split_pattern=r'\n+')
+                        for index, (graphemes, phonemes, audio) in enumerate(generator):
+                            pass # assume single input - is this ok?
+
+                        self._loop_result = audio
+                        f.set_result(SdEvent.wavChunks(text, [audio.numpy().astype(np.float32)], skippable))

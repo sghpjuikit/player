@@ -180,6 +180,7 @@ class VoiceAssistantPersona(widget: Widget): SimpleController(widget) {
    fun editDo(submit: Boolean) {
       if (!edit.value) return
       edit.value = false
+      if (submit && selectedPersona()?.isActive()==true) plugin.value?.llmChatPersonaTextWriteable?.value == contentEdArea.text.orEmpty()
       if (submit) selectedPersona()?.editDef(contentEdArea.text.orEmpty())
       contentEdArea.text = null
    }

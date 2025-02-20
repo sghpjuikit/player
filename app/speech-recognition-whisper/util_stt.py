@@ -74,7 +74,7 @@ class Stt(Actor):
             a.future.set_exception(Exception(f"{self.group} stopped"))
 
 class SttNone(Stt):
-    def __init__(self, write: Writer, enabled: bool):
+    def __init__(self, enabled: bool, write: Writer):
         super().__init__('SttNone', "cpu", write, enabled, 16000)
 
     def _loop(self):

@@ -2,6 +2,72 @@
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Latest]
+- Implement UI settings for OS reported values (mostly theme related)
+- Implement http API request logging
+- Implement markdown mermaid code block rendering using WebView
+- Implement **Open markdown file** action to use `MdNode` in a NodeWidge
+- Implement better `PopWindow` show/focus/autoresize
+- Implement **VoiceAssistant** on sleep settings
+- Implement **VoiceAssistant** `KokoroTts` for [Kokoro TTS](https://huggingface.co/hexgrad/Kokoro-82M) support
+- Implement **VoiceAssistant** reasoning models
+- Implement **VoiceAssistant** chat UI
+- Implement **VoiceAssistant** non-blocking subsequent `speak()` calls
+- Implement **VoiceAssistant** `showDiagram()` function
+- Implement better voice assistant memory [add timestamps, arrays, better LLM prompts]
+- Improve demos to be executable from IDE
+- Improve app closing speed
+- Improve code and logging
+- Improve grid cell styling
+- Improve rounded corner styling
+- Improve editors for common javafx properties (support constraints)
+- Fix launching 2nd app instance fails
+- Fix nested settings missing label
+- Fix color editor not showing correct initial value
+- Fix inconsistent `Actor.kt` close behavior
+- Fix `Duration` conversion
+- Fix weather wind direction computation
+- Fix weather day calculation & time/date format
+- Fix voice assistant progress indicator newline handling
+
+### Mermaid
+Markdown renderer now renders mermaid diagrams.
+Although using `WebView` with `mermaid.js` is not exactly efficient, we get full spec compliance and capability.
+Although simple, thisfeature took some creativity and several attempts to get right.
+
+### Grid cell styling
+Grid cells now look better, are fully styleable (using only css).
+Cells support rounded edges, even when displaying image.
+The hover effect is now more pleasant and performs much better.
+
+### Voice Assistant
+Once again lots of work on the AI assistant.
+
+#### Ui
+The interaction is now rendered in ui instead of console. This was long in the planning stage and was not easy to do.
+The ui also supports code blocks and mermaid diagram rendering, which AI can take advantage of.
+
+### Kokoro TTS
+Kokoro TTS is now supported as TTS choice.
+It is incredibly fast, has low hw requirements, no hallucinations and provides great speech quality - ideal as a low-cost default.
+`CoquiTts` still remains the recommended choice for the assistant (with the right hardware), but the tts tech is finally making progress.
+
+### Reasoning
+The assistant supports reasoning models - models which use CoT inside <think> tags to improve output.
+Thinking models are not particularly applicable for voice assistants right now, as they increase latency in real-time interaction.
+
+### Interactivity - speak
+Multiple speak() consequent functions are now invoked without waiting, which allows tts to pre-generate speech up front without delays.
+Speaking is still sequential, as the TTS actor uses queue, but the generation is not blocked.
+Other commands are still fully blocked by speach to retain determinism and casuality.
+
+### Interactivity - memory
+The memory entries now have timestampts and the assistant can append multiple entries to a topic.
+
+### Interactivity - commands
+Some commands were reimplemented in both Python or Kotlin side to improve latency and reduce back-and-forth complexity.
+Command cancellation has been improved.
+Think commands now block execution, but do not cancel following commands.
+The AI output execution now forms a tree, where thinking can spawn more output, executed before the original execution continues.
 
 ## [9.0.0] 2025 01 12
 - Update Java to 23, Kotlin to 2.0.20, dependencies

@@ -25,6 +25,7 @@ from util_laz import *
 import faulthandler
 import threading
 import traceback
+import random
 import base64
 import psutil
 import signal
@@ -75,7 +76,7 @@ Args:
 
   main-location=$txt
     Location sent to assistant as context when none other available. Location is usually determined from microphone location.
-    Default: 'PC'
+    Default: 'Pc'
 
   mic-enabled=$bool
     Optional bool whether microphone listening should be allowed.
@@ -263,7 +264,7 @@ Args:
 
 # args
 (argWake, (name, wake_words)) = arg('wake-word', 'system', wake_words_and_name)
-write(name + " booting up...")
+write("RAW: " + name + " booting up...")
 (argSysParentProcess, sysParentProcess) = arg('parent-process', '-1', lambda it: int(it))
 sysTerminating = False
 sysCacheDir = "cache"
@@ -271,7 +272,7 @@ if not os.path.exists(sysCacheDir): os.makedirs(sysCacheDir)
 
 (argMainSpeaker, mainSpeaker) = arg('main-speaker', "User")
 CTX.speaker = mainSpeaker
-(argMainLocation, mainLocation) = arg('main-location', "PC")
+(argMainLocation, mainLocation) = arg('main-location', "Pc")
 CTX.location = mainLocation
 (argMicDef, micDef) = arg('mics', '')
 (argMicEnabled, micEnabled) = arg('mic-enabled', "true", lambda it: it=="true")
@@ -370,12 +371,18 @@ class Assist:
     def onSpeech(self, speech: SpeechText):
         pass
 
+# personas
+def personas_list() -> [str]:
+    personas_dir = 'personas'
+    return [f for f in os.listdir(personas_dir) if os.path.isfile(os.path.join(personas_dir, f)) and f.endswith('.txt')]
 
-if isinstance(tts.tts, TtsCoqui):
-    voices_dir = 'voices-coqui'
-    voices = [f for f in os.listdir(voices_dir) if os.path.isfile(os.path.join(voices_dir, f)) and f.endswith('.wav')]
-else:
-    voices = []
+# voices
+def voices_list() -> [str]:
+    if isinstance(tts.tts, TtsCoqui):
+        voices_dir = 'voices-coqui'
+        return [f for f in os.listdir(voices_dir) if os.path.isfile(os.path.join(voices_dir, f)) and f.endswith('.wav')]
+    else:
+        return []
 
 
 assist = Assist()
@@ -384,28 +391,54 @@ assist = Assist()
 class CommandExecutorMain(CommandExecutor):
 
     def execute(self, text: str, ctx: Ctx = CTX) -> str:
+        'execute command. return "ignore" if handled else output the command to console for third-party to handle'
+        x = self.executeNoWrite(text, ctx)
+        if x!='ignore': write(f'COM: {ctx.speaker}:{ctx.location}:{x}')
+
+    def executeNoWrite(self, text: str, ctx: Ctx = CTX) -> str:
+        'execute command. return "ignore" if handled else do nothing'
         global assist
         handled = "ignore"
 
+        if text=='unidentified':
+            return text
+        if text.startswith("speak "):
+            tts(text.removeprefix("speak "), ctx.location)
+            return handled
         if text == "repeat last speech":
             tts.repeatLast()
             return handled
-        if text.startswith("speak "):
-            return text
-        if text.startswith("do-speak "):
-            tts(text.removeprefix("do speak "), ctx.location)
+        if text == "list personas":
+            personas = personas_list()
+            write(f"SYS: ```text\n" + '\n'.join(['- ' + p for p in personas]) + "\n```")
+            tts("The available personas are: " + ', '.join([p[:p.rfind('.') if '.' in p else p] for p in personas]), ctx.location)
             return handled
+        if text.startswith("change persona "):
+            persona = text.removeprefix("change persona ")
+            write(f'COM: {CTX_SYS.speaker}:{ctx.location}:{text}')
         if text == "list available voices":
-            tts("The available voices are: " + ', '.join(voices), ctx.location)
-            return handled
-        if text.startswith("greeting "):
-            g = text.removeprefix("greeting ").capitalize()
-            llm(ChatReact(llmPromptSys, "User greeted you with " + g, g), ctx)
+            write(f"SYS: ```text\n" + '\n'.join(['- ' + v for v in voices]) + "\n```")
+            tts("The available voices are: " + ', '.join([v[:v.rfind('.') if '.' in v else v] for v in voices]), ctx.location)
             return handled
         if text.startswith("change voice "):
             voice = text.removeprefix("change voice ")
-            if '.' not in voice: voice = voice + '.wav'
+
             if isinstance(tts.tts, TtsCoqui):
+                voices = voices_list()
+                if voice not in voices:
+                    # try to add missing extension
+                    voiceWav = voice + '.wav'
+                    if voiceWav in voices: voice = voiceWav
+
+                    # try to infer
+                    f = self.api.llm(ChatIntentDetect(
+                        f'You are voice selector. Available voices are: {self.voices}',
+                        f'Respond with exactly one closest voice, exactly as defined, or \'none\' if no such voice is close, for the input: {voice}', '', '', '', False, False
+                    ))
+                    try: voiceInferred = f.result()[0]
+                    finally: voiceInferred = 'unidentified'
+                    if voiceInferred!='unidentified' and voiceInferred in voices: voice = voiceInferred
+
                 if voice in voices:
                     if tts.tts.voice != voice:
                         global ttsCoquiVoice
@@ -416,6 +449,36 @@ class CommandExecutorMain(CommandExecutor):
                         llm(ChatReact(llmPromptSys, f"User changed your voice from:\n```\n{voiceOld}\n```\n\nto:\n```\n{voiceNew}\n```", name + " voice changed"), ctx)
                 else: llm(ChatReact(llmPromptSys, f"User tried to change voice to {voice}, but such voice is not available", f"No voice {voice} available"), ctx)
             else: llm(ChatReact(llmPromptSys, f"User tried to change voice, but current voice generation does not support changing voice", "Current voice generation does not support changing voice"), ctx)
+            return handled
+        if text.startswith("show-emote "):
+            emotionInput = text.removeprefix("show-emote ")
+            def showEmoteDo():
+                try:
+                    directory_path = 'emotes'
+                    directories = [d for d in os.listdir(directory_path) if os.path.isdir(os.path.join(directory_path, d))]
+                    if len(directories)==0: write(f'COM: {CTX_SYS.speaker}:{CTX_SYS.location}:show-emote none')
+                    if len(directories)==0: return
+                    directoriesS = ''.join(map(lambda x: f'\n* {x}', directories))
+                    f = llm(ChatIntentDetect(
+                        f'You are emotion detector. Available emotions are:{directoriesS}',
+                        f'Respond with exactly one closest emotion, or \'none\' if no emotion is close, for the event:\n{emotionInput}', '', '', '', False, False
+                    ))
+                    try: (text, canceled) = f.result()
+                    except Exception: (text, canceled) = (None, None)
+                    if text is None: write(f'COM: {CTX_SYS.speaker}:{CTX_SYS.location}:show-emote none')
+                    if text is None: return
+                    text = text.rstrip('.!?').strip().lower()
+                    if text not in directories: write(f'COM: {CTX_SYS.speaker}:{CTX_SYS.location}:show-emote none')
+                    if text not in directories: return
+                    d = os.path.join(directory_path, text)
+                    files = os.listdir(d)
+                    if len(files)==0: write(f'COM: {CTX_SYS.speaker}:{CTX_SYS.location}:show-emote none')
+                    if len(files)==0: return
+                    file = os.path.join(directory_path, text, random.choice(files))
+                    if os.path.exists(file): write(f'COM: {CTX_SYS.speaker}:{CTX_SYS.location}:show-emote {file}')
+                except Exception:
+                    print_exc()
+            Thread(name='Emote-Processor', target=showEmoteDo, daemon=True).start()
             return handled
         if text.startswith("generate from clipboard"):
             t = get_clipboard_text()
@@ -431,10 +494,10 @@ class CommandExecutorMain(CommandExecutor):
         elif text == 'start conversation':
             assist.startChat(ctx)
             return handled
-        elif text == 'restart conversation':
+        elif text == 'restart conversation' or text == 'reset conversation':
             assist.restartChat(ctx)
             return handled
-        elif text == 'stop conversation':
+        elif text == 'stop conversation' or text == 'end conversation':
             assist.stopChat(ctx)
             return handled
         else:
@@ -442,8 +505,8 @@ class CommandExecutorMain(CommandExecutor):
 
 api = Api(events, llm, tts)
 commandExecutor = CommandExecutorMain()
-llm.commandExecutor = commandExecutor.execute
-executorPython = PythonExecutor(api, write, llmPromptSys, commandExecutor, ', '.join(voices))
+llm.commandExecutor = commandExecutor.executeNoWrite
+executorPython = PythonExecutor(api, write, llmPromptSys, commandExecutor, personas_list, voices_list)
 
 class AssistBasic:
     def __init__(self):
@@ -453,16 +516,27 @@ class AssistBasic:
         self.activity_last_at = time.time()
         self.activity_last_diff = 0
         self.restartChatDelay = 5*60
+        self.reactIdleDelay = 25
+        self.reactIdle_last_at = self.activity_last_at
 
         executorPython.llm = llm
-        llm.api = executorPython
 
         Thread(name='Assist-Idle-Monitor', target=lambda: self.assistUpdateIdle(), daemon=True).start()
 
     def assistUpdateIdle(self):
         while True:
             time.sleep(1.0)
-            if self.restartChatDelay < (time.time() - self.activity_last_at) and not executorPython.chatEmpty():
+            try:
+                # react on idle
+                if not executorPython.chatEmpty() and self.reactIdleDelay < (time.time() - self.activity_last_at):
+                    needed = self.reactIdle_last_at < self.activity_last_at
+                    if needed:
+                        self.reactIdle_last_at = time.time()
+                        llm(ChatReact(llmPromptSys, f"User has not responded in {self.reactIdleDelay}s. Seek response in 1-5 very few words.", "Hello?"), CTX_SYS)
+            except: print_exc()
+
+            # restart on log idle
+            if not executorPython.chatEmpty() and self.restartChatDelay < (time.time() - self.activity_last_at):
                 self.restartChat(CTX, react=False)
 
     def needsWakeWord(self, speech: SpeechText) -> bool:
@@ -485,7 +559,8 @@ class AssistBasic:
             llm.generating = False
         # do greeting
         elif (text == "hi" or text == "hello" or text == "greetings") and not usePythonCommands:
-            commandExecutor.execute(f"greeting {text}", speech.asCtx())
+            commandExecutor.executeNoWrite(f"greeting {text}", speech.asCtx())
+            tts(text, ctx.location)
         # do help
         elif text == "help":
             if self.isChat:
@@ -506,36 +581,28 @@ class AssistBasic:
                 )
                 commandExecutor.execute("help", speech.asCtx()) # allows application to customize the help output
 
-        elif text == "repeat":
-            commandExecutor.execute(text, speech.asCtx())
-        elif text == "start conversation":
-            commandExecutor.execute("start conversation", speech.asCtx())
-        elif text == "restart conversation" or text == "reset conversation":
-            commandExecutor.execute("restart conversation", speech.asCtx())
-        elif text == "stop conversation":
-            commandExecutor.execute("stop conversation", speech.asCtx())
         elif text.startswith("generate "):
-            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text, speech.asCtx()))
+            commandExecutor.execute(text, speech.asCtx())
         elif text.startswith("count "):
-            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text, speech.asCtx()))
+            commandExecutor.execute(text, speech.asCtx())
         # do command - python
         elif usePythonCommands:
-            executorPython.generatePythonAndExecute(speech.user, speech.location, speech.text)
-        # do command
+            result = commandExecutor.executeNoWrite(text, speech.asCtx())
+            if result!='ignore': executorPython.generatePythonAndExecute(speech.user, speech.location, speech.text)
         else:
-            write(f'COM: {speech.user}:{speech.location}:' + commandExecutor.execute(text, speech.asCtx()))
+            commandExecutor.executeNoWrite(text, speech.asCtx())
 
     def startChat(self, ctx: Ctx, react: bool = True):
         if self.isChat: return
         self.isChat = True
-        write(f"COM: {ctx.speaker}:{ctx.location}:start conversation")
+        write(f"COM: {CTX_SYS.speaker}:{CTX_SYS.location}:start conversation")
         if (react): llm(ChatReact(llmPromptSys, f"{ctx.speaker} started conversation with you. Greet him", "Conversing"), ctx)
         for mic in mics: mic.set_pause_threshold_talk()
 
     def restartChat(self, ctx: Ctx, react: bool = True):
         tts.skip()
         llm.generating = False
-        write(f"COM: {ctx.speaker}:{ctx.location}:restart conversation")
+        write(f"COM: {CTX_SYS.speaker}:{CTX_SYS.location}:restart conversation")
         if (react): llm(ChatReact(llmPromptSys, f"{ctx.speaker} erased his conversation with you from your memory.", "Ok"), ctx)
         executorPython.onChatRestart()
 
@@ -544,7 +611,7 @@ class AssistBasic:
         self.isChat = False
         tts.skip()
         llm.generating = False
-        write(f"COM: {ctx.speaker}:{ctx.location}:stop conversation")
+        write(f"COM: {CTX_SYS.speaker}:{CTX_SYS.location}:stop conversation")
         if (react): llm(ChatReact(llmPromptSys, f"{ctx.speaker} stopped conversation with you", "Ok"), ctx)
         for mic in mics: mic.set_pause_threshold_normal()
 
@@ -572,15 +639,15 @@ def callback(speech: SpeechText):
 
     # handle question
     if executorPython.isBlockingQuestion and executorPython.isBlockingQuestionSpeaker==speech.user:
+        write(f'USER: {speech.user}:{speech.location}:{text}')
         executorPython.onBlockingQuestionDone.set_result(speech.text)
-        write(f'USER: {text}')
         # monitor activity time
         assist.onActivity(speech)
         return
 
     # ignore speech recognition noise
     if not starts_with_any(text, wake_words) and assist.needsWakeWord(speech):
-        write(f'USER-RAW: {text}')
+        write(f'USER-RAW: {speech.user}:{speech.location}:{text}')
         return
 
     # monitor activity time
@@ -594,7 +661,7 @@ def callback(speech: SpeechText):
 
     # handle by active assistant state
     try:
-        write(f'USER: {name}' + (', ' + text if len(text)>0 else ''))
+        write(f'USER: {speech.user}:{speech.location}:{text}')
         assist.onSpeech(SpeechText(speech.start, speech.audio, speech.stop, speech.user, speech.location, text))
     except Exception as e:
         write(f"ERR: {e}")
@@ -731,13 +798,13 @@ while not sysTerminating:
             return (speaker, location, text)
 
         # talk command
-        if m.startswith("SAY-LINE: "):
-            text = m[10:]
+        if m.startswith("SAY: "):
+            text = base64.b64decode(m[5:]).decode('utf-8')
             tts.skippable(text, CTX.location)
 
         # talk command
-        if m.startswith("SAY: "):
-            text = base64.b64decode(m[5:]).decode('utf-8')
+        if m.startswith("SAY-LINE: "):
+            text = m[10:]
             tts.skippable(text, CTX.location)
 
         # chat command
@@ -746,18 +813,20 @@ while not sysTerminating:
             now = datetime.now()
             callback(SpeechText(now, None, now, speaker, location, name + ' ' + text))
 
-        if m.startswith("COM-PYT: "):
-            speaker, location, text = speakerAndLocAndText(m[9:])
-            executorPython.execute(speaker, location, text)
-
-        if m.startswith("COM-PYT-INT: "):
-            speaker, location, text = speakerAndLocAndText(m[13:])
-            executorPython.generatePythonAndExecute(speaker, location, text)
-
         if m.startswith("COM: "):
             text = m[5:]
             text = base64.b64decode(text).decode('utf-8')
             commandExecutor.execute(text)
+
+        if m.startswith("COM-PYT: "):
+            speaker, location, text = speakerAndLocAndText(m[9:])
+            write(f'USER: {speaker}:{location}:{text}')
+            executorPython.execute(speaker, location, text)
+
+        if m.startswith("COM-PYT-INT: "):
+            speaker, location, text = speakerAndLocAndText(m[13:])
+            write(f'USER: {speaker}:{location}:{text}')
+            executorPython.generatePythonAndExecute(speaker, location, text)
 
         # changing settings commands
         elif argWake.isArg(m):

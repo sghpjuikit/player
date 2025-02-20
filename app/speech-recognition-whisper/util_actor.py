@@ -133,7 +133,7 @@ class Actor:
                 self.processing_event = None
 
         except Exception as e:
-            if not isinstance(e, ActorStoppedException): self.write(f"ERR: {self.name} event processing error {e}")
+            if not isinstance(e, ActorStoppedException): self.write(f"ERR: {self.name} event processing error: {e}")
             if not isinstance(e, ActorStoppedException): print_exc()
 
     def _loopLoadAndIgnoreEvents(self):

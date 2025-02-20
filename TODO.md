@@ -4,7 +4,6 @@
 - Implement AI emotion state
 - impl MdNode edit
 - JDK-8320359 ImageView: add styleable fitWidth, fitHeight, preserveRatio, smooth properties
-- show emote should be in kotlin too
 - error label warn icon
 - timeline css color
 - COnverter function picker add combobox for text/each/value

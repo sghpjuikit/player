@@ -74,14 +74,12 @@ def chain(*iterators):
 
 def progress():
     """Returns the iterator with progress indicator elements"""
-    bs = 0
     while True:
-        bs = bs + 1
-        if bs % 5 == 1: yield '.  '
-        if bs % 5 == 2: yield '.. '
-        if bs % 5 == 3: yield '...'
-        if bs % 5 == 4: yield ' ..'
-        if bs % 5 == 0: yield '  .'
+        yield '.  '
+        yield '.. '
+        yield '...'
+        yield ' ..'
+        yield '  .'
 
 def words(text: str):
     words = iter(text.split(' '))
@@ -100,6 +98,13 @@ def lines(input_generator):
     Repeats this process until all lines are returned.
     """
     return chunks(input_generator, '\n')
+
+def linesWithNewline(chunk_generator):
+    first = True
+    for chunk in lines(chunk_generator):
+        if not first: yield '\n'
+        first = False
+        yield chunk
 
 def chunks(input_generator, separator: str):
     """
@@ -150,6 +155,99 @@ def python_code_chunks(input_generator):
 
     if current_chunk:
         yield current_chunk.rstrip("\n")
+
+def skipThinking(chunk_generator):
+    """
+    Processes a stream of Python code chunks. If the stream starts with a
+    '<think>' chunk, it wraps subsequent chunks in think("chunk") until it
+    encounters a '</think>' chunk. The '<think>' and '</think>' chunks are
+    removed from the output stream.
+    """
+    thinking = False
+    for chunk in linesWithNewline(chunk_generator):
+        if not thinking:
+            if chunk == "<think>":
+                thinking = True
+            else:
+                yield chunk
+        else:
+            if chunk == "</think>":
+                thinking = False
+            else:
+                pass
+                # if len(chunk.strip())>0:
+                #     yield 'thinkPassive("' + escape_python_string(chunk) + '")\n'
+
+def noThinking(generator):
+    """
+    Lazily consumes a generator, filtering out <think>...</think> blocks.
+
+    Args:
+        generator: An iterable of strings.
+
+    Yields:
+        Strings from the generator, excluding the content within the
+        initial <think> tags.
+    """
+
+    THINKING = None
+    buffer = ""
+    think_start_tag = "<think>"
+    think_end_tag = "</think>"
+
+    for chunk in generator:
+        if THINKING is None:
+            buffer += chunk
+            # Continue buffering until we have enough to decide
+            if len(buffer) <= len(think_start_tag): continue
+
+            if buffer.startswith(think_start_tag):
+                THINKING = True
+                buffer = buffer[len(think_start_tag):] # Keep the part after <think> tag, in case the end tag is in the same chunk
+
+                if think_end_tag in buffer:
+                    THINKING = False
+                    end_index = buffer.find(think_end_tag)
+                    buffer = buffer[end_index + len(think_end_tag):]  # Keep the rest after </think>
+                    if len(buffer)>0: yield buffer
+                    buffer = "" # Clear the buffer
+
+            else:
+                THINKING = False
+                if len(buffer)>0: yield buffer
+                buffer = ""  # Clear the buffer
+
+        elif THINKING is True:
+            buffer += chunk
+            if think_end_tag in buffer:
+                THINKING = False
+                end_index = buffer.find(think_end_tag)
+                buffer = buffer[end_index + len(think_end_tag):]  # Keep the rest after </think>
+                if len(buffer)>0: yield buffer
+                buffer = "" # Clear the buffer
+
+        elif THINKING is False:
+            #Just outputting normally now
+            if len(chunk)>0: yield chunk
+
+def escape_python_string(input_string):
+    """
+    Escapes special characters in a string for use in a Python f-string.
+
+    This function ensures that the input string can be safely embedded within
+    an f-string without causing syntax errors or unexpected behavior.  It
+    specifically handles characters that have special meaning within Python strings,
+    such as single quotes, double quotes, backslashes, and curly braces.
+
+    Args:
+      input_string: The string to escape.
+
+    Returns:
+      A new string with the special characters escaped.
+    """
+    escaped_string = input_string.replace("\\", "\\\\")
+    escaped_string = escaped_string.replace('"', '\\"')
+    return escaped_string
 
 def vec(sentence: str):
     from nomic import embed

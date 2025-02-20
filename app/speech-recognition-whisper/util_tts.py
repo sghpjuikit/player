@@ -61,15 +61,15 @@ class Tts(Actor):
         if not self.speakOn:
             f.set_result(None)
         else:
-            self.write('SYS: ' + event)
+            self.write(f'SYS: {CTX_SYS.speaker}:{location}: ' + event)
             self.queue.put((words(event), True, False, location, f))
         return f
 
     def repeatLast(self):
         if self.history and self.speakOn:
-            text, skippable, location = self.history[-1]
-            self.write('SYS: ' + text)
-            self.queue.put((words(text), skippable, True, location, Future()))
+            h = self.history[-1]
+            self.write(f'SYS: {CTX_SYS.speaker}:{h.location}: ' + h.text)
+            self.queue.put((words(h.text), h.skippable, True, h.location, Future()))
 
     def __call__(self, event: str | Iterator, location: Location) -> Future[None]:
         location = self._locationOrLast(location)
@@ -77,7 +77,7 @@ class Tts(Actor):
         if not self.speakOn:
             f.set_result(None)
         elif isinstance(event, str):
-            self.write('SYS: ' + event)
+            self.write(f'SYS: {CTX_SYS.speaker}:{location}: ' + event)
             self.queue.put((words(event), False, False, location, f))
         elif isinstance(event, Iterator):
             self.queue.put((event, True, False, location, f))

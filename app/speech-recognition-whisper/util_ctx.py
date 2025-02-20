@@ -14,3 +14,6 @@ class Ctx:
 
 CTX = Ctx('User', '')
 """Represents the global speaking context. Mutable."""
+
+CTX_SYS = Ctx('System', 'Pc')
+"""Represents the 'System' context at 'Pc'. Immutable."""

@@ -39,20 +39,20 @@ def sanitize_python_code(text: str) -> str:
     return t
 
 class PythonExecutor:
-    def __init__(self, api: Api, write, llmPromptSys, commandExecutor, voices):
+    def __init__(self, api: Api, write, llmPromptSys, commandExecutor, personas, voices):
         self.id = 0
+        self.waiter: Future[object] = futureCompleted(object)
         self.api = api
         self.write = write
 
-        self.__llmPromptDoc = self.load_promptDoc(voices)
+        self.memFile = os.path.join('memory', 'mem.json')
+        self.mem = self.load_memory()
+        self.__llmPromptDoc = self.load_promptDoc(personas, voices)
         self.__llmPrompt = ''
         self.__llmPromptSys = ''
         self.llmPromptSys = llmPromptSys
-        self.memFile = 'memory/mem.json'
-        self.mem = self.load_memory()
 
         self.commandExecutor = commandExecutor
-        self.voices = voices
         self.chatSet([])
         self.isQuestion = False
         self.isBlockingQuestion = False
@@ -85,10 +85,10 @@ class PythonExecutor:
         for key, value in self.__llmPromptDoc.items():
             if len(str(value))>0:
                 r += f"{key}:\n " + str(value).replace('\n', '\n ').rstrip() + "\n"
-        return ""
+        return r
 
-    def chatEmpty(self, ms) -> bool:
-        return len(self.ms)>0
+    def chatEmpty(self) -> bool:
+        return len(self.ms)==0
 
     def chatSet(self, ms):
         self.ms = ms
@@ -98,11 +98,13 @@ class PythonExecutor:
         self.ms.append(m)
         self.api.events({'type':"chat-history-add", "value": m})
 
-    def load_promptDoc(self, voices: str) -> dict | None:
+    def load_promptDoc(self, personas: str, voices: str) -> dict | None:
         self.write('RAW: Extended prompt loading...')
-        dict = index_md_file('README-ASSISTANT.md')
-        dict['What are you > Voices > List all available'] = voices
-        dict['What are you > Persona > List all available'] = ', '.join([file.split('.')[0] for file in os.listdir('personas') if file.endswith('.txt')])
+        # dict = index_md_file('README-ASSISTANT.md') // TODO enable
+        dict = {}
+        dict['What are you > Voices > List all available'] = voices()
+        dict['What are you > Persona > List all available'] = personas()
+        dict['What are you > Memory'] = '* ' + "\n* ".join(({} if self.mem is None else self.mem.copy()).keys())
         dict['What are you > Software > Operating system'] = '' + \
             f"* Architecture: {platform.architecture()}\n" + \
             f"* Machine: {platform.machine()}\n" + \
@@ -140,47 +142,16 @@ class PythonExecutor:
         with open(self.memFile, 'w') as file:
             json.dump(self.mem, file, indent=4)
 
-    def showEmote(self, emotionInput: str, ctx: Ctx):
-        def showEmoteDo():
-            try:
-                import os
-                import random
-                directory_path = 'emotes'
-                directories = [d for d in os.listdir(directory_path) if os.path.isdir(os.path.join(directory_path, d))]
-                if len(directories)==0: self.write(f'COM: {ctx.speaker}:{ctx.location}:show emote none')
-                if len(directories)==0: return
-                directoriesS = ''.join(map(lambda x: f'\n* {x}', directories))
-                f = self.api.llm(ChatIntentDetect(
-                    f'You are emotion detector. Available emotions are:{directoriesS}',
-                    f'Respond with exactly one closest emotion, or \'none\' if no emotion is close, for the event: {emotionInput}', '', '', '', False, False
-                ))
-                try: (text, canceled) = f.result()
-                except Exception: (text, canceled) = (None, None)
-                if text is None: self.write(f'COM: {ctx.speaker}:{ctx.location}:show emote none')
-                if text is None: return
-                text = text.rstrip('.!?').strip().lower()
-                if text not in directories: self.write(f'COM: {ctx.speaker}:{ctx.location}:show emote none')
-                if text not in directories: return
-                d = os.path.join(directory_path, text)
-                files = os.listdir(d)
-                if len(files)==0: self.write(f'COM: User:PC:show emote none')
-                if len(files)==0: return
-                file = os.path.join(directory_path, text, random.choice(files))
-                if os.path.exists(file): self.write(f'COM: {ctx.speaker}:{ctx.location}:show emote {file}')
-            except Exception:
-                print_exc()
-        Thread(name='Emote-Processor', target=showEmoteDo, daemon=True).start()
-
     def onSpeech(self, speaker):
         if self.speakerLast==speaker:
             if self.isBlockingQuestion is False:
-                print(f'canceling because speech done by {speaker}',)
+                self.write(f'canceling because speech done by {speaker}',)
                 self.cancelActiveCommand()
 
     def onSpeechStart(self, speaker):
         if self.speakerLast==speaker:
             if self.isBlockingQuestion is False:
-                print(f'canceling because speech started by {speaker}')
+                self.write(f'canceling because speech started by {speaker}')
                 self.cancelActiveCommand()
 
     def onChatRestart(self):
@@ -189,41 +160,55 @@ class PythonExecutor:
     def cancelActiveCommand(self):
         self.id = self.id+1
 
-    def generatePythonAndExecuteInternal(self, textOriginal: str, history: bool = True):
-        self.generatePythonAndExecute('SYSTEM', 'INTERNAL', textOriginal, history)
+    def generatePythonAndExecuteInternal(self, textOriginal: str, history: bool = True) -> Future[object]:
+        return self.generatePythonAndExecute('SYSTEM', 'INTERNAL', textOriginal, history)
 
 
-    def generatePythonAndExecute(self, speaker: str, location: Location, textOriginal: str, history: bool = True):
+    def generatePythonAndExecute(self, speaker: str, location: Location, textOriginal: str, history: bool = True) -> Future[object]:
         try:
-            self.cancelActiveCommand()
+            if speaker is not 'SYSTEM': self.cancelActiveCommand()
             idd = self.id
 
             if history:
                 self.chatAppend({"role": "user", "content": f"TIME=\"{datetime.now().isoformat()}\"\nSPEAKER=\"{speaker}\"\nLOCATION=\"{location}\"\n\n{textOriginal}"})
 
+            execFut = Future()
+            def exec(textIterator) -> Future[object]:
+                try:
+                    self.executeImplPre(speaker, location, textIterator, textOriginal, idd)
+                    execFut.set_result(object())
+                except Exception as e:
+                    execFut.set_exception(e)
+
             def on_done(future):
                 try:
                     (textIterator, canceled) = future.result()
                     if canceled is True: self.write(f"RAW: command CANCELLED")
-                except Exception: (textIterator, canceled) = (None, None)
+                except Exception as e:
+                    (textIterator, canceled) = (None, None)
+                    execFut.set_exception(e)
 
                 if textIterator is None or canceled: return
-                Thread(name='command-executor', target=lambda: self.executeImplPre(speaker, location, textIterator, textOriginal, idd), daemon=True).start()
+                Thread(name='command-executor', target=lambda: exec(textIterator), daemon=True).start()
 
             sp = self.prompt()
             up = textOriginal
-            futureOnDone(self.api.llm(ChatIntentDetect.python(sp, up, self.ms), Ctx(speaker, location), True), on_done)
-        except Exception:
+            fut = self.api.llm(ChatIntentDetect.python(sp, up, self.ms), Ctx(speaker, location), True)
+            futureOnDone(fut, on_done)
+            return execFut
+        except Exception as e:
             self.write("ERR: Failed to respond")
             print_exc()
+            return futureFailed(e)
 
     def execute(self, speaker: str, location: Location, text: str):
-        self.cancelActiveCommand()
+        if speaker is not 'SYSTEM': self.cancelActiveCommand()
         self.executeImpl(speaker, location, text, text, self.id)
 
     def executeImplPre(self, speaker: str, location: Location, textIterator: str, textOriginal: str, idd: str, fix: bool = True):
         locals = dict()
-        for code in python_code_chunks(textIterator):
+        # for code in skipThinking(python_code_chunks(textIterator)):
+        for code in python_code_chunks(skipThinking(textIterator)):
             code = sanitize_python_code(code)
             if len(code)==0: continue # ignore empty line
             if code.startswith('#'): continue # ignore comment
@@ -242,11 +227,16 @@ class PythonExecutor:
             class CommandCancelException(Exception): pass
             # plumbing - command execution cancelled gracefuly by executor
             class CommandNextException(Exception): pass
+            # plumbing - waiter
+            def assertWait(wait: bool = True):
+                if wait: self.waiter.result()
             # plumbing - canceller
             def assertSkip():
                 if (idd!=self.id): raise CommandCancelException()
             # plumbing - python file executor
             def execCode(filename: str, **kwargs) -> object:
+                assertWait()
+                assertSkip()
                 try:
                     with open(f'{filename}.py', 'r') as file:
                         indent = '    '
@@ -259,9 +249,7 @@ class PythonExecutor:
                         # define result function
                         code += '\ndef out_result_function(): return out_result'
                         # debug
-                        # print('---')
-                        # print(code)
-                        # print('---')
+                        # self.write(f'---\n{code}\n---')
                         # exec code
                         exec(code)
                         # return result
@@ -274,24 +262,32 @@ class PythonExecutor:
                     return None
             # api functions
             def command(c: str | None):
+                assertWait()
                 assertSkip()
                 if c is None: return # sometimes llm passes bad function result here, do nothing
                 if len(c)==0: return # just in case
-                self.write(f'COM: {speaker}:{location}:' + c)
+                self.commandExecutor.execute(c, Ctx(speaker, location))
             def doNothing(reason: str = ''):
+                assertWait()
+                assertSkip()
                 if reason: thinkPassive(reason)
             def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str):
+                assertWait()
+                assertSkip()
                 command(f'set reminder in {afterNumber}{afterUnit} {text_to_remind}')
             def storeMemory(topic: str, memory: str) -> None:
+                assertWait()
+                assertSkip()
                 timestamp = datetime.datetime.now().isoformat()
                 if self.mem is None: self.mem = {}
-                if topic in self.mem: self.mem[topic].append([(timestamp, memory)])  # Append memory if topic exists
-                else: self.mem[topic] = [(timestamp, memory)]  # Create new entry if topic does not exist
-                self.write(f'*Saving topic={topic} memory={memory}*')
+                entry = {str(timestamp): memory}
+                if topic in self.mem: self.mem[topic].append(entry)  # Append memory if topic exists
+                else: self.mem[topic] = [entry]  # Create new entry if topic does not exist
+                self.write(f'SYS: *Saving topic={topic} memory={memory}*')
                 self.save_memory()
             def accessMemory(query: str):
-                # self.mem.update(self.__llmPromptDoc)
-
+                assertWait()
+                assertSkip()
                 mem = {} if self.mem is None else self.mem.copy()
                 memKeys = '* ' + "\n* ".join(mem.keys())
                 memKeyAll = 'all'
@@ -303,21 +299,21 @@ class PythonExecutor:
                 try:
                     (key, canceled) = (memKeyEmpty, False) if not mem else self.api.llm(ChatIntentDetect(
                         f'You find most relevant knowledge index from the tree given.\n' + \
-                        f'Respond with exactly one which is the most query-relevant, \'all\' if user wants to know what is in the memory or \'empty\' if memory empty or \'none\' if no matching.\n' + \
+                        f'Respond with exactly one which is the most query-relevant, or respond \'all\' if user wants to know what is in the memory.\n' + \
                         f'Do not respond anything else. Do not interpret the index or add to it. Your response must be identical to chosen entry.',
                         f'Index entries:\n{memKeys}\n\nWhich of them is the most likely to help with the query:\n{query}',
                         '', '', '', False, False
                     )).result()
-                    if canceled is not True:
+                    if not canceled:
                         memKey = memKeyNone
                         for k in mem.keys():
                             # self.write(f'{key.strip().lower()}=={k.strip().lower()}')
                             if key.strip().lower()==k.strip().lower():
                                 memKey = k
 
-                        self.write(f'Accessing memory \'{key}\'')
-                        self.chatAppend({"role": "user", "content": '*waiting*'})
-                        self.generatePythonAndExecuteInternal(f'You accesed your memory and can now reply to the query using the data:\n {str(mem[key])}')
+                        self.write(f'SYS: Accessing memory \'{memKey}\'')
+                        # self.chatAppend({"role": "user", "content": '*waiting*'})
+                        self.generatePythonAndExecuteInternal(f'You accesed your memory and can now reply to the query using the data:\n {str(mem[memKey])}')
                 except Exception as e:
                     speak(f'I\'m sorry, I failed to respond: {e}')
                     raise e
@@ -326,17 +322,21 @@ class PythonExecutor:
             def generate(c: str):
                 command('generate ' + c)
             def print(t: object):
-                # alias for speak, because LLM likes to use print instead of speak too much
-                speak(t)
+                assertWait()
+                assertSkip()
+                writeCode(language='text', code=str(t))
             def speak(t: object, emotion: str | None = None):
                 if t is None: return;
                 assertSkip()
-                if emotion is not None: self.write(f"*{emotion}*")
-                self.api.ttsSkippable(f'{t}'.removeprefix('"').removesuffix('"'), location).result()
+                if emotion is not None: self.write(f"SYS: *{emotion}*")
+                self.waiter = self.api.ttsSkippable(f'{t}'.removeprefix('"').removesuffix('"'), location)
             def body(t: str):
+                assertWait()
                 assertSkip()
                 self.write(f'SYS: *{t}*')
             def wait(t: float):
+                assertWait()
+                assertSkip()
                 for _ in range(int(t/0.1)):
                     assertSkip()
                     self.api.ttsPause(100)
@@ -346,16 +346,18 @@ class PythonExecutor:
             def speakCurrentSong(): command('what song is active')
             def speakDefinition(t: str): command('describe ' + t)
             def thinkPassive(*thoughts: str):
+                assertWait()
+                assertSkip()
+                if len(thoughts)==0: return
+                if len(thoughts)==1 and thoughts[0] is None: return
                 t = thoughts[0] if len(thoughts)==1 else ''.join(map(lambda t: '\n*' + str(t) + "*", thoughts))
-                self.write(f'~{t}~')
+                self.write(f'SYS: ~{t}~')
             def think(*thoughts: str):
+                assertWait()
+                assertSkip()
+                if len(thoughts)==0: return
+                if len(thoughts)==1 and thoughts[0] is None: return
                 t = thoughts[0] if len(thoughts)==1 else ''.join(map(lambda t: '\n*' + str(t), thoughts))
-                
-                # self.generatePythonAndExecute('System', 'My thoughts are:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)))
-
-                # self.historyAppend({ "role": "user", "content": 'Your thoughts are:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)) })
-                # self.generatePythonAndExecute(speaker, 'Your thoughts are:' + ''.join(map(lambda t: '\n* ' + str(t), thoughts)))
-                # self.ms.pop()
 
                 self.chatAppend({"role": "user", "content": '*waiting*'})
                 self.generatePythonAndExecuteInternal(
@@ -364,32 +366,28 @@ class PythonExecutor:
                     f'Example of thoughs that does not require action: "I should be kinder", "Speak less", "User showed respect".' +
                     f'Example of thoughs that do: "Say hello", "I need to write 5 types of fruit".' +
                     f'Your thoughts:' + t
-                )
+                ).result()
 
-
-                raise CommandNextException()
+                # raise CommandNextException()
             def getClipboardAnd(input: str = '') -> str | None:
+                assertWait()
+                assertSkip()
                 text = get_clipboard_text()
                 if len(input)==0: return '' if text is None else text
-
-                # self.generatePythonAndExecute('System', f'{input}:\n{speaker} set clipboard to:\n```\n{get_clipboard_text()}\n```')
-
-                # self.historyAppend({ "role": "system", "content": f'{speaker} set clipboard to:\n```\n{get_clipboard_text()}\n```' })
-                # self.generatePythonAndExecute(speaker, textOriginal, False)
-                # self.ms.pop()
 
                 self.chatAppend({"role": "user", "content": '*waiting*'})
                 self.generatePythonAndExecuteInternal(f'Do not try to obtain clipboard anymore. I set clipboard for you to:\n```\n{text}\n```')
 
-                # self.ms.pop()
-                # self.generatePythonAndExecute(speaker, location, f'{textOriginal}.\n\nEDIT: I set clipboard for you to (do not try to obtain clipboard anymore):\n```\n{get_clipboard_text()}\n```')
-
                 raise CommandNextException()
             def question(question: str) -> str | None:
+                assertWait()
+                assertSkip()
                 self.isQuestion = True
                 speak(question)
-                raise CommandNextException()
+                # raise CommandNextException()
             def questionBlocking(question: str) -> str | None:
+                assertWait()
+                assertSkip()
                 try:
                     self.onBlockingQuestionDone = Future()
                     self.isBlockingQuestion = True
@@ -407,9 +405,12 @@ class PythonExecutor:
                     self.isBlockingQuestionSpeaker = None
                     self.onBlockingQuestionDone = Future()
             def writeCode(language: str, code: str) -> str:
+                assertWait()
+                assertSkip()
                 self.write(f"```{language}\n{code}\n```")
                 return text
             def generateCode(language: str, userPrompt: str) -> str:
+                assertWait()
                 assertSkip()
 
                 f = self.llm(ChatIntentDetect(
@@ -421,11 +422,11 @@ class PythonExecutor:
                 try: (text, canceled) = f.result()
                 except Exception as e: raise e
                 return text
+            def showDiagram(mermaid: str) -> None:
+                return writeCode('mermaid', mermaid)
             def showEmote(emotionInput: str):
-                assertSkip()
-                self.showEmote(emotionInput, Ctx(speaker, location))
+                command(f'show-emote {emotionInput}')
             def showWarning(text: str):
-                assertSkip()
                 command(f"show warning {text}")
             def saveClipboardImage() -> str | None:
                 name = questionBlocking('What will be the name of the file?')
@@ -461,15 +462,14 @@ class PythonExecutor:
                 command(f'stop conversation')
             def commandSystem(action: str): # action is one of shut_down|restart|hibernate|sleep|lock|log_off
                 command(f'{action} system')
-            def commandListVoices():
+            def speakListVoices():
                 command(f'list available voices')
             def commandChangeVoice(voice: str):
-                f = self.api.llm(ChatIntentDetect(
-                    f'You are voice selector. Available voices are: {self.voices}',
-                    f'Respond with exactly one closest voice, exactly as defined, or \'none\' if no such voice is close, for the input: {voice}', '', '', '', False, False
-                ))
-                self.commandExecutor.execute('change voice ' + f.result()[0], Ctx(speaker, location))
-
+                command(f'change voice {voice}')
+            def speakListPersonas():
+                command(f'list personas')
+            def commandChangePersona(persona: str):
+                command(f'change persona {persona}')
             def commandOpen(widget_name: str):
                 'estimated name widget_name, in next step you will get exact list of widgets to choose'
                 command(f'open {widget_name}')
@@ -520,7 +520,7 @@ class PythonExecutor:
         except Exception as e:
             self.write(f"ERR: error executing command: {e}")
             speak(f'I\'m sorry, I failed to respond: {e}')
-            self.write('Failed to execute code:\n' + text)
+            self.write('ERR: Failed to execute code:\n' + text)
             print_exc()
 
     def isValidPython(self, code: str) -> bool:
@@ -563,6 +563,7 @@ You can prevent execution of your output by using writeCode()/generateCode()
 If user asks you about programming-related task or to write program, use writeCode()/generateCode() to complete the task using description of what the code should do.
 The task should be specifc and may contain your own suggestions about how and what to generate.
 Always pass programming language paramter.
+Always showDiagram('mermaid code') to depict visual diagrams.
 
 If user asks you question, answer.
 You may question() user to get information needed to respond, which may be multi-turn conversation.
@@ -574,41 +575,49 @@ You correctly quote and escape function args.
 If you are uncertain what to do, simply speak() why.
 
 ###Syntactically correct responses###
-```
+
 speak("Sentence1") 
 speak("Sentence2")
 body("body action")
-```
-```
+
 thinkPassive("i need to compute acceleration using code")
 g = '10'
 t = '5' 
 speak(f"In " + str(g) + "s the speed will be " + str(g*t) + "m/s")
-```
-```
+
 thinkPassive("was the wait too short?")
 think("I need to give an example to the question")
 getClipboardAnd("i need to tell user what is in clipboard")
-```
-```
+
 thinkPassive("clipboard has programming question for me")
 speak("You can sum numbers in Kotlin like this:")
 writeCode("kotlin", "list.sum()")
-generateCode("kotlin", "sum list of numbers")
+
+k = "sum list of numbers"
+generateCode("kotlin", k)
+
+p = "speak('lazy speak')"
+writeCode("python", p)
+
+mermaid = '''
+graph TD
+  A -->|arrow| B
+'''
+writeCode("mermaid", mermaid) # write code to variable first and display it
 ```
 
 ###Syntactically incorrect responses###
-```
+
 SPEAKER="Speaker1"  # never declare SPEAKER, LOCATION, TIME variable
 Here is the response: # use speak()
-Hey! speak("Hey") # use speak('Hey')
-speak('Sentence1. Sentence2.') # use separate calls
+Hey! speak("Hey") # use speak('Hey')    
+speak('Sentence1. Sentence2.') # use separate calls for sentences
 speak('Hey') body('sits') # use separate lines
 speak("It is " + str(datetime() + 'in) # use speakCurrentTime()
 def speak(t: str) -> None:  # redefining speak()
 speak('1+1') # should be '1 plus one'
 generateCode('python', '10+11') # code instead of prompt
-```
+
 
 ###The below is your documentation###
 {self.llmPromptDoc()}
@@ -627,7 +636,7 @@ def accessMemory(query: str) -> None:
   Terminates response, so MUST be last call in response!
   The query is free text you pass in to get data you need.'
 def storeMemory(topic: str, memory: str) -> None:
- 'persists specified memory for specified topic'
+ 'rembemers/persists specified memory for specified topic. Refer to yourself as "I". Hint for topic: speaker-event'
 def setReminderIn(afterNumber: float, afterUnit: str, text_to_remind: str) -> None:
  'units: s|sec|m|min|h|hour|d|day|w|week|mon|y|year'
 def setReminderAt(at: datetime.datetime, text_to_remind: str) -> None:
@@ -657,6 +666,8 @@ def writeCode(language: str, code: str) -> str:
  'shows short programming code, code not invoked, for long code use generateCode(). Do not use to speak or respond!'
 def generateCode(language: str, task: str) -> str:
  'shows long programming code, code not invoked, after using expert LLM AI model to generate it'
+def showDiagram(mermaid: str) -> None:
+ 'shows mermaid diagram'
 def recordVoice() -> None:
  'records user to define new verified speaker'
 def saveClipboardImage() -> str | None:
@@ -676,9 +687,14 @@ def commandRestartConversation() -> None:
 def commandStopConversation() -> None:
  'user will need to call you by name every time (default behavior)'
 def commandSystem(action: str) -> None: # action is one of shut_down|restart|hibernate|sleep|lock|log_off
-def commandListVoices() -> None:
+def speakListVoices() -> None:
+ 'speak() all available voices'
 def commandChangeVoice(voice: str) -> None:
- 'changes your voice to the arg'
+ 'changes your voice to best matching'
+def speakListPersonas() -> None:
+ 'speak() all available personas'
+def commandChangePersona(persona: str):
+ 'changes your persona to best matching'
 def commandOpen(widget_name: str) -> None:
 def commandClose() -> None:
 def commandSearch(text_to_search_for: str) -> None:

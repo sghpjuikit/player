@@ -1,6 +1,7 @@
 import os.path
+import httpx
 import uuid
-from util_itr import teeThreadSafe, teeThreadSafeEager, chain
+from util_itr import teeThreadSafe, teeThreadSafeEager, chain, noThinking
 from util_paste import pasteTokens
 from util_actor import Actor
 from util_wrt import Writer
@@ -24,8 +25,8 @@ class ChatProceed:
         self.processTokens = lambda tokens: None
         if (userPrompt is not None and len(userPrompt)>0): self.messages.append({ "role": "user", "content": self.userPrompt })
 
-    def http(self):
-        self.outStart = "HTTP: "
+    def http(self, outStart: str):
+        self.outStart = outStart
         self.writeTokens = True
         return self
 
@@ -158,7 +159,6 @@ class Llm(Actor):
         self._daemon = False
         self._stop_event = EventLlm(None, None, None)
         self.speak = speak
-        self.api = None
         self.generating = False
         self.commandExecutor: Callable[[str, Ctx], str] = None
 
@@ -184,7 +184,7 @@ class Llm(Actor):
             # speak generated text or fallback if error
             if isinstance(e, ChatReact):
                 self.speak(e.fallback if text is None else text.strip('\'" '), ctx.location)
-                self.api.showEmote(e.userPromptRaw, ctx)
+                self.commandExecutor(f'show-emote {e.userPromptRaw}', ctx)
 
             # run generated command or unidentified if error
             if isinstance(e, ChatIntentDetect) and e.writeTokens:
@@ -195,7 +195,7 @@ class Llm(Actor):
                     command = command.replace('unidentified', e.userPrompt)
                     command = 'unidentified' if len(command.strip())==0 else command
                     command = 'unidentified' if canceled else command
-                    command = self.commandExecutor(command, ctx)
+                    self.commandExecutor(command, ctx)
 
         if self._stop:
             f = futureFailed(Exception(f"{self.group} stopped"))
@@ -284,7 +284,7 @@ class LlmGpt4All(Llm):
                                             max_tokens=self.maxTokens, top_p=self.topp, top_k=self.topk, temp=self.temp,
                                             callback=process
                                         )
-                                        consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(tokens, 4)
+                                        consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(noThinking(tokens), 4)
                                         sf.set_result((tokensAlt, self.generating is False))
                                     except Exception as x:
                                         sf.set_exception(x)
@@ -343,7 +343,7 @@ class LlmHttpOpenAi(Llm):
                                     finally:
                                         stream.response.close()
                                 try:
-                                    consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(process(), 4)
+                                    consumer, tokensWrite, tokensSpeech, tokensAlt, tokensText = teeThreadSafeEager(noThinking(process()), 4)
                                     sf.set_result((tokensAlt, self.generating is False))
                                 except Exception as x:
                                     sf.set_exception(e)
@@ -361,6 +361,7 @@ class LlmHttpOpenAi(Llm):
                             self.write(f"ERR: {self.name} event processing error: server could not be reached: {e.__cause__}")
                         elif isinstance(e, openai.APIStatusError):
                             self.write(f"ERR: {self.name} event processing error: server returned {e.status_code}: {e.message}")
+                        elif isinstance(e, httpx.ReadTimeout):
+                            self.write(f"ERR: {self.name} event processing error: server timed out")
                         else:
-                            print_exc()
                             raise e

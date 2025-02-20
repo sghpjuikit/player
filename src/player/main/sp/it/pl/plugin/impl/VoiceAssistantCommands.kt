@@ -26,6 +26,7 @@ import sp.it.util.async.coroutine.IO
 import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.await
 import sp.it.util.async.coroutine.delay
+import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Error
@@ -49,8 +50,9 @@ internal fun VoiceAssistant.voiceCommands(): List<SpeakHandler> {
    val sh = ::SpeakHandler
    return listOfNotNull(
       sh(PYTHN,        "Repeat last speech", "repeat last speech")                                                     { null },
-      sh(PYTHN,                  "Greeting", "greeting \$user_greeting")                                               { null },
-      sh(KOTLN,                "Show emote", "show emote \$text")                                                      { voiceCommandShowEmote(it) },
+      sh(PYTHN,     "List available voices", "list available voices")                                                  { null },
+      sh(PYTHN,              "Change voice", "change voice \$voice")                                                   { null },
+      sh(KOTLN,                "Show emote", "show-emote \$text")                                                      { voiceCommandShowEmote(it) },
       sh(KOTLN,              "Show warning", "show warning \$text")                                                    { voiceCommandShowWarn(it) },
       sh(KOTLN,                      "Help", "help")                                                                   { if (matches(it)) Ok("List commands by saying, list commands") else null },
       sh(KOTLN,                "Do nothing", "ignore")                                                                 { if (matches(it)) Ok(null) else null },
@@ -135,25 +137,48 @@ internal fun VoiceAssistant.voiceCommandsPrompt(): String =
       """
    ).replace('Δ', '$').lineSequence().filter { it.isNotBlank() }.joinToString("\n")
 
-
 suspend fun SpeakContext.voiceCommandShowEmote(text: String): ComMatch =
    if (matches(text)) {
-      if (text != "show emote none") {
-         val f = VoiceAssistant.dir / text.substringAfter("show emote ").replace(" ", "_")
+      if (text != "show-emote none") {
+         val e = text.substringAfter("show-emote ").replace(" ", "_")
+         val f = VoiceAssistant.dir / "emotes" / text.substringAfter("show-emote ").replace(" ", "_")
          val fExists = IO { f.exists() }
-         if (fExists) APP.plugins.use<Notifier> {
-            val n = Thumbnail(400.0, 400.0).apply {
-               pane.isMouseTransparent = true
-               loadFile(f)
+         if (fExists) {
+            APP.plugins.use<Notifier> {
+               val n = Thumbnail(400.0, 400.0).apply {
+                  pane.isMouseTransparent = true
+                  loadFile(f)
+               }
+               val not = it.showNotification("Emote", n.pane, true, Pos.TOP_RIGHT)
+               delay(1.seconds)
+               n.animationPlayOnceAndWait().await()
+               delay(1.seconds)
+               not.hide()
             }
-            val not = it.showNotification("Emote", n.pane, true, Pos.TOP_RIGHT)
-            delay(1.seconds)
-            n.animationPlayOnceAndWait().await()
-            delay(1.seconds)
-            not.hide()
+            Ok(null)
+         } else {
+            val emotesDir = VoiceAssistant.dir / "emotes"
+            val directories = emotesDir.children { "." !in it.name }.map { it.name }.toList()
+            if (directories.isEmpty())
+               Ok(null)
+            else {
+               val directoriesS = directories.joinToString("") { "\n* $it" }
+               val prompt = "You are emotion detector. Available emotions are:$directoriesS'\nRespond with exactly one closest emotion, or 'none' if no emotion is close, for the event:\n$e"
+               intent(text, "", prompt) { it ->
+                  val text = it.dropLastWhile { it=='.' || it=='!' || it=='?' }
+                  if (text !in directories) return@intent Ok(null)
+                  val d = emotesDir / text
+                  val files = d.children().toList()
+                  if (files.isEmpty()) return@intent Ok(null)
+                  val f = files.randomOrNull()
+                  if (f==null || !f.exists()) return@intent Ok(null)
+                  return@intent this("show-emote $text/${f.name}")
+               }
+            }
+            Ok(null)
          }
-      }
-      Ok(null)
+      } else
+         Ok(null)
    } else
       null
 

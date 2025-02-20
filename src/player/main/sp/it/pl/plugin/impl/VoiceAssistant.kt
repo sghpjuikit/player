@@ -24,7 +24,6 @@ import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppHttp
 import sp.it.pl.main.Bool
-import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent.*
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.isAudio
@@ -33,14 +32,13 @@ import sp.it.pl.main.toUi
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
-import sp.it.pl.plugin.impl.VoiceAssistant.InputType.NULL
-import sp.it.pl.plugin.impl.VoiceAssistant.InputType.EMPTY
-import sp.it.pl.plugin.impl.VoiceAssistant.InputType.RAW
-import sp.it.pl.plugin.impl.VoiceAssistant.InputType.SYS
-import sp.it.pl.plugin.impl.VoiceAssistant.InputType.USER
-import sp.it.pl.plugin.impl.VoiceAssistant.InputType.USER_RAW
-import sp.it.pl.plugin.impl.VoiceAssistant.InputType.ERR
-import sp.it.pl.plugin.impl.VoiceAssistant.InputType.COM
+import sp.it.pl.plugin.impl.VoiceAssistant.OutputType.EMPTY
+import sp.it.pl.plugin.impl.VoiceAssistant.OutputType.RAW
+import sp.it.pl.plugin.impl.VoiceAssistant.OutputType.SYS
+import sp.it.pl.plugin.impl.VoiceAssistant.OutputType.USER
+import sp.it.pl.plugin.impl.VoiceAssistant.OutputType.USER_RAW
+import sp.it.pl.plugin.impl.VoiceAssistant.OutputType.ERR
+import sp.it.pl.plugin.impl.VoiceAssistant.OutputType.COM
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.action
 import sp.it.util.access.V
@@ -222,7 +220,7 @@ class VoiceAssistant: PluginBase() {
             "stt-http-url=${sttHttpUrl.value}",
             "http-url=${httpUrl.value.net { it.substringAfterLast("/") }}",
             "http-ui-url=${APP.http.urlLocal}/voice-assistent-ui/event",
-            "use-python-commands=${false}",
+            "use-python-commands=${usePythonCommands.value}",
          ))
          logger.info { "Starting voice assistant python with command=${command.joinToString(" ")}" }
 
@@ -244,8 +242,6 @@ class VoiceAssistant: PluginBase() {
                      it,
                      { e, state ->
                         pythonOutStd.value = pythonOutStd.value.concatApplyBackspace(e)
-                        if (state!=null && state!="") pythonOutEvent.value = pythonOutEvent.value.concatApplyBackspace(e)
-                        if (state==USER || state==SYS) pythonOutSpeak.value = pythonOutSpeak.value.concatApplyBackspace(e)
                         onLocalInputReducer.push(e to state)
                      },
                      { e, state ->
@@ -489,14 +485,8 @@ class VoiceAssistant: PluginBase() {
          .def(name = "Enabled", info = "Whether this speaker is to be used.")
    }
 
-   /** Console output - all */
+   /** Console output */
    val pythonOutStd = v<String>("")
-
-   /** Console output - app events only */
-   val pythonOutEvent = v<String>("")
-
-   /** Console output - speaking only */
-   val pythonOutSpeak = v<String>("")
 
    /** Opens console output */
    val pythonStdOutOpen by cr { APP.widgetManager.widgets.find(voiceAssistantWidgetFactory, ANY) }
@@ -987,13 +977,13 @@ class VoiceAssistant: PluginBase() {
 
    fun write(text: String): Unit = writing(setup to text)
    
-   fun writeCom(command: String): Unit = write("COM: ${command.encodeBase64()}")
+   fun writeCom(command: String): Unit = write("${InputType.COM}: ${command.encodeBase64()}")
 
-   fun writeComPyt(speaker: String, location: String?, command: String): Unit = write("COM-PYT: ${speaker}:${location.orEmpty()}:${command.encodeBase64()}")
+   fun writeComPyt(speaker: String, location: String?, command: String): Unit = write("${InputType.COM_PYT}: ${speaker}:${location.orEmpty()}:${command.encodeBase64()}")
 
-   fun writeComPytInt(speaker: String, location: String?, command: String): Unit = write("COM-PYT-INT: ${speaker}:${location.orEmpty()}:${command.encodeBase64()}")
+   fun writeComPytInt(speaker: String, location: String?, command: String): Unit = write("${InputType.COM_PYT_INT}: ${speaker}:${location.orEmpty()}:${command.encodeBase64()}")
 
-   fun writeChat(speaker: String, location: String?, text: String) = write("CHAT: ${speaker}:${location.orEmpty()}:${text.encodeBase64()}")
+   fun writeChat(speaker: String, location: String?, text: String) = write("${InputType.CHAT}: ${speaker}:${location.orEmpty()}:${text.encodeBase64()}")
 
    @IsAction(name = "Speak text", info = "Identical to \"Narrate text\"")
    fun synthesize() = speak()
@@ -1003,7 +993,7 @@ class VoiceAssistant: PluginBase() {
       constraintsN += listOf(Multiline, MultilineRows(10), RepeatableAction)
    }.invokeWithForm()
 
-   fun speak(text: String) = write("SAY: ${text.encodeBase64()}")
+   fun speak(text: String) = write("${InputType.SAY}: ${text.encodeBase64()}")
 
    @IsAction(name = "Write chat", info = "Writes to voice assistant chat")
    fun chat() = action<String>("Write chat", "Writes to voice assistant chat", IconMA.CHAT, BLOCK) { writeChat("User", null, it) }.apply {
@@ -1029,6 +1019,15 @@ class VoiceAssistant: PluginBase() {
       }
 
    object InputType {
+      const val SAY = "SAY"
+      const val SAY_LINE = "SAY-LINE"
+      const val CHAT = "CHAT"
+      const val COM = "COM"
+      const val COM_PYT = "COM-PYT"
+      const val COM_PYT_INT = "COM-PYT-INT"
+   }
+
+   object OutputType {
             val NULL = null
       const val EMPTY = ""
       const val RAW = "RAW"

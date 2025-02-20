@@ -1,5 +1,7 @@
 package sp.it.pl.plugin.impl
 
+import com.vladsch.flexmark.ast.FencedCodeBlock
+import com.vladsch.flexmark.util.sequence.BasedSequence
 import io.ktor.client.request.get
 import java.time.Instant
 import javafx.animation.Interpolator.LINEAR
@@ -7,11 +9,14 @@ import javafx.animation.Transition.INDEFINITE
 import javafx.geometry.HPos
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos
 import javafx.scene.Cursor.HAND
+import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane
+import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -19,6 +24,7 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.text.TextAlignment
 import javafx.util.Duration
@@ -50,6 +56,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.errorLabel
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.toUi
+import sp.it.pl.plugin.impl.VoiceAssistant.OutputType
 import sp.it.pl.plugin.impl.VoiceAssistant.LlmEngine
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Event
 import sp.it.pl.plugin.impl.VoiceAssistantWidgetTimeline.Line
@@ -59,12 +66,14 @@ import sp.it.pl.ui.objects.complexfield.TagTextField.*
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.installClickable
+import sp.it.pl.ui.objects.toNode
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.pane.ActContext
 import sp.it.pl.ui.pane.ConfigPane
 import sp.it.pl.ui.pane.ConfigPane.Layout.MINI
 import sp.it.pl.ui.pane.ConfigPaneScrolPane
 import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.util.access.setValueOf
 import sp.it.util.access.v
 import sp.it.util.access.vAlways
 import sp.it.util.access.visible
@@ -75,6 +84,7 @@ import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.invokeTry
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.coroutine.toSubscription
+import sp.it.util.async.runLater
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
@@ -85,6 +95,7 @@ import sp.it.util.conf.getDelegateConfig
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
 import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsFalse
 import sp.it.util.file.json.JsNull
@@ -105,6 +116,7 @@ import sp.it.util.math.abs
 import sp.it.util.math.min
 import sp.it.util.reactive.Subscribed.Companion.subBetween
 import sp.it.util.reactive.Subscribed.Companion.subscribedIff
+import sp.it.util.reactive.addRem
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.flatMap
@@ -118,6 +130,8 @@ import sp.it.util.reactive.syncWhile
 import sp.it.util.reactive.zip
 import sp.it.util.reactive.zip2
 import sp.it.util.text.capitalLower
+import sp.it.util.text.concatApplyBackspace
+import sp.it.util.text.findNthOccurrence
 import sp.it.util.text.nameUi
 import sp.it.util.ui.appendTextSmart
 import sp.it.util.ui.flowPane
@@ -159,7 +173,113 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       .uiNoOrder()
       .def(name = "Location", info = "Location.")
 
+   val chatNodes = mutableListOf<Node>()
+   val chatNodesRootScroll = scrollPane()
+   val chatNodesRoot = vBox()
+   fun chatNodesScrollUpdate(autoscroll: Boolean) = if (autoscroll) runLater { chatNodesRootScroll.vvalue = 1.0 } else Unit
+   fun chatNodesInit() {
+      mode sync {
+         chatNodesRoot.children setTo (
+            when (it) {
+               Out.UI -> chatNodes
+               Out.UI_LOG -> chatNodes.filter { it.userData!="LOG" }
+               else -> listOf()
+            }
+         )
+      }
+      plugin syncNonNullWhile {
+
+         val autoscroll = true
+         var chatNodeOld: VBox? = null
+         var labelOld: Label? = null
+         var speakerOld: String? = null
+         var endsWithNewline = false
+
+
+         it.onLocalInput.addRem { (it, state) ->
+
+            fun String.newLinePre() = let { endsWithNewline = it.endsWith("\n"); if (endsWithNewline) it.dropLast(1) else it }
+            fun String.newLinePost() = if (endsWithNewline) "\n"+it else it
+            fun String.postProcess(s: String) = lineSequence().joinToString("\n") { if (!it.startsWith(s)) it else it.drop(s.length) }
+            fun blockEnd() {
+               endsWithNewline = false
+               labelOld = null
+            }
+            val (speaker, prefix) = when (state) {
+               OutputType.NULL -> "LOG" to ""
+               OutputType.EMPTY -> "LOG" to ""
+               OutputType.RAW -> "LOG" to "RAW: "
+               OutputType.SYS -> "System" to "SYS: "
+               OutputType.ERR -> "System" to ""
+               OutputType.COM -> it.substringAfter("COM:").substringBefore(":").trim() to it.substring(0, it.findNthOccurrence(":", 3) + 1)
+               OutputType.USER -> it.substringAfter("USER: ").substringBefore(":") to it.substring(0, it.findNthOccurrence(":", 3) + 1)
+               OutputType.USER_RAW -> "LOG" to "USER-RAW: "
+               else -> state to state+": "
+            }
+            val isCodeBlock =
+               it.postProcess(state + ": ").trim().net { it.length>6 && it.startsWith("```") && it.endsWith("```") }   // codeblock is emitted as single event
+            fun codeBlock(s: String) = s.trim().net {
+               FencedCodeBlock(BasedSequence.NULL, BasedSequence.NULL, BasedSequence.of(it.drop(3).substringBefore('\n')), listOf(BasedSequence.of(it.drop(3).substringAfter('\n').dropLast(3))), BasedSequence.NULL)
+            }
+            fun nodeCodeBlock() =
+               codeBlock(it.postProcess(state ?: "").trim()).toNode()
+            fun nodeLabel() =
+               label(it.postProcess(prefix).newLinePre()) {
+                  isWrapText = true
+                  labelOld = this // start text
+               }
+
+            if (speakerOld==speaker && chatNodeOld!=null) {
+               if (isCodeBlock) {
+                  blockEnd()
+                  chatNodeOld!!.lay += nodeCodeBlock()
+               } else {
+                  if (labelOld!=null) {
+                     labelOld!!.textProperty().setValueOf { x -> x.concatApplyBackspace(it.newLinePost().postProcess(prefix)).newLinePre() }
+                  } else {
+                     blockEnd()
+                     chatNodeOld!!.lay += nodeLabel()
+                  }
+               }
+            } else {
+               blockEnd()
+
+               if (it.postProcess(prefix).isNotBlank()) {
+                  chatNodeOld = vBox(null, CENTER_LEFT) {
+                     userData = speaker
+                     styleClass += "markdown-codeblock-box"
+                     styleClass += "markdown-codeblock-box-mermaid"
+                     minHeight = Region.USE_PREF_SIZE // prevent vertical shrinking
+
+                     lay += hBox(null, CENTER_LEFT) {
+                        id = "user-mode-pane"
+                        isPickOnBounds = false
+                        lay += label(speaker) {
+                           styleClass += TagNode.STYLECLASS
+                           isMouseTransparent = true
+                           style = "-fx-translate-x: -0.5em; -fx-translate-y: -0.5em;"
+                        }
+                        if (state==OutputType.USER || state==OutputType.USER_RAW)
+                           lay += label(it.substringAfter(":").substringAfter(":").substringBefore(":")) {
+                              styleClass += TagNode.STYLECLASS
+                              isMouseTransparent = true
+                              style = "-fx-translate-x: -0.5em; -fx-translate-y: -0.5em;"
+                           }
+                     }
+                     lay += if (isCodeBlock) nodeCodeBlock() else nodeLabel()
+                  }
+                  chatNodes += chatNodeOld
+                  if (mode.value==Out.UI_LOG || (mode.value==Out.UI && speaker!="RAW")) chatNodesRoot.lay += chatNodeOld
+               }
+            }
+            speakerOld = speaker
+            chatNodesScrollUpdate(autoscroll)
+         }
+      }
+   }
+
    init {
+      chatNodesInit()
       root.prefSize = 500.emScaled x 500.emScaled
       root.consumeScrolling()
       root.lay += vBox(null, CENTER) {
@@ -399,28 +519,35 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             }
 
             lay += vBox(5.emScaled, CENTER) {
-               visible syncFrom mode.map { it != Out.HW && it != Out.EVENTS }
+               visible syncFrom mode.map { it!=Out.HW || it!=Out.EVENTS }
                val textAreaPadding = v(Insets.EMPTY)
 
-               lay(ALWAYS) += textArea.apply {
-                  id = "output"
-                  isEditable = false
-                  isFocusTraversable = false
-                  wrapTextProperty() syncFrom mode.map { it==Out.SPEAK }
-                  paddingProperty() syncTo textAreaPadding
-                  prefColumnCount = 100
+               lay(ALWAYS) += stackPane {
 
-                  onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
-                  mode syncWhile { m ->
-                     setTextSmart(plugin.value?.net(m.initText(this@VoiceAssistantWidget)) ?: "")
-                     plugin.syncNonNullWhile { p ->
-                        p.onLocalInput attach { (it, state) ->
-                           when (m!!) {
-                              Out.DEBUG -> appendTextSmart(it)
-                              Out.INFO -> if (state!=null && state!="") appendTextSmart(it)
-                              Out.SPEAK -> if (state=="SYS" || state=="USER") appendTextSmart(it)
-                              Out.HW -> Unit
-                              Out.EVENTS -> Unit
+                  lay += chatNodesRootScroll.apply {
+                     visible syncFrom mode.map { it==Out.UI || it==Out.UI_LOG }
+                     isFitToWidth = true
+                     isFitToHeight = true
+                     hbarPolicy = AS_NEEDED
+                     vbarPolicy = AS_NEEDED
+
+                     content = chatNodesRoot
+                  }
+                  lay += textArea.apply {
+                     visible syncFrom mode.map { it == Out.DEBUG }
+                     id = "output"
+                     isEditable = false
+                     isFocusTraversable = false
+                     paddingProperty() syncTo textAreaPadding
+                     prefColumnCount = 100
+                     prefWidth = 200.0
+
+                     onEventDown(KEY_PRESSED, ENTER) { appendText("\n") }
+                     mode syncWhile { m ->
+                        setTextSmart(plugin.value?.net(m.initText(this@VoiceAssistantWidget)) ?: "")
+                        plugin.syncNonNullWhile { p ->
+                           p.onLocalInput attach { (it, state) ->
+                              if (m==Out.DEBUG) appendTextSmart(it)
                            }
                         }
                      }
@@ -579,31 +706,11 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       val initText: VoiceAssistantWidget.(VoiceAssistant) -> String,
       val runDesc: String
    ): NameUi {
-      DEBUG(
-         "Trace",
-         { it.pythonOutStd.value },
-         "Show debug console output",
-      ),
-      INFO(
-         "Info",
-         { it.pythonOutEvent.value },
-         "Show info console output",
-      ),
-      SPEAK(
-         "Speak",
-         { it.pythonOutSpeak.value },
-         "Show user & system speech",
-      ),
-      HW(
-         "Hw",
-         { "" },
-         "Show system state",
-      ),
-      EVENTS(
-         "Events",
-         { "" },
-         "Show system event timeline",
-      ),
+      DEBUG("Raw Trace", { it.pythonOutStd.value }, "Show raw console output"),
+      UI_LOG("Ui Trace", { "" }, "Show voice assistant interaction in UI including logs"),
+      UI("Ui", { "" }, "Show voice assistant interaction in UI"),
+      HW("Hw", { "" }, "Show system state"),
+      EVENTS("Events", { "" }, "Show system event timeline"),
    }
 
    companion object: WidgetCompanion {

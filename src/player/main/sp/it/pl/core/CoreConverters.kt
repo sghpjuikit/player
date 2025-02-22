@@ -52,7 +52,6 @@ object ConverterPaint: ConverterString<Paint> {
       is RadialGradient -> ConverterRadialGradient.toS(o)
       is LinearGradient -> ConverterLinearGradient.toS(o)
       is ImagePattern -> ConverterImagePattern.toS(o)
-      else -> ConverterColor.toS(Color.TRANSPARENT)
    }
    override fun ofS(s: String) = when {
       s.startsWith("linear-gradient(") -> ConverterLinearGradient.ofS(s)

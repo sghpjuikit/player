@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 plugins {
-   kotlin("jvm") version "2.1.10"
+   kotlin("jvm") version "2.1.20-RC"
    application
    id("com.github.ben-manes.versions") version "0.52.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    // id("com.jaredsburrows.license") version "0.9.8"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin // incompatible with latest gradle
@@ -92,7 +92,7 @@ allprojects {
 
       "Kotlin" group {
          // compatibility table https://kotlinlang.org/docs/releases.html#release-details
-         implementation(kotlin("reflect", "2.1.0"))
+         implementation(kotlin("reflect", "2.1.20-RC"))
          implementation(kotlin("compiler-embeddable"))
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.10.1")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.10.1")
@@ -104,7 +104,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "25-ea+2"
+         val version = "25-ea+5"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -112,6 +112,7 @@ allprojects {
             os.isWindows -> "win"
             else -> failIO { "Unable to determine javafx dependency classifier due to unfamiliar system=$os" }
          }
+
          listOf("base", "controls", "graphics", "media", "swing", "web").forEach {
             implementation("org.openjfx", "javafx-$it", version, classifier = classifier)
          }
@@ -184,8 +185,8 @@ allprojects {
 
       "Http" group {
          implementation("javax.jmdns","jmdns","3.4.1")
-         implementation("io.ktor", "ktor-server-core", "3.0.3")
-         implementation("io.ktor", "ktor-client-java", "3.0.3")
+         implementation("io.ktor", "ktor-server-core", "3.1.0")
+         implementation("io.ktor", "ktor-client-java", "3.1.0")
       }
 
       "Test" group {

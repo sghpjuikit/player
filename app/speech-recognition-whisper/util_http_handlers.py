@@ -111,6 +111,7 @@ class HttpHandlerIntent(HttpHandler):
         self.llm = llm
 
     def __call__(self, req: BaseHTTPRequestHandler):
+        print(f'HTTP: {self.method}:{self.path_to_match} body: ...')
         content_length = req.headers['Content-Length']
         if content_length is None: req.send_error(400, 'Invalid input')
         if content_length is None: return
@@ -122,7 +123,7 @@ class HttpHandlerIntent(HttpHandler):
         body = HttpHandlerIntentData(**body)
 
         try:
-            f = self.llm(ChatIntentDetect.normal(body.functions, body.userPrompt, False).http())
+            f = self.llm.__call__(ChatIntentDetect.normal(body.functions, body.userPrompt, False).http(f'HTTP: {self.method} {self.path_to_match} result: '))
             (command, canceled) = f.result()
             command = command.strip()
             command = command.replace('unidentified', body.userPrompt)
@@ -178,6 +179,7 @@ class HttpHandlerTtsReact(HttpHandler):
         self.sysPrompt = sysPrompt
 
     def __call__(self, req: BaseHTTPRequestHandler):
+        print(f'HTTP: {self.method}:{self.path_to_match} body: ...')
         content_length = req.headers['Content-Length']
         if content_length is None: req.send_error(400, 'Invalid input')
         if content_length is None: return
@@ -189,7 +191,7 @@ class HttpHandlerTtsReact(HttpHandler):
             body = json.loads(body)
             body = HttpHandlerTtsReactData(**body)
 
-            f = self.llm(ChatReact(self.sysPrompt, body.event_to_react_to, body.fallback).http())
+            f = self.llm(ChatReact(self.sysPrompt, body.event_to_react_to, body.fallback).http(f'HTTP: {self.method} {self.path_to_match} result: '))
             t, cancelled = f.result()
             req.send_response(200)
             req.send_header('Content-type', 'text/plain')
@@ -274,6 +276,61 @@ class HttpHandlerMicState(HttpHandler):
             req.send_header('Content-type', 'application/json')
             req.end_headers()
             req.wfile.write(data)
+        except Exception as e:
+            print_exc()
+            req.send_error(500, f"{e}")
+
+
+import requests
+import json
+from queue import Queue
+import threading
+json_event_queue = Queue()
+
+class HttpHandlerEvents(HttpHandler):
+    def __init__(self):
+        super().__init__("PUT", "/events")
+
+    def __call__(self, req: BaseHTTPRequestHandler):
+        content_length = req.headers['Content-Length']
+        if content_length is None: req.send_error(400, 'Invalid input')
+        if content_length is None: return
+
+        content_length = int(req.headers['Content-Length'])
+        body = req.rfile.read(content_length)
+        body = body.decode('utf-8')
+        body = json.loads(body)
+
+        try:
+            if "type" not in data:
+                req.send_response(400)
+                req.send_header('Content-type', 'text/plain')
+                req.end_headers()
+                req.wfile.write("Unknown event type, set type attribute")
+
+            type = body["type"]
+            if type == "start_consuming":
+                address = body["address"]
+
+                def send_json_events_to_endpoint():
+                    while True:
+                        try: event = json_event_queue.get(block=True, timeout=0.1)
+                        except Empty: break
+                        response = requests.post(address, data=json.dumps(event))
+
+                event_thread = threading.Thread(target=send_json_events_to_endpoint)
+                event_thread.daemon = True
+                event_thread.start()
+
+                req.send_response(200)
+                req.end_headers()
+                req.wfile.write("")
+
+            else:
+                req.send_response(400)
+                req.send_header('Content-type', 'text/plain')
+                req.end_headers()
+                req.wfile.write(f"Unknown event type=$type")
         except Exception as e:
             print_exc()
             req.send_error(500, f"{e}")

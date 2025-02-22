@@ -82,7 +82,9 @@ class Writer(Actor):
                 self.stdout.stdout.flush()
 
             # write output
-            self.stdout.stdout.write(s + end + '\033[1;32m' + ps + '\033[0m')
+            self.stdout.stdout.write(s + end)
+            self.stdout.stdout.flush()
+            self.stdout.stdout.write('\033[1;32m' + ps + '\033[0m')
             self.stdout.stdout.flush()
 
             self._last_progress_suffix = ps

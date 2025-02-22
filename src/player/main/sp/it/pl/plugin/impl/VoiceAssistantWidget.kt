@@ -181,8 +181,8 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       mode sync {
          chatNodesRoot.children setTo (
             when (it) {
-               Out.UI -> chatNodes
-               Out.UI_LOG -> chatNodes.filter { it.userData!="LOG" }
+               Out.UI_LOG -> chatNodes
+               Out.UI -> chatNodes.filter { it.userData!="LOG" }
                else -> listOf()
             }
          )

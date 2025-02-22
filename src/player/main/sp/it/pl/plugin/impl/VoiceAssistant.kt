@@ -243,6 +243,7 @@ class VoiceAssistant: PluginBase() {
                      { e, state ->
                         pythonOutStd.value = pythonOutStd.value.concatApplyBackspace(e)
                         onLocalInputReducer.push(e to state)
+                        onLocalInputImmediate(e to state)
                      },
                      { e, state ->
                         handleInput(e, state)
@@ -262,6 +263,7 @@ class VoiceAssistant: PluginBase() {
                .filter { it.isNotBlank() }
                .onEach { runFX {
                   pythonOutStd.value = pythonOutStd.value + it
+                  onLocalInputImmediate(it to null)
                   onLocalInputReducer.push(it to null)
                } }
                .joinToString("")
@@ -501,7 +503,8 @@ class VoiceAssistant: PluginBase() {
 
    /** Invoked for every voice assistant local process input token. */
    val onLocalInput = Handler1<Pair<String, String?>>()
-   
+   val onLocalInputImmediate = Handler1<Pair<String, String?>>()
+
    /** Words or phrases that will be removed from text representing the detected speech. Makes command matching more powerful. Case-insensitive. */
    val wakeUpWord by cv("system").nonBlank()
       .def(name = "Wake up word", info = "Optional wake words or phrases (separated by ',') that activate voice recognition. Case-insensitive.\nThe first wake word will be used as name for the system")

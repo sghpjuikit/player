@@ -266,7 +266,7 @@ class PythonExecutor:
                 assertSkip()
                 if c is None: return # sometimes llm passes bad function result here, do nothing
                 if len(c)==0: return # just in case
-                self.commandExecutor.execute(c, Ctx(speaker, location))
+                self.commandExecutor.execute(c, Ctx(CTX_SYS.speaker, location))
             def doNothing(reason: str = ''):
                 assertWait()
                 assertSkip()
@@ -407,7 +407,7 @@ class PythonExecutor:
             def writeCode(language: str, code: str) -> str:
                 assertWait()
                 assertSkip()
-                self.write(f"```{language}\n{code}\n```")
+                self.write(f"SYS: ```{language}\n{code}\n```")
                 return text
             def generateCode(language: str, userPrompt: str) -> str:
                 assertWait()
@@ -502,7 +502,7 @@ class PythonExecutor:
             # try to fix code to be valid and exec again
             elif fix:
                 try:
-                    self.write('ERR: invalid code, atempting to fix...')
+                    self.write('ERR: invalid code, atempting to fix...\n'+ text)
                     (text, canceled) = self.api.llm(ChatIntentDetect.pythonFix(self.promptFuns(), text)).result()
                 except Exception as e:
                     speak('I\'m sorry, I failed to respond: {e}')
@@ -563,7 +563,7 @@ You can prevent execution of your output by using writeCode()/generateCode()
 If user asks you about programming-related task or to write program, use writeCode()/generateCode() to complete the task using description of what the code should do.
 The task should be specifc and may contain your own suggestions about how and what to generate.
 Always pass programming language paramter.
-Always showDiagram('mermaid code') to depict visual diagrams.
+Visualize ideas using showDiagram() with (any) mermaid code to diagrams.
 
 If user asks you question, answer.
 You may question() user to get information needed to respond, which may be multi-turn conversation.

@@ -23,20 +23,21 @@ class VoiceAssistentCliReader(val isProgress: V<Bool>) {
    fun process(t: String, onS: (String, String?) -> Unit, onE: (String, String) -> Unit) {
       if (t.isEmpty())
          return
-      if ("COM: System::activity-start" in t) {
-         process(t.substringBefore("COM: System::activity-start"), onS, onE)
-         isProgress.value = true
-         process(t.substringAfter("COM: System::activity-start").drop(1), onS, onE)
-         return
-      }
-      if ("COM: System::activity-stop" in t) {
-         process(t.substringBefore("COM: System::activity-stop"), onS, onE)
-         isProgress.value = false
-         process(t.substringAfter("COM: System::activity-stop").drop(1), onS, onE)
-         return
-      }
 
       var s = t.replace("\r\n", "\n")
+
+      if ("COM: System::activity-start" in s) {
+         process(s.substringBefore("COM: System::activity-start"), onS, onE)
+         isProgress.value = true
+         process(s.substringAfter("COM: System::activity-start").drop(1), onS, onE)
+         return
+      }
+      if ("COM: System::activity-stop" in s) {
+         process(s.substringBefore("COM: System::activity-stop"), onS, onE)
+         isProgress.value = false
+         process(s.substringAfter("COM: System::activity-stop").drop(1), onS, onE)
+         return
+      }
       if ("\n" in s) {
          s.split("\n").dropLast(1).forEach { processSingle(it.un(), onS, onE) }
          str.clear()

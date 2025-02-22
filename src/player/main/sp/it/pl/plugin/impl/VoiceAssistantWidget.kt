@@ -25,8 +25,11 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region
+import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.layout.VBox
+import javafx.scene.text.Text
 import javafx.scene.text.TextAlignment
+import javafx.scene.text.TextFlow
 import javafx.util.Duration
 import kotlin.Double.Companion.NEGATIVE_INFINITY
 import kotlin.Double.Companion.POSITIVE_INFINITY
@@ -95,7 +98,6 @@ import sp.it.util.conf.getDelegateConfig
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
 import sp.it.util.file.json.JsArray
 import sp.it.util.file.json.JsFalse
 import sp.it.util.file.json.JsNull
@@ -146,7 +148,9 @@ import sp.it.util.ui.setTextSmart
 import sp.it.util.ui.singLineProperty
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.styleclassToggle
+import sp.it.util.ui.text
 import sp.it.util.ui.textArea
+import sp.it.util.ui.textFlow
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.em
@@ -190,20 +194,20 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
       plugin syncNonNullWhile {
 
          val autoscroll = true
-         var chatNodeOld: VBox? = null
-         var labelOld: Label? = null
+         var chatNodeOld: TextFlow? = null
+         var textOld: Text? = null
          var speakerOld: String? = null
          var endsWithNewline = false
 
 
-         it.onLocalInput.addRem { (it, state) ->
+         it.onLocalInputImmediate.addRem { (it, state) ->
 
             fun String.newLinePre() = let { endsWithNewline = it.endsWith("\n"); if (endsWithNewline) it.dropLast(1) else it }
             fun String.newLinePost() = if (endsWithNewline) "\n"+it else it
             fun String.postProcess(s: String) = lineSequence().joinToString("\n") { if (!it.startsWith(s)) it else it.drop(s.length) }
             fun blockEnd() {
                endsWithNewline = false
-               labelOld = null
+               textOld = null
             }
             val (speaker, prefix) = when (state) {
                OutputType.NULL -> "LOG" to ""
@@ -219,33 +223,36 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             val isCodeBlock =
                it.postProcess(state + ": ").trim().net { it.length>6 && it.startsWith("```") && it.endsWith("```") }   // codeblock is emitted as single event
             fun codeBlock(s: String) = s.trim().net {
-               FencedCodeBlock(BasedSequence.NULL, BasedSequence.NULL, BasedSequence.of(it.drop(3).substringBefore('\n')), listOf(BasedSequence.of(it.drop(3).substringAfter('\n').dropLast(3))), BasedSequence.NULL)
+               FencedCodeBlock(BasedSequence.NULL, BasedSequence.NULL, BasedSequence.of(it.substringBefore('\n')), listOf(BasedSequence.of(it.substringAfter('\n'))), BasedSequence.NULL)
             }
-            fun nodeCodeBlock() =
-               codeBlock(it.postProcess(state ?: "").trim()).toNode()
-            fun nodeLabel() =
-               label(it.postProcess(prefix).newLinePre()) {
-                  isWrapText = true
-                  labelOld = this // start text
+            fun nodeCodeBlock() {
+               chatNodeOld!!.lay += text("\n")
+               chatNodeOld!!.lay += codeBlock(it.postProcess(state ?: "").trim().dropWhile { it=='`' }.dropLastWhile { it=='`' }).toNode()
+               chatNodeOld!!.lay += text("\n")
+            }
+            fun nodeLabel() {
+               chatNodeOld!!.lay += text(it.postProcess(prefix).newLinePre()) {
+                  textOld = this // start text
                }
+            }
 
             if (speakerOld==speaker && chatNodeOld!=null) {
                if (isCodeBlock) {
                   blockEnd()
-                  chatNodeOld!!.lay += nodeCodeBlock()
+                  nodeCodeBlock()
                } else {
-                  if (labelOld!=null) {
-                     labelOld!!.textProperty().setValueOf { x -> x.concatApplyBackspace(it.newLinePost().postProcess(prefix)).newLinePre() }
+                  if (textOld!=null) {
+                     textOld!!.textProperty().setValueOf { x -> x.concatApplyBackspace(it.newLinePost().postProcess(prefix)).newLinePre() }
                   } else {
                      blockEnd()
-                     chatNodeOld!!.lay += nodeLabel()
+                     nodeLabel()
                   }
                }
             } else {
                blockEnd()
-
+               chatNodeOld = null
                if (it.postProcess(prefix).isNotBlank()) {
-                  chatNodeOld = vBox(null, CENTER_LEFT) {
+                  chatNodeOld = textFlow {
                      userData = speaker
                      styleClass += "markdown-codeblock-box"
                      styleClass += "markdown-codeblock-box-mermaid"
@@ -259,21 +266,23 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                            isMouseTransparent = true
                            style = "-fx-translate-x: -0.5em; -fx-translate-y: -0.5em;"
                         }
-                        if (state==OutputType.USER || state==OutputType.USER_RAW)
+                        if (state==OutputType.USER)
                            lay += label(it.substringAfter(":").substringAfter(":").substringBefore(":")) {
                               styleClass += TagNode.STYLECLASS
                               isMouseTransparent = true
                               style = "-fx-translate-x: -0.5em; -fx-translate-y: -0.5em;"
                            }
                      }
-                     lay += if (isCodeBlock) nodeCodeBlock() else nodeLabel()
+                     lay += text("\n") // prevent previous node to break text layout
                   }
-                  chatNodes += chatNodeOld
-                  if (mode.value==Out.UI_LOG || (mode.value==Out.UI && speaker!="RAW")) chatNodesRoot.lay += chatNodeOld
+                  if (isCodeBlock) nodeCodeBlock()
+                  else nodeLabel()
+                  chatNodes += chatNodeOld!!
+                  if (mode.value==Out.UI_LOG || (mode.value==Out.UI && speaker!="RAW")) chatNodesRoot.lay += chatNodeOld!!
                }
             }
-            speakerOld = speaker
             chatNodesScrollUpdate(autoscroll)
+            speakerOld = speaker
          }
       }
    }
@@ -431,12 +440,13 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
 
          lay(ALWAYS) += stackPane {
             lay += scrollPane {
+               id = "events"
+               visible syncFrom mode.map { it == Out.HW }
                isFitToWidth = true
                isFitToHeight = false
                prefSize = -1 x -1
                vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
                hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-               visible syncFrom mode.map { it == Out.HW }
 
                val errorProperty = vn<Throwable>(null)
                val actorStates = MapSet { a: ActorState -> a.type }
@@ -484,6 +494,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             }
 
             lay += stackPane {
+               id = "hw"
                visible syncFrom mode.map { it == Out.EVENTS }
 
                val errorProperty = vn<Throwable>(null)
@@ -519,13 +530,14 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
             }
 
             lay += vBox(5.emScaled, CENTER) {
-               visible syncFrom mode.map { it!=Out.HW || it!=Out.EVENTS }
+               id = "chat"
+               visible syncFrom mode.map { it!=Out.HW && it!=Out.EVENTS }
                val textAreaPadding = v(Insets.EMPTY)
 
                lay(ALWAYS) += stackPane {
-
                   lay += chatNodesRootScroll.apply {
                      visible syncFrom mode.map { it==Out.UI || it==Out.UI_LOG }
+                     id = "ui-${Out.UI}"
                      isFitToWidth = true
                      isFitToHeight = true
                      hbarPolicy = AS_NEEDED
@@ -535,7 +547,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                   }
                   lay += textArea.apply {
                      visible syncFrom mode.map { it == Out.DEBUG }
-                     id = "output"
+                     id = "ui-${Out.DEBUG}"
                      isEditable = false
                      isFocusTraversable = false
                      paddingProperty() syncTo textAreaPadding
@@ -555,12 +567,12 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                }
                lay += stackPane {
                   id = "user-input-pane"
-                  val userModeWidthcccWidth = v(0.0)
+                  val userModeWidth = v(0.0)
                   val promptVisible = v(true)
                   installActivityIndicator()
 
                   lay += textArea {
-                     userModeWidthcccWidth attach { style = "-fx-padding: ${textAreaPadding.value.top} ${textAreaPadding.value.right + it} ${textAreaPadding.value.bottom} ${textAreaPadding.value.left};" }
+                     userModeWidth attach { style = "-fx-padding: ${textAreaPadding.value.top} ${textAreaPadding.value.right + it} ${textAreaPadding.value.bottom} ${textAreaPadding.value.left};" }
                      id = "user-input"
                      isWrapText = true
                      isNewlineOnShiftEnter = true
@@ -570,7 +582,9 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                      // reactive height
                      singLineProperty() sync {
                         styleclassToggle("text-area-singlelined", !it)
-                        prefRowCount = if (it) 10 else 1
+                        prefRowCount = if (it) 20 else 1
+                        minHeight = if (it) 150.emScaled else USE_COMPUTED_SIZE
+                        maxHeight = if (it) 150.emScaled else USE_COMPUTED_SIZE
                      }
 
                      // action
@@ -622,7 +636,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                      }
 
                      val labels = children.takeLast(3)
-                     for (l in labels) l.boundsInLocalProperty() attach { userModeWidthcccWidth.value = labels.sumOf { it.boundsInLocal.width } + 2*spacing }
+                     for (l in labels) l.boundsInLocalProperty() attach { userModeWidth.value = labels.sumOf { it.boundsInLocal.width } + 2*spacing }
                   }
                }
             }

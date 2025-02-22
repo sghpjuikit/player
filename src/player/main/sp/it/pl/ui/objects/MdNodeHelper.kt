@@ -6,23 +6,18 @@ import javafx.geometry.Pos.BOTTOM_RIGHT
 import javafx.scene.Node
 import javafx.scene.input.Clipboard
 import javafx.scene.input.DataFormat.PLAIN_TEXT
-import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.web.WebView
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.toNodeMermaid
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.ui.drag.set
 import sp.it.util.ui.lay
-import sp.it.util.ui.maxSize
-import sp.it.util.ui.prefSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
 import sp.it.util.ui.textFlow
-import sp.it.util.ui.x2
 
 fun FencedCodeBlock.toNode(): Node =
    when (info.toString().trim().lowercase()) {

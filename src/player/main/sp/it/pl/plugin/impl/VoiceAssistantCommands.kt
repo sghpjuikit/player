@@ -140,8 +140,8 @@ internal fun VoiceAssistant.voiceCommandsPrompt(): String =
 suspend fun SpeakContext.voiceCommandShowEmote(text: String): ComMatch =
    if (matches(text)) {
       if (text != "show-emote none") {
-         val e = text.substringAfter("show-emote ").replace(" ", "_")
-         val f = VoiceAssistant.dir / "emotes" / text.substringAfter("show-emote ").replace(" ", "_")
+         val e = text.substringAfter("show-emote ")
+         val f = VoiceAssistant.dir / "emotes" / e.replace(" ", "_").replace("emotes\\", "").replace("emotes/", "")
          val fExists = IO { f.exists() }
          if (fExists) {
             APP.plugins.use<Notifier> {

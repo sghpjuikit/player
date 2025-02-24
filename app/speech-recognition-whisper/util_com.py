@@ -439,7 +439,7 @@ class PythonExecutor:
                 speak('Recording started')
                 execCode('com_record', in_name=name)
                 speak('Recording finished')
-            def controlMusic(*action: object):
+            def controlMusicPlayback(*action: object):
                 command("playback " + ', '.join(map(str, action)))
             def controlLights(*action: object):
                 command("hue lights " + ', '.join(map(str, action)))
@@ -672,7 +672,7 @@ def recordVoice() -> None:
  'records user to define new verified speaker'
 def saveClipboardImage() -> str | None:
  'saves captured image from clipboard (if any) into a file and returns the path or None on error'
-def controlMusic(action: str) -> None:
+def controlMusicPlayback(action: str) -> None:
  'adjust music playback in way described by the action (free text), do not skim details, pass user's entire intent'
 def controlLights(action: str) -> None:
  'adjust or query lights system in way described by the action (free text providing as much details like room, group, scene, light properties, user's intent, etc. as possible)'

@@ -193,9 +193,10 @@ class VoiceAssistant: PluginBase() {
             "audio-out=${audioOuts().replace("\"", "\\\"")}",
             "parent-process=${ProcessHandle.current().pid()}",
             "speech-on=${ttsOn.value}",
-            "speech-engine=${ttsEngine.value.code}",
+            "tts-engine=${ttsEngine.value.code}",
             "coqui-voice=${ttsEngineCoquiVoice.value}",
             "coqui-cuda-device=${ttsEngineCoquiCudaDevice.value}",
+            "tts-kokoro-device=${ttsEngineKokoroDevice.value}",
             "speech-server=${ttsEngineHttpUrl.value}",
             "llm-engine=${llmEngine.value.code}",
             "llm-gpt4all-model=${llmGpt4AllModel.value}",
@@ -624,6 +625,15 @@ class VoiceAssistant: PluginBase() {
          info = "Torch device for speech generation when using ${TtsEngine.COQUI.nameUi} speech engine."
       )
 
+   /** [TtsEngine.KOKORO] torch device used to transcribe voice to text */
+   val ttsEngineKokoroDevice by cv("cpu")
+      .noUi()
+      .values(listOf("cpu", "cuda"))
+      .def(
+         name = "Device",
+         info = "Device for speech generation when using ${TtsEngine.KOKORO.nameUi} speech engine."
+      )
+
    /** Speech server address and port to connect to. */
    val ttsEngineHttpUrl by cv("localhost:1236")
       .noUi()
@@ -636,6 +646,7 @@ class VoiceAssistant: PluginBase() {
    internal val ttsEngineDetails by cvNest(ttsEngine) {
       when (it) {
          TtsEngine.COQUI -> ListConfigurable.heterogeneous(::ttsEngineCoquiVoice.getDelegateConfig(), ::ttsEngineCoquiCudaDevice.getDelegateConfig())
+         TtsEngine.KOKORO -> ListConfigurable.heterogeneous(::ttsEngineKokoroDevice.getDelegateConfig())
          TtsEngine.HTTP -> ListConfigurable.heterogeneous(::ttsEngineHttpUrl.getDelegateConfig())
          null, TtsEngine.NONE, TtsEngine.SYSTEM, TtsEngine.TACOTRON2, TtsEngine.SPEECHBRAIN, TtsEngine.FASTPITCH -> ListConfigurable.heterogeneous<Any?>()
       }
@@ -847,7 +858,7 @@ class VoiceAssistant: PluginBase() {
       val processChangeVals = listOf<V<*>>(
          micChanges, micVoiceDetect, micVoiceDetectDevice, audioOutChanges,
          sttEngine, sttWhisperModel, sttWhisperDevice, sttWhisperSt2Model, sttWhisperSt2Device, sttFasterWhisperModel, sttFasterWhisperDevice, sttNemoModel, sttNemoDevice, sttHttpUrl,
-         ttsEngine, ttsEngineCoquiCudaDevice, ttsEngineHttpUrl,
+         ttsEngine, ttsEngineCoquiCudaDevice, ttsEngineKokoroDevice, ttsEngineHttpUrl,
          llmEngine, llmGpt4AllModel,
          httpUrl
       )
@@ -1052,10 +1063,11 @@ class VoiceAssistant: PluginBase() {
 
    enum class TtsEngine(val code: String, override val nameUi: String, override val infoUi: String): NameUi, InfoUi {
       NONE("none", "None", "No voice"),
-      SYSTEM("os", "System", "System voice. Fully offline"),
-      COQUI("coqui", "Coqui", "Voice using huggingface.co/coqui/XTTS-v2 model. Fully offline"),
-      TACOTRON2("tacotron2", "Tacotron2", "Voice using pytorch.org/hub/nvidia_deeplearningexamples_tacotron2 model. Fully offline"),
-      SPEECHBRAIN("speechbrain", "Speechbrain", "Voice using speechbrain/tts-tacotron2-ljspeech + speechbrain/tts-hifigan-ljspeech model. Fully offline"),
+      SYSTEM("os", "System", "System voice. Fully offline. Fast, bad quality."),
+      COQUI("coqui", "Coqui", "Voice using huggingface.co/coqui/XTTS-v2 model. Fully offline. Slow, good quality + voice cloning."),
+      KOKORO("kokoro", "Kokoro", "Voice using https://huggingface.co/hexgrad/Kokoro-82M model. Fully offline. Fast, great quality."),
+      TACOTRON2("tacotron2", "Tacotron2", "Voice using pytorch.org/hub/nvidia_deeplearningexamples_tacotron2 model. Fully offline. Slow, great quality."),
+      SPEECHBRAIN("speechbrain", "Speechbrain", "Voice using speechbrain/tts-tacotron2-ljspeech + speechbrain/tts-hifigan-ljspeech model. Fully offline. Slow, great quality."),
       FASTPITCH("fastpitch", "Fastpitch", "Voice using Nvidia's fastpitch. Fully offline"),
       HTTP("http", "Http server", "Voice using different instance of this application with speech server enabled"),
    }

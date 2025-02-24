@@ -369,9 +369,9 @@ It is simply a service to intelligently convert input into output.
 
 ## Installation
 
-1. Install python >= `3.11`
+1. Install python == `3.11`
 2. Install python dependencies
-   - torch & torchaudio
+   - `torch` & `torchaudio`
        - install correct version depending on your sw/hw https://pytorch.org/get-started/locally 
    - general specific
     ```
@@ -391,36 +391,38 @@ It is simply a service to intelligently convert input into output.
     pip3 install pycaw==20240210
     ```
 3. Install desired tts module:
-    1. **TtsOs** requires https://github.com/Akul-AI/rlvoice-1
-        - `pip3 install rlvoice-1==1.3.4`
-        - on Linux also needs `sudo apt update && sudo apt install espeak ffmpeg libespeak1`
-        - on OsX also needs `pip3 install pyobjc==9.0.1`
-    2. **TtsCoqui** requires https://github.com/idiap/coqui-ai-TTS
-        - `pip3 install coqui-tts==0.25.3`
-        - Download XTTSv2 model
-           - the following files into [models-coqui](models-coqui) directory
-               - `config.json`
-               - `hash.md5`
-               - `model.pth`
-               - `vocab.json`
-           - agree to the terms and conditions in [models-coqui](models-coqui) directory by
-               - creating `tos_agreed.txt` file with content `I have read, understood and agreed to the Terms and Conditions.`
-    3. **TtsTacotron2**
-        - TODO
-    4. **TtsSpeecBrain** 
-        - TODO
-    5. **TtsFastpitch** 
-        - TODO
+   1. **TtsOs** requires https://github.com/Akul-AI/rlvoice-1
+      - `pip3 install rlvoice-1==1.3.4`
+      - on Linux also needs `sudo apt update && sudo apt install espeak ffmpeg libespeak1`
+      - on OsX also needs `pip3 install pyobjc==9.0.1`
+   2. **TtsKokoro** requires https://huggingface.co/hexgrad/Kokoro-82M
+      - `pip3 install kokoro==0.7.16`
+   3. **TtsCoqui** requires https://github.com/idiap/coqui-ai-TTS
+      - `pip3 install coqui-tts==0.25.3`
+      - Download XTTSv2 model
+         - the following files into [models-coqui](models-coqui) directory
+            - `config.json`
+            - `hash.md5`
+            - `model.pth`
+            - `vocab.json`
+         - agree to the terms and conditions in [models-coqui](models-coqui) directory by
+            - creating `tos_agreed.txt` file with content `I have read, understood and agreed to the Terms and Conditions.`
+   4. **TtsTacotron2**
+      - TODO
+   5. **TtsSpeecBrain** 
+      - TODO
+   6. **TtsFastpitch** 
+      - TODO
 4. Install desired stt [module](#tts-text-to-speech):
 5. Install desired llm module:
-    1. **LlmOpenAi** requires https://github.com/openai/openai-python
-        - `pip3 install openai==1.63.2` 
-    2. **LlmGpt4All** requires https://github.com/nomic-ai/gpt4all/releases/tag/v2.7.5
-        - `pip3 install gpt4all==2.6.0` 
-        - Download LLM model for [GPT4All](https://gpt4all.io/index.html) (optional)
-            - model is required only for conversation feature 
-                - into the [models-gpt4all](models-gpt4all) directory
-                - for example from [official source](https://gpt4all.io/models/models.json)
+   1. **LlmOpenAi** requires https://github.com/openai/openai-python
+      - `pip3 install openai==1.63.2` 
+   2. **LlmGpt4All** requires https://github.com/nomic-ai/gpt4all/releases/tag/v2.7.5
+      - `pip3 install gpt4all==2.6.0` 
+      - Download LLM model for [GPT4All](https://gpt4all.io/index.html) (optional)
+         - model is required only for conversation feature 
+            - into the [models-gpt4all](models-gpt4all) directory
+            - for example from [official source](https://gpt4all.io/models/models.json)
 
 ## Running
 
@@ -434,14 +436,14 @@ Setup microphone sensitivity through UI or using micrphone verbose settings.
 Control program though [CLI](#input-format-optional).
 
 Try speech recognition model (`base.en` should be absolutely enough.
-For speech generation try offline `speech-engine=coqui`.
+For speech generation try offline `tts-engine=coqui`.
 
 For llm chat try `llm-engine=openai` with [LmStudio](https://lmstudio.ai) and run it simply as server (everything should work out of the box).
 Use `Meta-Llama-3.1-8B-Instruct` model.
 
 #### Specialized setup
 It is possible to run only particular features, using `SttNone, LlmNone, TtsNone, mic-enabled=false`. For example:
-- Only stt: `python main.py  llm-engine=none speech-engine=none stt-engine=whisper stt-whisper-model=tiny.en`
+- Only stt: `python main.py llm-engine=none tts-engine=none stt-engine=whisper stt-whisper-model=tiny.en`
 
 #### Network setup
 It is possible to offload or provide AI computation on different machine, using another instance of this application,
@@ -546,8 +548,8 @@ Java does not recognize `\u2028` as newline, which can also be leveraged.
 Output is streamed token by token. Consumer may want to read by token instead of lines.
 
 ### Input format (optional)
-- `SAY-LINE: text` and speaks it (if `speech-engine` is not `none`)
-- `SAY: $base64_encoded_text` and speaks it (if `speech-engine` is not `none`)
+- `SAY-LINE: text` and speaks it (if `tts-engine` is not `none`)
+- `SAY: $base64_encoded_text` and speaks it (if `tts-engine` is not `none`)
 - `CHAT: $base64_encoded_text` and send it to chat (if `llm-engine` is not `none`)
 
 Text for `SAY` and `CHAT` must be base64 encoded so it can contain multiline and special characters.

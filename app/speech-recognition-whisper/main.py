@@ -4,7 +4,7 @@ from datetime import datetime
 from threading import Timer
 from itertools import chain
 from util_http_handlers import *
-from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch
+from util_tts import Tts, TtsNone, TtsOs, TtsCoqui, TtsHttp, TtsTacotron2, TtsSpeechBrain, TtsFastPitch, TtsKokoro
 from util_llm import ChatProceed, ChatIntentDetect, ChatReact, ChatPaste
 from util_stt import SttNone, SttWhisper, SttFasterWhisper, SttWhisperS2T, SttNemo, SttHttp, SpeechText
 from util_mic import Mic, Vad, MicVoiceDetectNone, MicVoiceDetectNvidia, SpeechStart, Speech
@@ -57,8 +57,8 @@ This script outputs to stdout (token by token):
     - recognized user command, in format `COM: $SPEAKER:$LOCATION:$command`
 
 This script takes (optional) input:
-    - `SAY-LINE: $line-of-text` and speaks it (if `speech-engine` is not `none`)
-    - `SAY: $base64_encoded_text` and speaks it (if `speech-engine` is not `none`)
+    - `SAY-LINE: $line-of-text` and speaks it (if `tts-engine` is not `none`)
+    - `SAY: $base64_encoded_text` and speaks it (if `tts-engine` is not `none`)
     - `CHAT: $base64_encoded_text` and send it to chat (if `llm-engine` is not `none`)
 
 This scrip terminates:
@@ -176,10 +176,11 @@ Args:
     When false, speech synthesis will receive no input and will not do anything.
     Default: True
 
-  speech-engine=$engine
+  tts-engine=$engine
     Engine for speaking.
     - Use 'none' for no text to speech
-    - Use 'os' to use built-in OS text-to-speech (offline, high performance, low quality)
+    - Use 'os' to use built-in OS text-to-speech (offline, very fast, low quality)
+    - Use 'kokoro' to use Kokoro text-to-speech (offline, very fast, high quality)
     - Use 'coqui' to use xttsv2 model (offline, low performance, realistic quality)
       optionally specify coqui-voice
     - Use 'tacotron2' to use tacotron2 (offline, realistic quality)
@@ -197,7 +198,11 @@ Args:
   coqui-cuda-device=$device
     If speaking-engine=coqui is used, optionally cuda device index or empty string for auto.
     Default: ''
-  
+
+  tts-kokoro-device=$device
+    'cpu' or 'cuda' (does not support specifying exact cuda device)
+    Default: 'cpu'
+
   speech-server=$host:$port
     If speaking-engine=http is used, host:port of the speech generation API of the other instance of this application
     Default: 'localhost:1236'
@@ -297,9 +302,10 @@ CTX.location = mainLocation
 (argSttHttpUrl, sttHttpUrl) = arg('stt-http-url', 'localhost:1235')
 
 (argTtsOn, ttsOn) = arg('speech-on', "true", lambda it: it=="true")
-(argTtsEngineType, ttsEngineType) = arg('speech-engine', 'os')
+(argTtsEngineType, ttsEngineType) = arg('tts-engine', 'os')
 (argTtsCoquiVoice, ttsCoquiVoice) = arg('coqui-voice', 'Ann_Daniels.flac')
 (argTtsCoquiCudaDevice, ttsCoquiCudaDevice) = arg('coqui-cuda-device', '')
+(argTtsKokoroDevice, ttsKokoroDevice) = arg('tts-kokoro-device', 'cpu')
 (argTtsTacotron2Device, ttsTacotron2Device) = arg('tacotron2-cuda-device', '')
 (argTtsHttpUrl, ttsHttpUrl) = arg('speech-server', 'localhost:1236')
 
@@ -328,6 +334,8 @@ if ttsEngineType == 'none':
     speakEngine = TtsNone(write)
 elif ttsEngineType == 'os':
     speakEngine = TtsOs(write)
+elif ttsEngineType == 'kokoro':
+    speakEngine = TtsKokoro(ttsKokoroDevice, write)
 elif ttsEngineType == 'coqui':
     speakEngine = TtsCoqui(ttsCoquiVoice, "cuda" if len(ttsCoquiCudaDevice)==0 else ttsCoquiCudaDevice, write)
 elif ttsEngineType == 'tacotron2':
@@ -335,7 +343,7 @@ elif ttsEngineType == 'tacotron2':
 elif ttsEngineType == 'speechbrain':
     speakEngine = TtsSpeechBrain("cuda" if len(ttsTacotron2Device)==0 else ttsTacotron2Device, write)
 elif ttsEngineType == 'http':
-    if len(ttsHttpUrl)==0: raise AssertionError('speech-engine=http requires speech-server to be specified')
+    if len(ttsHttpUrl)==0: raise AssertionError('tts-engine=http requires speech-server to be specified')
     ttsHttpUrl = ttsHttpUrl.removeprefix("http://").removeprefix("https://")
     if ':' not in ttsHttpUrl: raise AssertionError('speech-server must be in format host:port')
     host, _, port = ttsHttpUrl.partition(":")

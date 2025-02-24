@@ -87,6 +87,7 @@ import sp.it.util.async.coroutine.VT
 import sp.it.util.async.coroutine.invokeTry
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.coroutine.toSubscription
+import sp.it.util.async.runFX
 import sp.it.util.async.runLater
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.setTo
@@ -154,6 +155,7 @@ import sp.it.util.ui.textFlow
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.em
+import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -180,7 +182,7 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
    val chatNodes = mutableListOf<Node>()
    val chatNodesRootScroll = scrollPane()
    val chatNodesRoot = vBox()
-   fun chatNodesScrollUpdate(autoscroll: Boolean) = if (autoscroll) runLater { chatNodesRootScroll.vvalue = 1.0 } else Unit
+   fun chatNodesScrollUpdate(autoscroll: Boolean) = if (autoscroll) runFX(25.millis) { chatNodesRootScroll.vvalue = 1.0 } else Unit
    fun chatNodesInit() {
       mode sync {
          chatNodesRoot.children setTo (

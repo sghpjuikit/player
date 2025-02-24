@@ -222,8 +222,10 @@ class VoiceAssistantWidget(widget: Widget): SimpleController(widget) {
                OutputType.USER_RAW -> "LOG" to "USER-RAW: "
                else -> state to state+": "
             }
-            val isCodeBlock =
-               it.postProcess(state + ": ").trim().net { it.length>6 && it.startsWith("```") && it.endsWith("```") }   // codeblock is emitted as single event
+            val isCodeBlock = it.postProcess(state + ": ").trim().net {
+               // codeblock is emitted as single event so entire block must be available
+               it.length>6 && it.startsWith("```") && it.endsWith("```") && it.count { it!='`' && it!='\n' }>0
+            }
             fun codeBlock(s: String) = s.trim().net {
                FencedCodeBlock(BasedSequence.NULL, BasedSequence.NULL, BasedSequence.of(it.substringBefore('\n')), listOf(BasedSequence.of(it.substringAfter('\n'))), BasedSequence.NULL)
             }

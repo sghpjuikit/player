@@ -371,31 +371,32 @@ It is simply a service to intelligently convert input into output.
 
 1. Install python >= `3.11`
 2. Install python dependencies
+   - torch & torchaudio
+       - install correct version depending on your sw/hw https://pytorch.org/get-started/locally 
+   - general specific
     ```
-    pip3 install sounddevice
-    pip3 install soundfile
+    pip3 install sounddevice==0.5.1
+    pip3 install soundfile==0.13.1
     pip3 install pysilero-vad
-    pip3 install psutil
-    pip3 install pyperclip
-    pip3 install pyautogui
-    pip3 install pygetwindow
-    pip3 install stream2sentence
-    pip3 install torch
-    pip3 install torchaudio
-    pip3 install scipy
-    pip3 install librosa
+    pip3 install psutil==7.0.0
+    pip3 install pyperclip==1.8.2
+    pip3 install PyAutoGUI==0.5.94
+    pip3 install PyGetWindow==0.0.9
+    pip3 install stream2sentence==0.2.5
+    pip3 install scipy==1.13.1
+    pip3 install librosa==0.10.1
     ```
    - Windows specific
     ```
-    pip3 install pycaw
+    pip3 install pycaw==20240210
     ```
 3. Install desired tts module:
     1. **TtsOs** requires https://github.com/Akul-AI/rlvoice-1
-        - `pip install rlvoice-1`
+        - `pip3 install rlvoice-1==1.3.4`
         - on Linux also needs `sudo apt update && sudo apt install espeak ffmpeg libespeak1`
-        - on OsX also needs `pip install pyobjc==9.0.1`
+        - on OsX also needs `pip3 install pyobjc==9.0.1`
     2. **TtsCoqui** requires https://github.com/idiap/coqui-ai-TTS
-        - `pip install coqui-tts==0.24.3`
+        - `pip3 install coqui-tts==0.25.3`
         - Download XTTSv2 model
            - the following files into [models-coqui](models-coqui) directory
                - `config.json`
@@ -413,9 +414,9 @@ It is simply a service to intelligently convert input into output.
 4. Install desired stt [module](#tts-text-to-speech):
 5. Install desired llm module:
     1. **LlmOpenAi** requires https://github.com/openai/openai-python
-        - `pip install openai==1.63.2` 
+        - `pip3 install openai==1.63.2` 
     2. **LlmGpt4All** requires https://github.com/nomic-ai/gpt4all/releases/tag/v2.7.5
-        - `pip install gpt4all==2.6.0` 
+        - `pip3 install gpt4all==2.6.0` 
         - Download LLM model for [GPT4All](https://gpt4all.io/index.html) (optional)
             - model is required only for conversation feature 
                 - into the [models-gpt4all](models-gpt4all) directory
@@ -589,7 +590,7 @@ TLDR is - if you have Nvidia GPU and enough VRAM, always run `Nvidia Nemo` over 
 #### SttWhisper
 Install
 - requires https://github.com/openai/whisper
-- `pip install openai-whisper==20240930`
+- `pip3 install openai-whisper==20240930`
 - model will be downloaded automatically, but you can do so manually
 - Download OpenAi Whisper [models](https://github.com/openai/whisper#available-models-and-languages) (optional)
 - into the [models-whisper](models-whisper) directory
@@ -598,17 +599,17 @@ Install
 #### SttWhisperS2T
 Install
 - requires https://github.com/shashikg/WhisperS2T (`CTranslate2` backend)
-- `pip install whisper-s2t`
+- `pip3 install whisper-s2t==1.3.1`
 - model will be downloaded automatically
 
 #### SttFasterWhisper requires https://github.com/SYSTRAN/faster-whisper
 Install
-- `pip install faster-whisper`
+- `pip3 install faster-whisper==1.0.2`
 - model will be downloaded automatically
 
 #### SttNemo
 Install
-- `pip install nemo_toolkit[asr]`
+- `pip3 install nemo_toolkit[asr]==1.21.0`
 
 Nemo is of higher quality while being faster than even the best whisper-large model.
 In addition, it has no hallucinations for non-speech input.
@@ -631,11 +632,6 @@ Sounds robotic and has high delay, but is accessible on any system and has low h
 Uses xttsv2 model (offline, low performance, realistic quality).
 It supports voice cloning and real-time streaming.
 However it is slower, has problems speaking numbers and short sentences, and sometimes hallucinates. 
-
-```
-pip install torch
-pip install TTS
-```
 
 Guide to create/clone/configure voices is in [voices-coqui/REaDME.md](voices-coqui/README.md)
 

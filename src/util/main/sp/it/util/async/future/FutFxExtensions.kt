@@ -7,7 +7,7 @@ import sp.it.util.functional.Try
 import sp.it.util.units.uuid
 
 /**
- * Blocks curent [FX] execution after this future completes and returns result or throws exception.
+ * Blocks curent [FX] execution until this future completes and returns result or throws exception.
  * The [FX] is not actually blocked, see [Platform.enterNestedEventLoop] and [Platform.exitNestedEventLoop].
  */
 @Suppress("UNCHECKED_CAST")
@@ -22,7 +22,7 @@ fun <T> Fut<T>.awaitFx(): T {
 }
 
 
-/** [awaitFX] or [blockAndGetOrThrow] depending on which thread this is called. */
+/** [awaitFX] if [Platform.isFxApplicationThread] else [blockAndGetOrThrow]. */
 @Suppress("UNCHECKED_CAST")
 fun <T> Fut<T>.awaitFxOrBlock(): T =
    if (Platform.isFxApplicationThread()) awaitFx() else blockAndGetOrThrow()

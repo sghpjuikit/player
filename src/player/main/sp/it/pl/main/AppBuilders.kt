@@ -7,6 +7,7 @@ import java.net.URL
 import java.net.URLEncoder
 import java.nio.file.Path
 import java.util.Optional
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import javafx.animation.ParallelTransition
 import javafx.beans.property.Property
@@ -50,6 +51,8 @@ import kotlin.reflect.KTypeProjection.Companion.invariant
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmName
 import kotlin.streams.asSequence
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.ui.LabelWithIcon
 import sp.it.pl.ui.objects.SpitText
@@ -88,6 +91,7 @@ import sp.it.util.animation.Anim.Interpolators.Companion.geomElastic
 import sp.it.util.animation.Anim.Interpolators.Companion.sym
 import sp.it.util.async.FX
 import sp.it.util.async.IO
+import sp.it.util.async.coroutine.delay
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.collections.collectionUnwrap
@@ -612,7 +616,6 @@ fun <T: Any> FilteredTable<T>.tableViewForClassInitialize(block: FilteredTable<T
 
 fun resizeIcon(): Icon = Icon(IconMD.RESIZE_BOTTOM_RIGHT).apply {
    cursor = Cursor.SE_RESIZE
-   isAnimated.value = false
    isFocusTraversable = false
    styleclass("resize-content-icon")
 }
@@ -900,27 +903,4 @@ object AppAnimator: AnimationBuilder() {
          playAgainIfFinished = false
       }
    }
-}
-
-class DelayAnimator: AnimationBuilder() {
-   override val key = "ANIMATION_OPEN_CLOSE_DELAYED"
-   private val animDelay = AtomicLong(0)
-   private val animDelayResetter = EventReducer.toLast<Unit>(200.0) { animDelay.set(0) }
-
-   override fun computeDelay(): Duration = (animDelay.get()*300.0).millis
-
-   override fun closeAndDo(n: Node, action: (() -> Unit)?): Anim {
-      val a = super.closeAndDo(n, action)
-      animDelayResetter()
-      return a
-   }
-
-   override fun openAndDo(n: Node, action: (() -> Unit)?): Anim {
-      val a = super.openAndDo(n, action)
-      animDelay.incrementAndGet()
-      animDelayResetter()
-      return a
-   }
-
-   override fun buildAnimation(n: Node) = AppAnimator.buildAnimation(n)
 }

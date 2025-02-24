@@ -385,7 +385,7 @@ class WidgetManager {
          if (srcFilesAvailable) {
             if (classFilesAvailable) {
                createControllerClassLoader(compileDir, findLibFiles())
-               val controllerType = computeClassFqName(srcFile!!).andAlso { loadClass(it, compileDir, findLibFiles()) }
+               val controllerType = computeClassFqName(srcFile).andAlso { loadClass(it, compileDir, findLibFiles()) }
                registerFactory(controllerType)
             } else {
                compileFx()
@@ -1002,14 +1002,6 @@ interface ComponentLoader {
          c.focus()
 
          p.show(WINDOW_ACTIVE(Pos.CENTER).copy(owner = window))
-
-         // This helps certain cases, when pref size basically becomes min size
-         p.onShown += {
-            runLater {
-               if (c is Widget)
-                  c.controller?.uiRoot()?.setMinPrefMaxSize(200.0, 200.0)
-            }
-         }
 
          return p
       }

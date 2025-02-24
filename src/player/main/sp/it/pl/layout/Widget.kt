@@ -2,6 +2,7 @@ package sp.it.pl.layout
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
+import java.time.Instant
 import java.util.Objects
 import java.util.UUID
 import javafx.beans.property.ReadOnlyBooleanWrapper
@@ -12,6 +13,7 @@ import javafx.scene.layout.Pane
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.ANNOTATION_CLASS
 import kotlin.annotation.AnnotationTarget.CLASS
+import kotlin.system.measureTimeMillis
 import org.jetbrains.annotations.Blocking
 import sp.it.pl.layout.WidgetIoManager.requestWidgetIOUpdate
 import sp.it.pl.layout.controller.Controller
@@ -23,6 +25,8 @@ import sp.it.pl.layout.controller.io.Input
 import sp.it.pl.main.APP
 import sp.it.util.Locatable
 import sp.it.util.access.readOnly
+import sp.it.util.async.future.Fut
+import sp.it.util.async.future.awaitFx
 import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource
@@ -38,6 +42,7 @@ import sp.it.util.conf.noPersist
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
+import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.del
 import sp.it.util.file.div
 import sp.it.util.file.json.JsNull
@@ -47,6 +52,7 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.attach
@@ -58,6 +64,7 @@ import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.removeFromParent
+import sp.it.util.units.millis
 
 /**
  * Widget graphical component with a functionality.
@@ -239,6 +246,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    /** Initializes (if not yet) and returns non-null [controller] and [graphics]. */
    @Idempotent
    override fun load(): Node {
+      failIfNotFxThread()
       if (graphics==null) {
          controller = controller ?: instantiateController()
          if (controller==null) {

@@ -532,7 +532,7 @@ class AssistBasic:
                     needed = self.reactIdle_last_at < self.activity_last_at
                     if needed:
                         self.reactIdle_last_at = time.time()
-                        llm(ChatReact(llmPromptSys, f"User has not responded in {self.reactIdleDelay}s. Seek response in 1-5 very few words.", "Hello?"), CTX_SYS)
+                        llm(ChatReact(llmPromptSys, f"User has not responded in {self.reactIdleDelay}s. Seek response in 1-3 words, ideally question or onomatopoeyea.", "Hello?"), CTX_SYS)
             except: print_exc()
 
             # restart on log idle

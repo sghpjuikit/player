@@ -657,7 +657,6 @@ class TtsKokoro(TtsBase):
 
         # init
         from kokoro import KPipeline
-        from IPython.display import display, Audio
         import soundfile as sf
         import numpy as np
         import torch

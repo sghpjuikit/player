@@ -223,7 +223,7 @@ class VoiceAssistant: PluginBase() {
             "http-ui-url=${APP.http.urlLocal}/voice-assistent-ui/event",
             "use-python-commands=${usePythonCommands.value}",
          ))
-         logger.info { "Starting voice assistant python with command=${command.joinToString(" ")}" }
+         logger.info { "Starting voice assistant python with command=${command.joinToString(" ") { it.replace("\n", "\\\\n") }}" }
 
          val process = ProcessBuilder(command)
             .directory(dir)

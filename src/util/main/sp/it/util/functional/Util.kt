@@ -277,7 +277,7 @@ inline fun <reified T> Any?.ifIs(block: (T) -> Unit) = apply { if (this is T) bl
 /** Invokes the block if this is null and returns this value. */
 inline fun <T> T?.ifNull(block: () -> Unit) = apply { if (this==null) block() }
 
-/** Invokes the block if this is null and returns this value. */
+/** Invokes the block if this is not null and returns this value. */
 inline fun <T> T?.ifNotNull(block: (T) -> Unit) = apply { if (this!=null) block(this) }
 
 /** Invokes the block if this is true and returns this value. */
